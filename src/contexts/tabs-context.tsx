@@ -3,6 +3,7 @@ import type { MutableRefObject } from "react"
 import type { Note } from "@/types/types"
 import type { TabsBridge } from "./workspace-data/types"
 import { initialLayoutState, layoutReducer, type LayoutState } from "@/lib/tabs/layout-reducer"
+import { WHATS_NEW_TAB_ID } from "@/lib/tabs/virtual-tabs"
 import { createTabUiStore } from "./tab-ui-store"
 import { TabsProviders } from "./tabs-providers"
 import { useLayoutPersistence } from "./use-layout-persistence"
@@ -61,7 +62,7 @@ export function TabsProvider({ notes, workspaceId, bridgeRef, children }: TabsPr
         lastNotesKey.current = key
         // Nothing to prune before the first notes list arrives
         if (first || !changed) return
-        dispatch({ type: "prune", existing: new Set(notes.map(note => note.id)) })
+        dispatch({ type: "prune", existing: new Set([WHATS_NEW_TAB_ID, ...notes.map(note => note.id)]) })
     }, [notes])
 
     const restored = useLayoutPersistence(state, dispatch, workspaceId, notes)

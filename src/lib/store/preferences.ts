@@ -250,6 +250,8 @@ export const APP_PREFS = {
     splitRatio: def<number>({ key: "splitRatio", default: DEFAULT_SPLIT_RATIO, normalize: value => isFiniteNumber(value) ? clampRatio(value, Infinity) : DEFAULT_SPLIT_RATIO }),
     lastWorkspaceId: def<number | null>({ key: "lastWorkspaceId", default: null, normalize: value => typeof value === "number" ? value : null }),
     skippedUpdateVersion: def<string | null>({ key: "skippedUpdateVersion", default: null, normalize: value => typeof value === "string" && value.length > 0 ? value : null }),
+    /** The version of the app whose news were last shown in a tab (null = never, i.e. a first installation). */
+    lastSeenVersion: def<string | null>({ key: "lastSeenVersion", default: null, normalize: value => typeof value === "string" && value.length > 0 ? value : null }),
     checkUpdatesOnStartup: def({ key: "checkUpdatesOnStartup", default: true }),
     autoBackup: def({ key: "autoBackup", default: true }),
     backupKeep: def<number>({ key: "backupKeep", default: DEFAULT_BACKUP_KEEP, normalize: clampBackupKeep }),
@@ -350,6 +352,8 @@ export const getCheckUpdatesOnStartup = () => getPref("checkUpdatesOnStartup")
 export const saveCheckUpdatesOnStartup = (value: boolean) => savePref("checkUpdatesOnStartup", value)
 export const getSkippedUpdateVersion = () => getPref("skippedUpdateVersion")
 export const saveSkippedUpdateVersion = (version: string | null) => savePref("skippedUpdateVersion", version)
+export const getLastSeenVersion = () => getPref("lastSeenVersion")
+export const saveLastSeenVersion = (version: string) => savePref("lastSeenVersion", version)
 export const getLastWorkspaceId = () => getPref("lastWorkspaceId")
 export const saveLastWorkspaceId = (id: number) => savePref("lastWorkspaceId", id)
 /** Forgets the last open workspace (e.g. after going back to the home). */

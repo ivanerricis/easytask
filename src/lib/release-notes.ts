@@ -31,3 +31,40 @@ export function selectReleaseNotes(body: string, language: NotesLanguage): strin
     const text = (lang: NotesLanguage) => (sections.get(lang) ?? []).join("\n").trim()
     return text(language) || text("en") || text("it")
 }
+
+/**
+ * The notes of one version in a changelog written like CHANGELOG.md: the lines under its "## [version]" heading, up to the
+ * next "## " heading.
+ * @param changelog The text of the changelog.
+ * @param version The version, as the app reports it (for example "0.19.0").
+ * @returns The notes of the version, or an empty string when the changelog has no section for it.
+ * @category Updater
+ */
+export function extractVersionNotes(changelog: string, version: string): string {
+    const lines: string[] = []
+    let inside = false
+    for (const line of changelog.split(/\r?\n/)) {
+        if (/^##\s/.test(line)) {
+            if (inside) break
+            inside = /^##\s+\[([^\]]+)\]/.exec(line)?.[1] === version
+            continue
+        }
+        if (inside) lines.push(line)
+    }
+    return lines.join("\n").trim()
+}
+
+/**
+ * The notes of a version that come with the app (the bundled CHANGELOG.md and CHANGELOG.it.md), in the given language.
+ * The changelog is loaded on demand, so it is not part of the first bundle.
+ * @param version The version of the app.
+ * @param language The language of the app.
+ * @returns The notes, or an empty string when the changelog has no section for the version.
+ * @category Updater
+ */
+export async function getBundledReleaseNotes(version: string, language: NotesLanguage): Promise<string> {
+    const changelog = language === "it"
+        ? (await import("../../CHANGELOG.it.md?raw")).default
+        : (await import("../../CHANGELOG.md?raw")).default
+    return extractVersionNotes(changelog, version)
+}

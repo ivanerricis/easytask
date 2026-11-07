@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import type { Update } from "@tauri-apps/plugin-updater"
 import { Download, ExternalLink, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UpdateInstallProgress, UpdateNotesBox } from "@/components/update-parts"
+import { UpdateInstallProgress } from "@/components/update-parts"
 import { useOpenReleasesPage } from "@/components/use-open-releases-page"
 import { isPortable } from "@/db/appPaths"
 import { useUpdateInstall } from "@/hooks/use-update-install"
@@ -85,7 +85,6 @@ export const UpdateSection = () => {
                     {status.kind === "available" && !installing && (
                         <>
                             <p>{t("settings.about.update.available", { version: status.update.version, current: status.update.currentVersion })}</p>
-                            {status.update.body?.trim() && <UpdateNotesBox body={status.update.body} />}
                             {portable ? (
                                 <>
                                     <p className="text-sm text-muted-foreground">{t("settings.about.update.portableHint")}</p>

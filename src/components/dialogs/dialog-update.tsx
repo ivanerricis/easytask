@@ -6,7 +6,7 @@ import { ACTION_TOAST_DURATION } from "@/lib/toast-trashed"
 import { Download, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { UpdateInstallProgress, UpdateNotesBox } from "@/components/update-parts"
+import { UpdateInstallProgress } from "@/components/update-parts"
 import { useUpdateInstall } from "@/hooks/use-update-install"
 import { isDialogOpen } from "@/components/dialog-open"
 import { useOpenReleasesPage } from "@/components/use-open-releases-page"
@@ -104,7 +104,6 @@ export const DialogUpdate = () => {
                     </DialogDescription>
                 </DialogHeader>
 
-                {update.body?.trim() && <UpdateNotesBox body={update.body} />}
                 {portable && <p className="text-sm text-muted-foreground">{t("settings.about.update.portableHint")}</p>}
 
                 {/* Always mounted so that screen readers announce the content when it is filled */}
