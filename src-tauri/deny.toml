@@ -19,18 +19,6 @@ ignore = [
     # { id = "RUSTSEC-0000-0000", reason = "transitive dependency of tauri, no patched version available" },
     # Same justification as src-tauri/.cargo/audit.toml
     { id = "RUSTSEC-2023-0071", reason = "rsa (Marvin attack, no fix available) is only reached through sqlx-mysql, which is in Cargo.lock because of sqlx-macros-core but is never compiled: the app uses SQLite only. Revisit when sqlx drops the lockfile entry." },
-    # Yanked on purpose by its maintainer (everything but 9.0.3) because of security advisories that are not public yet
-    # (https://github.com/zip-rs/zip2/issues/1075). Only reached through tauri-plugin-updater, which needs zip 4.x, so no
-    # compatible version exists. The updater checks the minisign signature of the download before extracting it.
-    # Revisit when tauri-plugin-updater moves to zip 9.0.3 or the advisories are published (due by the end of October 2026).
-    { crate = "zip@4.6.1", reason = "yanked by the maintainer for security fixes, pulled in by tauri-plugin-updater, no compatible version yet" },
-    # The advisories behind that yank (fixed in zip 9 only; tauri-plugin-updater 2.14 still needs zip 4.x). They are about
-    # extracting a malicious archive (SUID bits, symlinks out of the destination). The app ships unzipped updater
-    # artifacts (createUpdaterArtifacts: true, not "v1Compatible": the NSIS installer and the AppImage are downloaded as
-    # is), and every download is checked against the minisign key before use. Revisit with the zip@4.6.1 entry above.
-    { id = "RUSTSEC-2026-0367", reason = "zip 4.6.1 via tauri-plugin-updater, no compatible fix; updater artifacts are not zip archives and are signature-checked" },
-    { id = "RUSTSEC-2026-0368", reason = "zip 4.6.1 via tauri-plugin-updater, no compatible fix; updater artifacts are not zip archives and are signature-checked" },
-    { id = "RUSTSEC-2026-0369", reason = "zip 4.6.1 via tauri-plugin-updater, no compatible fix; updater artifacts are not zip archives and are signature-checked" },
 ]
 
 [licenses]
