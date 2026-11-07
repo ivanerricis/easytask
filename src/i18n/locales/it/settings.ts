@@ -285,6 +285,10 @@ export const settings = {
             label: "Continua ad aggiungere task",
             description: "Dopo aver creato un task resta aperto il campo per scrivere il successivo. Esc o un campo vuoto lo chiudono.",
         },
+        liveDrag: {
+            label: "Task che si spostano mentre li trascini",
+            description: "Trascinando un task gli altri si scostano per aprire lo spazio dove atterrerebbe. Se disattivato resta solo l'indicatore del punto di rilascio.",
+        },
         showTaskInsertLine: {
             label: "Linea per inserire un task",
             description: "Passando tra due task compare una linea con un + per inserire un nuovo task in quel punto.",

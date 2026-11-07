@@ -51,6 +51,7 @@ vi.mock("@/contexts/use-preferences", () => ({
         renameOnClick: true, setRenameOnClick: (value: boolean) => setRenameOnClick(value),
         keepAddingTasks: true, setKeepAddingTasks: vi.fn(),
         showTaskInsertLine: true, setShowTaskInsertLine: vi.fn(),
+        liveDrag: true, setLiveDrag: vi.fn(),
         undoLimit: 50, setUndoLimit: vi.fn(),
         hideCompletedTasks: false, setHideCompletedTasks: (value: boolean) => setHideCompletedTasks(value),
         completedTasksLast: false, setCompletedTasksLast: (value: boolean) => setCompletedTasksLast(value),
@@ -109,7 +110,7 @@ describe("DialogSettings", () => {
         await user.click(screen.getByRole("tab", { name: "Note e sezioni" }))
         expect(screen.getByRole("heading", { name: "Note e sezioni" })).toBeInTheDocument()
         expect(screen.getByLabelText("Mostra numero di task")).toBeInTheDocument()
-        expect(screen.getAllByRole("switch")).toHaveLength(17)
+        expect(screen.getAllByRole("switch")).toHaveLength(18)
         expect(screen.getByRole("switch", { name: "Nascondi task completati" })).not.toBeChecked()
         expect(screen.getByRole("switch", { name: "Mostra barra d'avanzamento nei gruppi" })).toBeChecked()
         expect(screen.getByRole("switch", { name: "Mostra il nome dei gruppi e delle sezioni senza nome" })).not.toBeChecked()

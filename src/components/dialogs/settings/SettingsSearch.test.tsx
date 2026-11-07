@@ -50,6 +50,7 @@ vi.mock("@/contexts/use-preferences", () => ({
         renameOnClick: true, setRenameOnClick: (value: boolean) => setRenameOnClick(value),
         keepAddingTasks: true, setKeepAddingTasks: vi.fn(),
         showTaskInsertLine: true, setShowTaskInsertLine: vi.fn(),
+        liveDrag: true, setLiveDrag: vi.fn(),
         undoLimit: 50, setUndoLimit: vi.fn(),
         hideCompletedTasks: false, setHideCompletedTasks: (value: boolean) => setHideCompletedTasks(value),
         completedTasksLast: false, setCompletedTasksLast: vi.fn(),
