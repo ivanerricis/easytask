@@ -3,7 +3,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { $, $$, browser } from "@wdio/globals"
 import {
-    byLabel, byText, domClick, hoverInsertZone, insertFields, insertZoneAbove, openContextMenu, sectionCard, setLastSeenVersion, templateEditorTab, topDialog, tr,
+    byLabel, byText, domClick, hoverInsertZone, insertFields, insertZoneAbove, openContextMenu, openSubmenu, sectionCard, setLastSeenVersion, templateEditorTab, topDialog, tr,
     treeRow, typeInto, waitForApp,
 } from "../helpers"
 import {
@@ -332,7 +332,14 @@ const tourFor = async (nextLang: Lang) => {
     await recover()
     await attempt("note-background", async () => {
         const menu = await openContextMenu($('[data-testid="note-background"]'))
-        await pickColor(menu, "#4363d8", async () => { await shot("note-background") }, "menu.noteBackground")
+        await pickColor(menu, "#4363d8", undefined, "menu.noteBackground")
+        await recover()
+        // The background is applied: reopen the menu with the submenu open for the capture
+        const again = await openContextMenu($('[data-testid="note-background"]'))
+        const swatch = byLabel(await tr("dialogs.color.swatch", { color: await tr("common.colors.c4") }))
+        await openSubmenu(again, await tr("menu.noteBackground"), swatch)
+        await shot("note-background")
+        await browser.keys(["Escape"])
         await recover()
         await browser.keys(["Control", "z"])    // Back to no background for the other captures
         await settle(400)
@@ -489,6 +496,7 @@ const tourFor = async (nextLang: Lang) => {
     })
 
     /* ---------------------------------------------------------------- clean up for the next language */
+    await goHome()
     await setAppearance("light", nextLang)
     for (const name of [n.wsMain, n.wsPersonal, n.wsHome]) {
         const menu = await openContextMenu(byLabel(await tr("home.workspace.open", { name })))
