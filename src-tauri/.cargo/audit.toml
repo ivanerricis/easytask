@@ -12,12 +12,6 @@ ignore = [
     # rsa (Marvin attack, no fix available) is only reached through sqlx-mysql, which is in Cargo.lock because of
     # sqlx-macros-core but is never compiled: the app uses SQLite only. Revisit when sqlx drops the lockfile entry.
     "RUSTSEC-2023-0071",
-    # zip 4.6.1 (archive extraction: SUID bits, symlinks out of the destination), fixed only in zip 9. Reached only through
-    # tauri-plugin-updater, which still needs zip 4.x. The updater artifacts are not zip archives (createUpdaterArtifacts:
-    # true) and are checked against the minisign key. Same entries in deny.toml; revisit when the updater moves to zip 9.
-    "RUSTSEC-2026-0367",
-    "RUSTSEC-2026-0368",
-    "RUSTSEC-2026-0369",
 ]
 # Informational advisories (unmaintained, unsound, notice) are reported as warnings and do not fail the job;
 # vulnerabilities and yanked crates do.
