@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-07
+
 ### Aggiunto
 
 - Colore di sfondo di una nota: clic destro sullo spazio vuoto di una nota e scegli **Sfondo della nota** per prendere un colore dalla stessa tavolozza usata altrove (o **Nessun colore** per toglierlo). Il colore è uno strato leggero sull'area della nota, si può annullare, e viene copiato duplicando la nota, dai template (creazione, aggiornamento, nuova nota da template, editor del template) e da esportazione e importazione (i file esportati prima di questa versione si importano ancora). Il database passa alla versione 13, e prima di migrare viene fatta una copia di sicurezza, come per ogni migrazione.
@@ -12,6 +14,7 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 ### Modificato
 
 - Le note di rilascio non compaiono più in Impostazioni > Informazioni né nella finestra di aggiornamento all'avvio: dopo l'aggiornamento si aprono nella scheda Novità.
+- Dipendenze aggiornate, tra cui la libreria di archivi usata dall'aggiornamento automatico, che corregge un avviso di sicurezza pubblicato (RUSTSEC-2026-0429).
 
 ## [0.18.0] - 2026-10-29
 
@@ -492,7 +495,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.15.0...v0.16.0

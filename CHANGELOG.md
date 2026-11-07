@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-07
+
 ### Added
 
 - Background color of a note: right click on the empty space of a note and choose **Note background** to pick a color from the same palette used elsewhere (or **No color** to remove it). The color is a light layer over the note area, can be undone, and is copied by duplicating the note, by templates (create, refresh, new note from a template, template editor) and by export and import (files exported before this version still import). The database moves to version 13, and a safety copy is taken before migrating, as for any migration.
@@ -14,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - The release notes are no longer shown in Settings > About or in the update dialog at startup: they open in the What's new tab after the update.
+- Dependencies updated, including the archive library used by the updater, which fixes a published security advisory (RUSTSEC-2026-0429).
 
 ## [0.18.0] - 2026-10-29
 
@@ -494,7 +497,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.15.0...v0.16.0
