@@ -14,6 +14,12 @@ updates:
       # Keep @types/node aligned with the Node major used by the project
       - dependency-name: "@types/node"
         update-types: [version-update:semver-major]
+      # wdio 10 needs all @wdio/* packages together and a rewrite of the e2e helpers
+      # (Browser.executeAsync removed, Element vs ChainablePromiseElement types)
+      - dependency-name: "@wdio/*"
+        update-types: [version-update:semver-major]
+      - dependency-name: webdriverio
+        update-types: [version-update:semver-major]
   - package-ecosystem: cargo
     directory: /src-tauri
     schedule:
