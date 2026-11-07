@@ -214,7 +214,7 @@ describe("Feedback of the drag at the edges of a group", () => {
             return { barWidth: bar, barLeft: box.right - bar, barRight: box.right, handleLeft: handle.left, handleRight: handle.right }
         }, await groupEl())
         expect(rects.barWidth).toBeGreaterThan(0)
-        // The handle ends where the scrollbar starts (or before)
-        expect(rects.handleRight).toBeLessThanOrEqual(rects.barLeft + 0.5)
+        // The handle sits outside the group: it must not overlap the scrollbar, i.e. start where the scrollbar ends (or after)
+        expect(rects.handleLeft).toBeGreaterThanOrEqual(rects.barRight - 0.5)
     })
 })
