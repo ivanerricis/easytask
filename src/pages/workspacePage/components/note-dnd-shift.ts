@@ -11,6 +11,7 @@ import { buildLiveSnapshot, type LiveNodeInfo, type LiveSnapshot } from "./note-
 export const SHIFT_DURATION = 150
 
 /** Attributes the wrapper carries so the layout (lists and parents) can be read back from the DOM. */
+/** Written by the task wrapper (Task.tsx) with these literal names. */
 export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section" } as const
 
 const nodes = new Map<string, HTMLElement>()
@@ -23,6 +24,9 @@ let frame = 0
 let cleanup: ReturnType<typeof setTimeout> | null = null
 
 const reducedMotion = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+
+/** Key of the wrapper of a task in the registry (the same as the droppable key of its row, see noteKey). */
+export const taskNodeKey = (taskId: number): string => `task-${taskId}`
 
 /** Registers (or, with null, forgets) the wrapper of a task. A ref callback: it must be the same function while the key is. */
 export function registerShiftNode(key: string, node: HTMLElement | null): void {

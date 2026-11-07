@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, registerShiftNode, shiftOf, SHIFT_ATTR, SHIFT_DURATION } from "./note-dnd-shift"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, registerShiftNode, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
 
 let frames: FrameRequestCallback[] = []
 const flushFrame = () => { const run = frames; frames = []; run.forEach(callback => callback(0)) }
@@ -151,6 +151,12 @@ describe("clearShifts", () => {
     it("is harmless when nothing was shifted", () => {
         expect(() => clearShifts(true)).not.toThrow()
         expect(hasShifts()).toBe(false)
+    })
+})
+
+describe("taskNodeKey", () => {
+    it("is the key of the droppable of the row", () => {
+        expect(taskNodeKey(7)).toBe("task-7")
     })
 })
 

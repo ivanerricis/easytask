@@ -17,6 +17,7 @@ import { taskRowsWithInsert } from "./task-insert-rows"
 import { useTaskInsertStore } from "./task-insert-state"
 import { DialogTaskDescription } from "./DialogTaskDescription"
 import { useNoteDrag, useNoteDrop } from "../note-dnd-state"
+import { registerShiftNode, taskNodeKey } from "../note-dnd-shift"
 import type { DropZone } from "../note-dnd"
 import { useIsTaskSelected, useSubtasksOpen } from "@/contexts/use-tabs"
 import { orderedVisibleTasks } from "../section/hide-completed"
@@ -57,6 +58,8 @@ type TaskProps = {
 type TaskRowProps = TaskProps & {
     /** Ref of the row: it is a drop target and a draggable (the hooks live in {@link Task}). */
     setRowRef: (node: HTMLElement | null) => void
+    /** Ref of the outer wrapper (the row and its subtasks): the live drag moves it with a transform, see note-dnd-shift. */
+    setWrapRef: (node: HTMLElement | null) => void
     dragProps: HTMLAttributes<HTMLElement>
     isDragging: boolean
     /**
@@ -81,10 +84,14 @@ export const Task = React.memo((props: TaskProps) => {
         setDragRef(node)
     }, [setDropRef, setDragRef])
 
-    return <TaskRow {...props} setRowRef={setRowRef} dragProps={dragProps} isDragging={isDragging} dropZone={active?.kind === "task" ? zone : null} />
+    // The wrapper is registered by the shell, so the ref stays the same function and the memoized row does not re-render for it
+    const taskId = props.task.id
+    const setWrapRef = useCallback((node: HTMLElement | null) => registerShiftNode(taskNodeKey(taskId), node), [taskId])
+
+    return <TaskRow {...props} setRowRef={setRowRef} setWrapRef={setWrapRef} dragProps={dragProps} isDragging={isDragging} dropZone={active?.kind === "task" ? zone : null} />
 })
 
-const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideCompleted = false, completedLast = false, renameOnClick = true, density = "normal", treeKey = "", isFirst = false, setRowRef, dragProps, isDragging, dropZone }: TaskRowProps) => {
+const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideCompleted = false, completedLast = false, renameOnClick = true, density = "normal", treeKey = "", isFirst = false, setRowRef, setWrapRef, dragProps, isDragging, dropZone }: TaskRowProps) => {
     const { t } = useTranslation()
     const [descriptionOpen, setDescriptionOpen] = useState(false)
     const [isAddingSubtask, setAddingSubtask] = useState(false)
@@ -161,7 +168,7 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
     const onRowKeyDown = useTaskRowKeys({ taskId: task.id, taskText: task.text, subtasksOpen, onToggleSubtasks: toggleSubtasks, onToggleCompleted: () => { void handleCheckedChange() }, onRename: startEdit })
 
     return (
-        <div className={cn(
+        <div ref={setWrapRef} data-task-wrap={task.id} data-task-section={task.sectionID ?? undefined} className={cn(
             "relative flex flex-col items-center w-full border border-transparent transition-none",
             isSubtask ? "group/subtask subtask" : "border-b-border",
             isTextAreaOpen && (error ? "border border-destructive rounded-xs" : "border border-primary rounded-xs")
