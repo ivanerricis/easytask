@@ -42,6 +42,7 @@ export const undo: Translation["undo"] = {
         deleteMany_one: "Delete {{count}} item",
         deleteMany_other: "Delete {{count}} items",
         colorContent: "Color content of {{type}}",
+        background: "Change background of {{type}}",
         colorMany_one: "Change color of {{count}} item",
         colorMany_other: "Change color of {{count}} items",
         moveMany_one: "Move {{count}} item",

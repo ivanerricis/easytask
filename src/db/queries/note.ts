@@ -1,7 +1,7 @@
 import i18n from "@/i18n"
 import type { Group, Section, Task } from "@/types/types";
 import { getDB } from "../dbManager";
-import { createError } from "@/types/error";
+import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 import { chunked, nextPositionSql, placeholders } from "./sql";
@@ -149,5 +149,20 @@ export async function noteHasContent(noteId: number): Promise<boolean> {
         return rows[0]?.found === 1
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
+    }
+}
+
+/**
+ * Sets the background color of a note.
+ * @param noteId The ID of the note.
+ * @param color The new background (hex), null/undefined for the default background.
+ * @category Database Queries
+ */
+export async function updateDBNoteBackground(noteId: number, color?: string | null) {
+    try {
+        const db = await getDB()
+        await db.execute('UPDATE note SET bg_color=? WHERE id=?', [color ?? null, noteId])
+    } catch (error: unknown) {
+        handleDBError(error, "NOTE", { CHECK: i18n.t("errors.item.colorCheck") })
     }
 }

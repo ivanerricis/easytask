@@ -72,3 +72,13 @@ export const addNoteTemplateDraft: string[] = [
     `ALTER TABLE note ADD COLUMN templateID INTEGER DEFAULT NULL REFERENCES note_template(id) ON DELETE CASCADE;`,
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_note_template_draft ON note(templateID) WHERE templateID IS NOT NULL;`,
 ]
+
+/**
+ * Migration v13: adds the optional background color of a note (hex; NULL = default background). The edit trigger
+ * ignores it: the background is not an edit of the content.
+ * @category Database Schema
+ */
+export const addNoteBackground: string[] = [
+    `ALTER TABLE note ADD COLUMN bg_color TEXT CHECK (LENGTH(bg_color) > 0) DEFAULT NULL;`,
+    `ALTER TABLE note_template ADD COLUMN bg_color TEXT CHECK (LENGTH(bg_color) > 0) DEFAULT NULL;`,
+]

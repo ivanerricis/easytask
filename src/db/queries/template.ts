@@ -166,15 +166,15 @@ export async function buildNotesContent(noteIds: readonly number[], includeArchi
 export async function createDBTemplateFromNote(noteId: number, name: string): Promise<number> {
     try {
         const db = await getDB()
-        const notes = await db.select<{ workspaceID: number, color: string | null }[]>(
-            'SELECT workspaceID, color FROM note WHERE id = ? AND workspaceID IS NOT NULL AND deleted_at IS NULL', [noteId])
+        const notes = await db.select<{ workspaceID: number, color: string | null, bg_color: string | null }[]>(
+            'SELECT workspaceID, color, bg_color FROM note WHERE id = ? AND workspaceID IS NOT NULL AND deleted_at IS NULL', [noteId])
         if (notes.length === 0)
             throw createError("TEMPLATE_SOURCE_MISSING", SOURCE_MISSING_MESSAGE())
 
         const { content } = await buildContentWithSectionIds(noteId)
         const result = await db.execute(
-            'INSERT INTO note_template (workspaceID, sourceNoteID, name, color, content) VALUES (?, ?, ?, ?, ?)',
-            [notes[0].workspaceID, noteId, name.trim(), notes[0].color ?? null, JSON.stringify(content)])
+            'INSERT INTO note_template (workspaceID, sourceNoteID, name, color, bg_color, content) VALUES (?, ?, ?, ?, ?, ?)',
+            [notes[0].workspaceID, noteId, name.trim(), notes[0].color ?? null, notes[0].bg_color ?? null, JSON.stringify(content)])
         return result.lastInsertId as number
     } catch (error: unknown) {
         throw toAppError(error, e => handleDBError(e, "TEMPLATE", { UNIQUE: TEMPLATE_UNIQUE_MESSAGE(), CHECK: TEMPLATE_CHECK_MESSAGE() }))
@@ -262,8 +262,8 @@ export async function renameDBTemplate(templateId: number, name: string) {
 export async function updateDBTemplateFromNote(templateId: number, noteId?: number) {
     try {
         const db = await getDB()
-        const rows = await db.select<{ noteID: number, color: string | null }[]>(
-            `SELECT n.id AS noteID, n.color FROM note_template t
+        const rows = await db.select<{ noteID: number, color: string | null, bg_color: string | null }[]>(
+            `SELECT n.id AS noteID, n.color, n.bg_color FROM note_template t
              INNER JOIN note n ON n.id = ${noteId === undefined ? 't.sourceNoteID' : '?'} AND n.deleted_at IS NULL
                 AND n.workspaceID = t.workspaceID
              WHERE t.id = ? AND t.deleted_at IS NULL`, noteId === undefined ? [templateId] : [noteId, templateId])
@@ -271,8 +271,8 @@ export async function updateDBTemplateFromNote(templateId: number, noteId?: numb
             throw createError("TEMPLATE_SOURCE_MISSING", SOURCE_MISSING_MESSAGE())
 
         const { content } = await buildContentWithSectionIds(rows[0].noteID)
-        await db.execute('UPDATE note_template SET sourceNoteID = ?, color = ?, content = ? WHERE id = ?',
-            [rows[0].noteID, rows[0].color ?? null, JSON.stringify(content), templateId])
+        await db.execute('UPDATE note_template SET sourceNoteID = ?, color = ?, bg_color = ?, content = ? WHERE id = ?',
+            [rows[0].noteID, rows[0].color ?? null, rows[0].bg_color ?? null, JSON.stringify(content), templateId])
     } catch (error: unknown) {
         throw toAppError(error, e => createError("TEMPLATE_UPDATE_FAILED", i18n.t("errors.template.update", { message: getErrorMessage(e) })))
     }
@@ -365,13 +365,13 @@ export async function createDBNoteFromTemplate(templateId: number, workspaceId: 
     const tx = new Transaction()
     const note = folderId === null
         ? tx.add(
-            `INSERT INTO note (workspaceID, name, color, position)
-             SELECT ?, ?, ?, ${nextPositionSql("note", "workspaceID = ? AND folderID IS NULL AND deleted_at IS NULL")}`,
-            [workspaceId, name.trim(), template.color, workspaceId])
+            `INSERT INTO note (workspaceID, name, color, bg_color, position)
+             SELECT ?, ?, ?, ?, ${nextPositionSql("note", "workspaceID = ? AND folderID IS NULL AND deleted_at IS NULL")}`,
+            [workspaceId, name.trim(), template.color, template.bg_color ?? null, workspaceId])
         : tx.add(
-            `INSERT INTO note (workspaceID, folderID, name, color, position)
-             SELECT ?, ?, ?, ?, ${nextPositionSql("note", "folderID = ? AND deleted_at IS NULL")}`,
-            [workspaceId, folderId, name.trim(), template.color, folderId])
+            `INSERT INTO note (workspaceID, folderID, name, color, bg_color, position)
+             SELECT ?, ?, ?, ?, ?, ${nextPositionSql("note", "folderID = ? AND deleted_at IS NULL")}`,
+            [workspaceId, folderId, name.trim(), template.color, template.bg_color ?? null, folderId])
     addNoteContent(tx, tx.idOf(note), template.content)
 
     try {

@@ -8,6 +8,12 @@ import { useShortcutKeys } from "@/contexts/use-shortcuts"
 import { useAfterMenuClose } from "@/hooks/use-after-menu-close"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
 import { requestAppCommand } from "@/lib/app-commands"
+import { useActiveNoteId } from "@/contexts/use-tabs"
+import { useWorkspaceActions } from "@/contexts/workspace-data"
+import { useUndoRecorder } from "@/contexts/undo/use-undo"
+import { useNoteBackgroundColor } from "@/hooks/use-note-background"
+import { Separator } from "@/components/ui/separator"
+import { ColorSubmenu } from "../ColorSubmenu"
 
 type NoteBackgroundMenuProps = {
     /** The note area: a right click on it, where no group, section or task takes it, opens this menu. */
@@ -28,6 +34,17 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
     const hideKeys = useShortcutKeys("toggle-hide-completed")
     // The form of the new group takes the focus: the command waits for the menu to give it back, or it would steal it
     const { request: requestNewGroup, onCloseAutoFocus } = useAfterMenuClose(newGroup)
+    const noteId = useActiveNoteId()
+    const background = useNoteBackgroundColor(noteId)
+    const { updateNoteBackground } = useWorkspaceActions()
+    const recorder = useUndoRecorder()
+
+    // Saves the background (null = none) and makes it undoable; the tree holds the note, so no reload is needed
+    const pickBackground = async (color: string | null) => {
+        if (noteId === null || color === background) return
+        await updateNoteBackground(noteId, color ?? undefined)
+        recorder.background(noteId, null, background, color)
+    }
 
     const items = (
         <MenuGroup className="flex flex-col gap-1 p-1">
@@ -38,6 +55,15 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
                 shortcut={hideKeys}
                 onClick={() => { menu.close(); setHideCompletedTasks(!hideCompletedTasks) }}
             />
+            {noteId !== null && <>
+                <Separator />
+                <ColorSubmenu
+                    item={{ id: noteId, color: background }}
+                    label={t("menu.noteBackground")}
+                    onPick={pickBackground}
+                    onDone={menu.close}
+                />
+            </>}
         </MenuGroup>
     )
 

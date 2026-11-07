@@ -50,8 +50,8 @@ export async function createDBTemplateDraft(templateId: number): Promise<number>
 
         const tx = new Transaction()
         const note = tx.add(
-            'INSERT INTO note (workspaceID, folderID, templateID, name, color, position) VALUES (NULL, NULL, ?, ?, ?, 0)',
-            [templateId, template.name, template.color])
+            'INSERT INTO note (workspaceID, folderID, templateID, name, color, bg_color, position) VALUES (NULL, NULL, ?, ?, ?, ?, 0)',
+            [templateId, template.name, template.color, template.bg_color ?? null])
         addNoteContent(tx, tx.idOf(note), template.content)
         try {
             const results = await tx.run()
@@ -80,8 +80,8 @@ export async function createDBTemplateDraft(templateId: number): Promise<number>
 export async function saveDBTemplateDraft(noteId: number): Promise<TemplateDraftSave> {
     try {
         const db = await getDB()
-        const rows = await db.select<{ templateID: number, color: string | null, content: string, templateColor: string | null }[]>(
-            `SELECT n.templateID, n.color, t.content, t.color AS templateColor FROM note n
+        const rows = await db.select<{ templateID: number, color: string | null, bg_color: string | null, content: string, templateColor: string | null, templateBg: string | null }[]>(
+            `SELECT n.templateID, n.color, n.bg_color, t.content, t.color AS templateColor, t.bg_color AS templateBg FROM note n
              INNER JOIN note_template t ON t.id = n.templateID
              WHERE n.id = ? AND n.templateID IS NOT NULL`, [noteId])
         if (rows.length === 0) return "missing"
@@ -89,9 +89,10 @@ export async function saveDBTemplateDraft(noteId: number): Promise<TemplateDraft
         const { content } = await buildContentWithSectionIds(noteId)
         const json = JSON.stringify(content)
         const color = rows[0].color ?? null
-        if (json === rows[0].content && color === (rows[0].templateColor ?? null)) return "unchanged"
+        const bg = rows[0].bg_color ?? null
+        if (json === rows[0].content && color === (rows[0].templateColor ?? null) && bg === (rows[0].templateBg ?? null)) return "unchanged"
 
-        await db.execute('UPDATE note_template SET color = ?, content = ? WHERE id = ?', [color, json, rows[0].templateID])
+        await db.execute('UPDATE note_template SET color = ?, bg_color = ?, content = ? WHERE id = ?', [color, bg, json, rows[0].templateID])
         return "written"
     } catch (error: unknown) {
         throw toAppError(error, updateFailed)
