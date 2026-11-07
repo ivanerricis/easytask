@@ -11,7 +11,7 @@ vi.mock("../dbManager", async () => {
     return { getDB: vi.fn(async () => createSqliteDb(() => sqlite)) }
 })
 
-import { getDBNoteData, getDBNotesData, noteHasContent } from "./note"
+import { getDBNoteData, getDBNotesData, noteHasContent, updateDBNoteBackground } from "./note"
 
 beforeEach(() => {
     sqlite = new DatabaseSync(":memory:")
@@ -66,5 +66,21 @@ describe("getDBNoteData vs getDBNotesData", () => {
     it("maps a NULL section title to an empty string", async () => {
         const { sections } = await getDBNoteData(10)
         expect(sections.find(section => section.id === 50)?.title).toBe("")
+    })
+})
+
+describe("updateDBNoteBackground", () => {
+    it("sets and clears the background without touching the edit date, and refuses an empty one", async () => {
+        sqlite.exec("UPDATE note SET edit_date = '2020-01-01', edit_time = '10:00' WHERE id = 1")
+        await updateDBNoteBackground(1, "#e6194b")
+        expect(sqlite.prepare("SELECT bg_color, edit_date, edit_time FROM note WHERE id = 1").get()).toEqual({ bg_color: "#e6194b", edit_date: "2020-01-01", edit_time: "10:00" })
+        await updateDBNoteBackground(1)
+        expect(sqlite.prepare("SELECT bg_color FROM note WHERE id = 1").get()).toEqual({ bg_color: null })
+        await expect(updateDBNoteBackground(1, "")).rejects.toBeDefined()
+    })
+
+    it("is returned with the other columns by the plain select of the notes", async () => {
+        await updateDBNoteBackground(2, "#3cb44b")
+        expect(sqlite.prepare("SELECT * FROM note WHERE id = 2").get()).toMatchObject({ bg_color: "#3cb44b" })
     })
 })

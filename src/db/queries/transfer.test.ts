@@ -367,6 +367,44 @@ describe("group color in export/import", () => {
     })
 })
 
+describe("background of the notes in export/import", () => {
+    const bgs = (workspaceId: number) => rows(`SELECT name, bg_color FROM note WHERE workspaceID = ${workspaceId} ORDER BY name`)
+    const templateBgs = (workspaceId: number) => rows(`SELECT name, bg_color FROM note_template WHERE workspaceID = ${workspaceId}`)
+
+    it("exports the background of notes and templates and imports it back", async () => {
+        sqlite.exec(`UPDATE note SET bg_color = '#e6194b' WHERE id = 1;
+            INSERT INTO note_template (workspaceID, name, bg_color, content) VALUES (1, 'T', '#3cb44b', '{"version":1,"groups":[]}'), (1, 'Senza', NULL, '{"version":1,"groups":[]}')`)
+        const data = await exportOf()
+        expect(data.notes.find(n => n.name === "Sorgente")!.bg_color).toBe("#e6194b")
+        // A note without background does not carry the field
+        expect(data.notes.find(n => n.name === "Nella cartella")).not.toHaveProperty("bg_color")
+        const { workspaceId } = await importDBWorkspace(JSON.parse(JSON.stringify(data)))
+        expect(bgs(workspaceId)).toEqual([{ name: "Nella cartella", bg_color: null }, { name: "Sorgente", bg_color: "#e6194b" }])
+        expect(templateBgs(workspaceId)).toEqual(expect.arrayContaining([{ name: "T", bg_color: "#3cb44b" }, { name: "Senza", bg_color: null }]))
+    })
+
+    it("exports the background of a single note", async () => {
+        sqlite.exec("UPDATE note SET bg_color = '#e6194b' WHERE id = 1")
+        const data = await buildDBItemExport("note", 1)
+        expect(data.notes[0].bg_color).toBe("#e6194b")
+    })
+
+    it("still imports files created before the background existed, and turns an empty one into none", async () => {
+        const data = JSON.parse(JSON.stringify(await exportOf()))
+        for (const note of data.notes) delete note.bg_color
+        expect(() => validateWorkspaceExport(data)).not.toThrow()
+        data.notes[0].bg_color = ""
+        const { workspaceId } = await importDBWorkspace(data)
+        expect(bgs(workspaceId).every(row => row.bg_color === null)).toBe(true)
+    })
+
+    it("rejects a background that is not a string", async () => {
+        const data = JSON.parse(JSON.stringify(await exportOf()))
+        data.notes[0].bg_color = 5
+        expect(() => validateWorkspaceExport(data)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+    })
+})
+
 describe("import hardening", () => {
     const clone = async () => JSON.parse(JSON.stringify(await exportOf()))
 

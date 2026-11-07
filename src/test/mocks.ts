@@ -26,7 +26,7 @@ export const sonnerMock = () => ({ toast: toastMock, Toaster: () => null })
 
 /** Every method of the real `UndoRecorder` (src/contexts/undo/commands.ts); the compile-time check below keeps the list in sync. */
 const UNDO_RECORDER_METHODS = [
-    "rename", "color", "taskCompletion", "taskPriority", "taskDescription", "remove", "create", "archive", "unarchive", "archiveMany",
+    "rename", "color", "background", "taskCompletion", "taskPriority", "taskDescription", "remove", "create", "archive", "unarchive", "archiveMany",
     "treeMove", "removeMany", "colorMany", "colorContent", "treeMoveMany", "sectionMove", "directMove", "sectionMoveToNewGroup",
     "taskMove", "taskMoveMany", "record",
 ] as const satisfies readonly (keyof UndoRecorder)[]

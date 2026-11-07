@@ -1,7 +1,7 @@
 import { createAudioFileIndexes, createTableAudioFile } from "./audio_file";
 import { automationSchema } from "./automation";
 import { addFolderArchivedAt, createFolderIndexes, createFolderTable, createFolderTrigger } from "./folder";
-import { addNoteArchivedAt, addNoteTemplateDraft, createNoteIndexes, createNoteTable, createNoteTrigger } from "./note";
+import { addNoteArchivedAt, addNoteBackground, addNoteTemplateDraft, createNoteIndexes, createNoteTable, createNoteTrigger } from "./note";
 import { createNoteTemplateIndexes, createNoteTemplateTable, createNoteTemplateTrigger } from "./note_template";
 import { addSectionArchivedAt, addSectionDefaultFlag, addSectionSharedOrder, makeSectionTitleOptional, createSectionIndexes, createSectionTable, createSectionTrigger } from "./section";
 import { addCollapsedColumns } from "./collapsed";
@@ -103,10 +103,16 @@ export const templateDraftSchema: string[] = [...addNoteTemplateDraft]
 export const trashIndexesSchema: string[] = [...trashIndexSchema]
 
 /**
+ * Migration v13: background color of the notes (and of the templates, which copy it).
+ * @category Database Schema
+ */
+export const noteBackgroundSchema: string[] = [...addNoteBackground]
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema,
 ]

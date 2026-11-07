@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react"
-import { createDBNoteInFolder, createDBWorkspaceNote } from "@/db/queries/note"
+import { createDBNoteInFolder, createDBWorkspaceNote, updateDBNoteBackground } from "@/db/queries/note"
 import { createDBSubFolder, createDBWorkspaceFolder, updateDBFolderColorContent } from "@/db/queries/folder"
 import { withRollback } from "../with-rollback"
 import { moveDBTreeItem } from "@/db/queries/tree"
@@ -9,12 +9,12 @@ import {
     buildFolder, buildNote, colorFolderContent, findTreeItem, getFolderNotes, getSubfolders,
     insertTreeItem, patchTreeItem, removeTreeItem,
 } from "../workspace-tree-ops"
-import type { Folder } from "@/types/types"
+import type { Folder, Note } from "@/types/types"
 import type { PreviousColor, Runtime, WorkspaceActionsType } from "./types"
 
 type TreeActions = Pick<WorkspaceActionsType,
     "createWorkspaceFolder" | "createWorkspaceNote" | "createSubFolder" | "createNoteInFolder" |
-    "renameItem" | "updateItemColor" | "updateFolderColorContent" | "moveTreeItem" | "duplicateNote">
+    "renameItem" | "updateItemColor" | "updateNoteBackground" | "updateFolderColorContent" | "moveTreeItem" | "duplicateNote">
 
 /** The colors of a folder, of its subfolders and of their notes (the folder first, then its notes and subfolders depth first). */
 const collectColors = (folder: Folder): PreviousColor[] => [
@@ -109,6 +109,22 @@ export function useTreeActions(rt: Runtime): TreeActions {
         [withLoading, patchThenWrite])
 
     /**
+     * Update the background color of a note (updated in the sidebar tree at once, where the open note reads it).
+     * @param noteID - The ID of the note.
+     * @param color - The new background (hex), undefined for the default background.
+     * @throws Will throw an error if the background cannot be saved.
+     * @category Workspace Data Context
+     */
+    const updateNoteBackground = useCallback((noteID: number, color?: string) => withLoading(async () => {
+        const tree = getTree()
+        const before = (tree ? findTreeItem(tree, "note", noteID)?.item as Note | undefined : undefined)?.bg_color ?? null
+        const rollback = applyTree(
+            t => patchTreeItem(t, "note", noteID, { bg_color: color ?? null }),
+            t => patchTreeItem(t, "note", noteID, { bg_color: before }))
+        await withRollback(rollback, () => updateDBNoteBackground(noteID, color))
+    }), [withLoading, applyTree, getTree])
+
+    /**
      * Update the color of a folder and of everything it contains (updated in the sidebar tree at once).
      * @param folderID - The ID of the folder to update.
      * @param color - The new color for the folder (optional).
@@ -154,5 +170,5 @@ export function useTreeActions(rt: Runtime): TreeActions {
         return id
     }), [withLoading, getTree, getWorkspaceData])
 
-    return useMemo(() => ({ createWorkspaceFolder, createWorkspaceNote, createSubFolder, createNoteInFolder, renameItem, updateItemColor, updateFolderColorContent, moveTreeItem, duplicateNote }), [ createWorkspaceFolder, createWorkspaceNote, createSubFolder, createNoteInFolder, renameItem, updateItemColor, updateFolderColorContent, moveTreeItem, duplicateNote ])
+    return useMemo(() => ({ createWorkspaceFolder, createWorkspaceNote, createSubFolder, createNoteInFolder, renameItem, updateItemColor, updateNoteBackground, updateFolderColorContent, moveTreeItem, duplicateNote }), [ createWorkspaceFolder, createWorkspaceNote, createSubFolder, createNoteInFolder, renameItem, updateItemColor, updateNoteBackground, updateFolderColorContent, moveTreeItem, duplicateNote ])
 }

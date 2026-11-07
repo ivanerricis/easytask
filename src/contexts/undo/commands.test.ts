@@ -15,7 +15,7 @@ function makeDeps() {
     const deps = {
         getWorkspaceId: vi.fn(() => 7 as number | null),
         workspace: {
-            renameItem: fn(), updateItemColor: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
+            renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
             moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(),
             updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
         },
@@ -100,6 +100,24 @@ describe("rename", () => {
         ctx.deps.workspace.renameItem.mockRejectedValueOnce(new Error("UNIQUE"))
         await expect(commands.rename("task", 5, "old", "new").undo()).rejects.toThrow("UNIQUE")
         expect(ctx.rollbacks.patch).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("background", () => {
+    it("restores the previous background (none meaning null) and applies the new one again, with a translated label", async () => {
+        const command = commands.background(3, "Spesa", null, "#e6194b")
+        expect(command.label).toBe(makeLabel("background", "note", "Spesa"))
+        await command.redo()
+        expect(ctx.deps.workspace.updateNoteBackground).toHaveBeenLastCalledWith(3, "#e6194b")
+        await command.undo()
+        expect(ctx.deps.workspace.updateNoteBackground).toHaveBeenLastCalledWith(3, undefined)
+        await commands.background(3, "Spesa", "#000", undefined).redo()
+        expect(ctx.deps.workspace.updateNoteBackground).toHaveBeenLastCalledWith(3, undefined)
+    })
+
+    it("lets a failure reach the history", async () => {
+        ctx.deps.workspace.updateNoteBackground.mockRejectedValueOnce(new Error("fail"))
+        await expect(commands.background(3, "N", null, "#fff").redo()).rejects.toThrow("fail")
     })
 })
 

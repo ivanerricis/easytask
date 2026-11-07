@@ -17,5 +17,6 @@ export const useColorAlpha = () => {
         item: (hovered = false) => scaleAlpha(hovered ? COLOR_ALPHA_BASE.itemHover : COLOR_ALPHA_BASE.item, intensity),
         header: () => scaleAlpha(COLOR_ALPHA_BASE.header, intensity),
         task: () => scaleAlpha(COLOR_ALPHA_BASE.task, intensity),
+        noteBackground: () => scaleAlpha(COLOR_ALPHA_BASE.noteBackground, intensity),
     }), [intensity, taskBackground])
 }

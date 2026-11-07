@@ -36,6 +36,8 @@ export type ExportNote = {
     folderRef: string | null
     name: string
     color: string | null
+    /** Background color of the note; absent in files created before it existed (and for a note without one). */
+    bg_color?: string | null
     /** Archive date; absent (or null) for a visible note and in files created before the archive existed. */
     archived_at?: string | null
     position: number
@@ -55,6 +57,8 @@ export type ExportNote = {
 export type ExportTemplate = {
     name: string
     color: string | null
+    /** Background of the notes created from the template; absent in files created before it existed. */
+    bg_color?: string | null
     content: NoteTemplateContent
 }
 
