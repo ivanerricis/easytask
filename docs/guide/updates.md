@@ -4,7 +4,7 @@ The installed app can check for new versions, download them and install them. Up
 
 ## Check at startup
 
-A few seconds after startup, EasyTask looks silently for a new version. If one is available, an **Update available** dialog shows what's new. It offers three choices:
+A few seconds after startup, EasyTask looks silently for a new version. If one is available, an **Update available** dialog shows the new version number. It offers three choices:
 
 | Button | What it does |
 | --- | --- |
@@ -22,13 +22,25 @@ If the check fails (for example you are offline), the startup check shows nothin
 
 1. Open **Settings > About**.
 2. Click **Check for updates**.
-3. If a version is available, you see its notes under **What's new**. Click **Update now** to download, install and restart.
+3. If a version is available, the app shows its number. Click **Update now** to download, install and restart.
 
 If you are up to date, the app says "EasyTask is up to date."
 
+## What's new after an update
+
+The first time you open a workspace after an update, a **What's new** tab opens with the release notes of the version you are now using, in the language of the app.
+
+![The What's new tab](../screenshots/en/whats-new-light.png){.light-only}
+![The What's new tab](../screenshots/en/whats-new-dark.png){.dark-only}
+
+- It opens only once for each update.
+- Close it like a note: **Close current note** or `Ctrl+L`.
+- It is not a note: it has no menu and it is not reopened at startup.
+- A new installation does not show it.
+
 ## Release notes
 
-To read the release notes of all versions, choose **Help > Release notes** in the menu. It opens the Releases page in your browser.
+To read the release notes of the previous versions, choose **Help > Release notes** in the menu. It opens the Releases page in your browser.
 
 ## Portable version
 

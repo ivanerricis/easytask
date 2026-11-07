@@ -1,3 +1,5 @@
+import fs from "node:fs"
+import path from "node:path"
 import { $, $$, browser } from "@wdio/globals"
 import type { ChainablePromiseElement } from "webdriverio"
 import { en } from "../src/i18n/locales/en"
@@ -501,3 +503,19 @@ export const pane = (index: 0 | 1) => $(`[data-pane="${index}"]`)
 
 /** The tab of a note inside a pane (the tab carries the full note name in its title). */
 export const paneTab = (index: 0 | 1, noteName: string) => $(`[data-pane="${index}"] [role="tab"][title=${cssString(noteName)}]`)
+
+/** Writes the preference through the store plugin of the page (the app keeps the file in memory: editing the file would be overwritten) and waits for the file. */
+export const setLastSeenVersion = async (version: string) => {
+    const file = path.join(await dataDir(), "settings.dat")
+    await browser.executeAsync((storePath: string, value: string, done: (result: string | null) => void) => {
+        const internals = (window as unknown as { __TAURI_INTERNALS__: { invoke: (cmd: string, args?: unknown) => Promise<number> } }).__TAURI_INTERNALS__
+        void internals.invoke("plugin:store|load", { path: storePath })
+            .then(rid => internals.invoke("plugin:store|set", { rid, key: "lastSeenVersion", value })
+                .then(() => internals.invoke("plugin:store|save", { rid })))
+            .then(() => done(null), (error: unknown) => done(String(error)))
+    }, file, version).then(error => { if (error) throw new Error(`could not write the preference: ${error}`) })
+    await browser.waitUntil(
+        () => { try { return fs.readFileSync(file, "utf8").includes(`"lastSeenVersion": "${version}"`) } catch { return false } },
+        { timeout: 15_000, timeoutMsg: "settings.dat does not contain the new lastSeenVersion" },
+    )
+}

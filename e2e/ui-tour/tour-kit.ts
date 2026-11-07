@@ -119,10 +119,10 @@ export const fillDialogName = async (name: string) => {
 // Same order as PALETTE_COLORS (src/lib/colors.ts): the swatches are named after their color
 export const PALETTE_ORDER = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324", "#fffac8", "#000075"]
 
-export const pickColor = async (menu: ChainablePromiseElement | WebdriverIO.Element, colour: string, afterOpen?: () => Promise<void>) => {
+export const pickColor = async (menu: ChainablePromiseElement | WebdriverIO.Element, colour: string, afterOpen?: () => Promise<void>, submenuKey = "menu.changeColor") => {
     const colourName = await tr(`common.colors.c${PALETTE_ORDER.indexOf(colour) + 1}`)
     const swatch = byLabel(await tr("dialogs.color.swatch", { color: colourName }))
-    await openSubmenu(menu, await tr("menu.changeColor"), swatch)
+    await openSubmenu(menu, await tr(submenuKey), swatch)
     if (afterOpen) await afterOpen()
     await swatch.click()
     await settle(400)

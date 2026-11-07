@@ -71,6 +71,8 @@ Fai clic sul pulsante del menu di una riga (compare quando ci passi sopra) oppur
 
 ![Menu della nota](../../screenshots/it/note-menu-light.png)
 
+Puoi anche dare un colore allo sfondo di una nota aperta, vedi [Sfondo della nota](./colors#sfondo-della-nota).
+
 ### Spostare con il trascinamento
 
 Trascina una riga dell'albero e rilasciala dove vuoi:

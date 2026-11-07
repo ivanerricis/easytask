@@ -71,6 +71,8 @@ Click the menu button of a row (it appears when you point at it) or right-click 
 
 ![Note menu](../screenshots/en/note-menu-light.png)
 
+You can also give a color to the background of an open note, see [Note background](./colors#note-background).
+
 ### Move with drag and drop
 
 Drag a row in the tree and drop it where you want:
