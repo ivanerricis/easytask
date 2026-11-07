@@ -53,18 +53,19 @@ describe("UpdateSection", () => {
         render(<UpdateSection />)
         await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
         expect(await screen.findByText("Disponibile la versione 1.2.3 (attuale: 1.2.0).")).toBeInTheDocument()
-        expect(screen.getByText("Nuove cose")).toBeInTheDocument()
         await userEvent.click(screen.getByRole("button", { name: "Aggiorna ora" }))
         await waitFor(() => expect(relaunch).toHaveBeenCalledTimes(1))
         expect(install).toHaveBeenCalledTimes(1)
     })
 
-    it("shows the notes of the update in the language of the app", async () => {
+    it("does not show the release notes of the update (they open in a tab after the update)", async () => {
         check.mockResolvedValue({ ...fakeUpdate(), body: "## English\n\n- Duplicate notes.\n\n## Italiano\n\n- Duplica le note.\n" })
         render(<UpdateSection />)
         await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
-        expect(await screen.findByText("Duplica le note.")).toBeInTheDocument()
-        expect(screen.queryByText("Duplicate notes.")).not.toBeInTheDocument()
+        expect(await screen.findByText("Disponibile la versione 1.2.3 (attuale: 1.2.0).")).toBeInTheDocument()
+        expect(screen.queryByText("Duplica le note.")).not.toBeInTheDocument()
+        expect(screen.queryByText("Nuove cose")).not.toBeInTheDocument()
+        expect(screen.queryByRole("region", { name: "Novità" })).not.toBeInTheDocument()
     })
 
     it("reports an install failure and keeps the update available", async () => {

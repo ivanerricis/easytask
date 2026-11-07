@@ -1,6 +1,7 @@
 import i18n from "@/i18n"
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { createEmitter } from "@/lib/emitter"
+import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { reportError } from "@/lib/report-error"
 import type { NoteDataTree } from "@/types/types"
 import { useActiveNoteId, useTabs } from "./use-tabs"
@@ -107,6 +108,8 @@ export function ActiveNoteProvider({ children }: { children: React.ReactNode }) 
     }, [])
 
     const loadNote = useCallback(async (noteId: number) => {
+        // The "What's new" tab is not a note: there is nothing to load
+        if (isWhatsNewTab(noteId)) return
         const seq = nextSeq(noteId)
         const tree = await fetchNoteTree(noteId)
         // Superseded by a newer request/optimistic update, or the tab has been closed meanwhile

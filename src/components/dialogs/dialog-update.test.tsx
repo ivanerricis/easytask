@@ -45,16 +45,15 @@ describe("DialogUpdate", () => {
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
     })
 
-    it("shows the versions and the release notes", async () => {
+    it("shows the versions but not the release notes", async () => {
         render(<DialogUpdate />)
         announce()
         const dialog = await screen.findByRole("dialog")
         expect(dialog).toHaveTextContent("Aggiornamento disponibile")
         expect(dialog).toHaveTextContent("EasyTask 1.2.3")
         expect(dialog).toHaveTextContent("1.2.0")
-        expect(screen.getByText("Added")).toBeInTheDocument()
-        expect(screen.getByText("Ctrl+Shift+H").tagName).toBe("CODE")
-        expect(screen.getAllByRole("listitem")).toHaveLength(3)
+        expect(dialog).not.toHaveTextContent("Duplicate notes.")
+        expect(screen.queryByRole("region", { name: "Novità" })).not.toBeInTheDocument()
     })
 
     it("installs the update and restarts", async () => {
@@ -81,13 +80,6 @@ describe("DialogUpdate", () => {
         announce()
         const button = await screen.findByRole("button", { name: "Aggiorna ora" })
         await waitFor(() => expect(button).toHaveFocus())
-    })
-
-    it("makes the notes box keyboard scrollable and labelled", async () => {
-        render(<DialogUpdate />)
-        announce()
-        const region = await screen.findByRole("region", { name: "Novità" })
-        expect(region).toHaveAttribute("tabindex", "0")
     })
 
     it("shows a hint and an animated bar while installing with an unknown size", async () => {
@@ -169,19 +161,6 @@ describe("DialogUpdate", () => {
         expect(screen.queryByText("Aggiornamento disponibile")).not.toBeInTheDocument()
         act(() => other.remove())
         expect(await screen.findByText("Aggiornamento disponibile")).toBeInTheDocument()
-    })
-})
-
-describe("DialogUpdate release notes language", () => {
-    const bilingual = "## English\n\n- Duplicate notes.\n\n## Italiano\n\n- Duplica le note.\n"
-
-    it("shows the notes in the language of the app, not both", async () => {
-        render(<DialogUpdate />)
-        announce({ update: { ...fakeUpdate(), body: bilingual } as never })
-        const dialog = await screen.findByRole("dialog")
-        expect(dialog).toHaveTextContent("Duplica le note.")
-        expect(dialog).not.toHaveTextContent("Duplicate notes.")
-        expect(dialog).not.toHaveTextContent("## Italiano")
     })
 })
 

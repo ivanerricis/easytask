@@ -6,6 +6,8 @@ import { usePane } from "@/contexts/use-layout"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { NoteHeader } from "./NoteHeader"
+import { WhatsNewHeader } from "../whats-new/WhatsNewHeader"
+import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { DropLine } from "../sidebar/DropLine"
 import { barDndId, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
 import { TabsDndProvider } from "./TabsDndProvider"
@@ -32,7 +34,7 @@ const Tab = ({ note, indicator, dndId = note.id, overlay = false }: { note: Note
             className={cn("relative min-w-28 shrink-0 last:border-r", isDragging && (overlay ? "opacity-40" : "z-10 opacity-70"))}
         >
             {!isDragging && <DropLine zone={indicator} vertical className="z-20" />}
-            <NoteHeader note={note} />
+            {isWhatsNewTab(note.id) ? <WhatsNewHeader /> : <NoteHeader note={note} />}
         </div>
     )
 }

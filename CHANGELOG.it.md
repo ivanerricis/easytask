@@ -4,6 +4,14 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Dopo un aggiornamento, al primo avvio sulla nuova versione si apre una scheda **Novità** con le note di rilascio, nella lingua dell'app (come in VS Code). La scheda non è una nota: non viene salvato nulla nel workspace e non viene riaperta al prossimo avvio. Alla prima installazione non si apre nulla.
+
+### Modificato
+
+- Le note di rilascio non compaiono più in Impostazioni > Informazioni né nella finestra di aggiornamento all'avvio: dopo l'aggiornamento si aprono nella scheda Novità.
+
 ## [0.18.0] - 2026-10-29
 
 ### Aggiunto

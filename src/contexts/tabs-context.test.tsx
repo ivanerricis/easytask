@@ -13,6 +13,7 @@ import { getWorkspaceTabs, saveWorkspaceTabs } from "@/lib/store/tabs"
 import { makeNote } from "@/test/ui-fixtures"
 import type { Note } from "@/types/types"
 import type { LayoutState } from "@/lib/tabs/layout-reducer"
+import { WHATS_NEW_TAB_ID } from "@/lib/tabs/virtual-tabs"
 
 vi.mock("@/lib/store/preferences", () => ({ getReopenNotes: vi.fn() }))
 vi.mock("@/lib/store/tabs", () => ({ getWorkspaceTabs: vi.fn(), saveWorkspaceTabs: vi.fn() }))
@@ -74,6 +75,29 @@ describe("TabsProvider", () => {
         act(() => latest.current.closeAllNotes())
         expect(latest.current.tabs).toEqual([])
         expect(latest.current.currentNote).toBeNull()
+    })
+
+    it("keeps the What's new tab (not a note) among the tabs, with no current note, when the notes list changes", () => {
+        const { latest, update } = harness({ notes: notesOf(1, 2), workspaceId: null })
+        act(() => { latest.current.openNote(1); latest.current.openNote(WHATS_NEW_TAB_ID) })
+
+        expect(latest.current.openIds).toEqual([1, WHATS_NEW_TAB_ID])
+        expect(latest.current.tabs.map(n => n.id)).toEqual([1, WHATS_NEW_TAB_ID])
+        expect(latest.current.activeId).toBe(WHATS_NEW_TAB_ID)
+        expect(latest.current.currentNote).toBeNull()
+
+        // A note leaves the list: the prune must not close the virtual tab
+        update({ workspaceId: null, notes: notesOf(2) })
+        expect(latest.current.openIds).toEqual([WHATS_NEW_TAB_ID])
+        expect(latest.current.activeId).toBe(WHATS_NEW_TAB_ID)
+    })
+
+    it("drops a saved What's new tab when the tabs are restored", async () => {
+        vi.mocked(getWorkspaceTabs).mockResolvedValue(single([1, WHATS_NEW_TAB_ID], WHATS_NEW_TAB_ID))
+        const { latest } = harness({ notes: notesOf(1), workspaceId: 1 })
+        await waitFor(() => expect(latest.current.restored).toBe(true))
+        expect(latest.current.openIds).toEqual([1])
+        expect(latest.current.activeId).toBe(1)
     })
 
     it("reflects a rename or a recolor of an open note in its tab", () => {

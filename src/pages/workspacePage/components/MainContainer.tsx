@@ -12,6 +12,7 @@ import { AUDIO_PLAYER_MEASURING } from "@/lib/audio-player-dnd"
 import { usePreference } from "@/contexts/use-preference"
 import { useTabShortcuts } from "@/hooks/use-tab-shortcuts"
 import { useAutoCloseSidebars } from "./use-auto-close-sidebars"
+import { WhatsNewTrigger } from "./whats-new/WhatsNewTrigger"
 
 
 /** The audio player and the DnD that moves it: it follows the position, the rest of the container (children) does not. */
@@ -56,6 +57,7 @@ export const MainContainer = () => {
 
     return (
         <div ref={audioPlayerContainerRef} className="flex flex-1 w-full h-full relative">
+            <WhatsNewTrigger />
             <SideBarLeft />
             <RightPanelProvider>
                 <AudioPlayerDnd>

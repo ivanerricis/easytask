@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- After an update, the first start on the new version opens a **What's new** tab with the release notes, in the language of the app (like in VS Code). The tab is not a note: nothing is saved in the workspace, and it is not reopened at the next start. A first installation opens nothing.
+
+### Changed
+
+- The release notes are no longer shown in Settings > About or in the update dialog at startup: they open in the What's new tab after the update.
+
 ## [0.18.0] - 2026-10-29
 
 ### Added

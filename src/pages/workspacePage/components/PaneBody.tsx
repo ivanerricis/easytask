@@ -3,6 +3,8 @@ import { useActiveNoteId } from "@/contexts/use-tabs"
 import { GroupContainer } from "./groups/GroupContainer"
 import { NoteList } from "./note/NoteList"
 import { PathBar } from "./PathBar"
+import { WhatsNewPage } from "./whats-new/WhatsNewPage"
+import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { NoteSearchProvider } from "./note-search-context"
 
 type PaneBodyProps = {
@@ -21,9 +23,11 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs }: PaneBodyPr
     return (
         <>
             {(alwaysTabs || activeId !== null) && <NoteList />}
-            {activeId !== null
-                ? <NoteSearchProvider><PathBar /><GroupContainer /></NoteSearchProvider>
-                : empty}
+            {isWhatsNewTab(activeId)
+                ? <WhatsNewPage />
+                : activeId !== null
+                    ? <NoteSearchProvider><PathBar /><GroupContainer /></NoteSearchProvider>
+                    : empty}
         </>
     )
 })
