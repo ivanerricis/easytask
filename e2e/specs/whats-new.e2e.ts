@@ -63,7 +63,8 @@ describe("What's new tab", () => {
         const tab = await whatsNewTab()
         await tab.waitForDisplayed({ timeout: 20_000, timeoutMsg: "the What's new tab did not open after the update" })
         await expect(tab).toHaveAttribute("aria-selected", "true")
-        expect(await tab.getText()).toBe(await tr("settings.about.update.notes"))
+        // The title attribute: getText of a truncated label is not reliable on WebKitGTK
+        expect(await tab.getAttribute("title")).toBe(await tr("settings.about.update.notes"))
 
         const panel = $('[role="tabpanel"]')
         await panel.waitForDisplayed()
