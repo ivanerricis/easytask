@@ -22,7 +22,7 @@ export function uniqueCopyName(name: string, taken: ReadonlySet<string>): string
     return uniqueName(name, taken, (original, attempt) => attempt === 1 ? `${original} (${word})` : `${original} (${word} ${attempt})`, { allowOriginal: false })
 }
 
-type NoteRow = { workspaceID: number, folderID: number | null, name: string, color: string | null, position: number }
+type NoteRow = { workspaceID: number, folderID: number | null, name: string, color: string | null, bg_color: string | null, position: number }
 type SectionRow = { groupID: number, title: string | null, color: string | null, position: number, id: number }
 
 /**
@@ -44,7 +44,7 @@ export async function duplicateDBNote(noteId: number): Promise<number> {
         const db = await getDB()
         const rows = await db.select<NoteRow[]>(
             // A note without workspace is the working copy of a template (see template-draft.ts): it is not duplicated
-            'SELECT workspaceID, folderID, name, color, position FROM note WHERE id = ? AND workspaceID IS NOT NULL AND deleted_at IS NULL', [noteId])
+            'SELECT workspaceID, folderID, name, color, bg_color, position FROM note WHERE id = ? AND workspaceID IS NOT NULL AND deleted_at IS NULL', [noteId])
         if (rows.length === 0)
             throw createError("DUPLICATE_SOURCE_MISSING", i18n.t("errors.duplicate.noteMissing"))
         source = rows[0]
@@ -64,8 +64,8 @@ export async function duplicateDBNote(noteId: number): Promise<number> {
         'UPDATE note SET position = position + 1 WHERE workspaceID = ? AND IFNULL(folderID, 0) = ? AND position > ? AND deleted_at IS NULL',
         [source.workspaceID, source.folderID ?? 0, source.position])
     const note = tx.add(
-        'INSERT INTO note (workspaceID, folderID, name, color, position) VALUES (?, ?, ?, ?, ?)',
-        [source.workspaceID, source.folderID, name, source.color, source.position + 1])
+        'INSERT INTO note (workspaceID, folderID, name, color, bg_color, position) VALUES (?, ?, ?, ?, ?, ?)',
+        [source.workspaceID, source.folderID, name, source.color, source.bg_color, source.position + 1])
     const { groups, sections, defaultSections } = addNoteContent(tx, tx.idOf(note), content)
     addNoteAutomations(tx, tx.idOf(note), automations, content, sections, groups, defaultSections)
 
@@ -106,8 +106,8 @@ export async function duplicateDBTemplate(templateId: number): Promise<number> {
     try {
         const db = await getDB()
         const result = await db.execute(
-            'INSERT INTO note_template (workspaceID, sourceNoteID, name, color, content) VALUES (?, ?, ?, ?, ?)',
-            [source.workspaceID, source.sourceNoteID, name, source.color, JSON.stringify(source.content)])
+            'INSERT INTO note_template (workspaceID, sourceNoteID, name, color, bg_color, content) VALUES (?, ?, ?, ?, ?, ?)',
+            [source.workspaceID, source.sourceNoteID, name, source.color, source.bg_color, JSON.stringify(source.content)])
         return result.lastInsertId as number
     } catch (error: unknown) {
         throw toAppError(error, e => handleDBError(e, "TEMPLATE", { UNIQUE: i18n.t("errors.template.unique"), CHECK: i18n.t("errors.template.check") }))

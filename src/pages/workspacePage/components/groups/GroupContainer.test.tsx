@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { GroupContainer } from "./GroupContainer"
 import { useTabsActions } from "@/contexts/use-tabs"
 import { useGroupMoves } from "../note-dnd-state"
-import { getDBNoteData } from "@/db/queries/note"
+import { getDBNoteData, updateDBNoteBackground } from "@/db/queries/note"
 import { getDBNoteAudioFiles } from "@/db/queries/audio"
 import { updateDBGroupPositions } from "@/db/queries/group"
 import { deferred, renderWithProviders } from "@/test/ui-render"
@@ -17,7 +17,7 @@ import { MenuItem } from "@/components/menu-kind"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
 
 vi.mock("@/db/queries/workspace", () => ({ getDBWorkspaces: vi.fn(), createDBWorkspace: vi.fn(), getDBWorkspaceData: vi.fn() }))
-vi.mock("@/db/queries/note", () => ({ getDBNoteData: vi.fn(), createDBNoteInFolder: vi.fn(), createDBWorkspaceNote: vi.fn() }))
+vi.mock("@/db/queries/note", () => ({ getDBNoteData: vi.fn(), createDBNoteInFolder: vi.fn(), createDBWorkspaceNote: vi.fn(), updateDBNoteBackground: vi.fn() }))
 vi.mock("@/db/queries/folder", () => ({ createDBSubFolder: vi.fn(), createDBWorkspaceFolder: vi.fn(), updateDBFolderColorContent: vi.fn() }))
 vi.mock("@/db/queries/section", () => ({ createDBSection: vi.fn(), createDBSectionInGroup: vi.fn() }))
 vi.mock("@/db/queries/task", () => ({
@@ -147,6 +147,7 @@ describe("GroupContainer reorder", () => {
             expect(items.map(item => item.textContent)).toEqual([
                 expect.stringContaining("Nuovo gruppo"),
                 expect.stringContaining("Nascondi task completati"),
+                expect.stringContaining("Sfondo della nota"),
             ])
         })
 
@@ -155,7 +156,16 @@ describe("GroupContainer reorder", () => {
             renderWithProviders(<SelectNote><GroupContainer /></SelectNote>)
             await screen.findByText("Nota vuota")
             fireEvent.contextMenu(screen.getByText("Nota vuota"))
-            expect(screen.getAllByRole("menuitem")).toHaveLength(2)
+            expect(screen.getAllByRole("menuitem")).toHaveLength(3)
+        })
+
+        it("saves the background chosen in the palette of the note background entry", async () => {
+            const user = userEvent.setup()
+            await renderLoaded()
+            fireEvent.contextMenu(emptyArea())
+            await user.click(screen.getByRole("menuitem", { name: /Sfondo della nota/ }))
+            fireEvent.click(await screen.findByRole("radio", { name: "Colore Rosso" }))
+            await waitFor(() => expect(updateDBNoteBackground).toHaveBeenCalledWith(1, expect.stringMatching(/^#/)))
         })
 
         it("asks for the new group form once the menu has closed", async () => {

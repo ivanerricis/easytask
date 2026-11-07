@@ -19,7 +19,7 @@ export type UndoDeps = {
     /** The workspace the history belongs to (null outside a workspace). */
     getWorkspaceId: () => number | null
     workspace: Pick<WorkspaceActionsType,
-        "renameItem" | "updateItemColor" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
+        "renameItem" | "updateItemColor" | "updateNoteBackground" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
         "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData">
     note: Pick<ActiveNoteActionsType,
         "patchTask" | "patchSection" | "patchGroup" | "removeGroup" | "removeSection" | "removeTask" |
@@ -107,7 +107,7 @@ const shorten = (name: string | null | undefined) => {
 
 const typeName = (itemType: DBItemType) => i18n.t(`undo.itemTypes.${itemType}`)
 
-type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "archive" | "unarchive"
+type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "background" | "archive" | "unarchive"
 
 /** The translated description of an action on an item, with the (shortened) name of the item when it has one. */
 export function makeLabel(key: LabelKey, itemType: DBItemType, name: string | null | undefined): string {
@@ -230,6 +230,8 @@ export function createUndoCommands(deps: UndoDeps) {
         await withRollback(patchNoteItem(itemType, id, "color", color), () => workspace.updateItemColor(itemType, id, color ?? undefined))
     }
 
+    const setBackground = (id: number) => (color: string | null) => workspace.updateNoteBackground(id, color ?? undefined)
+
     const moveTreeTo = (itemType: TreeItemType, id: number) => async (place: TreePlace) => {
         await workspace.moveTreeItem(itemType, id, place.folderId, place.index)
         await reloadTree()
@@ -287,6 +289,16 @@ export function createUndoCommands(deps: UndoDeps) {
             const apply = setColor(itemType, id)
             return {
                 label: makeLabel("color", itemType, name),
+                undo: () => apply(before ?? null),
+                redo: () => apply(after ?? null),
+            }
+        },
+
+        /** Background color of a note (null = default background). */
+        background: (noteId: number, name: string | null | undefined, before: string | null | undefined, after: string | null | undefined): UndoCommand => {
+            const apply = setBackground(noteId)
+            return {
+                label: makeLabel("background", "note", name),
                 undo: () => apply(before ?? null),
                 redo: () => apply(after ?? null),
             }
@@ -499,6 +511,6 @@ export function createUndoRecorder(commands: UndoCommands, record: (command: Und
 /** A recorder that does nothing (outside an UndoProvider, e.g. in isolated component tests). */
 const noop = () => {}
 export const NOOP_RECORDER: UndoRecorder = {
-    rename: noop, color: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
+    rename: noop, color: noop, background: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
     archive: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, record: noop, track: write => write,
 }

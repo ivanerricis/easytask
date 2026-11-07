@@ -109,10 +109,10 @@ async function insertItems(
     let noteRefs: TxRef[] = []
     if (data.notes.length > 0) {
         const existing = await checkAudioPaths(data.notes.flatMap(note => note.audio.map(file => file.path)).filter(hasAudioExtension), audioExists)
-        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "archived_at", "position"],
+        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "archived_at", "position"],
             data.notes.map(note => [
                 workspaceRef, note.folderRef === null ? rootParent : folderRefs.get(note.folderRef) ?? null,
-                note.name.trim(), note.color ?? null, note.archived_at || null, note.position,
+                note.name.trim(), note.color ?? null, note.bg_color || null, note.archived_at || null, note.position,
             ]))
 
         for (const [i, note] of data.notes.entries()) {
@@ -172,8 +172,8 @@ export async function importDBWorkspace(
         const { skippedAudio } = await insertItems(tx, data, workspaceRef, null, audioExists)
 
         if (data.templates.length > 0) {
-            tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "content"],
-                data.templates.map(template => [workspaceRef, null, template.name.trim(), template.color ?? null, JSON.stringify(template.content)]))
+            tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "bg_color", "content"],
+                data.templates.map(template => [workspaceRef, null, template.name.trim(), template.color ?? null, template.bg_color || null, JSON.stringify(template.content)]))
         }
 
         const results = await tx.run()

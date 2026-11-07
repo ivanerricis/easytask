@@ -4,6 +4,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Colore di sfondo di una nota: clic destro sullo spazio vuoto di una nota e scegli **Sfondo della nota** per prendere un colore dalla stessa tavolozza usata altrove (o **Nessun colore** per toglierlo). Il colore è uno strato leggero sull'area della nota, si può annullare, e viene copiato duplicando la nota, dai template (creazione, aggiornamento, nuova nota da template, editor del template) e da esportazione e importazione (i file esportati prima di questa versione si importano ancora). Il database passa alla versione 13, e prima di migrare viene fatta una copia di sicurezza, come per ogni migrazione.
+
 ## [0.18.0] - 2026-10-29
 
 ### Aggiunto

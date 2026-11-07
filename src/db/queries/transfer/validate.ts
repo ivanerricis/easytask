@@ -145,7 +145,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {
         if (!isObject(note) || !isNonEmpty(note.ref) || !isNonEmpty(note.name) || !isNumber(note.position)
-            || !isNullableString(note.color) || !isNullableString(note.archived_at) || !Array.isArray(note.audio)
+            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.archived_at) || !Array.isArray(note.audio)
             || !(note.folderRef === null || (isString(note.folderRef) && folderRefs.has(note.folderRef)))) malformed()
         if (noteRefs.has(note.ref)) malformed()
         noteRefs.add(note.ref)
@@ -162,7 +162,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
         }
     }
     for (const template of templates as unknown[]) {
-        if (!isObject(template) || !isNonEmpty(template.name) || !isNullableString(template.color)) malformed()
+        if (!isObject(template) || !isNonEmpty(template.name) || !isNullableString(template.color) || !isNullableString(template.bg_color)) malformed()
         checkContent(template.content, counter)
     }
 
@@ -178,10 +178,12 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     for (const folder of result.folders) folder.color = cleanColor(folder.color)
     for (const note of result.notes) {
         note.color = cleanColor(note.color)
+        if (note.bg_color !== undefined) note.bg_color = cleanColor(note.bg_color)
         normalizeContent(note.content)
     }
     for (const template of result.templates) {
         template.color = cleanColor(template.color)
+        if (template.bg_color !== undefined) template.bg_color = cleanColor(template.bg_color)
         template.name = template.name.trim()
         normalizeContent(template.content)
     }

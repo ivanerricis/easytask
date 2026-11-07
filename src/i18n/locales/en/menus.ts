@@ -57,6 +57,7 @@ export const textMenu: Translation["textMenu"] = {
 
 export const menu: Translation["menu"] = {
     changeColor: "Change color",
+    noteBackground: "Note background",
     export: "Export",
     importHere: "Import here",
     moveUp: "Move up",

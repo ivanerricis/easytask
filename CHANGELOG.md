@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Background color of a note: right click on the empty space of a note and choose **Note background** to pick a color from the same palette used elsewhere (or **No color** to remove it). The color is a light layer over the note area, can be undone, and is copied by duplicating the note, by templates (create, refresh, new note from a template, template editor) and by export and import (files exported before this version still import). The database moves to version 13, and a safety copy is taken before migrating, as for any migration.
+
 ## [0.18.0] - 2026-10-29
 
 ### Added

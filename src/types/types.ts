@@ -42,6 +42,8 @@ export type Note = {
     /** Set while the item is archived (hidden from the note/sidebar without being trashed); null/undefined = visible. */
     archived_at?: string | null
     color?: string
+    /** Optional background color of the note area (hex); null/undefined = the default background. */
+    bg_color?: string | null
     /** Set on the working copy (draft) of a template while it is edited: the template it belongs to. Such a note has no workspace. */
     templateID?: number | null
     groups: Group[]

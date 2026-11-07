@@ -40,6 +40,7 @@ export const undo = {
         deleteMany_one: "Elimina {{count}} elemento",
         deleteMany_other: "Elimina {{count}} elementi",
         colorContent: "Colora contenuto di {{type}}",
+        background: "Cambia sfondo di {{type}}",
         colorMany_one: "Cambia colore di {{count}} elemento",
         colorMany_other: "Cambia colore di {{count}} elementi",
         moveMany_one: "Sposta {{count}} elemento",

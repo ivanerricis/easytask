@@ -17,6 +17,8 @@ export const COLOR_ALPHA_BASE = {
     header: 0.4,
     /** Background of a colored task: much lighter than the side bar, which keeps the full color. */
     task: 0.05,
+    /** Background of the whole note area (the user's choice from the note menu): light, so the groups on it stay readable. */
+    noteBackground: 0.12,
 } as const
 
 /** Brings an intensity into 0.25-1.75, rounded to 1% (non-numbers give the default 1). */

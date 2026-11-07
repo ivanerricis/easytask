@@ -55,6 +55,7 @@ export const textMenu = {
 
 export const menu = {
     changeColor: "Cambia colore",
+    noteBackground: "Sfondo della nota",
     export: "Esporta",
     importHere: "Importa qui",
     moveUp: "Sposta su",

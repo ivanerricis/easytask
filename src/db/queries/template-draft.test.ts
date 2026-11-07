@@ -299,3 +299,40 @@ describe("getDBTemplateDraft", () => {
         expect((await getDBTemplateDraft(noteId))?.trashed).toBe(true)
     })
 })
+
+describe("background of the note", () => {
+    const BG = "#e6194b"
+    const bgOf = (table: "note" | "note_template", id: number) => rows(`SELECT bg_color FROM ${table} WHERE id = ${id}`)[0].bg_color
+
+    it("goes from the note to the template, to the draft, back to the template and to the notes created from it", async () => {
+        sqlite.exec(`UPDATE note SET bg_color = '${BG}' WHERE id = 1`)
+        const templateId = await createDBTemplateFromNote(1, "T")
+        expect(bgOf("note_template", templateId)).toBe(BG)
+
+        const draftId = await createDBTemplateDraft(templateId)
+        expect(bgOf("note", draftId)).toBe(BG)
+        await expect(saveDBTemplateDraft(draftId)).resolves.toBe("unchanged")
+
+        // A change of the draft alone is a change to save
+        sqlite.exec(`UPDATE note SET bg_color = '#3cb44b' WHERE id = ${draftId}`)
+        await expect(saveDBTemplateDraft(draftId)).resolves.toBe("written")
+        expect(bgOf("note_template", templateId)).toBe("#3cb44b")
+
+        const created = await createDBNoteFromTemplate(templateId, 1, null, "Da template")
+        expect(bgOf("note", created)).toBe("#3cb44b")
+        const inFolder = await createDBNoteFromTemplate(templateId, 1, null, "Altra copia")
+        expect(bgOf("note", inFolder)).toBe("#3cb44b")
+    })
+
+    it("is refreshed from the source note and copied by the duplicates of a note and of a template", async () => {
+        const templateId = await createDBTemplateFromNote(1, "T")
+        expect(bgOf("note_template", templateId)).toBeNull()
+        sqlite.exec(`UPDATE note SET bg_color = '${BG}' WHERE id = 1`)
+        await updateDBTemplateFromNote(templateId)
+        expect(bgOf("note_template", templateId)).toBe(BG)
+        expect((await getDBTemplates(1))[0].bg_color).toBe(BG)
+
+        expect(bgOf("note", await duplicateDBNote(1))).toBe(BG)
+        expect(bgOf("note_template", await duplicateDBTemplate(templateId))).toBe(BG)
+    })
+})
