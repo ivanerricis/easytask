@@ -1,6 +1,6 @@
 import { browser, $, expect } from "@wdio/globals"
 import {
-    byLabel, byText, createFromSidebar, createWorkspace, cssColor, openContextMenu, openSubmenu, openWorkspace, sql, tr, treeRow, waitForApp,
+    byLabel, createFromSidebar, createWorkspace, cssColor, openContextMenu, openSubmenu, openWorkspace, sql, tr, treeRow, waitForApp,
 } from "../helpers"
 
 /**
@@ -73,8 +73,10 @@ describe("Note background", () => {
         await browser.waitUntil(async () => (await savedBackground()) === RED_HEX, { timeoutMsg: "the background was not saved again" })
 
         const menu = await openContextMenu(area())
-        await openSubmenu(menu, await tr("menu.noteBackground"), byText(await tr("details.noColor")))
-        await byText(await tr("details.noColor")).click()
+        // The details panel has a "No color" button too: look only inside the open menus
+        const none = $(`//*[@role='menu']//button[normalize-space()='${await tr("details.noColor")}']`)
+        await openSubmenu(menu, await tr("menu.noteBackground"), none)
+        await none.click()
         await browser.waitUntil(async () => (await savedBackground()) === null, { timeoutMsg: "the background was not removed" })
     })
 })
