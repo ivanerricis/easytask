@@ -59,7 +59,8 @@ describe("WhatsNewTrigger", () => {
 describe("WhatsNewPage", () => {
     it("shows the bundled notes of the running version", async () => {
         render(<WhatsNewPage />)
-        expect(await screen.findByRole("heading", { name: "Novità - 0.17.0" })).toBeInTheDocument()
+        expect(await screen.findByRole("heading", { name: "Novità" })).toBeInTheDocument()
+        expect(await screen.findByTestId("whats-new-version")).toHaveTextContent("0.17.0")
         expect(await screen.findByText("Aggiunto")).toBeInTheDocument()
     })
 })
