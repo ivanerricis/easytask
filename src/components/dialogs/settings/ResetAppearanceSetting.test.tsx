@@ -27,7 +27,7 @@ const state = {
 
 vi.mock("@/components/use-theme", () => ({ useTheme: () => ({ theme: state.theme, setTheme }) }))
 // jsdom has no dark color scheme: the default theme of the system is the light one
-vi.mock("@/lib/theme-startup", () => ({ systemPrefersDark: () => state.prefersDark }))
+vi.mock("@/lib/theme-startup", () => ({ systemPrefersDark: () => state.prefersDark, systemPrefersMoreContrast: () => false }))
 vi.mock("@/contexts/use-preferences", () => ({
     usePreferences: () => ({ ...state, setAccentOverride, setLanguage, setFontFamily, setTextZoom, setSidebarItemSize, setColorIntensity, setAnimationSpeed }),
 }))
