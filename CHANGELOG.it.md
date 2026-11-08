@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-08
+
 ### Aggiunto
 
 - Trascinamento live dei task: mentre trascini un task gli altri si scostano per aprire lo spazio dove atterrerebbe e il task trascinato si riduce, come su Trello. Durante il trascinamento la linea di inserimento non compare. Sezioni, gruppi e barra laterale restano come prima. Si può spegnere in Impostazioni > Note e sezioni (**Task che si spostano mentre li trascini**): resta allora solo l'indicatore del punto di rilascio.
@@ -503,7 +505,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.16.0...v0.17.0

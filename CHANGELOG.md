@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-08
+
 ### Added
 
 - Live drag of tasks: while you drag a task the others step aside to open the room where it would land, and the dragged task collapses, as on Trello. The insertion line is not shown during the drag. Sections, groups and the sidebar behave as before. You can turn it off in Settings > Notes and sections (**Tasks move aside while dragging**): the drop indicator is then the only feedback.
@@ -505,7 +507,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.16.0...v0.17.0
