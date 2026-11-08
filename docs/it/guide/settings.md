@@ -52,6 +52,7 @@ Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e sug
 | **Comportamento**: Rinomina cliccando sul nome | Sì / No | Sì |
 | Continua ad aggiungere task (il campo resta aperto dopo aver creato un task) | Sì / No | Sì |
 | Linea per inserire un task (una linea con un + tra due task; con Continua ad aggiungere task il campo si sposta sotto il nuovo task) | Sì / No | Sì |
+| Task che si spostano mentre li trascini (gli altri task si scostano per aprire lo spazio dove atterrerebbe quello trascinato; se disattivato resta solo l'indicatore del punto di rilascio) | Sì / No | Sì |
 | Posizione dei nuovi task | In cima, In fondo | In fondo |
 | Controllo ortografico | Sì / No | Sì |
 | Conferma l'eliminazione solo se c'è contenuto (note, sezioni e gruppi: se attiva, quelli vuoti vanno subito nel cestino con **Annulla**, gli altri chiedono conferma; se disattivata non chiede mai. Cartelle, workspace, task e selezioni multiple chiedono sempre) | Sì / No | Sì |

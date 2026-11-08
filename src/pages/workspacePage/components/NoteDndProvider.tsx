@@ -1,12 +1,15 @@
 import { getSectionLabel } from "./section/section-label"
-import { useMemo, useRef, useState, useSyncExternalStore } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import type { CSSProperties, ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { createPortal } from "react-dom"
 import {
-    DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+    DndContext, DragOverlay, PointerSensor, getClientRect, useSensor, useSensors,
     type Collision, type CollisionDetection, type DragMoveEvent, type DragStartEvent,
 } from "@dnd-kit/core"
+import { usePreference } from "@/contexts/use-preference"
+import { computeLiveShifts, holdLiveZone, makeShiftFreeMeasure, taskListKey, type LiveSnapshot } from "./note-dnd-live"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
 import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
@@ -46,6 +49,15 @@ const collisionDetection: CollisionDetection = ({ active, droppableContainers, d
     }
     return hits.sort((a, b) => (a.data?.value as number) - (b.data?.value as number))
 }
+
+/**
+ * With the live drag the rows are moved by a transform while the drag goes on: the places to hit are measured without it, or the
+ * target would flip between the place and its shifted copy.
+ */
+const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => getClientRect(element, { ignoreTransform: true }), shiftOf) } }
+
+/** Longest wait for the optimistic update of a drop before the rows are put back anyway. */
+const SETTLE_TIMEOUT = 500
 
 /** The color of an item over the background of its preview, like its header (none: the preview keeps its own background). */
 const tintOf = (color: string | null | undefined, alpha: number): CSSProperties | undefined => {
@@ -89,6 +101,25 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const { moveGroupTo } = useGroupMoves()
     const pendingRef = useRef<PendingDrop | null>(null)
     const lastMoveRef = useRef<{ key: string, tree: NoteDataTree } | null>(null)
+    // Live drag of the tasks: the rows are moved with a transform (see note-dnd-shift), never through React state
+    const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
+    const liveRef = useRef<{ snapshot: LiveSnapshot, dragged: string } | null>(null)
+    /** The task and zone the rows are showing now (with hysteresis: it can lag behind the real zone by a few px). */
+    const liveShownRef = useRef<{ over: string, zone: DropZone } | null>(null)
+    const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
+    const settle = () => {
+        if (settleRef.current === null) return
+        clearTimeout(settleRef.current)
+        settleRef.current = null
+        clearShifts(false)
+    }
+    useLayoutEffect(settle, [noteDataTree])
+    useEffect(() => () => {
+        if (settleRef.current !== null) clearTimeout(settleRef.current)
+        clearShifts(false)
+    }, [])
 
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
@@ -107,7 +138,20 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const reset = () => {
         pendingRef.current = null
         lastMoveRef.current = null
+        liveRef.current = null
+        liveShownRef.current = null
         store.set({ active: null, hover: NO_HOVER })
+    }
+
+    /** Moves the rows to open the room of the pending drop of a task (nothing for the other cases: they keep the ring / the line). */
+    const syncLive = (pending: PendingDrop | null, over?: NoteOverRef, zone?: DropZone) => {
+        const live = liveRef.current
+        if (!live) return
+        liveShownRef.current = pending?.kind === "task" && over?.kind === "task" && zone ? { over: noteKey("task", over.id), zone } : null
+        const shifts = pending?.kind === "task" && over?.kind === "task"
+            ? computeLiveShifts(live.snapshot, live.dragged, { over: noteKey("task", over.id), zone: zone ?? null, list: taskListKey(pending.target) })
+            : null
+        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null)
     }
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -118,6 +162,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             selection.reset()
             announce(t("tasks.keyboard.dragSingle"))
         }
+        // The layout at rest, before anything moves: the sizes the shifts are computed from
+        liveRef.current = liveDrag && data?.kind === "task" ? { snapshot: readLiveSnapshot(), dragged: noteKey("task", data.id) } : null
         store.set({ active: data ? { kind: data.kind, id: data.id } : null })
     }
 
@@ -127,6 +173,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (!dragged || !over || !noteDataTree) {
             pendingRef.current = null
             lastMoveRef.current = null
+            syncLive(null)
             store.set({ hover: NO_HOVER })
             return
         }
@@ -143,6 +190,20 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             if (pointerY == null) return
             const overTask = overRef.kind === "task" ? findTask(noteDataTree, overRef.id) : undefined
             zone = computeDropZone(dragged.kind, overRef.kind, over.rect, pointerY, { hasSubtasks: (overTask?.subtasks.length ?? 0) > 0 })
+        }
+
+        // The rows follow the zone with a small hysteresis (presentation only: the drop below uses the real zone)
+        if (liveRef.current && dragged.kind === "task" && overRef.kind === "task") {
+            const overKey = noteKey("task", overRef.id)
+            const shown = liveShownRef.current
+            const pointerY = getPointer(event)?.y
+            const liveZone = shown && shown.over === overKey && pointerY != null
+                ? holdLiveZone(shown.zone, zone, over.rect, pointerY)
+                : zone
+            if (!(shown && shown.over === overKey && shown.zone === liveZone)) {
+                const target = computeTaskTarget(noteDataTree, dragged.id, overRef, liveZone)
+                syncLive(target ? { kind: "task", id: dragged.id, target } : null, overRef, liveZone)
+            }
         }
 
         // Same item over the same zone of the same tree: the target is the one already computed
@@ -162,6 +223,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             if (target) pending = { kind: "task", id: dragged.id, target }
         }
         pendingRef.current = pending
+        if (!(dragged.kind === "task" && overRef.kind === "task")) syncLive(pending, overRef, zone)
 
         const targetSectionId = pending?.kind === "task" ? pending.target.sectionId : null
         const next: NoteHover = pending ? { overKey: noteKey(overRef.kind, overRef.id), zone, targetSectionId } : NO_HOVER
@@ -171,11 +233,23 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
 
     const handleDragEnd = async () => {
         const pending = pendingRef.current
+        const shifted = hasShifts()
         reset()
+        if (shifted && pending?.kind === "task") {
+            // The optimistic update below replaces the tree: the rows go back in that commit (see the layout effect)
+            settleRef.current = setTimeout(() => { settleRef.current = null; clearShifts(false) }, SETTLE_TIMEOUT)
+        } else {
+            clearShifts(!pending)
+        }
         if (!pending) return
         if (pending.kind === "group") await moveGroupTo(pending.id, pending.index)
         else if (pending.kind === "section") await moveSectionTo(pending.id, pending.target)
         else await moveTaskTo(pending.id, pending.target)
+    }
+
+    const handleDragCancel = () => {
+        reset()
+        clearShifts(true)
     }
 
     // Over nothing valid (no droppable, or a no-op target such as a task under itself) the cursor says the drop does nothing
@@ -226,7 +300,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
-                onDragCancel={reset}
+                onDragCancel={handleDragCancel}
+                measuring={liveDrag ? LIVE_MEASURING : undefined}
             >
                 {children}
                 {createPortal(<DragOverlay dropAnimation={null}>{preview && <div className="rotate-2">{preview}</div>}</DragOverlay>, document.body)}

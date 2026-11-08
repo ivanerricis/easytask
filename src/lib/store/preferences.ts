@@ -170,6 +170,7 @@ export const UI_PREFS = {
     renameOnClick: def({ key: "renameOnClick", default: true, normalize: value => value !== false }),
     keepAddingTasks: def({ key: "keepAddingTasks", default: true, normalize: value => value !== false }),
     showTaskInsertLine: def({ key: "showTaskInsertLine", default: true, normalize: value => value !== false }),
+    liveDrag: def({ key: "liveDrag", default: true, normalize: value => value !== false }),
     undoLimit: def<number>({ key: "undoLimit", default: UNDO_LIMIT, normalize: value => isValidUndoLimit(value) ? value : UNDO_LIMIT }),
     sidebarLeftOpen: def({ key: "sidebarLeftOpen", default: true }),
     sidebarRightOpen: def({ key: "sidebarRightOpen", default: true }),

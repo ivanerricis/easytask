@@ -111,13 +111,13 @@ A task with a description shows a small icon: click it to read the description. 
 
 ### Move tasks
 
-Drag a task by its row. Drop it:
+Drag a task by its row. While you drag, the other tasks step aside to open the room where it would land and the task you are dragging collapses, so you see the final order before you drop. Drop it:
 
 - between two tasks, to reorder them;
-- on the middle of a task, to make it a subtask of that task;
+- on the middle of a task, to make it a subtask of that task (the task shows a ring instead of opening a gap);
 - on a section, to make it the last task of that section.
 
-**Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
+With **Live drag** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
 
 ### Use the keyboard
 

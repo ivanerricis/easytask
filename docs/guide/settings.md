@@ -52,6 +52,7 @@ If the accent color has little contrast with the background, EasyTask warns you 
 | **Behavior**: Rename by clicking the name | On / Off | On |
 | Keep adding tasks (the field stays open after creating a task) | On / Off | On |
 | Line to insert a task (a line with a + between two tasks; with Keep adding tasks the field moves under the new task) | On / Off | On |
+| Tasks move aside while dragging (the others step aside to open the room where the dragged task would land; if off, only the drop indicator is shown) | On / Off | On |
 | Position of new tasks | At the top, At the bottom | At the bottom |
 | Spell check | On / Off | On |
 | Confirm deleting only when there is content (notes, sections and groups: with it on, empty ones go straight to the trash with **Undo**, the others ask first; off never asks. Folders, workspaces, tasks and multiple selections always ask) | On / Off | On |

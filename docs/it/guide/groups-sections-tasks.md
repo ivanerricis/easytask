@@ -111,13 +111,13 @@ Un task con una descrizione mostra una piccola icona: fai clic per leggerla. L'a
 
 ### Spostare i task
 
-Trascina un task dalla sua riga. Rilascialo:
+Trascina un task dalla sua riga. Mentre trascini, gli altri task si scostano per aprire lo spazio dove atterrerebbe e il task che trascini si riduce, così vedi l'ordine finale prima di rilasciare. Rilascialo:
 
 - tra due task, per riordinarli;
-- al centro di un task, per renderlo un sottotask di quel task;
+- al centro di un task, per renderlo un sottotask di quel task (il task mostra un anello invece di aprire uno spazio);
 - su una sezione, per farne l'ultimo task di quella sezione.
 
-**Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo.
+Con **Task che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo.
 
 ### Usare la tastiera
 

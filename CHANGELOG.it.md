@@ -4,6 +4,14 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Trascinamento live dei task: mentre trascini un task gli altri si scostano per aprire lo spazio dove atterrerebbe e il task trascinato si riduce, come su Trello. Durante il trascinamento la linea di inserimento non compare. Sezioni, gruppi e barra laterale restano come prima. Si può spegnere in Impostazioni > Note e sezioni (**Task che si spostano mentre li trascini**): resta allora solo l'indicatore del punto di rilascio.
+
+### Modificato
+
+- Il controllo degli aggiornamenti all'avvio parte ora 2 secondi dopo l'avvio invece di 3.
+
 ## [0.19.0] - 2026-11-07
 
 ### Aggiunto

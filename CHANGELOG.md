@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Live drag of tasks: while you drag a task the others step aside to open the room where it would land, and the dragged task collapses, as on Trello. The insertion line is not shown during the drag. Sections, groups and the sidebar behave as before. You can turn it off in Settings > Notes and sections (**Tasks move aside while dragging**): the drop indicator is then the only feedback.
+
+### Changed
+
+- The update check at startup now runs 2 seconds after the start instead of 3.
+
 ## [0.19.0] - 2026-11-07
 
 ### Added

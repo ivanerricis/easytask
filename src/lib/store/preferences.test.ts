@@ -450,6 +450,15 @@ describe("audio file count and section separators preferences", () => {
         expect(await getPref("showGroupSeparators")).toBe(false)
     })
 
+    it("moves the tasks while they are dragged by default, and only an explicit false turns it off", async () => {
+        vi.mocked(store.get).mockResolvedValue(undefined)
+        expect(await getPref("liveDrag")).toBe(true)
+        vi.mocked(store.get).mockResolvedValue("no")
+        expect(await getPref("liveDrag")).toBe(true)
+        vi.mocked(store.get).mockResolvedValue(false)
+        expect(await getPref("liveDrag")).toBe(false)
+    })
+
     it("shows no label of unnamed items and renames on click by default", async () => {
         vi.mocked(store.get).mockResolvedValue(undefined)
         expect(await getPref("showUnnamedLabels")).toBe(false)
@@ -576,7 +585,7 @@ describe("preference table", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
             "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "backupFolder",
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
-            "lastSeenVersion", "lastWorkspaceId", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount",
+            "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount",
             "showGroupProgressBar", "showGroupSeparators", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
             "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth",
             "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
