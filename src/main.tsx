@@ -8,6 +8,7 @@ import { flushStore } from './lib/store/save-soon'
 import { runBeforeClose } from './lib/before-close'
 import { isCloseToTrayActive } from './lib/tray'
 import { initI18n } from './i18n'
+import { prepareTheme } from './lib/theme-startup'
 import { reportError } from './lib/report-error'
 import { runAutoBackup } from './db/backup'
 import { runTrashAutoEmpty } from './lib/trash-auto-empty'
@@ -32,7 +33,9 @@ try {
 
 // The stored language is applied before the first render so the UI never flashes in the wrong language
 const start = async () => {
-  initI18n(await getLanguage().catch(() => 'system' as const))
+  // The theme is applied too (prepareTheme never throws): the first frame already has the right colors
+  const [language] = await Promise.all([getLanguage().catch(() => 'system' as const), prepareTheme()])
+  initI18n(language)
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <ErrorBoundary>

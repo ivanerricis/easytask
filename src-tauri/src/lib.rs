@@ -25,6 +25,9 @@ const BACKUP_FOLDER_KEY: &str = "backupFolder";
 /// keep the names identical on both sides.
 const REMEMBER_WINDOW_STATE_KEY: &str = "rememberWindowState";
 const ALWAYS_ON_TOP_KEY: &str = "alwaysOnTop";
+/// Background of the active theme, "#rrggbb" (written by the frontend at every theme change, src/lib/theme-startup.ts):
+/// it is the color of the window before the page paints, so the start has no white flash.
+const THEME_BACKGROUND_KEY: &str = "themeBackground";
 // Only the Windows webview (WebView2) takes browser arguments
 #[cfg(windows)]
 const HARDWARE_ACCELERATION_KEY: &str = "hardwareAcceleration";
@@ -141,6 +144,20 @@ fn setting_bool_from(settings: Option<&serde_json::Value>, key: &str, default: b
     settings
         .and_then(|settings| settings.get(key)?.as_bool())
         .unwrap_or(default)
+}
+
+/// The background of the active theme as (red, green, blue), from the settings already read. None when the key is
+/// missing or is not a "#rrggbb" color (the default color of the window is kept then).
+fn theme_background_from(settings: Option<&serde_json::Value>) -> Option<(u8, u8, u8)> {
+    let hex = settings?
+        .get(THEME_BACKGROUND_KEY)?
+        .as_str()?
+        .strip_prefix('#')?;
+    if hex.len() != 6 || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return None;
+    }
+    let channel = |range: std::ops::Range<usize>| u8::from_str_radix(&hex[range], 16).ok();
+    Some((channel(0..2)?, channel(2..4)?, channel(4..6)?))
 }
 
 /// The arguments of the WebView2 browser process. The media session of WebView2 belongs to msedgewebview2.exe, which
@@ -636,6 +653,9 @@ pub fn run() {
             if info.portable {
                 window = window.data_directory(info.path.join("webview"));
             }
+            if let Some((red, green, blue)) = theme_background_from(settings.as_ref()) {
+                window = window.background_color(tauri::window::Color(red, green, blue, 255));
+            }
             if setting_bool_from(settings.as_ref(), ALWAYS_ON_TOP_KEY, false) {
                 window = window.always_on_top(true);
             }
@@ -942,6 +962,26 @@ mod tests {
         assert!(!webview_browser_args(true).contains("--disable-gpu"));
         assert!(webview_browser_args(false).contains("--disable-gpu"));
         assert!(webview_browser_args(false).contains("HardwareMediaKeyHandling"));
+    }
+
+    #[test]
+    fn theme_background_needs_a_six_digit_hex_color() {
+        let read = |value: serde_json::Value| theme_background_from(Some(&value));
+        assert_eq!(
+            read(json!({ "themeBackground": "#1b1b1b" })),
+            Some((27, 27, 27))
+        );
+        assert_eq!(
+            read(json!({ "themeBackground": "#FFFFFF" })),
+            Some((255, 255, 255))
+        );
+        assert_eq!(read(json!({ "themeBackground": "#fff" })), None);
+        assert_eq!(read(json!({ "themeBackground": "1b1b1b" })), None);
+        assert_eq!(read(json!({ "themeBackground": "#gggggg" })), None);
+        assert_eq!(read(json!({ "themeBackground": "#+12345" })), None);
+        assert_eq!(read(json!({ "themeBackground": 5 })), None);
+        assert_eq!(read(json!({})), None);
+        assert_eq!(theme_background_from(None), None);
     }
 
     #[test]

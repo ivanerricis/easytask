@@ -1,4 +1,4 @@
-import { DEFAULT_PRIMARY_COLOR, applyAccentColor } from "@/lib/accent-color"
+import { DEFAULT_PRIMARY_COLOR } from "@/lib/accent-color"
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { createExternalStore } from "@/lib/external-store"
 import {
@@ -6,8 +6,8 @@ import {
     getAllPrefs,
     savePref,
     normalizePref,
-    getPrimaryColor,
-    savePrimaryColor,
+    getAccentOverride,
+    saveAccentOverride,
     saveAudioPlayerPosition,
     getAudioPlayerPosition,
     resetAudioPlayerPosition,
@@ -20,6 +20,7 @@ import {
     type UiPrefName
 } from "@/lib/store/preferences"
 import { reportError } from "@/lib/report-error"
+import { getThemeStartup } from "@/lib/theme-startup"
 import { applyLanguagePreference } from "@/i18n"
 import { applyAnimationSpeed } from "@/lib/animation-speed"
 import { applyTextZoom } from "@/lib/text-zoom"
@@ -46,7 +47,8 @@ const setterName = (name: UiPrefName) =>
 
 export const PreferencesProvider = ({ children }: { children: React.ReactNode }) => {
     const [prefs, setPrefs] = useState<PrefValues>(DEFAULT_PREFS)
-    const [primaryColor, setPrimaryColorState] = useState(DEFAULT_PRIMARY_COLOR)
+    // The accent override is applied with the theme by the ThemeProvider
+    const [accentOverride, setAccentOverrideState] = useState<string | null>(() => getThemeStartup()?.accentOverride ?? null)
     useEffect(() => applyAnimationSpeed(prefs.animationSpeed), [prefs.animationSpeed])
     useEffect(() => applyTextZoom(prefs.textZoom), [prefs.textZoom])
     useEffect(() => applyFontFamily(prefs.fontFamily), [prefs.fontFamily])
@@ -118,10 +120,7 @@ export const PreferencesProvider = ({ children }: { children: React.ReactNode })
             positionRef.current = fitted
             setAudioPlayerPositionState(fitted)
         }).catch(reportError)
-        getPrimaryColor().then(hex => {
-            setPrimaryColorState(hex)
-            applyAccentColor(hex)
-        }).catch(reportError)
+        getAccentOverride().then(setAccentOverrideState).catch(reportError)
     }, [])
 
     // The actions only go through setState and refs: built once, so their identity never changes and the value below
@@ -135,11 +134,11 @@ export const PreferencesProvider = ({ children }: { children: React.ReactNode })
             savePref(name, normalized).catch(reportError)
         }])) as Pick<PreferencesContextType, PrefSetterName<UiPrefName>>
 
-        const setPrimaryColor = (hex: string) => {
-            setPrimaryColorState(hex)
-            applyAccentColor(hex)
-            savePrimaryColor(hex).catch(reportError)
+        const setAccentOverride = (hex: string | null) => {
+            setAccentOverrideState(hex)
+            saveAccentOverride(hex).catch(reportError)
         }
+        const setPrimaryColor = (hex: string) => setAccentOverride(hex)
 
         const setAudioPlayerPosition = (position: AudioPlayerPosition) => {
             setAudioPlayerPositionState(position)
@@ -185,17 +184,18 @@ export const PreferencesProvider = ({ children }: { children: React.ReactNode })
             })
         }
 
-        return { ...setters, setAudioPlayerScale, setPrimaryColor, setAudioPlayerPosition, resetPlayerPosition, resetAudioSettings }
+        return { ...setters, setAudioPlayerScale, setAccentOverride, setPrimaryColor, setAudioPlayerPosition, resetPlayerPosition, resetAudioSettings }
     }, [setPref])
 
     const value = useMemo<PreferencesContextType>(() => ({
         ...prefs,
         ...actions,
-        primaryColor,
+        accentOverride,
+        primaryColor: accentOverride ?? DEFAULT_PRIMARY_COLOR,
         audioPlayerPosition,
         audioPlayerContainerRef,
         reportAudioPlayerSize,
-    }), [prefs, actions, primaryColor, audioPlayerPosition, reportAudioPlayerSize])
+    }), [prefs, actions, accentOverride, audioPlayerPosition, reportAudioPlayerSize])
 
     // The same value in an external store: usePreference(selector) re-renders its component only when the selected value changes
     // eslint-disable-next-line react-hooks/refs -- only the ref object is stored, its current is never read
