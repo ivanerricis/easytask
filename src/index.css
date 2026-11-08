@@ -59,6 +59,17 @@ body,
   --color-warning-foreground: var(--warning-foreground);
   --color-priority: var(--priority);
   --color-window-close: var(--window-close);
+  --color-window-close-foreground: var(--window-close-foreground);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight-active: var(--highlight-active);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-control-hover: var(--control-hover);
+  --color-overlay: var(--overlay);
+  --color-thumb: var(--thumb);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -93,6 +104,18 @@ body,
   --warning-foreground: oklch(0.985 0 0);
   --priority: oklch(0.577 0.245 27.325);
   --window-close: oklch(0.536 0.191 30.1);
+  --window-close-foreground: #ffffff;
+  /* Search highlight (yellow-300 at 70% over white), the current match, and the changelog/status colors */
+  --highlight: #fee97e;
+  --highlight-foreground: #171717;
+  --highlight-active: #fb923c;
+  --success: #047857;
+  --success-foreground: #ffffff;
+  --info: #0369a1;
+  --info-foreground: #ffffff;
+  --control-hover: var(--accent);
+  --overlay: oklch(0 0 0 / 50%);
+  --thumb: #ffffff;
   --border: oklch(0.922 0 0);
   /* borders and tracks of the form controls: about 3:1 on white and on the grey panels (WCAG 1.4.11) */
   --input: oklch(0.62 0 0);
@@ -126,6 +149,18 @@ body,
   --warning-foreground: oklch(0.205 0 0);
   --priority: oklch(0.704 0.191 22.216);
   --window-close: oklch(0.536 0.191 30.1);
+  --window-close-foreground: #ffffff;
+  --highlight: #836712;
+  --highlight-foreground: #ffffff;
+  --highlight-active: #fb923c;
+  --success: #34d399;
+  --success-foreground: #171717;
+  --info: #38bdf8;
+  --info-foreground: #171717;
+  /* the input color at half strength, as the old dark:hover:bg-input/50 */
+  --control-hover: oklch(1 0 0 / 21%);
+  --overlay: oklch(0 0 0 / 50%);
+  --thumb: #ffffff;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 42%);
   --ring: var(--primary);

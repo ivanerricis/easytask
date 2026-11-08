@@ -56,16 +56,37 @@ export const BUILTIN_THEMES: readonly ThemeDefinition[] = [
             accentSurface: "#e0d3b4", border: "#d8c9a8", input: "#948157", destructive: "#a8281e", warning: "#8a5a00",
         },
     },
+    {
+        id: "high-contrast-dark", name: "High contrast dark", nameKey: "settings.themes.highContrastDark", base: "dark", builtin: true, highContrast: true, accent: "#ffff00",
+        colors: {
+            background: "#000000", foreground: "#ffffff", card: "#000000", muted: "#1a1a1a", mutedForeground: "#e0e0e0",
+            accentSurface: "#333333", border: "#ffffff", input: "#ffffff", destructive: "#ff7b7b", warning: "#ffd60a",
+        },
+    },
+    {
+        id: "high-contrast-light", name: "High contrast light", nameKey: "settings.themes.highContrastLight", base: "light", builtin: true, highContrast: true, accent: "#0000cc",
+        colors: {
+            background: "#ffffff", foreground: "#000000", card: "#ffffff", muted: "#ececec", mutedForeground: "#333333",
+            accentSurface: "#d9d9d9", border: "#000000", input: "#000000", destructive: "#b00000", warning: "#7a4a00",
+        },
+    },
 ]
 
+export const DEFAULT_HIGH_CONTRAST_DARK_THEME_ID = "high-contrast-dark"
+export const DEFAULT_HIGH_CONTRAST_LIGHT_THEME_ID = "high-contrast-light"
 export const DEFAULT_LIGHT_THEME_ID = "light"
 export const DEFAULT_DARK_THEME_ID = "dark"
 
 export const getBuiltinTheme = (id: string): ThemeDefinition | undefined => BUILTIN_THEMES.find(theme => theme.id === id)
 
-/** The theme chosen once, at the first start, from the operating system (`prefers-color-scheme`). */
-export const defaultThemeIdForSystem = (prefersDark: boolean): string =>
-    prefersDark ? DEFAULT_DARK_THEME_ID : DEFAULT_LIGHT_THEME_ID
+/**
+ * The theme chosen once, at the first start, from the operating system (`prefers-color-scheme`); with `prefers-contrast: more`
+ * the high-contrast theme of the same scheme.
+ */
+export const defaultThemeIdForSystem = (prefersDark: boolean, prefersMoreContrast = false): string =>
+    prefersMoreContrast
+        ? (prefersDark ? DEFAULT_HIGH_CONTRAST_DARK_THEME_ID : DEFAULT_HIGH_CONTRAST_LIGHT_THEME_ID)
+        : (prefersDark ? DEFAULT_DARK_THEME_ID : DEFAULT_LIGHT_THEME_ID)
 
 /** The accent in use: the user's override (a "#rrggbb") over the one of the theme, which is the fallback and the "restore". */
 export const effectiveAccent = (def: Pick<ThemeDefinition, "accent">, override: string | null | undefined): string =>

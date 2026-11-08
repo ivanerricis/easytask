@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { applyTheme, THEME_STYLE_ID } from "./apply"
 import { BUILTIN_THEMES, defaultThemeIdForSystem, effectiveAccent, getBuiltinTheme } from "./builtin"
 import { composite, contrastRatio, isHex6, luminance, parseHex6, textColorOn } from "./color"
-import { checkThemeContrast } from "./contrast-checks"
+import { checkThemeContrast, contrastChecksFor } from "./contrast-checks"
 import { themeCssVars, themeStylesheet } from "./css"
 import { THEME_COLOR_KEYS, type ThemeDefinition } from "./types"
 import { normalizeStoredThemes, newCustomThemeId, themeToFile, uniqueThemeName, validateThemeFile } from "./validate"
@@ -58,6 +58,11 @@ describe("default theme and accent", () => {
         expect(defaultThemeIdForSystem(true)).toBe("dark")
         expect(defaultThemeIdForSystem(false)).toBe("light")
     })
+    it("proposes the high-contrast theme of the system scheme with prefers-contrast: more", () => {
+        expect(defaultThemeIdForSystem(true, true)).toBe("high-contrast-dark")
+        expect(defaultThemeIdForSystem(false, true)).toBe("high-contrast-light")
+        expect(defaultThemeIdForSystem(true, false)).toBe("dark")
+    })
     it("uses the override over the accent of the theme", () => {
         expect(effectiveAccent(nord, null)).toBe("#88c0d0")
         expect(effectiveAccent(nord, undefined)).toBe("#88c0d0")
@@ -72,7 +77,7 @@ describe("css", () => {
             const vars = themeCssVars(theme)
             for (const [name, value] of Object.entries(vars)) {
                 expect(name).toMatch(/^--[a-z-]+$/)
-                expect(value, `${theme.id} ${name}`).toMatch(/^#[0-9a-f]{6}$/)
+                expect(value, `${theme.id} ${name}`).toMatch(name === "--overlay" ? /^#[0-9a-f]{8}$/ : /^#[0-9a-f]{6}$/)
             }
             expect(vars["--primary"]).toBe(theme.accent)
             expect(vars["--card"]).toBe(theme.colors.card)
@@ -93,6 +98,53 @@ describe("css", () => {
         expect(() => themeCssVars({ ...nord, colors: { ...nord.colors, border: "red; } body{display:none" } })).toThrow()
         expect(() => themeCssVars({ ...nord, id: 'x"] { } a[' })).toThrow()
         expect(() => themeCssVars(nord, null)).not.toThrow()
+    })
+})
+
+describe("high-contrast themes", () => {
+    const hcThemes = BUILTIN_THEMES.filter(t => t.highContrast)
+    it("are the two built-in ones, and are checked at 7:1 while the others stay at 4.5", () => {
+        expect(hcThemes.map(t => t.id)).toEqual(["high-contrast-dark", "high-contrast-light"])
+        expect(contrastChecksFor(nord).some(check => check.min === 7)).toBe(false)
+        const weak = { ...hcThemes[0], colors: { ...hcThemes[0].colors, mutedForeground: "#808080" } }
+        expect(checkThemeContrast(weak).map(f => f.fg)).toContain("mutedForeground")
+    })
+    it.each(hcThemes.map(t => [t.id, t] as const))("%s derives tokens that read at 7:1", (_id, theme) => {
+        const v = themeCssVars(theme)
+        const c = theme.colors
+        expect(contrastRatio(v["--highlight-foreground"], v["--highlight"])).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--success"], c.background)).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--info"], c.background)).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--priority"], c.background)).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--window-close-foreground"], v["--window-close"])).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(c.foreground, v["--control-hover"])).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--primary-foreground"], v["--primary"])).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--tooltip-foreground"], v["--tooltip"])).toBeGreaterThanOrEqual(7)
+        expect(contrastRatio(v["--tooltip-border"], c.background)).toBeGreaterThanOrEqual(3)
+        expect(contrastRatio(v["--ring"], c.background)).toBeGreaterThanOrEqual(7)
+    })
+})
+
+describe("derived tokens", () => {
+    it.each(BUILTIN_THEMES.map(t => [t.id, t] as const))("%s: new tokens are present and readable", (_id, theme) => {
+        const v = themeCssVars(theme)
+        for (const name of ["--highlight", "--highlight-foreground", "--highlight-active", "--success", "--success-foreground", "--info", "--info-foreground",
+            "--control-hover", "--overlay", "--window-close", "--window-close-foreground", "--thumb", "--priority"]) expect(v[name], name).toBeDefined()
+        expect(contrastRatio(v["--highlight-foreground"], v["--highlight"])).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(v["--success"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(v["--info"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(v["--priority"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(theme.colors.foreground, v["--control-hover"])).toBeGreaterThanOrEqual(4.5)
+        expect(contrastRatio(v["--window-close-foreground"], v["--window-close"])).toBeGreaterThanOrEqual(4.5)
+    })
+    it("emits color-scheme and only validated hex values", () => {
+        for (const theme of BUILTIN_THEMES) {
+            const css = themeStylesheet(theme)
+            expect(css).toContain(`color-scheme: ${theme.base};`)
+            const values = [...css.matchAll(/^ {2}(--[a-z-]+|color-scheme): (.*);$/gm)].map(m => m[2])
+            expect(values.length).toBeGreaterThan(30)
+            for (const value of values) expect(value).toMatch(/^(light|dark|#[0-9a-f]{6}([0-9a-f]{2})?)$/)
+        }
     })
 })
 

@@ -27,6 +27,8 @@ export type ThemeDefinition = {
     /** Default accent of the theme, "#rrggbb". */
     accent: string
     builtin: boolean
+    /** High-contrast theme (built-in only): checked against WCAG AAA (7:1) instead of AA, and its derived tokens aim at 7:1. */
+    highContrast?: boolean
 }
 
 export const THEME_FILE_FORMAT = "easytask-theme"
