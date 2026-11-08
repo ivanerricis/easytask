@@ -10,8 +10,6 @@ export const appMenu = {
     file: "File",
     edit: "Modifica",
     view: "Visualizza",
-    themeBuiltin: "Temi predefiniti",
-    themeCustom: "I tuoi temi",
     manageThemes: "Gestisci temi…",
     help: "Aiuto",
     newNote: "Nuova nota",

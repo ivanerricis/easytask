@@ -100,10 +100,6 @@ export const settings: Translation["settings"] = {
             useTheme: "Use the accent of the theme",
             resetToTheme: "Back to the accent of the theme",
             contrast: {
-                warning: {
-                    light: "This color has little contrast with the background of the light theme ({{ratio}}:1, at least {{min}}:1 is needed): borders, selections and highlights may be hard to see.",
-                    dark: "This color has little contrast with the background of the dark theme ({{ratio}}:1, at least {{min}}:1 is needed): borders, selections and highlights may be hard to see.",
-                },
                 warningTheme: "This color has little contrast with the background of the theme \"{{theme}}\" ({{ratio}}:1, at least {{min}}:1 is needed): borders, selections and highlights may be hard to see.",
                 use: "Use {{color}} ({{ratio}}:1)",
             },

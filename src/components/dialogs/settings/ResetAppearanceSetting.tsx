@@ -6,7 +6,9 @@ import { useTheme } from "@/components/use-theme"
 import { usePreferences } from "@/contexts/use-preferences"
 import { DEFAULT_LANGUAGE_PREFERENCE } from "@/i18n"
 import { DEFAULT_COLOR_INTENSITY } from "@/lib/color-intensity"
-import { DEFAULT_ANIMATION_SPEED, DEFAULT_FONT_FAMILY, DEFAULT_PRIMARY_COLOR, DEFAULT_TEXT_ZOOM } from "@/lib/store/preferences"
+import { DEFAULT_ANIMATION_SPEED, DEFAULT_FONT_FAMILY, DEFAULT_TEXT_ZOOM } from "@/lib/store/preferences"
+import { defaultThemeIdForSystem } from "@/lib/themes/builtin"
+import { systemPrefersDark } from "@/lib/theme-startup"
 import { SectionResetButton } from "./SectionResetButton"
 
 /**
@@ -17,7 +19,7 @@ export const ResetAppearanceSetting = () => {
     const { t } = useTranslation()
     const { theme, setTheme } = useTheme()
     const {
-        primaryColor, setPrimaryColor,
+        accentOverride, setAccentOverride,
         language, setLanguage,
         fontFamily, setFontFamily,
         textZoom, setTextZoom,
@@ -27,8 +29,9 @@ export const ResetAppearanceSetting = () => {
     } = usePreferences()
     const [open, setOpen] = useState(false)
 
-    const isDefault = theme === "system"
-        && primaryColor.toLowerCase() === DEFAULT_PRIMARY_COLOR
+    // The default theme is the one of the operating system; the custom themes are not touched
+    const isDefault = theme === defaultThemeIdForSystem(systemPrefersDark())
+        && accentOverride === null
         && language === DEFAULT_LANGUAGE_PREFERENCE
         && fontFamily === DEFAULT_FONT_FAMILY
         && textZoom === DEFAULT_TEXT_ZOOM
@@ -37,8 +40,8 @@ export const ResetAppearanceSetting = () => {
         && animationSpeed === DEFAULT_ANIMATION_SPEED
 
     const handleReset = () => {
-        setTheme("system")
-        setPrimaryColor(DEFAULT_PRIMARY_COLOR)
+        setTheme(defaultThemeIdForSystem(systemPrefersDark()))
+        setAccentOverride(null)
         setLanguage(DEFAULT_LANGUAGE_PREFERENCE)
         setFontFamily(DEFAULT_FONT_FAMILY)
         setTextZoom(DEFAULT_TEXT_ZOOM)

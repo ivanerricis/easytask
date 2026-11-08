@@ -12,8 +12,6 @@ export const appMenu: Translation["appMenu"] = {
     file: "File",
     edit: "Edit",
     view: "View",
-    themeBuiltin: "Built-in themes",
-    themeCustom: "Your themes",
     manageThemes: "Manage themes…",
     help: "Help",
     newNote: "New note",

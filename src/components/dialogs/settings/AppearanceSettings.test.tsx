@@ -1,11 +1,14 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { getBuiltinTheme } from "@/lib/themes/builtin"
 import { AppearanceSettings } from "./AppearanceSettings"
 
-const prefs = { primaryColor: "#336699", setPrimaryColor: vi.fn() }
+const prefs = { accentOverride: "#336699" as string | null, setAccentOverride: vi.fn() }
 vi.mock("@/components/tooltip-custom", () => ({ TooltipCustom: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => prefs }))
-vi.mock("@/components/mode-toggle", () => ({ ModeToggle: () => null }))
+vi.mock("@/components/use-theme", () => ({ useTheme: () => ({ activeTheme: getBuiltinTheme("light")! }) }))
+vi.mock("./ThemeGallerySetting", () => ({ ThemeGallerySetting: () => null }))
+vi.mock("./CustomThemesSection", () => ({ CustomThemesSection: () => null }))
 vi.mock("./LanguageSetting", () => ({ LanguageSetting: () => null }))
 vi.mock("./SidebarItemSizeSetting", () => ({ SidebarItemSizeSetting: () => null }))
 vi.mock("./ColorIntensitySetting", () => ({ ColorIntensitySetting: () => null }))
@@ -15,8 +18,8 @@ const picker = () => screen.getByLabelText("Colore d'accento") as HTMLInputEleme
 
 beforeEach(() => {
     vi.useFakeTimers()
-    prefs.primaryColor = "#336699"
-    prefs.setPrimaryColor.mockReset()
+    prefs.accentOverride = "#336699"
+    prefs.setAccentOverride.mockReset()
     document.documentElement.style.removeProperty("--primary")
 })
 afterEach(() => { vi.useRealTimers() })
@@ -30,11 +33,11 @@ describe("accent color picker", () => {
         expect(document.documentElement.style.getPropertyValue("--primary")).toBe("#336699")
         expect(picker().value).toBe("#336699")
         // Nothing stored (no re-render of the app, no save) while the color is being dragged
-        expect(prefs.setPrimaryColor).not.toHaveBeenCalled()
+        expect(prefs.setAccentOverride).not.toHaveBeenCalled()
 
         act(() => { vi.advanceTimersByTime(300) })
-        expect(prefs.setPrimaryColor).toHaveBeenCalledTimes(1)
-        expect(prefs.setPrimaryColor).toHaveBeenCalledWith("#336699")
+        expect(prefs.setAccentOverride).toHaveBeenCalledTimes(1)
+        expect(prefs.setAccentOverride).toHaveBeenCalledWith("#336699")
     })
 
     it("restarts the wait at every change", () => {
@@ -43,50 +46,51 @@ describe("accent color picker", () => {
         act(() => { vi.advanceTimersByTime(200) })
         fireEvent.change(picker(), { target: { value: "#222222" } })
         act(() => { vi.advanceTimersByTime(200) })
-        expect(prefs.setPrimaryColor).not.toHaveBeenCalled()
+        expect(prefs.setAccentOverride).not.toHaveBeenCalled()
         act(() => { vi.advanceTimersByTime(100) })
-        expect(prefs.setPrimaryColor).toHaveBeenCalledOnce()
-        expect(prefs.setPrimaryColor).toHaveBeenCalledWith("#222222")
+        expect(prefs.setAccentOverride).toHaveBeenCalledOnce()
+        expect(prefs.setAccentOverride).toHaveBeenCalledWith("#222222")
     })
 
     it("stores a pending color when the settings are closed", () => {
         const { unmount } = render(<AppearanceSettings />)
         fireEvent.change(picker(), { target: { value: "#abcdef" } })
         unmount()
-        expect(prefs.setPrimaryColor).toHaveBeenCalledOnce()
-        expect(prefs.setPrimaryColor).toHaveBeenCalledWith("#abcdef")
+        expect(prefs.setAccentOverride).toHaveBeenCalledOnce()
+        expect(prefs.setAccentOverride).toHaveBeenCalledWith("#abcdef")
     })
 
     it("stores nothing when nothing was changed", () => {
         const { unmount } = render(<AppearanceSettings />)
         act(() => { vi.advanceTimersByTime(1000) })
         unmount()
-        expect(prefs.setPrimaryColor).not.toHaveBeenCalled()
+        expect(prefs.setAccentOverride).not.toHaveBeenCalled()
     })
 
-    it("resets to the default orange at once, dropping a pending change", () => {
+    it("goes back to the accent of the theme at once, dropping a pending change", () => {
         render(<AppearanceSettings />)
         fireEvent.change(picker(), { target: { value: "#123456" } })
-        fireEvent.click(screen.getByRole("button", { name: "Reimposta il colore d'accento" }))
+        fireEvent.click(screen.getByRole("button", { name: "Usa l'accento del tema" }))
 
-        expect(prefs.setPrimaryColor).toHaveBeenCalledOnce()
-        expect(prefs.setPrimaryColor).toHaveBeenCalledWith("#c2410c")
+        expect(prefs.setAccentOverride).toHaveBeenCalledOnce()
+        expect(prefs.setAccentOverride).toHaveBeenCalledWith(null)
         expect(document.documentElement.style.getPropertyValue("--primary")).toBe("#c2410c")
         act(() => { vi.advanceTimersByTime(1000) })
         // the dropped change is not stored afterwards
-        expect(prefs.setPrimaryColor).toHaveBeenCalledOnce()
+        expect(prefs.setAccentOverride).toHaveBeenCalledOnce()
     })
 
-    it("hides the reset button while the color is the default", () => {
-        prefs.primaryColor = "#C2410C"
+    it("shows the accent of the theme, with no button, while there is no override", () => {
+        prefs.accentOverride = null
         render(<AppearanceSettings />)
-        expect(screen.queryByRole("button", { name: "Reimposta il colore d'accento" })).toBeNull()
+        expect(picker().value).toBe("#c2410c")
+        expect(screen.queryByRole("button", { name: "Usa l'accento del tema" })).toBeNull()
     })
 
     it("follows the stored color when it changes elsewhere (reset)", () => {
         const { rerender } = render(<AppearanceSettings />)
         expect(picker().value).toBe("#336699")
-        prefs.primaryColor = "#00ff00"
+        prefs.accentOverride = "#00ff00"
         rerender(<AppearanceSettings />)
         expect(picker().value).toBe("#00ff00")
     })

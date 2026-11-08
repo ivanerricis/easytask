@@ -24,9 +24,9 @@ describe("OptionalColorField", () => {
 
     it("draws the icon in the color that contrasts with the chosen one", () => {
         const { rerender } = render(<OptionalColorField value="#000075" onChange={vi.fn()} />)
-        expect(screen.getByRole("button", { name: "Cambia colore" }).querySelector("svg")).toHaveStyle({ color: "oklch(1 0 0)" })
+        expect(screen.getByRole("button", { name: "Cambia colore" }).querySelector("svg")).toHaveStyle({ color: "#ffffff" })
         rerender(<OptionalColorField value="#d9bf01" onChange={vi.fn()} />)
-        expect(screen.getByRole("button", { name: "Cambia colore" }).querySelector("svg")).toHaveStyle({ color: "oklch(0.215 0 0)" })
+        expect(screen.getByRole("button", { name: "Cambia colore" }).querySelector("svg")).toHaveStyle({ color: "#171717" })
     })
 
     it("paints the button with the chosen color and marks it in the palette", async () => {

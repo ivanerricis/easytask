@@ -98,10 +98,6 @@ export const settings = {
             useTheme: "Usa l'accento del tema",
             resetToTheme: "Torna all'accento del tema",
             contrast: {
-                warning: {
-                    light: "Questo colore ha poco contrasto con lo sfondo del tema chiaro ({{ratio}}:1, ne servono almeno {{min}}:1): bordi, selezioni ed evidenziazioni potrebbero essere difficili da vedere.",
-                    dark: "Questo colore ha poco contrasto con lo sfondo del tema scuro ({{ratio}}:1, ne servono almeno {{min}}:1): bordi, selezioni ed evidenziazioni potrebbero essere difficili da vedere.",
-                },
                 warningTheme: "Questo colore ha poco contrasto con lo sfondo del tema «{{theme}}» ({{ratio}}:1, ne serve almeno {{min}}:1): bordi, selezioni ed evidenziazioni potrebbero vedersi male.",
                 use: "Usa {{color}} ({{ratio}}:1)",
             },
