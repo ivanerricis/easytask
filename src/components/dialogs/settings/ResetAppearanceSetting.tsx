@@ -8,7 +8,7 @@ import { DEFAULT_LANGUAGE_PREFERENCE } from "@/i18n"
 import { DEFAULT_COLOR_INTENSITY } from "@/lib/color-intensity"
 import { DEFAULT_ANIMATION_SPEED, DEFAULT_FONT_FAMILY, DEFAULT_TEXT_ZOOM } from "@/lib/store/preferences"
 import { defaultThemeIdForSystem } from "@/lib/themes/builtin"
-import { systemPrefersDark } from "@/lib/theme-startup"
+import { systemPrefersDark, systemPrefersMoreContrast } from "@/lib/theme-startup"
 import { SectionResetButton } from "./SectionResetButton"
 
 /**
@@ -30,7 +30,7 @@ export const ResetAppearanceSetting = () => {
     const [open, setOpen] = useState(false)
 
     // The default theme is the one of the operating system; the custom themes are not touched
-    const isDefault = theme === defaultThemeIdForSystem(systemPrefersDark())
+    const isDefault = theme === defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast())
         && accentOverride === null
         && language === DEFAULT_LANGUAGE_PREFERENCE
         && fontFamily === DEFAULT_FONT_FAMILY
@@ -40,7 +40,7 @@ export const ResetAppearanceSetting = () => {
         && animationSpeed === DEFAULT_ANIMATION_SPEED
 
     const handleReset = () => {
-        setTheme(defaultThemeIdForSystem(systemPrefersDark()))
+        setTheme(defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast()))
         setAccentOverride(null)
         setLanguage(DEFAULT_LANGUAGE_PREFERENCE)
         setFontFamily(DEFAULT_FONT_FAMILY)
