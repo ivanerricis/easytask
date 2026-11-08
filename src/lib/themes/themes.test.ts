@@ -129,11 +129,14 @@ describe("derived tokens", () => {
     it.each(BUILTIN_THEMES.map(t => [t.id, t] as const))("%s: new tokens are present and readable", (_id, theme) => {
         const v = themeCssVars(theme)
         for (const name of ["--highlight", "--highlight-foreground", "--highlight-active", "--success", "--success-foreground", "--info", "--info-foreground",
-            "--control-hover", "--overlay", "--window-close", "--window-close-foreground", "--thumb", "--priority"]) expect(v[name], name).toBeDefined()
+            "--control-hover", "--overlay", "--window-close", "--window-close-foreground", "--thumb", "--priority", "--body-surface"]) expect(v[name], name).toBeDefined()
         expect(contrastRatio(v["--highlight-foreground"], v["--highlight"])).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--success"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--info"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--priority"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
+        expect(v["--body-surface"]).toBe(theme.base === "dark" ? theme.colors.muted : theme.colors.background)
+        expect(v["--body-surface"]).toMatch(/^#[0-9a-f]{6}$/i)
+        expect(contrastRatio(theme.colors.foreground, v["--body-surface"])).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(theme.colors.foreground, v["--control-hover"])).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--window-close-foreground"], v["--window-close"])).toBeGreaterThanOrEqual(4.5)
     })

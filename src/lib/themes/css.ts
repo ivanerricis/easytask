@@ -76,6 +76,7 @@ export function themeCssVars(def: ThemeDefinition, accentOverride?: string | nul
         "--primary": accent,
         "--primary-text": accentText(accent, c.background, c.foreground),
         "--primary-foreground": textColorOn(accent),
+        "--body-surface": dark ? c.muted : c.background,
         "--secondary": c.muted,
         "--secondary-foreground": c.foreground,
         "--muted": c.muted,

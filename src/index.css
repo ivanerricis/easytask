@@ -47,6 +47,7 @@ body,
   --color-primary: var(--primary);
   --color-primary-text: var(--primary-text);
   --color-primary-foreground: var(--primary-foreground);
+  --color-body-surface: var(--body-surface);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -87,6 +88,8 @@ body,
   --primary: oklch(0.553 0.195 38.402);
   --primary-text: oklch(0.553 0.195 38.402);
   --primary-foreground: oklch(1 0 0);
+  /* Background of the body of groups and sections: white on light bases, the secondary grey on dark ones */
+  --body-surface: var(--background);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -133,6 +136,7 @@ body,
   --primary: oklch(0.553 0.195 38.402);
   --primary-text: oklch(0.72 0.17 38);
   --primary-foreground: oklch(1 0 0);
+  --body-surface: var(--secondary);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
