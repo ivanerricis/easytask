@@ -313,14 +313,33 @@ export const backgroundOf = async (element: ChainablePromiseElement): Promise<Rg
     return layers.reduceRight<Rgba>((below, layer) => compose(layer, below), { r: 255, g: 255, b: 255, a: 1 })
 }
 
-/** Runs `fn` with the app in the given theme (class `dark` on <html>) and restores the previous state. */
+/** Id of the theme in use (`data-theme` on <html>, written by the theme provider). */
+export const currentThemeId = (): Promise<string> =>
+    browser.execute(() => document.documentElement.dataset.theme ?? (document.documentElement.classList.contains("dark") ? "dark" : "light"))
+
+/**
+ * Chooses a theme from Settings -> Appearance, exactly as a user would (`key` is the last part of `settings.themes.<key>`,
+ * or the name of a custom theme when `custom` is true).
+ */
+export const chooseTheme = async (key: string, custom = false) => {
+    const name = custom ? key : await tr(`settings.themes.${key}`)
+    const dialog = await openSettingsOn("appearance")
+    const card = dialog.$(`[role="radio"][aria-label=${cssString(name)}]`)
+    await card.waitForDisplayed({ timeoutMsg: `theme "${name}" is not in the gallery` })
+    await card.click()
+    await expect(card).toHaveAttribute("aria-checked", "true")
+    await closeAllDialogs()
+}
+
+/** Runs `fn` with the app in the Light or Dark theme (chosen from Settings, as a user would) and goes back to Light or Dark after. */
 export const inTheme = async <T>(theme: "light" | "dark", fn: () => Promise<T>): Promise<T> => {
-    const was = await browser.execute(() => document.documentElement.classList.contains("dark"))
-    await browser.execute((dark: boolean) => document.documentElement.classList.toggle("dark", dark), theme === "dark")
+    const was = await currentThemeId()
+    if (was !== theme) await chooseTheme(theme)
     try {
         return await fn()
     } finally {
-        await browser.execute((dark: boolean) => document.documentElement.classList.toggle("dark", dark), was)
+        // The specs only start from Light or Dark
+        if (was !== theme && (was === "light" || was === "dark")) await chooseTheme(was)
     }
 }
 
