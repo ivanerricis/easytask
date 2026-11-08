@@ -16,9 +16,9 @@ Everything is stored locally on your computer.
 ## Key Features
 
 - **Workspaces**, each with its own **Folders** (nestable without limit) and **Notes**
-- Notes contain **Groups** of **Sections**; sections contain **Tasks**, and tasks can contain sub-tasks (unlimited nesting). Groups and sections can be left without a name
+- Notes contain **Groups** (columns, resizable by dragging their edge); a group contains **Sections** and can also hold **tasks of its own**, directly under its header, in a list that can sit anywhere among its sections. Sections contain **Tasks**, and tasks can contain sub-tasks (unlimited nesting). Groups and sections can be left without a name; groups, sections and sub-tasks can be collapsed, and open/closed state is remembered
 - **Rename in place**: click a name (or use Rename in its menu, or press Enter on it) and type; no dialog
-- **Colors** on any element
+- **Colors** on any element, including the **background of a note** (right click on its empty space > Note background)
 - **Drag & drop** to reorder and move elements
 - **Trash**: deleted workspaces and deleted items (folders, notes, groups, sections, tasks, audio files, templates) go to the trash, where you can restore them or delete them permanently
 - **Archive**: archive folders, notes, groups, sections and tasks to hide them without deleting them; restore them from the archive
@@ -26,14 +26,14 @@ Everything is stored locally on your computer.
 - **Templates**: save a note as a template and create new notes from it; edit a template like a normal note, in its own tab
 - **Tasks with the keyboard**: move between tasks with the arrow keys, `Space` completes, `Enter` renames, `Alt+Up` / `Alt+Down` move, `Shift+Up` / `Shift+Down` select several; a thin "+" line between two tasks adds one in that place
 - **Duplicate** a note (with all its content, audio files excluded) or a section (with its tasks) from its menu; the copy is named "... (copy)" and undoable
-- **Audio**: attach audio files to a note and play them in the app; the player can be pinned, repeat a track, resume where you left off, and remembers the playback speed
+- **Audio**: attach audio files to a group and play them in the app; the player can be pinned, repeat a track, resume where you left off, and remembers the playback speed
 - **Undo / redo** with `Ctrl+Z` / `Ctrl+Y` (`Ctrl+Shift+Z` also redoes)
 - **Split workspace**: open two notes side by side, each area with its own tabs; drag a tab from one bar to the other, or use "Open on the right" / "Open on the left" in the note menu
-- **Search notes** with `Ctrl+K`
+- **Search notes** with `Ctrl+K`, and **search inside the open note** with `Ctrl+F` (matches are highlighted and open the collapsed groups and sections that hold them)
 - **Customizable keyboard shortcuts** (Settings > Shortcuts); press `?` to see the list
 - **Settings search**: type in the Settings dialog to find an option by its name
 - **Italian and English** interface: choose the language in Settings, the default follows the system language
-- **Light, dark or system theme**, accent color (with a contrast warning and a suggested color), color intensity, sidebar size and animation speed (normal, slow or off)
+- **Light, dark or system theme**, accent color (with a contrast warning and a suggested color), color intensity, sidebar size and animation speed (system, normal, slow or off)
 - **Text size and font**: scale the whole app from 12 to 24 px (`Ctrl+Plus`, `Ctrl+Minus`, `Ctrl+0`) and pick Inter, Lora, JetBrains Mono, Atkinson Hyperlegible or OpenDyslexic, bundled with the app
 - **Task list options**: new tasks at the top or at the bottom, completed tasks at the bottom, list density, spell check on or off
 - **Open at startup**: the home page, the last workspace, or always a workspace you choose
@@ -42,7 +42,7 @@ Everything is stored locally on your computer.
 - **Trash auto-empty**: optionally delete for good the items trashed more than a chosen number of days ago
 - **Automatic backups** at startup with a chosen frequency and an optional folder of your choice (5 kept by default), manual backups and one-click restore; a separate copy is kept before every database update (the last 10)
 - **Export / import** a workspace as an `.easytask.json` file
-- **Update check** at startup (can be turned off) and from Settings > About
+- **Update check** at startup (can be turned off) and from Settings > About; after an update, the first start opens a **What's new** tab with the release notes, in the language of the app
 
 Default shortcuts (all but the fixed ones can be changed in Settings > Shortcuts):
 
@@ -52,6 +52,7 @@ Default shortcuts (all but the fixed ones can be changed in Settings > Shortcuts
 | `Ctrl+M` | New folder |
 | `Alt+N` | New group |
 | `Ctrl+K` | Search notes |
+| `Ctrl+F` | Search inside the open note |
 | `Ctrl+L` / `Ctrl+T` | Close the current note / close all notes |
 | `Ctrl+PageDown` / `Ctrl+PageUp` | Next / previous open note (also `Ctrl+Tab` / `Ctrl+Shift+Tab`) |
 | `Ctrl+\` | Split into two areas / close the split |
@@ -111,21 +112,24 @@ Updates are signed and verified before installation.
 The folder holds the SQLite database (`easytask.db`), settings, `backups/` and `logs/`.
 Settings > Data has a button that opens it in the file manager, plus the backup, restore, export and import controls.
 
-> **Database from an older version.** The database migrations were squashed into a single initial schema.
-> A database file created before that change is not compatible: at startup the app stops with the message
-> "Database di una versione precedente non compatibile" instead of touching it. To start over,
-> close the app and delete `easytask.db` in the data folder (also `easytask.db-wal` and `easytask.db-shm` if present;
-> the `easytask.backup-v*.db` copies are no longer created), then start the app again: a new empty database is created.
-> This permanently deletes the data stored in the old database.
+> **Database from another version.** A database created by an older EasyTask is upgraded automatically at startup
+> (the schema is at version 13 in 0.19.0), after a safety copy in `backups/pre-migration/` (the last 10 are kept);
+> an older version of the app cannot open a database that a newer one has upgraded, and refuses it with a message.
+> The only databases that are not upgraded are the ones created before the first migrations were squashed into a single
+> initial schema (no EasyTask `application_id` in the file): the app stops with the message "Database from an older,
+> incompatible version" ("Database di una versione precedente non compatibile" in Italian) instead of touching it.
+> To start over, close the app and delete `easytask.db` in the data folder (also `easytask.db-wal` and `easytask.db-shm`
+> if present), then start the app again: a new empty database is created. This permanently deletes the data stored in
+> the old database.
 
 ---
 
 ## Technologies Used
 
 - [Tauri 2](https://v2.tauri.app/) (Rust backend, SQLite via `tauri-plugin-sql`)
-- [React 19](https://react.dev/) + **TypeScript**
-- [Vite](https://vite.dev/)
-- [Tailwind CSS](https://tailwindcss.com) and [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
+- [React 19](https://react.dev/) + **TypeScript** 6
+- [Vite](https://vite.dev/) 8
+- [Tailwind CSS](https://tailwindcss.com) 4 and [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
 - [@dnd-kit](https://dndkit.com/) for drag & drop
 - [i18next](https://www.i18next.com/) / react-i18next for localization
 - [Vitest](https://vitest.dev/) and Testing Library for unit tests; [WebdriverIO](https://webdriver.io/) + `tauri-driver` for end-to-end tests
@@ -152,12 +156,15 @@ npm install
 | Command | What it does |
 | --- | --- |
 | `npm run tauri:dev` | Run the desktop app in development |
+| `npm run dev` | Run only the frontend in the browser (Vite; the Tauri features are not available) |
 | `npm run build` | Type-check (`tsc -b`) and build the frontend |
 | `npm run tauri:build` | Build the installers (NSIS, deb, AppImage) |
 | `npm test` | Unit tests (Vitest) |
 | `npm run test:coverage` | Unit tests with a coverage report |
 | `npm run lint` | ESLint |
+| `npm run e2e:typecheck` | Type-check the end-to-end specs (`e2e/`) |
 | `npm run e2e` | End-to-end tests (needs `tauri-driver`, see `e2e/wdio.conf.ts`) |
+| `npm run release:bump X.Y.Z` | Set the version in all the version files (see [RELEASING.md](RELEASING.md)) |
 | `npm run release:check` | Check that the version files agree |
 | `npm run docs:screenshots` | Regenerate the screenshots of the documentation site (`docs/screenshots/`) |
 
@@ -172,12 +179,12 @@ The e2e suite builds a debug app and runs it against a temporary data folder (`E
 On pushes to `master` and on pull requests, GitHub Actions runs:
 
 - version check (`package.json`, `Cargo.toml` and `tauri.conf.json` must agree)
-- frontend: ESLint, TypeScript, tests, coverage (uploaded to [Codecov](https://codecov.io/gh/ivanerricis/easytask-tauri) for the badge, never blocking), build
+- frontend: ESLint, type-check of the e2e specs, tests with coverage (uploaded to [Codecov](https://codecov.io/gh/ivanerricis/easytask-tauri) for the badge, never blocking), build (`tsc -b` and Vite)
 - backend (Windows and Linux): `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`
-- audit (blocking): `npm audit` (high/critical, production dependencies), `cargo audit`, `cargo deny`
-- e2e on Linux (**not blocking** for now); the Windows run starts manually (`workflow_dispatch`), because the hosted runner cannot attach the driver to the app, while the suite passes on a Windows machine (`npm run e2e`)
+- audit (blocking): `npm audit` (high/critical, production dependencies), `cargo audit`, `cargo deny`; it also runs every Monday, on its own
+- e2e on Linux, split in 3 parallel shards (**not blocking** for now); the Windows run starts manually (`workflow_dispatch`), because the hosted runner cannot attach the driver to the app, while the suite passes on a Windows machine (`npm run e2e`)
 
-Releases are built by a separate workflow, see [RELEASING.md](RELEASING.md).
+Releases are built by a separate workflow (a tag `vX.Y.Z` starts it; Windows and Linux builds run in parallel, next to a verification job, and end as a draft release), see [RELEASING.md](RELEASING.md).
 
 ---
 
@@ -185,14 +192,27 @@ Releases are built by a separate workflow, see [RELEASING.md](RELEASING.md).
 
 ```
 Workspace
- ├── Folders (nestable)
+ ├── Folders (nestable without limit)
  │    └── Notes
- └── Notes
-      └── Groups
-           └── Sections
-                └── Tasks
-                     └── Sub-tasks (nestable)
+ ├── Notes
+ │    ├── Background color (optional)
+ │    ├── Groups (columns)
+ │    │    ├── Audio files
+ │    │    ├── Tasks of the group (one list, placed anywhere among the sections)
+ │    │    │    └── Sub-tasks (nestable)
+ │    │    └── Sections
+ │    │         └── Tasks
+ │    │              └── Sub-tasks (nestable)
+ │    └── Automations (per-note rules)
+ └── Templates (saved copies of notes)
 ```
+
+- Names are optional for groups and sections; any element can have a color.
+- Folders, notes, groups, sections and tasks can be archived; those and workspaces, audio files and templates go to
+  the trash when deleted.
+- Technically, the tasks of a group live in a hidden default section of the group (since database version 8), which
+  takes part in the order of the sections.
+- Everything is stored in one SQLite database (`easytask.db`); see [Architecture](docs/development/architecture.md) for the code layout.
 
 ---
 

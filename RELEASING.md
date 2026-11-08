@@ -35,7 +35,7 @@ Users must download and install a new build manually; that build must contain a 
    3. **verify** (Linux, next to `release`): ESLint, `tsc`, unit tests, build, `cargo clippy`, `cargo test`. It does not hold the builds back, so **a red run means the draft must not be published**: fix it with a new PR and redo the tag. Always check that the whole run is green before publishing.
 8. Open the draft in GitHub (Releases) and check the assets (see the list in section 5): installers, `.sig` files, `latest.json`, the portable zip.
    Optionally download and try the installer and the portable zip.
-9. Check the release notes taken from the changelogs and edit them in the draft if needed. Keep the two `## English` / `## Italiano` headings: users see the section in their language in the "What's new" part of the update dialog and in Settings > About (the GitHub page shows both).
+9. Check the release notes taken from the changelogs and edit them in the draft if needed. Keep the two `## English` / `## Italiano` headings: users see the section in their language in the "What's new" tab that opens after the update (the GitHub page shows both).
 10. Click **Publish release**. Only then do users see it and does the updater consider it: the endpoint is `releases/latest/download/latest.json`, which resolves to the latest *published* release.
 
 ## 3. Not publishing by mistake, and undoing
