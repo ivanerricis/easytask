@@ -13,7 +13,7 @@ export const UPDATE_AVAILABLE_EVENT = "easytask:update-available"
 
 /** Detail of {@link UPDATE_AVAILABLE_EVENT}. */
 export type UpdateAvailableDetail = { update: Update, portable: boolean }
-const STARTUP_CHECK_DELAY_MS = 3000
+const STARTUP_CHECK_DELAY_MS = 2000
 
 const openSettingsEvent = createWindowEvent<{ category: string }>(OPEN_SETTINGS_EVENT)
 const updateAvailableEvent = createWindowEvent<UpdateAvailableDetail>(UPDATE_AVAILABLE_EVENT)
