@@ -147,7 +147,14 @@ const captureWorkspace = async (n: (typeof NAMES)[Lang]) => {
     })
 }
 
+/** A new session (reloadSession) opens a window of the default size: the screenshots are always 1440x900. */
+const fixWindow = async () => {
+    await browser.setWindowSize(1440, 900)
+    await settle(800)
+}
+
 const tourFor = async (nextLang: Lang) => {
+    await fixWindow()
     const n = NAMES[nextLang]
     fs.mkdirSync(path.join(OUT, nextLang), { recursive: true })
     await setAppearance("light", nextLang)
@@ -520,6 +527,7 @@ const tourFor = async (nextLang: Lang) => {
         await setLastSeenVersion("0.0.1")
         await browser.reloadSession()
         await waitForApp()
+        await fixWindow()
         await setAppearance("light", nextLang)
         await openWs(n.wsMain)
         await $('[role="tab"][data-note-id="-1"]').waitForDisplayed({ timeout: 20_000 })
