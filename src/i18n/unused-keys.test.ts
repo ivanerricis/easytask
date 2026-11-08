@@ -17,6 +17,7 @@ const DYNAMIC_PREFIXES = [
     "automations.errors.",
     "rightPanel.",
     "settings.appearance.",
+    "settings.themes.",
     "settings.data.backup.frequency.",
     "settings.notes.newTaskPosition.",
     "settings.notes.taskDensity.",
