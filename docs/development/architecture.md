@@ -20,7 +20,7 @@ A short tour of how EasyTask is built, for someone who wants to change the code.
 | `src/contexts` | React contexts for workspace data, tabs, preferences, shortcuts, audio, automations and undo |
 | `src/hooks` | Reusable hooks (for example `useItemMutations`, `useAfterMenuClose`) |
 | `src/db` | SQLite access: connection, schema, migrations, queries, backups |
-| `src/lib` | Plain logic: preferences store, automations engine, updater, colors, shortcuts, workspace import and export. `lib/tabs` holds the pure tab and layout reducers, with no dependency on contexts |
+| `src/lib` | Plain logic: preferences store, automations engine, updater, colors, themes (`lib/themes`: built-in themes, validation, contrast checks, CSS variables), shortcuts, workspace import and export. `lib/tabs` holds the pure tab and layout reducers, with no dependency on contexts |
 | `src/i18n` | i18next setup and the `it` and `en` locale files |
 | `src-tauri/src` | The Rust backend (`lib.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permissions granted to the frontend |
@@ -53,7 +53,7 @@ The backend picks the data folder in this order:
 
 `src/db/initDb.ts` applies the migrations in order and tracks them with `PRAGMA user_version`. The first migration creates the whole schema (`src/db/schema/initial.ts`): the older migrations were squashed into it.
 
-Rules for a new migration: append it, never edit one that was already applied, and keep it idempotent and additive. A database with a higher version than the app knows is refused as newer, and a safety copy is taken before migrating an existing database. Version 12 adds partial indexes on the trashed and archived rows, version 13 the background color of the notes and of the templates.
+Rules for a new migration: append it, never edit one that was already applied, and keep it idempotent and additive. A database with a higher version than the app knows is refused as newer, and a safety copy is taken before migrating an existing database. Version 12 adds partial indexes on the trashed and archived rows, version 13 the background color of the notes and of the templates, version 14 the table of the custom themes (global, not per workspace).
 
 ## Settings
 

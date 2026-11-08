@@ -14,6 +14,11 @@ export type PreferencesContextType = {
 } & {
     [K in UiPrefName as PrefSetterName<K>]: (value: PrefValue<K>) => void
 } & {
+    /** The accent chosen apart from the theme ("#rrggbb"), null when the accent of the theme is used. */
+    accentOverride: string | null
+    /** Sets the accent override, null removes it ("restore": the accent of the theme is used again). */
+    setAccentOverride: (value: string | null) => void
+    /** The accent override, or the old default orange without one. Prefer `accentOverride` (the theme has its own accent). */
     primaryColor: string
     setPrimaryColor: (value: string) => void
     audioPlayerPosition: AudioPlayerPosition

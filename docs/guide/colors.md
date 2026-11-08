@@ -59,7 +59,7 @@ The dialogs for a new workspace, folder and note have a palette button next to t
 
 Open **Settings > Appearance**.
 
-- **Accent color**: used for buttons, selections and highlights. A button resets it.
+- **Accent color**: used for buttons, selections and highlights. Every [theme](./themes) has its own accent; the color you pick here overrides it, and **Use the accent of the theme** brings the theme's one back.
 - **Color intensity**: how strongly the colors of folders, notes, groups, sections and the note background show. It goes from 25% to 175% (100% is the default) and has a **Reset** button. It does not change the color of the tasks.
 
 ### Contrast warning

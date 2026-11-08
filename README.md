@@ -33,7 +33,7 @@ Everything is stored locally on your computer.
 - **Customizable keyboard shortcuts** (Settings > Shortcuts); press `?` to see the list
 - **Settings search**: type in the Settings dialog to find an option by its name
 - **Italian and English** interface: choose the language in Settings, the default follows the system language
-- **Light, dark or system theme**, accent color (with a contrast warning and a suggested color), color intensity, sidebar size and animation speed (system, normal, slow or off)
+- **Nine built-in themes** (light, dark, Nord, Solarized, Dracula, Sepia and two high contrast ones) and **custom themes** with an editor and import/export, accent color (with a contrast warning and a suggested color), color intensity, sidebar size and animation speed (system, normal, slow or off)
 - **Text size and font**: scale the whole app from 12 to 24 px (`Ctrl+Plus`, `Ctrl+Minus`, `Ctrl+0`) and pick Inter, Lora, JetBrains Mono, Atkinson Hyperlegible or OpenDyslexic, bundled with the app
 - **Task list options**: new tasks at the top or at the bottom, completed tasks at the bottom, list density, spell check on or off
 - **Open at startup**: the home page, the last workspace, or always a workspace you choose

@@ -6,11 +6,15 @@ import { ShortcutsProvider } from "@/contexts/shortcuts-context"
 import { useShortcut } from "@/hooks/use-shortcut"
 import { APP_COMMAND_EVENT, useAppCommand, type AppCommand } from "@/lib/app-commands"
 import { OPEN_SETTINGS_EVENT } from "@/lib/updater"
+import { BUILTIN_THEMES } from "@/lib/themes/builtin"
+import type { ThemeDefinition } from "@/lib/themes/types"
 
 const appWindow = { close: vi.fn() }
 vi.mock("@tauri-apps/api/window", () => ({ getCurrentWindow: () => appWindow }))
 const setTheme = vi.fn()
-vi.mock("@/components/use-theme", () => ({ useTheme: () => ({ theme: "dark", setTheme }) }))
+const customTheme = { ...BUILTIN_THEMES[0], id: "custom-abc", name: "Il mio tema", nameKey: undefined, builtin: false }
+const themeState = { themes: BUILTIN_THEMES as readonly ThemeDefinition[] }
+vi.mock("@/components/use-theme", () => ({ useTheme: () => ({ theme: "dark", themes: themeState.themes, setTheme }) }))
 
 const prefs = { textZoom: 1, setTextZoom: vi.fn() }
 vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => prefs }))
@@ -135,6 +139,50 @@ describe("AppMenu", () => {
         await user.keyboard("{ArrowRight}")
         fireEvent.click(await screen.findByRole("menuitemradio", { name: "Chiaro" }))
         expect(setTheme).toHaveBeenCalledWith("light")
+    })
+
+    const openThemeMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+        await openMenu(user, "Visualizza")
+        const themeItem = await screen.findByRole("menuitem", { name: "Tema" })
+        themeItem.focus()
+        await user.keyboard("{ArrowRight}")
+    }
+
+    it("lists every built-in theme as an equivalent entry, with no System entry, and marks the active one", async () => {
+        const user = userEvent.setup()
+        render(<ShortcutsProvider><AppMenu page="home" /></ShortcutsProvider>)
+        await openThemeMenu(user)
+        for (const name of ["Chiaro", "Scuro", "Nord", "Solarized chiaro", "Solarized scuro", "Dracula", "Seppia"]) {
+            expect(await screen.findByRole("menuitemradio", { name })).toBeInTheDocument()
+        }
+        expect(screen.queryByRole("menuitemradio", { name: "Sistema" })).toBeNull()
+        expect(screen.getByRole("menuitemradio", { name: "Scuro" })).toHaveAttribute("aria-checked", "true")
+        fireEvent.click(screen.getByRole("menuitemradio", { name: "Nord" }))
+        expect(setTheme).toHaveBeenCalledWith("nord")
+    })
+
+    it("lists the custom themes after the built-in ones and chooses them by id", async () => {
+        themeState.themes = [...BUILTIN_THEMES, customTheme]
+        const user = userEvent.setup()
+        render(<ShortcutsProvider><AppMenu page="home" /></ShortcutsProvider>)
+        await openThemeMenu(user)
+        const items = (await screen.findAllByRole("menuitemradio")).map(item => item.textContent)
+        expect(items[items.length - 1]).toBe("Il mio tema")
+        fireEvent.click(screen.getByRole("menuitemradio", { name: "Il mio tema" }))
+        expect(setTheme).toHaveBeenCalledWith("custom-abc")
+        themeState.themes = BUILTIN_THEMES
+    })
+
+    it("opens Settings > Appearance from Manage themes", async () => {
+        const user = userEvent.setup()
+        const categories: unknown[] = []
+        const listener = (e: Event) => categories.push((e as CustomEvent).detail?.category)
+        window.addEventListener(OPEN_SETTINGS_EVENT, listener)
+        render(<ShortcutsProvider><AppMenu page="home" /></ShortcutsProvider>)
+        await openThemeMenu(user)
+        await user.click(await screen.findByRole("menuitem", { name: "Gestisci temi…" }))
+        await waitFor(() => expect(categories).toEqual(["appearance"]))
+        window.removeEventListener(OPEN_SETTINGS_EVENT, listener)
     })
 
     it("splits the workspace and moves the note to the other area from the View menu", async () => {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { store } from "./initStore"
-import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getRightPanelTab, getSidebarRightWidth, getPrimaryColor, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition } from "./preferences"
+import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getRightPanelTab, getSidebarRightWidth, getPrimaryColor, getAccentOverride, saveAccentOverride, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition } from "./preferences"
 
 vi.mock("./initStore", () => ({
     store: { get: vi.fn(), set: vi.fn(), save: vi.fn(), delete: vi.fn() },
@@ -583,12 +583,12 @@ describe("preference table", () => {
 
     it("keeps the keys saved on disk", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
-            "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "backupFolder",
+            "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "backupFolder",
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
             "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount",
             "showGroupProgressBar", "showGroupSeparators", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
             "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth",
-            "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
+            "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "themeBackground", "themeId", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
         ])
     })
 
@@ -703,5 +703,62 @@ describe("getAllPrefs", () => {
         const all = await getAllPrefs()
         expect(all.undoLimit).toBe(200)
         expect(all.showProgressBar).toBe(true)
+    })
+})
+
+describe("theme preferences", () => {
+    beforeEach(() => {
+        vi.resetAllMocks()
+        vi.useFakeTimers()
+    })
+
+    it("themeId is null until one is chosen and rejects what is not an id", () => {
+        expect(normalizePref("themeId", undefined)).toBeNull()
+        expect(normalizePref("themeId", "nord")).toBe("nord")
+        expect(normalizePref("themeId", "custom-" + "a".repeat(32))).toBe("custom-" + "a".repeat(32))
+        expect(normalizePref("themeId", "Bad Id")).toBeNull()
+        expect(normalizePref("themeId", 3)).toBeNull()
+    })
+
+    it("themeBackground keeps only a #rrggbb color, lowercased", () => {
+        expect(normalizePref("themeBackground", "#1B1B1B")).toBe("#1b1b1b")
+        expect(normalizePref("themeBackground", "#fff")).toBeNull()
+        expect(normalizePref("themeBackground", "red")).toBeNull()
+    })
+
+    it("activeThemeCache keeps only a valid custom theme", () => {
+        const theme = {
+            id: "custom-" + "b".repeat(32), name: "Mine", base: "dark", builtin: false, accent: "#112233",
+            colors: { background: "#101010", foreground: "#fafafa", card: "#181818", muted: "#222222", mutedForeground: "#aaaaaa", accentSurface: "#333333", border: "#444444", input: "#888888", destructive: "#ff6666", warning: "#ffcc00" },
+        }
+        expect(normalizePref("activeThemeCache", theme)).toEqual(theme)
+        expect(normalizePref("activeThemeCache", { ...theme, id: "nord" })).toBeNull()
+        expect(normalizePref("activeThemeCache", null)).toBeNull()
+    })
+
+    it("the accent override is null without a stored color and for the old default orange", async () => {
+        vi.mocked(store.get).mockResolvedValue(undefined)
+        expect(await getAccentOverride()).toBeNull()
+        vi.mocked(store.get).mockResolvedValue({ hex: "#C2410C" })
+        expect(await getAccentOverride()).toBeNull()
+        vi.mocked(store.get).mockResolvedValue({ hex: "nope" })
+        expect(await getAccentOverride()).toBeNull()
+    })
+
+    it("the accent override is the stored color as #rrggbb", async () => {
+        vi.mocked(store.get).mockResolvedValue({ hex: "#ABC" })
+        expect(await getAccentOverride()).toBe("#aabbcc")
+        expect(store.get).toHaveBeenCalledWith("primaryColor")
+    })
+
+    it("saving the accent override stores it, saving null removes it", async () => {
+        const saved = saveAccentOverride("#ABC")
+        await vi.advanceTimersByTimeAsync(500)
+        await saved
+        expect(store.set).toHaveBeenCalledWith("primaryColor", { hex: "#aabbcc" })
+        const removed = saveAccentOverride(null)
+        await vi.advanceTimersByTimeAsync(500)
+        await removed
+        expect(store.delete).toHaveBeenCalledWith("primaryColor")
     })
 })

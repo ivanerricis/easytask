@@ -104,7 +104,7 @@ function Slider({
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledby}
           aria-valuetext={ariaValuetext}
-          className={cn("block size-4 shrink-0 rounded-full border border-primary bg-white shadow-sm ring-ring transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50", thumbClassName)}
+          className={cn("block size-4 shrink-0 rounded-full border border-primary bg-thumb shadow-sm ring-ring transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50", thumbClassName)}
         />
       ))}
     </SliderPrimitive.Root>

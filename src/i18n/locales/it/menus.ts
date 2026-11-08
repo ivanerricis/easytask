@@ -10,6 +10,7 @@ export const appMenu = {
     file: "File",
     edit: "Modifica",
     view: "Visualizza",
+    manageThemes: "Gestisci temi…",
     help: "Aiuto",
     newNote: "Nuova nota",
     newFolder: "Nuova cartella",

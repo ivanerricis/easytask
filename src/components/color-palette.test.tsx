@@ -21,10 +21,10 @@ describe("ColorPalette", () => {
 
     it("shows a check on the selected swatch only, in a color that contrasts with it", () => {
         const { rerender } = render(<ColorPalette value="#000075" onPick={vi.fn()} />)
-        expect(screen.getByRole("radio", { name: "Colore Blu notte" }).querySelector("svg")).toHaveStyle({ color: "oklch(1 0 0)" })
+        expect(screen.getByRole("radio", { name: "Colore Blu notte" }).querySelector("svg")).toHaveStyle({ color: "#ffffff" })
         expect(screen.getAllByRole("radio").filter(r => r.querySelector("svg"))).toHaveLength(1)
         rerender(<ColorPalette value="#d9bf01" onPick={vi.fn()} />)
-        expect(screen.getByRole("radio", { name: "Colore Giallo" }).querySelector("svg")).toHaveStyle({ color: "oklch(0.215 0 0)" })
+        expect(screen.getByRole("radio", { name: "Colore Giallo" }).querySelector("svg")).toHaveStyle({ color: "#171717" })
         expect(screen.getAllByRole("radio").filter(r => r.querySelector("svg"))).toHaveLength(1)
     })
 

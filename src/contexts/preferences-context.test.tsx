@@ -17,8 +17,8 @@ vi.mock("@/lib/store/preferences", async (importOriginal) => ({
     getPref: vi.fn(),
     getAllPrefs: vi.fn(),
     savePref: vi.fn(),
-    getPrimaryColor: vi.fn(),
-    savePrimaryColor: vi.fn(),
+    getAccentOverride: vi.fn(),
+    saveAccentOverride: vi.fn(),
     getAudioPlayerPosition: vi.fn(),
     saveAudioPlayerPosition: vi.fn(),
     resetAudioPlayerPosition: vi.fn(),
@@ -35,8 +35,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <PreferencesProvider>
 describe("PreferencesContext", () => {
     beforeEach(() => {
         vi.resetAllMocks()
-        document.documentElement.style.removeProperty("--primary")
-        vi.mocked(prefs.getPrimaryColor).mockResolvedValue("#123456")
+        vi.mocked(prefs.getAccentOverride).mockResolvedValue("#123456")
         vi.mocked(prefs.getAudioPlayerPosition).mockResolvedValue({ x: 5, y: 6, scaleX: 2, scaleY: 2 })
         stored = {
             showProgressBar: false,
@@ -169,7 +168,7 @@ describe("PreferencesContext", () => {
         await waitFor(() => expect(result.current.primaryColor).toBe("#123456"))
     })
 
-    it("loads persisted values and applies the primary color to the document", async () => {
+    it("loads persisted values and loads the accent override", async () => {
         const { result } = renderHook(() => usePreferences(), { wrapper })
 
         await waitFor(() => expect(result.current.primaryColor).toBe("#123456"))
@@ -188,7 +187,6 @@ describe("PreferencesContext", () => {
         expect(result.current.workspaceView).toBe("list")
         expect(result.current.workspaceSort).toEqual({ by: "name", dir: "asc" })
         expect(result.current.audioPlayerPosition).toEqual({ x: 5, y: 6, scaleX: 2, scaleY: 2 })
-        expect(document.documentElement.style.getPropertyValue("--primary")).toBe("#123456")
     })
 
     it("updates state and persists when a setter is called", async () => {
@@ -211,12 +209,23 @@ describe("PreferencesContext", () => {
         expect(result.current.showGroupProgressBar).toBe(true)
         expect(prefs.savePref).toHaveBeenCalledWith("showGroupProgressBar", true)
         expect(prefs.savePref).toHaveBeenCalledWith("sidebarLeftOpen", true)
-        expect(prefs.savePrimaryColor).toHaveBeenCalledWith("#abcdef")
+        expect(prefs.saveAccentOverride).toHaveBeenCalledWith("#abcdef")
         expect(result.current.workspaceView).toBe("grid")
         expect(prefs.savePref).toHaveBeenCalledWith("workspaceView", "grid")
         expect(result.current.workspaceSort).toEqual({ by: "created", dir: "desc" })
         expect(prefs.savePref).toHaveBeenCalledWith("workspaceSort", { by: "created", dir: "desc" })
-        expect(document.documentElement.style.getPropertyValue("--primary")).toBe("#abcdef")
+        expect(result.current.accentOverride).toBe("#abcdef")
+        // The accent is applied with the theme (ThemeProvider), not by the preferences
+        expect(document.documentElement.style.getPropertyValue("--primary")).toBe("")
+    })
+
+    it("removes the accent override with null and falls back to the default orange", async () => {
+        const { result } = renderHook(() => usePreferences(), { wrapper })
+        await waitFor(() => expect(result.current.accentOverride).toBe("#123456"))
+        act(() => result.current.setAccentOverride(null))
+        expect(result.current.accentOverride).toBeNull()
+        expect(result.current.primaryColor).toBe("#c2410c")
+        expect(prefs.saveAccentOverride).toHaveBeenCalledWith(null)
     })
 
     it("has backwards compatible audio defaults, then loads the stored ones", async () => {

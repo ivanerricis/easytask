@@ -2,11 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { DEFAULT_COLOR_INTENSITY } from "@/lib/color-intensity"
-import { DEFAULT_PRIMARY_COLOR } from "@/lib/store/preferences"
 import { ResetAppearanceSetting } from "./ResetAppearanceSetting"
 
 const setTheme = vi.fn()
-const setPrimaryColor = vi.fn()
+const setAccentOverride = vi.fn()
 const setLanguage = vi.fn()
 const setTextZoom = vi.fn()
 const setFontFamily = vi.fn()
@@ -15,25 +14,28 @@ const setColorIntensity = vi.fn()
 const setAnimationSpeed = vi.fn()
 
 const state = {
-    theme: "system",
-    primaryColor: DEFAULT_PRIMARY_COLOR,
+    theme: "light",
+    accentOverride: null as string | null,
     language: "system",
     textZoom: 1,
     fontFamily: "system",
     sidebarItemSize: "normal",
     colorIntensity: DEFAULT_COLOR_INTENSITY,
     animationSpeed: "system",
+    prefersDark: false,
 }
 
 vi.mock("@/components/use-theme", () => ({ useTheme: () => ({ theme: state.theme, setTheme }) }))
+// jsdom has no dark color scheme: the default theme of the system is the light one
+vi.mock("@/lib/theme-startup", () => ({ systemPrefersDark: () => state.prefersDark, systemPrefersMoreContrast: () => false }))
 vi.mock("@/contexts/use-preferences", () => ({
-    usePreferences: () => ({ ...state, setPrimaryColor, setLanguage, setFontFamily, setTextZoom, setSidebarItemSize, setColorIntensity, setAnimationSpeed }),
+    usePreferences: () => ({ ...state, setAccentOverride, setLanguage, setFontFamily, setTextZoom, setSidebarItemSize, setColorIntensity, setAnimationSpeed }),
 }))
 
 beforeEach(() => {
     vi.clearAllMocks()
     Object.assign(state, {
-        theme: "system", primaryColor: DEFAULT_PRIMARY_COLOR, language: "system", fontFamily: "system", textZoom: 1, sidebarItemSize: "normal", colorIntensity: DEFAULT_COLOR_INTENSITY, animationSpeed: "system",
+        theme: "light", accentOverride: null, prefersDark: false, language: "system", fontFamily: "system", textZoom: 1, sidebarItemSize: "normal", colorIntensity: DEFAULT_COLOR_INTENSITY, animationSpeed: "system",
     })
 })
 
@@ -45,7 +47,8 @@ describe("ResetAppearanceSetting", () => {
 
     it.each([
         ["theme", { theme: "dark" }],
-        ["accent color", { primaryColor: "#3366ff" }],
+        ["custom theme", { theme: "custom-abc" }],
+        ["accent color", { accentOverride: "#3366ff" }],
         ["language", { language: "en" }],
         ["font", { fontFamily: "lora" }],
         ["app size", { textZoom: 1.3 }],
@@ -58,14 +61,14 @@ describe("ResetAppearanceSetting", () => {
         expect(screen.getByRole("button", { name: "Reimposta tutto" })).toBeEnabled()
     })
 
-    it("treats the accent color case-insensitively", () => {
-        state.primaryColor = DEFAULT_PRIMARY_COLOR.toUpperCase()
+    it("the default theme is the one of the operating system", () => {
+        Object.assign(state, { theme: "dark", prefersDark: true })
         render(<ResetAppearanceSetting />)
         expect(screen.getByRole("button", { name: "Reimposta tutto" })).toBeDisabled()
     })
 
     it("asks for confirmation and resets every control to its default", async () => {
-        Object.assign(state, { theme: "dark", primaryColor: "#3366ff", language: "en", fontFamily: "lora", textZoom: 1.3, sidebarItemSize: "large", colorIntensity: 1.5, animationSpeed: "slow" })
+        Object.assign(state, { theme: "nord", prefersDark: true, accentOverride: "#3366ff", language: "en", fontFamily: "lora", textZoom: 1.3, sidebarItemSize: "large", colorIntensity: 1.5, animationSpeed: "slow" })
         const user = userEvent.setup()
         render(<ResetAppearanceSetting />)
 
@@ -76,8 +79,8 @@ describe("ResetAppearanceSetting", () => {
 
         await user.click(screen.getByRole("button", { name: "Reimposta" }))
 
-        expect(setTheme).toHaveBeenCalledWith("system")
-        expect(setPrimaryColor).toHaveBeenCalledWith(DEFAULT_PRIMARY_COLOR)
+        expect(setTheme).toHaveBeenCalledWith("dark")
+        expect(setAccentOverride).toHaveBeenCalledWith(null)
         expect(setLanguage).toHaveBeenCalledWith("system")
         expect(setFontFamily).toHaveBeenCalledWith("system")
         expect(setTextZoom).toHaveBeenCalledWith(1)
@@ -95,6 +98,6 @@ describe("ResetAppearanceSetting", () => {
         await user.click(await screen.findByRole("button", { name: "Annulla" }))
         await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())
         expect(setTheme).not.toHaveBeenCalled()
-        expect(setPrimaryColor).not.toHaveBeenCalled()
+        expect(setAccentOverride).not.toHaveBeenCalled()
     })
 })

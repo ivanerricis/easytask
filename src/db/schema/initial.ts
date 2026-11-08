@@ -8,6 +8,7 @@ import { addCollapsedColumns } from "./collapsed";
 import { addGroupArchivedAt, addGroupColorColumn, addGroupWidthColumn, createSectionGroupIndexes, createSectionGroupTable } from "./section_group";
 import { createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
 import { createWorkspaceEditTriggers } from "./workspace_edit";
+import { createCustomThemeTable } from "./custom_theme";
 import { trashIndexSchema } from "./trash_index";
 import { createWorkspaceIndexes, createWorkspaceTable, createWorkspaceTrigger } from "./workspace";
 
@@ -109,10 +110,16 @@ export const trashIndexesSchema: string[] = [...trashIndexSchema]
 export const noteBackgroundSchema: string[] = [...addNoteBackground]
 
 /**
+ * Migration v14: table of the custom themes.
+ * @category Database Schema
+ */
+export const customThemeSchema: string[] = [...createCustomThemeTable]
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema,
 ]

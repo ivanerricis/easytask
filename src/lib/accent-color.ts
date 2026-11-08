@@ -1,46 +1,33 @@
 import { parseHex } from "@/lib/colors"
+import { contrastRatio, textColorOn as textColorOnHex6, toHex } from "@/lib/themes/color"
+import type { ThemeBase } from "@/lib/themes/types"
 
 /**
- * The accent color of a new install and of the reset: a deep orange (Tailwind orange-700) that carries white text at
- * about 5.2:1, so the buttons read white on both themes (the brighter orange-500 it replaces needed dark text).
- * Keep it in sync with `--primary` and `--primary-foreground` in index.css.
+ * The accent color of the light and dark themes and of the old installs: a deep orange (Tailwind orange-700) that carries white
+ * text at about 5.2:1. Keep it in sync with `--primary` in index.css and with the accent of the "light" and "dark" built-in themes.
  */
 export const DEFAULT_PRIMARY_COLOR = "#c2410c"
 
-/** Text colors on the accent: the dark one is the `--primary-foreground` of the dark theme, the other is white. */
-const DARK_TEXT = "oklch(0.215 0 0)"
-const LIGHT_TEXT = "oklch(1 0 0)"
-/** Relative luminance of those two (the dark one is oklch L 0.215, whose luminance is L cubed). */
-const DARK_LUMINANCE = 0.215 ** 3
-const LIGHT_LUMINANCE = 1
-
-/** WCAG relative luminance of a "#rgb" or "#rrggbb" color, null when it is not one. */
-const luminance = (hex: string): number | null => {
+/** "#rgb" or "#rrggbb" (the "#" optional) into "#rrggbb"; null when it is not a color. */
+const normalizeHex = (hex: string): string | null => {
     const rgb = parseHex(hex)
-    if (!rgb) return null
-    const [r, g, b] = rgb.map(v => v / 255)
-        .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return rgb ? toHex(rgb) : null
 }
 
-/** WCAG contrast ratio between two luminances. */
-const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
-
 /**
- * The color of the text and icons on the accent color: dark or white, whichever reads better on it.
- * (The accent is chosen by the user: on the default deep orange white gives 5.2:1, on a bright orange like #f97316 dark text wins.)
+ * The color of the text and icons on the accent color: white or near-black, whichever reads better on it.
  * @param hex The accent color, "#rgb" or "#rrggbb".
- * @returns A CSS color; the dark one when `hex` is not a valid color.
+ * @returns A "#rrggbb"; the dark one when `hex` is not a valid color.
  * @category Theme
  */
 export const textColorOn = (hex: string): string => {
-    const accent = luminance(hex)
-    if (accent === null) return DARK_TEXT
-    return contrast(accent, LIGHT_LUMINANCE) > contrast(accent, DARK_LUMINANCE) ? LIGHT_TEXT : DARK_TEXT
+    const color = normalizeHex(hex)
+    return color === null ? textColorOnHex6("#ffffff") : textColorOnHex6(color)
 }
 
 /**
- * Applies the accent color to the page: `--primary` and the matching `--primary-foreground`.
+ * Previews the accent color on the page (`--primary` and the matching `--primary-foreground`) while it is being chosen; the
+ * theme provider applies the stored one for good.
  * @param hex The accent color.
  * @param root The element that holds the theme variables (the document element).
  * @category Theme
@@ -53,19 +40,17 @@ export const applyAccentColor = (hex: string, root: HTMLElement = document.docum
 /** Minimum contrast of the accent with the background for borders, selections and focus rings (WCAG 1.4.11, non-text: 3:1). */
 export const ACCENT_MIN_CONTRAST = 3
 
-/** Relative luminance of the background of the two themes (`--background`: white, and oklch L 0.2156 whose luminance is L cubed). */
-const THEME_BACKGROUND_LUMINANCE = { light: 1, dark: 0.2156 ** 3 } as const
-
-export type AccentTheme = keyof typeof THEME_BACKGROUND_LUMINANCE
+export type AccentTheme = ThemeBase
 
 /**
  * Contrast ratio of the accent color with the background of a theme.
+ * @param background The "#rrggbb" background of the theme.
  * @returns The ratio (1-21), or null when `hex` is not a valid color.
  * @category Theme
  */
-export const accentContrast = (hex: string, theme: AccentTheme): number | null => {
-    const accent = luminance(hex)
-    return accent === null ? null : contrast(accent, THEME_BACKGROUND_LUMINANCE[theme])
+export const accentContrast = (hex: string, background: string): number | null => {
+    const color = normalizeHex(hex)
+    return color === null ? null : contrastRatio(color, background)
 }
 
 const toHsl = (hex: string): [number, number, number] | null => {
@@ -91,20 +76,22 @@ const fromHsl = (h: number, s: number, l: number): string => {
 
 /**
  * A color close to the accent with enough contrast with the background of a theme: same hue and saturation, with the
- * lightness moved the least that is needed (darker on the light theme, lighter on the dark one).
+ * lightness moved the least that is needed (darker on a light theme, lighter on a dark one).
+ * @param background The "#rrggbb" background of the theme.
+ * @param base The base of the theme: decides the direction of the change.
  * @returns The suggested "#rrggbb", or null when the accent already has enough contrast (or is not a valid color).
  * @category Theme
  */
-export const suggestAccentColor = (hex: string, theme: AccentTheme): string | null => {
-    const current = accentContrast(hex, theme)
+export const suggestAccentColor = (hex: string, background: string, base: AccentTheme): string | null => {
+    const current = accentContrast(hex, background)
     const hsl = toHsl(hex)
     if (current === null || hsl === null || current >= ACCENT_MIN_CONTRAST) return null
     const [h, s, l] = hsl
-    const step = theme === "light" ? -0.005 : 0.005
+    const step = base === "light" ? -0.005 : 0.005
     for (let lightness = l + step; lightness >= 0 && lightness <= 1; lightness += step) {
         const candidate = fromHsl(h, s, lightness)
         // A little margin over the minimum, so that rounding to 8 bits per channel cannot bring it below
-        if ((accentContrast(candidate, theme) ?? 0) >= ACCENT_MIN_CONTRAST + 0.1) return candidate
+        if ((accentContrast(candidate, background) ?? 0) >= ACCENT_MIN_CONTRAST + 0.1) return candidate
     }
-    return theme === "light" ? "#000000" : "#ffffff"
+    return base === "light" ? "#000000" : "#ffffff"
 }

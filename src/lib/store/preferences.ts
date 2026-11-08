@@ -8,6 +8,9 @@ import { SIDEBAR_DEFAULT_WIDTH, clampSidebarWidth } from "@/lib/sidebar-layout"
 import { DEFAULT_SPLIT_RATIO, clampRatio } from "@/lib/split-layout"
 import { DEFAULT_COLOR_INTENSITY, clampColorIntensity } from "@/lib/color-intensity"
 import { UNDO_LIMIT } from "@/contexts/undo/stack"
+import { normalizeStoredThemes } from "@/lib/themes/validate"
+import { isHex6 } from "@/lib/themes/color"
+import type { ThemeDefinition } from "@/lib/themes/types"
 import { DEFAULT_LANGUAGE_PREFERENCE, isLanguagePreference, type LanguagePreference } from "@/i18n"
 
 export { DEFAULT_PRIMARY_COLOR }
@@ -243,6 +246,18 @@ export const APP_PREFS = {
             return { hex: isHexColor(hex) ? hex : DEFAULT_PRIMARY_COLOR }
         },
     }),
+    /**
+     * The chosen theme (id of a built-in theme or `custom-...`). null = not chosen yet: the first start picks one from the
+     * operating system (see lib/theme-startup.ts) and saves it.
+     */
+    themeId: def<string | null>({ key: "themeId", default: null, normalize: value => typeof value === "string" && /^[a-z0-9-]{1,64}$/.test(value) ? value : null }),
+    /**
+     * A copy of the definition of the active theme when it is a custom one (those live in the database, which is not ready for
+     * the first frame). null for the built-in themes.
+     */
+    activeThemeCache: def<ThemeDefinition | null>({ key: "activeThemeCache", default: null, normalize: value => normalizeStoredThemes([value])[0] ?? null }),
+    /** Background of the active theme, "#rrggbb": also read by the Rust side at startup (key "themeBackground" in src-tauri/src/lib.rs). */
+    themeBackground: def<string | null>({ key: "themeBackground", default: null, normalize: value => isHex6(value) ? value.toLowerCase() : null }),
     /** Where the floating audio player was left (position and scale). */
     audioPlayerPosition: def<AudioPlayerPosition>({ key: "audioPlayerPosition", default: DEFAULT_AUDIO_PLAYER_POSITION, normalize: normalizeAudioPlayerPosition }),
     /** Where each audio file was left (see `lib/audio-positions.ts`): kept out of the React state, it changes every few seconds while playing. */
@@ -383,6 +398,39 @@ export const getPrimaryColor = async (): Promise<string> => (await getPref("prim
  * @category Store
  */
 export const savePrimaryColor = (hex: string): Promise<void> => savePref("primaryColor", { hex })
+
+/** "#rgb" or "#rrggbb" as lowercase "#rrggbb". */
+const toHex6 = (hex: string): string => (hex.length === 4 ? `#${[...hex.slice(1)].map(d => d + d).join("")}` : hex).toLowerCase()
+
+/**
+ * Gets the accent chosen apart from the theme (the stored `primaryColor`).
+ * @returns A promise that resolves to "#rrggbb", or to null when there is none: the theme uses its own accent. The old default
+ * orange counts as none (it was saved by the old "reset", and would hide the accents of the themes).
+ * @category Store
+ */
+export const getAccentOverride = async (): Promise<string | null> => {
+    const hex = ((await store.get<{ hex?: unknown }>(APP_PREFS.primaryColor.key)) as { hex?: unknown } | null | undefined)?.hex
+    if (!isHexColor(hex)) return null
+    const normalized = toHex6(hex)
+    return normalized === DEFAULT_PRIMARY_COLOR ? null : normalized
+}
+
+/**
+ * Saves the accent chosen apart from the theme.
+ * @param hex The color, or null to remove it (the accent of the theme is used again).
+ * @category Store
+ */
+export const saveAccentOverride = async (hex: string | null): Promise<void> => {
+    if (hex === null || !isHexColor(hex)) {
+        await store.delete(APP_PREFS.primaryColor.key)
+        await persist()
+        return
+    }
+    await savePrimaryColor(toHex6(hex))
+}
+
+export const getThemeId = () => getPref("themeId")
+export const saveThemeId = (id: string) => savePref("themeId", id)
 
 /**
  * Gets the current position of the audio player.

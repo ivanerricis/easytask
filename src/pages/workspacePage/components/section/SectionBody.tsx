@@ -12,7 +12,7 @@ type SectionBodyProps = {
 export const SectionBody = memo(({ isOpen, section }: SectionBodyProps) => {
     const { t } = useTranslation()
     return (
-    <div className={`flex flex-col w-full dark:bg-secondary bg-background ${isOpen ? 'h-full' : 'hidden'}`}>
+    <div className={`flex flex-col w-full bg-body-surface ${isOpen ? 'h-full' : 'hidden'}`}>
         <TaskList tasks={section.tasks} listKey={`s-${section.id}`} sectionId={section.id} clipped label={t("tasks.listOf", { name: section.title })} />
         <AddTask sectionId={section.id} />
     </div>

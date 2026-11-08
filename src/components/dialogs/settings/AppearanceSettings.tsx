@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { ModeToggle } from "@/components/mode-toggle"
+import { useTheme } from "@/components/use-theme"
 import { Input } from "@/components/ui/input"
 import { usePreferences } from "@/contexts/use-preferences"
-import { DEFAULT_PRIMARY_COLOR, applyAccentColor } from "@/lib/accent-color"
+import { applyAccentColor } from "@/lib/accent-color"
+import { effectiveAccent } from "@/lib/themes/builtin"
 import { SettingsCard, SettingsPanel, SettingsRow } from "./SettingsRow"
 import { AccentContrastHint } from "./AccentContrastHint"
+import { ThemeGallerySetting } from "./ThemeGallerySetting"
+import { CustomThemesSection } from "./CustomThemesSection"
 import { LanguageSetting } from "./LanguageSetting"
 import { TextZoomSetting } from "./TextZoomSetting"
 import { FontFamilySetting } from "./FontFamilySetting"
@@ -23,14 +26,17 @@ const ACCENT_COMMIT_DELAY_MS = 250
  * only previews the color on the page (a CSS variable), while the preference (which re-renders everything that reads
  * the preferences, and is saved) is set once, when the picker rests. Closing the dialog commits a pending color.
  */
-const AccentColorPicker = ({ label, description, resetLabel }: { label: string, description: string, resetLabel: string }) => {
-    const { primaryColor, setPrimaryColor } = usePreferences()
+const AccentColorPicker = ({ label, description, useThemeLabel }: { label: string, description: string, useThemeLabel: string }) => {
+    const { activeTheme } = useTheme()
+    const { accentOverride, setAccentOverride } = usePreferences()
+    // The accent in use: the choice of the user, or else the one of the theme
+    const accent = effectiveAccent(activeTheme, accentOverride)
     // The color being previewed; null when the picker just shows the stored preference (which a reset can change)
     const [draft, setDraft] = useState<string | null>(null)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const pending = useRef<string | null>(null)
-    const commit = useRef(setPrimaryColor)
-    useEffect(() => { commit.current = setPrimaryColor })
+    const commit = useRef(setAccentOverride)
+    useEffect(() => { commit.current = setAccentOverride })
 
     const flush = useCallback(() => {
         if (timer.current) clearTimeout(timer.current)
@@ -51,24 +57,23 @@ const AccentColorPicker = ({ label, description, resetLabel }: { label: string, 
         timer.current = setTimeout(flush, ACCENT_COMMIT_DELAY_MS)
     }
 
-    // Back to the default color at once: a pending change is dropped
-    const handleReset = () => {
+    // Back to the accent of the theme at once: a pending change is dropped
+    const handleUseTheme = () => {
         if (timer.current) clearTimeout(timer.current)
         timer.current = null
         pending.current = null
         setDraft(null)
-        applyAccentColor(DEFAULT_PRIMARY_COLOR)
-        commit.current(DEFAULT_PRIMARY_COLOR)
+        applyAccentColor(activeTheme.accent)
+        commit.current(null)
     }
 
-    const shown = draft ?? primaryColor
-    const isDefault = shown.toLowerCase() === DEFAULT_PRIMARY_COLOR
+    const shown = draft ?? accent
 
     return (
         <SettingsRow
             label={label}
             description={description}
-            reset={isDefault ? undefined : <RowResetButton label={resetLabel} onClick={handleReset} />}
+            reset={accentOverride === null && draft === null ? undefined : <RowResetButton label={useThemeLabel} onClick={handleUseTheme} />}
         >
             <div
                 className="relative size-8 overflow-hidden rounded-xs border focus-within:ring-[3px] focus-within:ring-ring"
@@ -91,15 +96,14 @@ export const AppearanceSettings = () => {
     return (
         <SettingsPanel title={t("settings.appearance.title")} action={<ResetAppearanceSetting />}>
             <SettingsCard>
-                <SettingsRow label={t("settings.appearance.theme.label")} description={t("settings.appearance.theme.description")}>
-                    <ModeToggle />
-                </SettingsRow>
+                <ThemeGallerySetting />
+                <CustomThemesSection />
                 {/* The contrast warning belongs to the accent color: same row */}
                 <div className="flex flex-col gap-3">
                     <AccentColorPicker
                         label={t("settings.appearance.accent.label")}
                         description={t("settings.appearance.accent.description")}
-                        resetLabel={t("settings.appearance.accent.reset")}
+                        useThemeLabel={t("settings.appearance.accent.useTheme")}
                     />
                     <AccentContrastHint />
                 </div>

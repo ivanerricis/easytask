@@ -20,7 +20,7 @@ Un breve giro di come è fatto EasyTask, per chi vuole modificare il codice.
 | `src/contexts` | Context React per dati del workspace, schede, preferenze, scorciatoie, audio, automazioni e annulla |
 | `src/hooks` | Hook riutilizzabili (per esempio `useItemMutations`, `useAfterMenuClose`) |
 | `src/db` | Accesso a SQLite: connessione, schema, migrazioni, query, backup |
-| `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di schede e layout, senza dipendenze dai context |
+| `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, temi (`lib/themes`: temi predefiniti, validazione, controlli di contrasto, variabili CSS), scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di schede e layout, senza dipendenze dai context |
 | `src/i18n` | Configurazione di i18next e file delle lingue `it` e `en` |
 | `src-tauri/src` | Il backend Rust (`lib.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permessi concessi al frontend |
@@ -53,7 +53,7 @@ Il backend sceglie la cartella dati in quest'ordine:
 
 `src/db/initDb.ts` applica le migrazioni in ordine e le traccia con `PRAGMA user_version`. La prima migrazione crea l'intero schema (`src/db/schema/initial.ts`): le migrazioni precedenti sono state riunite in essa.
 
-Regole per una nuova migrazione: aggiungila in coda, non modificare mai una già applicata, e falla idempotente e solo additiva. Un database con una versione più alta di quella nota all'app viene rifiutato perché più recente, e prima di migrare un database esistente viene fatta una copia di sicurezza. La versione 12 aggiunge indici parziali sulle righe nel cestino e archiviate, la versione 13 il colore di sfondo delle note e dei template.
+Regole per una nuova migrazione: aggiungila in coda, non modificare mai una già applicata, e falla idempotente e solo additiva. Un database con una versione più alta di quella nota all'app viene rifiutato perché più recente, e prima di migrare un database esistente viene fatta una copia di sicurezza. La versione 12 aggiunge indici parziali sulle righe nel cestino e archiviate, la versione 13 il colore di sfondo delle note e dei template, la versione 14 la tabella dei temi personalizzati (globali, non per workspace).
 
 ## Impostazioni
 

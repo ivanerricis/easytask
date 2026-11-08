@@ -12,6 +12,7 @@ export const appMenu: Translation["appMenu"] = {
     file: "File",
     edit: "Edit",
     view: "View",
+    manageThemes: "Manage themes…",
     help: "Help",
     newNote: "New note",
     newFolder: "New folder",

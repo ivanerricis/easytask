@@ -30,11 +30,11 @@ export function Highlight({ text, query, active = -1, markClassName }: Highlight
                 <mark
                     data-active={isActive ? "true" : undefined}
                     className={cn(
-                        // Yellow like the search of a browser, readable on both themes; the current match is orange with a ring
+                        // Yellow like the search of a browser, readable on both themes; the current match is orange with a ring (theme tokens)
                         "rounded-xs box-decoration-clone px-px",
                         isActive
-                            ? "bg-orange-400 text-black ring-2 ring-orange-500"
-                            : "bg-yellow-300/70 text-foreground dark:bg-yellow-500/50",
+                            ? "bg-highlight-active text-black ring-2 ring-highlight-active"
+                            : "bg-highlight text-highlight-foreground",
                         markClassName,
                     )}
                 >

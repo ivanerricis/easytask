@@ -34,7 +34,7 @@ Cartelle e sottotask si annidano senza limiti. Gruppi e sezioni possono restare 
 - **Audio**: allega file audio a una nota e ascoltali nell'app. Vedi [Audio](./audio).
 - **Ricerca delle note** e **scorciatoie da tastiera personalizzabili**. Vedi [Scorciatoie da tastiera](./shortcuts).
 - **Esporta e importa** un workspace come file `.easytask.json`.
-- Interfaccia in **italiano e inglese**, tema chiaro, scuro o di sistema.
+- Interfaccia in **italiano e inglese**, nove temi predefiniti (anche ad alto contrasto) e temi personalizzati. Vedi [Temi](./themes).
 - **Aggiornamenti** con versioni firmate. Vedi [Aggiornamenti](./updates).
 
 ### Impostazioni

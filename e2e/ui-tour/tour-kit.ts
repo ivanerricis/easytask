@@ -39,10 +39,9 @@ export const goCategory = async (id: string) => {
 export const applyAppearance = async (nextTheme: Theme, nextLang: Lang) => {
     await openSettings()
     await goCategory("appearance")
-    await $(`//button[starts-with(@aria-label, '${await tr("settings.appearance.theme.toggle")}:')]`).click()
-    const item = $(`//*[@role='menuitemradio'][normalize-space()='${await tr(`settings.appearance.theme.${nextTheme}`)}']`)
-    await item.waitForDisplayed()
-    await item.click()
+    const card = $(`[role="radio"][aria-label=${JSON.stringify(await tr(`settings.themes.${nextTheme}`))}]`)
+    await card.waitForDisplayed()
+    await card.click()
     await chooseLanguage(nextLang === "it" ? "Italiano" : "English")
     await browser.waitUntil(async () => (await currentLang()) === nextLang, { timeoutMsg: "language did not change" })
     await browser.waitUntil(

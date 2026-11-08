@@ -1,61 +1,121 @@
-import { act, render, screen } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { ThemeProvider } from "./theme-provider"
 import { useTheme } from "./use-theme"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
+import { BUILTIN_THEMES } from "@/lib/themes/builtin"
+import type { ThemeDefinition } from "@/lib/themes/types"
+import * as db from "@/db/queries/themes"
+import * as prefs from "@/lib/store/preferences"
 
-type Listener = (event: { matches: boolean }) => void
-let matches = false
-let listeners = new Set<Listener>()
+vi.mock("@/lib/store/initStore", () => ({ store: {} }))
+vi.mock("@/lib/store/preferences", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/lib/store/preferences")>()),
+    savePref: vi.fn().mockResolvedValue(undefined),
+    saveThemeId: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock("@/db/queries/themes", () => ({
+    getCustomThemes: vi.fn(),
+    saveCustomTheme: vi.fn(),
+    renameCustomTheme: vi.fn(),
+    deleteCustomTheme: vi.fn(),
+}))
+vi.mock("@/lib/report-error", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("@/lib/report-error")>()),
+    reportError: vi.fn(),
+}))
 
-const Probe = () => {
-    const { theme, resolvedTheme, setTheme } = useTheme()
-    return (
-        <div>
-            <span data-testid="state">{theme}:{resolvedTheme}</span>
-            <button onClick={() => setTheme("light")}>light</button>
-        </div>
-    )
+const CUSTOM: ThemeDefinition = {
+    id: "custom-" + "a".repeat(32), name: "Mine", base: "dark", builtin: false, accent: "#112233",
+    colors: { ...BUILTIN_THEMES[1].colors, background: "#101820" },
 }
 
-const changeSystem = (dark: boolean) => act(() => {
-    matches = dark
-    listeners.forEach(l => l({ matches: dark }))
-})
+const holder: { current: ReturnType<typeof useTheme> } = { current: undefined as never }
+const ctx = new Proxy({} as ReturnType<typeof useTheme>, { get: (_t, key) => holder.current[key as keyof ReturnType<typeof useTheme>] })
+const Probe = () => {
+    // eslint-disable-next-line react-hooks/immutability -- test probe: exposes the latest context value to the assertions
+    holder.current = useTheme()
+    return <span data-testid="state">{holder.current.theme}:{holder.current.resolvedTheme}</span>
+}
+
+const renderProvider = (accentOverride: string | null = null) => render(
+    <PreferencesContext.Provider value={{ accentOverride } as PreferencesContextType}>
+        <ThemeProvider><Probe /></ThemeProvider>
+    </PreferencesContext.Provider>,
+)
 
 describe("ThemeProvider", () => {
     beforeEach(() => {
-        matches = false
-        listeners = new Set()
-        localStorage.clear()
-        vi.stubGlobal("matchMedia", vi.fn(() => ({
-            get matches() { return matches },
-            addEventListener: (_: string, l: Listener) => listeners.add(l),
-            removeEventListener: (_: string, l: Listener) => listeners.delete(l),
-        })))
+        vi.mocked(db.getCustomThemes).mockResolvedValue([CUSTOM])
+        vi.mocked(db.saveCustomTheme).mockImplementation(async theme => theme)
+        vi.mocked(db.renameCustomTheme).mockImplementation(async (_id, name) => name)
+        vi.mocked(db.deleteCustomTheme).mockResolvedValue(undefined)
+        vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false })))
     })
     afterEach(() => {
         vi.unstubAllGlobals()
-        document.documentElement.classList.remove("light", "dark")
+        vi.clearAllMocks()
+        const root = document.documentElement
+        root.classList.remove("light", "dark")
+        root.removeAttribute("data-theme")
+        root.style.removeProperty("--primary")
+        document.getElementById("easytask-theme")?.remove()
     })
 
-    it("follows the operating system live while the theme is system", () => {
-        render(<ThemeProvider><Probe /></ThemeProvider>)
-        expect(screen.getByTestId("state")).toHaveTextContent("system:light")
-        expect(document.documentElement).toHaveClass("light")
-        changeSystem(true)
-        expect(screen.getByTestId("state")).toHaveTextContent("system:dark")
-        expect(document.documentElement).toHaveClass("dark")
-        expect(document.documentElement).not.toHaveClass("light")
+    it("starts with the theme of the operating system and the custom themes from the database", async () => {
+        renderProvider()
+        expect(screen.getByTestId("state").textContent).toBe("light:light")
+        expect(document.documentElement.classList.contains("light")).toBe(true)
+        await waitFor(() => expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 1))
+        expect(ctx.themes.at(-1)).toEqual(CUSTOM)
     })
 
-    it("stops listening when a fixed theme is chosen and on unmount", () => {
-        const { unmount } = render(<ThemeProvider><Probe /></ThemeProvider>)
-        expect(listeners.size).toBe(1)
-        act(() => screen.getByText("light").click())
-        expect(listeners.size).toBe(0)
-        changeSystem(true)
-        expect(screen.getByTestId("state")).toHaveTextContent("light:light")
-        unmount()
-        expect(listeners.size).toBe(0)
+    it("chooses a theme, applies it and saves the choice", async () => {
+        renderProvider()
+        await waitFor(() => expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 1))
+        act(() => ctx.setTheme("nord"))
+        expect(screen.getByTestId("state").textContent).toBe("nord:dark")
+        expect(document.documentElement.classList.contains("dark")).toBe(true)
+        expect(document.documentElement.classList.contains("light")).toBe(false)
+        expect(document.documentElement.getAttribute("data-theme")).toBe("nord")
+        expect(prefs.saveThemeId).toHaveBeenCalledWith("nord")
+        act(() => ctx.setTheme("does-not-exist"))
+        expect(ctx.theme).toBe("nord")
+    })
+
+    it("applies the accent override over the accent of the theme", () => {
+        renderProvider("#abcdef")
+        expect(document.documentElement.style.getPropertyValue("--primary")).toBe("#abcdef")
+    })
+
+    it("keeps the copy of a custom theme for the first frame and the background of the window", async () => {
+        renderProvider()
+        await waitFor(() => expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 1))
+        act(() => ctx.setTheme(CUSTOM.id))
+        await waitFor(() => expect(prefs.savePref).toHaveBeenCalledWith("activeThemeCache", CUSTOM))
+        expect(prefs.savePref).toHaveBeenCalledWith("themeBackground", "#101820")
+    })
+
+    it("saves, renames and deletes custom themes", async () => {
+        renderProvider()
+        await waitFor(() => expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 1))
+        const other = { ...CUSTOM, id: "custom-" + "b".repeat(32), name: "Other" }
+        await act(() => ctx.saveCustomTheme(other))
+        expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 2)
+        await act(() => ctx.renameCustomTheme(other.id, "Renamed"))
+        expect(ctx.themes.find(t => t.id === other.id)?.name).toBe("Renamed")
+        await act(() => ctx.deleteCustomTheme(other.id))
+        expect(ctx.themes.find(t => t.id === other.id)).toBeUndefined()
+    })
+
+    it("deleting the active theme switches to the default one of the operating system", async () => {
+        renderProvider()
+        await waitFor(() => expect(ctx.themes).toHaveLength(BUILTIN_THEMES.length + 1))
+        act(() => ctx.setTheme(CUSTOM.id))
+        expect(ctx.theme).toBe(CUSTOM.id)
+        await act(() => ctx.deleteCustomTheme(CUSTOM.id))
+        expect(ctx.theme).toBe("light")
+        expect(document.documentElement.classList.contains("light")).toBe(true)
+        expect(prefs.saveThemeId).toHaveBeenLastCalledWith("light")
     })
 })

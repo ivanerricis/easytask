@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Themes: nine built-in themes (Light, Dark, Nord, Solarized Light, Solarized Dark, Dracula, Sepia, and two high contrast ones, with a text contrast ratio of at least 7:1, made for people with low vision). You choose from a gallery with previews in Settings > Appearance, or from the **View > Theme** menu, which also has **Manage themes…**. The native window background follows the theme, so there is no white flash at startup.
+- Custom themes: create, duplicate, rename and delete your own themes (up to 50). The editor has 11 colors and a live preview; contrast warnings are only informative and never block saving. Themes are saved in the database (version 14, global and not per workspace), so backups include them, and can be exported to and imported from `.easytask-theme.json` files (up to 64 KiB, valid hex colors only; the id in the file is ignored).
+- Each theme has its own accent color. The **Accent color** setting overrides it, and **Use the accent of the theme** brings it back. The contrast warning is unchanged.
+
+### Changed
+
+- The **System** choice for the theme is replaced: the first time, EasyTask picks the initial theme from the system (dark if the system is dark, high contrast if the system asks for more contrast), and after that the theme you chose stays. **Reset all** in Appearance goes back to the theme picked from the system.
+
 ## [0.20.0] - 2026-11-08
 
 ### Added

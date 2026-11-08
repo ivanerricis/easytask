@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react"
+import { Fragment, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import {
     Archive, ArrowLeft, ArrowRight, ArrowRightLeft, BookOpen, CircleX, Columns2, EyeOff, FileDown, FilePlus, FileText, FolderPlus, House, Info, Keyboard, LayoutTemplate,
-    LogOut, PanelLeft, PanelRight, Plus, Redo2, Rows3, ScrollText, Search, Settings, SunMoon, Trash2, Undo2, X, type LucideIcon,
+    LogOut, PanelLeft, PanelRight, Palette, Plus, Redo2, Rows3, ScrollText, Search, Settings, SunMoon, Trash2, Undo2, X, type LucideIcon,
 } from "lucide-react"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import {
@@ -20,7 +20,7 @@ import {
     MenubarTrigger,
 } from "@/components/ui/menubar"
 import { isDialogOpen } from "@/components/dialog-open"
-import { isTheme, THEME_OPTIONS } from "@/components/theme-options"
+import { builtinThemeGroups, isTheme, themeIcon, themeLabel } from "@/components/theme-options"
 import { useTheme } from "@/components/use-theme"
 import { useShortcutKeys, useShortcutsContext } from "@/contexts/use-shortcuts"
 import { requestAppCommand, useIsAppCommandActive, type AppCommand } from "@/lib/app-commands"
@@ -72,7 +72,9 @@ const ActionItem = ({ action, label, icon: Icon }: { action: () => void, label: 
  */
 export const AppMenu = ({ page }: AppMenuProps) => {
     const { t, i18n } = useTranslation()
-    const { theme, setTheme } = useTheme()
+    const { theme, themes, setTheme } = useTheme()
+    const themeGroups = builtinThemeGroups(themes)
+    const customThemes = themes.filter(item => !item.builtin)
     const rootRef = useRef<HTMLDivElement>(null)
 
     // Alt pressed and released alone (or F10) focuses the first menu, and gives the focus back when pressed again
@@ -198,11 +200,19 @@ export const AppMenu = ({ page }: AppMenuProps) => {
                     <MenubarSub>
                         <MenubarSubTrigger><SunMoon />{t("appMenu.theme")}</MenubarSubTrigger>
                         <MenubarSubContent>
-                            <MenubarRadioGroup value={theme} onValueChange={value => { if (isTheme(value)) setTheme(value) }}>
-                                {THEME_OPTIONS.map(({ value, icon: Icon, labelKey }) => (
-                                    <MenubarRadioItem key={value} value={value}><Icon className={RADIO_ICON} />{t(labelKey)}</MenubarRadioItem>
+                            <MenubarRadioGroup value={theme} onValueChange={value => { if (isTheme(value, themes)) setTheme(value) }}>
+                                {[...themeGroups, ...(customThemes.length > 0 ? [customThemes] : [])].map((group, index) => (
+                                    <Fragment key={group[0].id}>
+                                        {index > 0 && <MenubarSeparator />}
+                                        {group.map(item => {
+                                            const Icon = themeIcon(item)
+                                            return <MenubarRadioItem key={item.id} value={item.id}><Icon className={RADIO_ICON} />{themeLabel(t, item)}</MenubarRadioItem>
+                                        })}
+                                    </Fragment>
                                 ))}
                             </MenubarRadioGroup>
+                            <MenubarSeparator />
+                            <ActionItem action={() => requestOpenSettings("appearance")} icon={Palette} label={t("appMenu.manageThemes")} />
                         </MenubarSubContent>
                     </MenubarSub>
                 </MenubarContent>

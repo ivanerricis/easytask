@@ -147,7 +147,14 @@ const captureWorkspace = async (n: (typeof NAMES)[Lang]) => {
     })
 }
 
+/** A new session (reloadSession) opens a window of the default size: the screenshots are always 1440x900. */
+const fixWindow = async () => {
+    await browser.setWindowSize(1440, 900)
+    await settle(800)
+}
+
 const tourFor = async (nextLang: Lang) => {
+    await fixWindow()
     const n = NAMES[nextLang]
     fs.mkdirSync(path.join(OUT, nextLang), { recursive: true })
     await setAppearance("light", nextLang)
@@ -468,6 +475,40 @@ const tourFor = async (nextLang: Lang) => {
         await closeDialog()
     })
 
+    /* ---------------------------------------------------------------- themes: gallery and editor (named -light: the chosen theme is put back to Light) */
+    const themeCard = async (key: string) => $(`[role="radio"][aria-label=${JSON.stringify(await tr(`settings.themes.${key}`))}]`)
+    await attempt("themes-gallery", async () => {
+        await openSettings()
+        await goCategory("appearance")
+        const nord = await themeCard("nord")
+        await nord.waitForDisplayed()
+        await nord.click()
+        await browser.waitUntil(async () => (await nord.getAttribute("aria-checked")) === "true")
+        await browser.execute((el: HTMLElement) => el.scrollIntoView({ block: "center" }), nord as unknown as HTMLElement)
+        await parkMouse()
+        await shot("themes-gallery", 800)
+        const light = await themeCard("light")
+        await light.click()
+        await browser.waitUntil(async () => (await light.getAttribute("aria-checked")) === "true")
+        await closeDialog()
+    })
+    await recover()
+    await attempt("themes-editor", async () => {
+        await openSettings()
+        await goCategory("appearance")
+        const open = await byText(await tr("settings.themes.custom.new"))
+        await open.waitForExist()
+        await browser.execute((el: HTMLElement) => el.scrollIntoView({ block: "center" }), open as unknown as HTMLElement)
+        await open.click()
+        await $(`//*[@role='dialog'][.//h2[normalize-space()=${xpathString(await tr("settings.themes.editor.newTitle"))}]]`).waitForDisplayed()
+        await parkMouse()
+        await shot("themes-editor", 800)
+        await browser.keys("Escape")
+        await settle(300)
+        await closeDialog()
+    })
+    await recover()
+
     await setAppearance("dark", nextLang)
     await attempt("home dark", async () => {
         await $("h1").moveTo()
@@ -486,6 +527,7 @@ const tourFor = async (nextLang: Lang) => {
         await setLastSeenVersion("0.0.1")
         await browser.reloadSession()
         await waitForApp()
+        await fixWindow()
         await setAppearance("light", nextLang)
         await openWs(n.wsMain)
         await $('[role="tab"][data-note-id="-1"]').waitForDisplayed({ timeout: 20_000 })
