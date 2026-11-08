@@ -6,7 +6,7 @@ import { BUILTIN_THEMES, defaultThemeIdForSystem } from "@/lib/themes/builtin"
 import type { ThemeDefinition, ThemeId } from "@/lib/themes/types"
 import { deleteCustomTheme, getCustomThemes, renameCustomTheme, saveCustomTheme } from "@/db/queries/themes"
 import { saveThemeId } from "@/lib/store/preferences"
-import { getThemeStartup, resolveActiveTheme, syncActiveThemeStorage, systemPrefersDark } from "@/lib/theme-startup"
+import { getThemeStartup, resolveActiveTheme, syncActiveThemeStorage, systemPrefersDark, systemPrefersMoreContrast } from "@/lib/theme-startup"
 import { reportError } from "@/lib/report-error"
 
 type ThemeProviderProps = {
@@ -20,7 +20,7 @@ type ThemeProviderProps = {
  */
 export function ThemeProvider({ children }: ThemeProviderProps) {
     const startup = getThemeStartup()
-    const [themeId, setThemeId] = useState<ThemeId>(() => startup?.themeId ?? defaultThemeIdForSystem(systemPrefersDark()))
+    const [themeId, setThemeId] = useState<ThemeId>(() => startup?.themeId ?? defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast()))
     const [customThemes, setCustomThemes] = useState<ThemeDefinition[]>(() => startup?.customThemes ?? [])
     // Until the database answers, a custom theme that is not in the list yet is not "missing"
     const [customLoaded, setCustomLoaded] = useState(false)
@@ -46,7 +46,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     // The chosen custom theme is not in the database any more (deleted, restored backup): back to the default of the system
     useEffect(() => {
         if (!customLoaded || themes.some(theme => theme.id === themeId)) return
-        const fallback = defaultThemeIdForSystem(systemPrefersDark())
+        const fallback = defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast())
         setThemeId(fallback)
         saveThemeId(fallback).catch(reportError)
     }, [customLoaded, themes, themeId])
@@ -79,7 +79,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         await deleteCustomTheme(id)
         setCustomThemes(current => current.filter(t => t.id !== id))
         if (id === themeId) {
-            const fallback = defaultThemeIdForSystem(systemPrefersDark())
+            const fallback = defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast())
             setThemeId(fallback)
             saveThemeId(fallback).catch(reportError)
         }

@@ -1,4 +1,5 @@
 import { createError, toAppError } from "@/types/error"
+import i18n from "@/i18n"
 import { getErrorMessage } from "@/lib/utils"
 import { MAX_CUSTOM_THEMES, type ThemeDefinition } from "@/lib/themes/types"
 import { normalizeStoredThemes, normalizeThemeName, uniqueThemeName } from "@/lib/themes/validate"
@@ -46,7 +47,7 @@ export async function saveCustomTheme(def: ThemeDefinition): Promise<ThemeDefini
         )
         return saved
     } catch (error: unknown) {
-        throw toAppError(error, e => createError("THEME_SAVE_ERROR", `Could not save the theme: ${getErrorMessage(e)}`))
+        throw toAppError(error, e => createError("THEME_SAVE_ERROR", i18n.t("errors.themes.save", { message: getErrorMessage(e) })))
     }
 }
 
@@ -75,7 +76,8 @@ export async function renameCustomTheme(id: string, name: string): Promise<strin
         const db = await getDB()
         const others = await db.select<{ name: string }[]>("SELECT name FROM custom_themes WHERE id <> ?", [id])
         const unique = uniqueThemeName(clean, others.map(o => o.name))
-        await db.execute("UPDATE custom_themes SET name = ?, updated_at = datetime('now', 'localtime') WHERE id = ?", [unique, id])
+        const result = await db.execute("UPDATE custom_themes SET name = ?, updated_at = datetime('now', 'localtime') WHERE id = ?", [unique, id])
+        if (result?.rowsAffected === 0) throw createError("THEME_NOT_FOUND", i18n.t("errors.themes.notFound"))
         return unique
     } catch (error: unknown) {
         throw toAppError(error, e => createError("THEME_RENAME_ERROR", `Could not rename the theme: ${getErrorMessage(e)}`))

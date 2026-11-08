@@ -24,12 +24,19 @@ const DARK_QUERY = "(prefers-color-scheme: dark)"
 export const systemPrefersDark = (): boolean =>
     typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(DARK_QUERY).matches
 
+const CONTRAST_QUERY = "(prefers-contrast: more)"
+
+/** True when the operating system asks for more contrast. */
+export const systemPrefersMoreContrast = (): boolean =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(CONTRAST_QUERY).matches
+
 /**
  * The theme id to use at the first start: the old choice (light/dark) when there is one, otherwise the one of the
- * operating system. "system" (and anything unknown) is resolved with the operating system at this moment.
+ * operating system (a high contrast theme when it asks for more contrast). "system" (and anything unknown) is resolved
+ * with the operating system at this moment.
  */
-export const migrateLegacyThemeId = (legacy: string | null, prefersDark: boolean): ThemeId =>
-    legacy === "light" || legacy === "dark" ? legacy : defaultThemeIdForSystem(prefersDark)
+export const migrateLegacyThemeId = (legacy: string | null, prefersDark: boolean, prefersMoreContrast = false): ThemeId =>
+    legacy === "light" || legacy === "dark" ? legacy : defaultThemeIdForSystem(prefersDark, prefersMoreContrast)
 
 const readLegacy = (): string | null => {
     try { return localStorage.getItem(LEGACY_THEME_KEY) } catch { return null }
@@ -71,7 +78,7 @@ export async function prepareTheme(): Promise<ThemeStartup> {
     try {
         let themeId = await getPref("themeId")
         if (themeId === null) {
-            themeId = migrateLegacyThemeId(readLegacy(), prefersDark)
+            themeId = migrateLegacyThemeId(readLegacy(), prefersDark, systemPrefersMoreContrast())
             await savePref("themeId", themeId)
         }
         removeLegacy()

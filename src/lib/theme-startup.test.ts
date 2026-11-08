@@ -31,6 +31,8 @@ describe("migrateLegacyThemeId", () => {
         expect(migrateLegacyThemeId("system", false)).toBe("light")
         expect(migrateLegacyThemeId(null, true)).toBe("dark")
         expect(migrateLegacyThemeId("nonsense", false)).toBe("light")
+        expect(migrateLegacyThemeId("system", true, true)).toBe("high-contrast-dark")
+        expect(migrateLegacyThemeId("dark", true, true)).toBe("dark")
     })
 })
 
@@ -43,9 +45,12 @@ describe("resolveActiveTheme", () => {
     })
 })
 
+const mockSystem = ({ dark, contrast }: { dark: boolean, contrast: boolean }) =>
+    vi.stubGlobal("matchMedia", vi.fn((query: string) => ({ matches: query.includes("contrast") ? contrast : dark })))
+
 describe("prepareTheme", () => {
     beforeEach(() => {
-        vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })))
+        mockSystem({ dark: true, contrast: false })
         vi.mocked(prefs.getAccentOverride).mockResolvedValue(null)
     })
     afterEach(() => {
@@ -64,6 +69,14 @@ describe("prepareTheme", () => {
         expect(result.themeId).toBe("dark")
         expect(prefs.savePref).toHaveBeenCalledWith("themeId", "dark")
         expect(document.documentElement.classList.contains("dark")).toBe(true)
+    })
+
+    it("at the first start chooses a high contrast theme when the system asks for more contrast", async () => {
+        stored({})
+        mockSystem({ dark: false, contrast: true })
+        expect((await prepareTheme()).themeId).toBe("high-contrast-light")
+        mockSystem({ dark: true, contrast: true })
+        expect((await prepareTheme()).themeId).toBe("high-contrast-dark")
     })
 
     it("migrates the old localStorage choice once and removes the key", async () => {
