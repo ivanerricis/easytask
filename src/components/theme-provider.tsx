@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react"
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { ThemeProviderContext } from "./theme-context"
 import { PreferencesContext } from "@/contexts/preferences-context-object"
 import { applyTheme } from "@/lib/themes/apply"
@@ -22,17 +22,24 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const startup = getThemeStartup()
     const [themeId, setThemeId] = useState<ThemeId>(() => startup?.themeId ?? defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast()))
     const [customThemes, setCustomThemes] = useState<ThemeDefinition[]>(() => startup?.customThemes ?? [])
-    // Until the database answers, a custom theme that is not in the list yet is not "missing"
-    const [customLoaded, setCustomLoaded] = useState(false)
     // The accent override lives in the preferences; before them (or without them) the one read at startup
     const accentOverride = useContext(PreferencesContext)?.accentOverride ?? startup?.accentOverride ?? null
+
+    const themeIdRef = useRef(themeId)
+    useLayoutEffect(() => { themeIdRef.current = themeId }, [themeId])
 
     useEffect(() => {
         let cancelled = false
         getCustomThemes().then(themes => {
             if (cancelled) return
             setCustomThemes(themes)
-            setCustomLoaded(true)
+            // The chosen custom theme is not in the database any more (deleted, restored backup): back to the default of the system
+            const current = themeIdRef.current
+            if (!BUILTIN_THEMES.some(theme => theme.id === current) && !themes.some(theme => theme.id === current)) {
+                const fallback = defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast())
+                setThemeId(fallback)
+                saveThemeId(fallback).catch(reportError)
+            }
         }).catch(reportError)
         return () => { cancelled = true }
     }, [])
@@ -42,14 +49,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         () => resolveActiveTheme(themeId, customThemes, systemPrefersDark()),
         [themeId, customThemes],
     )
-
-    // The chosen custom theme is not in the database any more (deleted, restored backup): back to the default of the system
-    useEffect(() => {
-        if (!customLoaded || themes.some(theme => theme.id === themeId)) return
-        const fallback = defaultThemeIdForSystem(systemPrefersDark(), systemPrefersMoreContrast())
-        setThemeId(fallback)
-        saveThemeId(fallback).catch(reportError)
-    }, [customLoaded, themes, themeId])
 
     // The only writer of the theme variables, `--primary` included (the PreferencesProvider no longer applies the accent)
     useLayoutEffect(() => {
