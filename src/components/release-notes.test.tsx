@@ -92,4 +92,13 @@ describe("ReleaseNotes", () => {
         render(<ReleaseNotes body={"### Added\n\n- Hide completed tasks.\n"} />)
         expect(screen.getByText("Hide completed tasks.")).toBeInTheDocument()
     })
+
+    it("colors the section labels with the theme tokens, without fixed palette colors", async () => {
+        await act(() => i18n.changeLanguage("en"))
+        render(<ReleaseNotes body={body} variant="page" />)
+        const cls = screen.getByRole("heading", { name: "Added" }).querySelector("span")?.className ?? ""
+        expect(cls).toContain("bg-success/15")
+        expect(cls).toContain("text-success")
+        expect(cls).not.toMatch(/emerald|sky|amber|rose|violet|dark:/)
+    })
 })

@@ -39,11 +39,11 @@ type SectionStyle = { icon: LucideIcon, tone: string }
 
 // The "page" look gives each kind of section (Added, Changed, Fixed... in English or Italian) its own icon and color
 const SECTION_STYLES: { match: RegExp, style: SectionStyle }[] = [
-    { match: /^(added|aggiunt)/i, style: { icon: Plus, tone: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" } },
-    { match: /^(changed|modificat)/i, style: { icon: RefreshCw, tone: "bg-sky-500/15 text-sky-600 dark:text-sky-400" } },
-    { match: /^(fixed|corrett)/i, style: { icon: Wrench, tone: "bg-amber-500/15 text-amber-600 dark:text-amber-400" } },
-    { match: /^(removed|rimoss)/i, style: { icon: Trash2, tone: "bg-rose-500/15 text-rose-600 dark:text-rose-400" } },
-    { match: /^(security|sicurezza)/i, style: { icon: ShieldCheck, tone: "bg-violet-500/15 text-violet-600 dark:text-violet-400" } },
+    { match: /^(added|aggiunt)/i, style: { icon: Plus, tone: "bg-success/15 text-success" } },
+    { match: /^(changed|modificat)/i, style: { icon: RefreshCw, tone: "bg-info/15 text-info" } },
+    { match: /^(fixed|corrett)/i, style: { icon: Wrench, tone: "bg-warning/15 text-warning" } },
+    { match: /^(removed|rimoss)/i, style: { icon: Trash2, tone: "bg-destructive/15 text-destructive" } },
+    { match: /^(security|sicurezza)/i, style: { icon: ShieldCheck, tone: "bg-primary/15 text-primary-text" } },
 ]
 const DEFAULT_SECTION_STYLE: SectionStyle = { icon: Sparkles, tone: "bg-primary/15 text-primary" }
 const sectionStyle = (title: string): SectionStyle => SECTION_STYLES.find(s => s.match.test(title))?.style ?? DEFAULT_SECTION_STYLE

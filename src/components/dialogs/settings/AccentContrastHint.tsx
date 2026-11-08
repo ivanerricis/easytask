@@ -30,7 +30,7 @@ export const AccentContrastHint = () => {
     }
 
     return (
-        <Alert role="status" className="border-amber-500/50">
+        <Alert role="status" className="border-warning/50">
             <TriangleAlert />
             <AlertDescription className="flex flex-col gap-2">
                 <p>
