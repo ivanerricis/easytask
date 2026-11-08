@@ -29,6 +29,18 @@ L'ultimo quadrato, con il simbolo **+**, ti fa scegliere **qualsiasi altro color
 
 Apri la stessa tavolozza e fai clic su **Nessun colore**.
 
+## Sfondo della nota
+
+Puoi dare un colore a tutto lo sfondo di una nota.
+
+1. Fai clic destro sullo spazio vuoto di una nota aperta (fuori da gruppi, sezioni e task).
+2. Scegli **Sfondo della nota**.
+3. Clicca un colore della tavolozza.
+
+![Sfondo della nota](../../screenshots/it/note-background-light.png)
+
+Il colore è uno strato leggero, leggibile sia nel tema chiaro sia in quello scuro, e segue l'**Intensità dei colori**. Scegli **Nessun colore** per toglierlo. Puoi annullarlo con `Ctrl+Z`. Lo sfondo si mantiene quando duplichi una nota, nei template e nelle esportazioni.
+
 ## Colorare il contenuto di una cartella
 
 Il menu della cartella ha la voce **Colora contenuto**. Dà il colore della cartella a tutte le sue sottocartelle e a tutte le note che contengono. Usala quando hai cambiato il colore di una cartella e vuoi che tutto il suo contenuto sia uguale.
@@ -48,7 +60,7 @@ Le finestre per un nuovo workspace, una nuova cartella e una nuova nota hanno un
 Apri **Impostazioni > Aspetto**.
 
 - **Colore d'accento**: usato per pulsanti, selezioni ed evidenziazioni. Un pulsante lo reimposta.
-- **Intensità dei colori**: quanto risaltano i colori di cartelle, note, gruppi e sezioni. Va dal 25% al 175% (il valore predefinito è 100%) e ha il pulsante **Reimposta**. Non cambia i colori dei task.
+- **Intensità dei colori**: quanto risaltano i colori di cartelle, note, gruppi, sezioni e dello sfondo della nota. Va dal 25% al 175% (il valore predefinito è 100%) e ha il pulsante **Reimposta**. Non cambia i colori dei task.
 
 ### Avviso di contrasto
 

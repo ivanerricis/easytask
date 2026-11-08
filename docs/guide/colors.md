@@ -29,6 +29,18 @@ The last square of the palette, with a **+**, lets you pick **any other color** 
 
 Open the same palette and click **No color**.
 
+## Note background
+
+You can give a color to the whole background of a note.
+
+1. Right-click the empty space of an open note (outside groups, sections and tasks).
+2. Choose **Note background**.
+3. Click a color of the palette.
+
+![Note background](../screenshots/en/note-background-light.png)
+
+The color is a light layer that stays readable in both the light and the dark theme, and it follows **Color intensity**. Choose **No color** to remove it. You can undo it with `Ctrl+Z`. The background is kept when you duplicate a note, in templates and in exports.
+
 ## Color the content of a folder
 
 The folder menu has **Color content**. It gives the color of the folder to all its subfolders and to all the notes inside them. Use it when you changed the color of a folder and want everything in it to match.
@@ -48,7 +60,7 @@ The dialogs for a new workspace, folder and note have a palette button next to t
 Open **Settings > Appearance**.
 
 - **Accent color**: used for buttons, selections and highlights. A button resets it.
-- **Color intensity**: how strongly the colors of folders, notes, groups and sections show. It goes from 25% to 175% (100% is the default) and has a **Reset** button. It does not change the color of the tasks.
+- **Color intensity**: how strongly the colors of folders, notes, groups, sections and the note background show. It goes from 25% to 175% (100% is the default) and has a **Reset** button. It does not change the color of the tasks.
 
 ### Contrast warning
 
