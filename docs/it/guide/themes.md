@@ -6,7 +6,7 @@ Un tema decide i colori di tutta l'app: sfondo, testo, schede, bordi, evidenziaz
 
 Apri **Impostazioni > Aspetto**. La galleria **Tema** mostra un'anteprima di ogni tema: fai clic su uno per usarlo e usa le frecce per scorrere la galleria. Il tema in uso è segnato **In uso**. Puoi usare anche il menu **Visualizza > Tema**, che elenca i temi e ha **Gestisci temi…** per aprire le impostazioni.
 
-![Galleria dei temi](../../screenshots/it/themes-gallery.png)
+![Galleria dei temi](../../screenshots/it/themes-gallery-light.png)
 
 La scelta **Sistema** non c'è più. Al primo avvio di EasyTask il tema iniziale è scelto dal sistema: Scuro se il sistema è scuro, Alto contrasto se il sistema chiede più contrasto, Chiaro negli altri casi. Poi resta quello che hai scelto.
 
@@ -41,7 +41,7 @@ In **Impostazioni > Aspetto**, la sezione **Temi personalizzati** elenca i tuoi 
 
 ### L'editor
 
-![Editor dei temi](../../screenshots/it/themes-editor.png)
+![Editor dei temi](../../screenshots/it/themes-editor-light.png)
 
 Dai un nome al tema, scegli la **Base** (chiara o scura: decide i controlli nativi) e imposta 11 colori:
 

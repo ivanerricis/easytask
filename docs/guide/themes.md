@@ -6,7 +6,7 @@ A theme decides the colors of the whole app: background, text, cards, borders, h
 
 Open **Settings > Appearance**. The **Theme** gallery shows a preview of every theme: click one to use it, and use the arrows to move through the gallery. The theme in use is marked **In use**. You can also use the **View > Theme** menu, which lists the themes and has **Manage themes…** to open the settings.
 
-![Theme gallery](../screenshots/en/themes-gallery.png)
+![Theme gallery](../screenshots/en/themes-gallery-light.png)
 
 There is no **System** choice any more. The first time you start EasyTask, the initial theme is picked from your system: Dark if the system is dark, High contrast if the system asks for more contrast, Light otherwise. After that, the theme you chose stays.
 
@@ -41,7 +41,7 @@ In **Settings > Appearance**, the **Custom themes** section lists your themes. Y
 
 ### The editor
 
-![Theme editor](../screenshots/en/themes-editor.png)
+![Theme editor](../screenshots/en/themes-editor-light.png)
 
 Give the theme a name, choose its **Base** (light or dark: it decides the native controls) and set 11 colors:
 
