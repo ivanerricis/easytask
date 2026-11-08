@@ -30,10 +30,12 @@ const CUSTOM: ThemeDefinition = {
     colors: { ...BUILTIN_THEMES[1].colors, background: "#101820" },
 }
 
-let ctx: ReturnType<typeof useTheme>
+const holder: { current: ReturnType<typeof useTheme> } = { current: undefined as never }
+const ctx = new Proxy({} as ReturnType<typeof useTheme>, { get: (_t, key) => holder.current[key as keyof ReturnType<typeof useTheme>] })
 const Probe = () => {
-    ctx = useTheme()
-    return <span data-testid="state">{ctx.theme}:{ctx.resolvedTheme}</span>
+    // eslint-disable-next-line react-hooks/immutability -- test probe: exposes the latest context value to the assertions
+    holder.current = useTheme()
+    return <span data-testid="state">{holder.current.theme}:{holder.current.resolvedTheme}</span>
 }
 
 const renderProvider = (accentOverride: string | null = null) => render(
