@@ -20,8 +20,8 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 
 | Opzione | Scelte | Predefinito |
 | --- | --- | --- |
-| Tema | Chiaro, Scuro, Sistema | Sistema |
-| Colore d'accento | Qualsiasi colore | Arancione (`#c2410c`) |
+| Tema | Chiaro, Scuro, Nord, Solarized chiaro, Solarized scuro, Dracula, Seppia, Alto contrasto chiaro, Alto contrasto scuro e i tuoi temi | Scelto dal sistema la prima volta |
+| Colore d'accento | Qualsiasi colore, oppure l'accento del tema | L'accento del tema |
 | Lingua | Sistema, Italiano, English | Sistema |
 | Carattere | Predefinito, Inter, Lora (con grazie), JetBrains Mono (a spaziatura fissa), Atkinson Hyperlegible (alta leggibilità), OpenDyslexic (per la dislessia) | Predefinito |
 | Dimensione del testo | Da 12 a 24 px, con i pulsanti meno e più | 16 px |
@@ -29,7 +29,7 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 | Intensità dei colori | Cursore da 25% a 175% | 100% |
 | Animazioni | Sistema, Assenti, Normali, Lente | Sistema |
 
-Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
+La galleria dei temi mostra un'anteprima di ciascuno; usa le frecce per scorrerla. Vedi [Temi](./themes). Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
 
 ## Note e sezioni
 

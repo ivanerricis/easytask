@@ -4,6 +4,16 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Temi: nove temi predefiniti (Chiaro, Scuro, Nord, Solarized chiaro, Solarized scuro, Dracula, Seppia e due ad alto contrasto, con un rapporto di contrasto del testo di almeno 7:1, pensati per chi vede poco). Si sceglie da una galleria con anteprime in Impostazioni > Aspetto, oppure dal menu **Visualizza > Tema**, che ha anche **Gestisci temi…**. Lo sfondo della finestra nativa segue il tema, quindi all'avvio non c'è il lampo bianco.
+- Temi personalizzati: crea, duplica, rinomina ed elimina i tuoi temi (fino a 50). L'editor ha 11 colori e un'anteprima dal vivo; gli avvisi di contrasto sono solo informativi e non impediscono mai di salvare. I temi sono salvati nel database (versione 14, globali e non per workspace), quindi i backup li includono, e si esportano e importano come file `.easytask-theme.json` (fino a 64 KiB, solo colori esadecimali validi; l'id nel file viene ignorato).
+- Ogni tema ha il suo colore d'accento. L'impostazione **Colore d'accento** lo sovrascrive e **Usa l'accento del tema** lo ripristina. L'avviso di contrasto resta invariato.
+
+### Modificato
+
+- La scelta **Sistema** del tema è sostituita: la prima volta EasyTask sceglie il tema iniziale in base al sistema (scuro se il sistema è scuro, alto contrasto se il sistema chiede più contrasto), poi resta quello che hai scelto. **Reimposta tutto** in Aspetto torna al tema scelto dal sistema.
+
 ## [0.20.0] - 2026-11-08
 
 ### Aggiunto

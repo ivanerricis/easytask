@@ -33,7 +33,7 @@ features:
   - title: Pensata per la tastiera
     details: Annulla e ripeti, ricerca delle note, scorciatoie personalizzabili. Premi ? nell'app per vederle tutte.
   - title: In locale e al sicuro
-    details: Tutto è salvato in un database locale, con backup automatici, ripristino in un clic ed esportazione dei workspace. Italiano e inglese, tema chiaro e scuro.
+    details: Tutto è salvato in un database locale, con backup automatici, ripristino in un clic ed esportazione dei workspace. Italiano e inglese, nove temi (anche ad alto contrasto) e i tuoi.
 ---
 
 <div class="home-shot">

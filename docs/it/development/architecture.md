@@ -20,7 +20,7 @@ Un breve giro di come è fatto EasyTask, per chi vuole modificare il codice.
 | `src/contexts` | Context React per dati del workspace, schede, preferenze, scorciatoie, audio, automazioni e annulla |
 | `src/hooks` | Hook riutilizzabili (per esempio `useItemMutations`, `useAfterMenuClose`) |
 | `src/db` | Accesso a SQLite: connessione, schema, migrazioni, query, backup |
-| `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di schede e layout, senza dipendenze dai context |
+| `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, temi (`lib/themes`: temi predefiniti, validazione, controlli di contrasto, variabili CSS), scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di schede e layout, senza dipendenze dai context |
 | `src/i18n` | Configurazione di i18next e file delle lingue `it` e `en` |
 | `src-tauri/src` | Il backend Rust (`lib.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permessi concessi al frontend |

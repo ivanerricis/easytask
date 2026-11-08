@@ -34,7 +34,7 @@ Folders and sub-tasks nest without limit. Groups and sections can be left withou
 - **Audio**: attach audio files to a note and play them in the app. See [Audio](./audio).
 - **Search notes** and **customizable keyboard shortcuts**. See [Keyboard shortcuts](./shortcuts).
 - **Export and import** a workspace as an `.easytask.json` file.
-- **Italian and English** interface, light, dark or system theme.
+- **Italian and English** interface, nine built-in themes (including high contrast) and your own custom themes. See [Themes](./themes).
 - **Updates** with signed releases. See [Updates](./updates).
 
 ### Settings

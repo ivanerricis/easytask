@@ -20,8 +20,8 @@ Press `Esc`, click the X button or choose a category to clear the search.
 
 | Option | Choices | Default |
 | --- | --- | --- |
-| Theme | Light, Dark, System | System |
-| Accent color | Any color | Orange (`#c2410c`) |
+| Theme | Light, Dark, Nord, Solarized Light, Solarized Dark, Dracula, Sepia, High contrast light, High contrast dark, and your own themes | Chosen by the system the first time |
+| Accent color | Any color, or the accent of the theme | The accent of the theme |
 | Language | System, Italiano, English | System |
 | Font | Default, Inter, Lora (serif), JetBrains Mono (monospace), Atkinson Hyperlegible (high legibility), OpenDyslexic (for dyslexia) | Default |
 | Text size | From 12 to 24 px, with the minus and plus buttons | 16 px |
@@ -29,7 +29,7 @@ Press `Esc`, click the X button or choose a category to clear the search.
 | Color intensity | Slider from 25% to 175% | 100% |
 | Animations | System, Off, Normal, Slow | System |
 
-If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups and sections, not the task colors. With **Animations** set to System, EasyTask follows the system setting.
+The theme gallery shows a preview of each theme; use the arrows to move through it. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups and sections, not the task colors. With **Animations** set to System, EasyTask follows the system setting.
 
 ## Notes and sections
 

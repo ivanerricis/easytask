@@ -59,7 +59,7 @@ Le finestre per un nuovo workspace, una nuova cartella e una nuova nota hanno un
 
 Apri **Impostazioni > Aspetto**.
 
-- **Colore d'accento**: usato per pulsanti, selezioni ed evidenziazioni. Un pulsante lo reimposta.
+- **Colore d'accento**: usato per pulsanti, selezioni ed evidenziazioni. Ogni [tema](./themes) ha il suo accento; il colore scelto qui lo sovrascrive e **Usa l'accento del tema** ripristina quello del tema.
 - **Intensità dei colori**: quanto risaltano i colori di cartelle, note, gruppi, sezioni e dello sfondo della nota. Va dal 25% al 175% (il valore predefinito è 100%) e ha il pulsante **Reimposta**. Non cambia i colori dei task.
 
 ### Avviso di contrasto

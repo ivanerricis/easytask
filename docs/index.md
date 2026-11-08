@@ -33,7 +33,7 @@ features:
   - title: Keyboard first
     details: Undo and redo, note search, customizable shortcuts. Press ? in the app to see them all.
   - title: Local and safe
-    details: Everything is stored in a local database, with automatic backups, one-click restore and workspace export. Italian and English, light and dark theme.
+    details: Everything is stored in a local database, with automatic backups, one-click restore and workspace export. Italian and English, nine themes (also high contrast) and your own.
 ---
 
 <div class="home-shot">
