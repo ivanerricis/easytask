@@ -135,8 +135,12 @@ export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pendi
     return shifts
 }
 
-/** How far (px) the pointer must cross the border of a zone before the rows react to the change. */
-export const ZONE_HYSTERESIS = 6
+/** Largest hysteresis (px) and its share of the row height: on a 34 px row the margin stays at ~1.4 px, so the preview follows the real zone. */
+export const ZONE_HYSTERESIS_MAX = 3
+export const ZONE_HYSTERESIS_RATIO = 0.04
+
+/** How far (px) the pointer must cross the border of a zone before the rows react to the change (proportional to the row, capped). */
+export const zoneHysteresis = (rowHeight: number) => Math.min(ZONE_HYSTERESIS_MAX, rowHeight * ZONE_HYSTERESIS_RATIO)
 
 /**
  * Hysteresis of the zone used to MOVE THE ROWS (presentation only: the drop still uses the real zone). While the pointer stays
@@ -148,7 +152,7 @@ export const ZONE_HYSTERESIS = 6
  * @param pointerY Vertical pointer position (same space as rect).
  * @category Note DnD
  */
-export function holdLiveZone(previous: DropZone | null, next: DropZone, rect: { top: number, height: number }, pointerY: number, margin = ZONE_HYSTERESIS): DropZone {
+export function holdLiveZone(previous: DropZone | null, next: DropZone, rect: { top: number, height: number }, pointerY: number, margin = zoneHysteresis(rect.height)): DropZone {
     if (previous === null || previous === next) return next
     const y = pointerY - rect.top
     const upper = rect.height * 0.25

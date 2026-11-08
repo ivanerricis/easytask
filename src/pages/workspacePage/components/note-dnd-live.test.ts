@@ -228,22 +228,27 @@ describe("makeShiftFreeMeasure", () => {
 })
 
 describe("holdLiveZone", () => {
-    const rect = { top: 100, height: 40 } // borders at y=110 and y=130
+    const rect = { top: 100, height: 40 } // borders at y=110 and y=130, margin 1.6 px
     it("takes the real zone for a new task or when nothing changed", () => {
         expect(holdLiveZone(null, "inside", rect, 120)).toBe("inside")
         expect(holdLiveZone("inside", "inside", rect, 120)).toBe("inside")
     })
     it("keeps inside until the pointer is well past the border", () => {
-        expect(holdLiveZone("inside", "before", rect, 108)).toBe("inside")
-        expect(holdLiveZone("inside", "before", rect, 103)).toBe("before")
-        expect(holdLiveZone("inside", "after", rect, 132)).toBe("inside")
-        expect(holdLiveZone("inside", "after", rect, 137)).toBe("after")
+        expect(holdLiveZone("inside", "before", rect, 109)).toBe("inside")
+        expect(holdLiveZone("inside", "before", rect, 105)).toBe("before")
+        expect(holdLiveZone("inside", "after", rect, 131)).toBe("inside")
+        expect(holdLiveZone("inside", "after", rect, 133)).toBe("after")
     })
     it("keeps before / after a few px into the inside zone", () => {
-        expect(holdLiveZone("before", "inside", rect, 113)).toBe("before")
-        expect(holdLiveZone("before", "inside", rect, 117)).toBe("inside")
-        expect(holdLiveZone("after", "inside", rect, 127)).toBe("after")
-        expect(holdLiveZone("after", "inside", rect, 123)).toBe("inside")
-        expect(holdLiveZone("inside-start", "inside", rect, 127)).toBe("inside-start")
+        expect(holdLiveZone("before", "inside", rect, 111)).toBe("before")
+        expect(holdLiveZone("before", "inside", rect, 113)).toBe("inside")
+        expect(holdLiveZone("after", "inside", rect, 129)).toBe("after")
+        expect(holdLiveZone("after", "inside", rect, 127)).toBe("inside")
+        expect(holdLiveZone("inside-start", "inside", rect, 129)).toBe("inside-start")
+    })
+    it("on a 34 px row the preview already follows the real zone at 27 px from the top", () => {
+        const row = { top: 0, height: 34 } // lower border at 25.5, margin 1.36
+        expect(holdLiveZone("inside", "after", row, 27)).toBe("after")
+        expect(holdLiveZone("inside", "after", row, 26)).toBe("inside")
     })
 })
