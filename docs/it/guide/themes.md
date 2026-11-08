@@ -67,7 +67,7 @@ Parti da un tema predefinito: duplicalo e cambia solo i colori che vuoi.
 
 ### Esportare e importare
 
-**Esporta** salva un tema in un file `.easytask-theme.json` che puoi condividere. **Importa…** legge uno di questi file. Un file può pesare fino a 64 KiB e deve avere colori esadecimali validi; l'id scritto nel file viene ignorato, quindi un tema importato non sostituisce mai uno che hai già.
+**Esporta** salva un tema in un file `.easytask-theme.json` che puoi condividere. **Importa…** legge uno o più di questi file insieme; ogni file è controllato da solo, quindi uno non valido non ferma gli altri. Un file può pesare fino a 64 KiB e deve avere colori esadecimali validi; l'id scritto nel file viene ignorato, quindi un tema importato non sostituisce mai uno che hai già.
 
 ### Backup
 

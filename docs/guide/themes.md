@@ -67,7 +67,7 @@ Start from a built-in theme: duplicate it and change only the colors you want.
 
 ### Export and import
 
-**Export** saves a theme in a `.easytask-theme.json` file you can share. **Import…** reads one of these files. A file can be up to 64 KiB and must have valid hex colors; the id written in the file is ignored, so an imported theme never replaces one you already have.
+**Export** saves a theme in a `.easytask-theme.json` file you can share. **Import…** reads one or more of these files at once; each file is checked on its own, so an invalid one does not stop the others. A file can be up to 64 KiB and must have valid hex colors; the id written in the file is ignored, so an imported theme never replaces one you already have.
 
 ### Backups
 
