@@ -98,6 +98,24 @@ describe("applyShifts", () => {
         expect(b.style.opacity).toBe("0")
     })
 
+    it("fades the hidden wrapper in and out with the duration of the shifts, not with reduced motion", () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+        const a = wrapper(1, 1)
+        applyShifts(new Map([["task-2", 5]]), "task-1")
+        flushFrame()
+        expect(a.style.transition).toContain(`opacity ${SHIFT_DURATION}ms`)
+        applyShifts(new Map())
+        flushFrame()
+        expect(a.style.opacity).toBe("")
+        expect(a.style.transition).toContain(`opacity ${SHIFT_DURATION}ms`)
+        vi.advanceTimersByTime(SHIFT_DURATION + 60)
+        expect(a.style.transition).toBe("")
+        mockReducedMotion(true)
+        applyShifts(new Map([["task-2", 5]]), "task-1")
+        flushFrame()
+        expect(a.style.transition).not.toContain("opacity")
+    })
+
     it("uses no transition with prefers-reduced-motion", () => {
         mockReducedMotion(true)
         const a = wrapper(1, 1)

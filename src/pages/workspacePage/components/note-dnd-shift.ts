@@ -63,9 +63,23 @@ const write = (animate: boolean) => {
         applied.set(node, dy)
     }
 
+    // The dragged task fades out / in with the same duration as the shifts, so going back to the indicator (the pointer enters the
+    // "inside" zone) does not pop: its room reopens by the same glide of the other rows
     const hidden = hiddenKey ? nodes.get(hiddenKey) ?? null : null
-    if (hiddenNode && hiddenNode !== hidden) hiddenNode.style.opacity = ""
-    if (hidden) hidden.style.opacity = "0"
+    /** Transition of a node that fades: its own shift (if any) plus the opacity. */
+    const fading = (node: HTMLElement) => `${applied.has(node) ? `transform ${SHIFT_DURATION}ms ease-out, ` : ""}opacity ${SHIFT_DURATION}ms ease-out`
+    if (hiddenNode && hiddenNode !== hidden) {
+        const old = hiddenNode
+        if (animate) {
+            old.style.transition = fading(old)
+            scheduleCleanup(old)
+        } else old.style.transition = ""
+        old.style.opacity = ""
+    }
+    if (hidden && hidden !== hiddenNode) {
+        if (animate) hidden.style.transition = fading(hidden)
+        hidden.style.opacity = "0"
+    }
     hiddenNode = hidden
 }
 
@@ -75,7 +89,7 @@ function scheduleCleanup(node: HTMLElement) {
     if (cleanup) clearTimeout(cleanup)
     cleanup = setTimeout(() => {
         cleanup = null
-        for (const item of leaving) if (!applied.has(item)) item.style.transition = ""
+        for (const item of leaving) if (!applied.has(item) && item !== hiddenNode) item.style.transition = ""
         leaving.clear()
     }, SHIFT_DURATION + 50)
 }

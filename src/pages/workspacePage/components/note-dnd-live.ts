@@ -135,7 +135,31 @@ export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pendi
     return shifts
 }
 
-type RectLike = { top: number, bottom: number, left: number, right: number, width: number, height: number }
+/** How far (px) the pointer must cross the border of a zone before the rows react to the change. */
+export const ZONE_HYSTERESIS = 6
+
+/**
+ * Hysteresis of the zone used to MOVE THE ROWS (presentation only: the drop still uses the real zone). While the pointer stays
+ * over the same task, the previous zone is kept as long as the pointer is within `margin` px of it, so the rows do not flicker
+ * on the border between "inside" and "before" / "after". Same borders as `computeDropZone` (25% / 75% of the row).
+ * @param previous The zone shown now for this same task (null when the task is a new one: no hysteresis).
+ * @param next The real zone at the pointer.
+ * @param rect Top and height of the task row.
+ * @param pointerY Vertical pointer position (same space as rect).
+ * @category Note DnD
+ */
+export function holdLiveZone(previous: DropZone | null, next: DropZone, rect: { top: number, height: number }, pointerY: number, margin = ZONE_HYSTERESIS): DropZone {
+    if (previous === null || previous === next) return next
+    const y = pointerY - rect.top
+    const upper = rect.height * 0.25
+    const lower = rect.height * 0.75
+    if (previous === "before") return y < upper + margin ? previous : next
+    if (previous === "inside") return y > upper - margin && y < lower + margin ? previous : next
+    if (previous === "after" || previous === "inside-start") return y > lower - margin ? previous : next
+    return next
+}
+
+type RectLike ={ top: number, bottom: number, left: number, right: number, width: number, height: number }
 
 /**
  * A measure function for the droppables of dnd-kit that takes away the shift already applied to the element or to one of its

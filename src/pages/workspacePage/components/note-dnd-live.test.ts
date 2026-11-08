@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildLiveSnapshot, computeLiveShifts, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
+import { buildLiveSnapshot, computeLiveShifts, holdLiveZone, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
 
 /**
  * A tiny layout engine: a list is an array of rows, a row `[key, height, children?]`. Every row is a wrapper that is as tall as its
@@ -224,5 +224,26 @@ describe("makeShiftFreeMeasure", () => {
         const asked: HTMLElement[] = []
         makeShiftFreeMeasure(() => rect, el => { asked.push(el); return 0 })(element)
         expect(asked).toEqual([element])
+    })
+})
+
+describe("holdLiveZone", () => {
+    const rect = { top: 100, height: 40 } // borders at y=110 and y=130
+    it("takes the real zone for a new task or when nothing changed", () => {
+        expect(holdLiveZone(null, "inside", rect, 120)).toBe("inside")
+        expect(holdLiveZone("inside", "inside", rect, 120)).toBe("inside")
+    })
+    it("keeps inside until the pointer is well past the border", () => {
+        expect(holdLiveZone("inside", "before", rect, 108)).toBe("inside")
+        expect(holdLiveZone("inside", "before", rect, 103)).toBe("before")
+        expect(holdLiveZone("inside", "after", rect, 132)).toBe("inside")
+        expect(holdLiveZone("inside", "after", rect, 137)).toBe("after")
+    })
+    it("keeps before / after a few px into the inside zone", () => {
+        expect(holdLiveZone("before", "inside", rect, 113)).toBe("before")
+        expect(holdLiveZone("before", "inside", rect, 117)).toBe("inside")
+        expect(holdLiveZone("after", "inside", rect, 127)).toBe("after")
+        expect(holdLiveZone("after", "inside", rect, 123)).toBe("inside")
+        expect(holdLiveZone("inside-start", "inside", rect, 127)).toBe("inside-start")
     })
 })

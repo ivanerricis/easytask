@@ -8,7 +8,7 @@ import {
     type Collision, type CollisionDetection, type DragMoveEvent, type DragStartEvent,
 } from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
-import { computeLiveShifts, makeShiftFreeMeasure, taskListKey, type LiveSnapshot } from "./note-dnd-live"
+import { computeLiveShifts, holdLiveZone, makeShiftFreeMeasure, taskListKey, type LiveSnapshot } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
 import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
@@ -104,6 +104,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     // Live drag of the tasks: the rows are moved with a transform (see note-dnd-shift), never through React state
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
     const liveRef = useRef<{ snapshot: LiveSnapshot, dragged: string } | null>(null)
+    /** The task and zone the rows are showing now (with hysteresis: it can lag behind the real zone by a few px). */
+    const liveShownRef = useRef<{ over: string, zone: DropZone } | null>(null)
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
@@ -137,6 +139,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         pendingRef.current = null
         lastMoveRef.current = null
         liveRef.current = null
+        liveShownRef.current = null
         store.set({ active: null, hover: NO_HOVER })
     }
 
@@ -144,6 +147,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const syncLive = (pending: PendingDrop | null, over?: NoteOverRef, zone?: DropZone) => {
         const live = liveRef.current
         if (!live) return
+        liveShownRef.current = pending?.kind === "task" && over?.kind === "task" && zone ? { over: noteKey("task", over.id), zone } : null
         const shifts = pending?.kind === "task" && over?.kind === "task"
             ? computeLiveShifts(live.snapshot, live.dragged, { over: noteKey("task", over.id), zone: zone ?? null, list: taskListKey(pending.target) })
             : null
@@ -188,6 +192,20 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             zone = computeDropZone(dragged.kind, overRef.kind, over.rect, pointerY, { hasSubtasks: (overTask?.subtasks.length ?? 0) > 0 })
         }
 
+        // The rows follow the zone with a small hysteresis (presentation only: the drop below uses the real zone)
+        if (liveRef.current && dragged.kind === "task" && overRef.kind === "task") {
+            const overKey = noteKey("task", overRef.id)
+            const shown = liveShownRef.current
+            const pointerY = getPointer(event)?.y
+            const liveZone = shown && shown.over === overKey && pointerY != null
+                ? holdLiveZone(shown.zone, zone, over.rect, pointerY)
+                : zone
+            if (!(shown && shown.over === overKey && shown.zone === liveZone)) {
+                const target = computeTaskTarget(noteDataTree, dragged.id, overRef, liveZone)
+                syncLive(target ? { kind: "task", id: dragged.id, target } : null, overRef, liveZone)
+            }
+        }
+
         // Same item over the same zone of the same tree: the target is the one already computed
         const moveKey = `${dragged.kind}-${dragged.id}|${noteKey(overRef.kind, overRef.id)}|${zone}`
         if (lastMoveRef.current?.key === moveKey && lastMoveRef.current.tree === noteDataTree) return
@@ -205,7 +223,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             if (target) pending = { kind: "task", id: dragged.id, target }
         }
         pendingRef.current = pending
-        syncLive(pending, overRef, zone)
+        if (!(dragged.kind === "task" && overRef.kind === "task")) syncLive(pending, overRef, zone)
 
         const targetSectionId = pending?.kind === "task" ? pending.target.sectionId : null
         const next: NoteHover = pending ? { overKey: noteKey(overRef.kind, overRef.id), zone, targetSectionId } : NO_HOVER
