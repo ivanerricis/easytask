@@ -69,7 +69,7 @@ const setLiveDrag = async (on: boolean) => {
 }
 
 /**
- * Presses on the source task, moves over the target (the point at `where` of its height, 0.92 = lower part, i.e. "after") and calls
+ * Presses on the source task, moves over the target (the point at `where` of its height, 0.97 = bottom edge, i.e. "after": coming from the "inside" zone the rows hold it until 6 px past the 75% border, so on a 34 px row only the last 2.5 px count) and calls
  * `whilePressed` with the pointer still down, then releases. The first moves are in the same chain of actions as the press, so the
  * drag activates before the next call.
  */
@@ -128,7 +128,7 @@ describe("Live drag of the tasks", () => {
         const room = before.due.top - before.uno.top
 
         // Drag the first task over the lower part of the third: it goes after it
-        await drag(TASKS[0], TASKS[2], 0.92, async () => {
+        await drag(TASKS[0], TASKS[2], 0.97, async () => {
             expect((await box(TASKS[0])).opacity).toBe("0") // the source collapses
             expect(await visibleTexts()).toEqual([TASKS[1], TASKS[2], TASKS[3]])
             const due = await box(TASKS[1])
@@ -161,7 +161,7 @@ describe("Live drag of the tasks", () => {
         await setLiveDrag(false)
         const before = await boxes()
 
-        await drag(TASKS[0], TASKS[2], 0.92, async () => {
+        await drag(TASKS[0], TASKS[2], 0.97, async () => {
             const during = await boxes()
             expect(during.map(item => item.text)).toEqual(before.map(item => item.text))
             for (const item of during) {
