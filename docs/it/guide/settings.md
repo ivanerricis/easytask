@@ -10,7 +10,7 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 
 ## Pulsanti di reimpostazione
 
-- Una riga diversa dal valore predefinito mostra accanto una piccola freccia di ripristino (colore d'accento, intensità dei colori, ogni scorciatoia).
+- Una riga diversa dal valore predefinito mostra accanto una piccola freccia di ripristino (colore d'accento, carattere, dimensione del testo, intensità dei colori, ogni scorciatoia).
 - **Reimposta tutto**, in alto in una categoria, riporta l'intera categoria ai valori predefiniti. C'è in Aspetto, Audio e Scorciatoie. Aspetto e Scorciatoie chiedono prima conferma. I tuoi dati non vengono mai toccati.
 
 ## Aspetto
@@ -23,11 +23,13 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 | Tema | Chiaro, Scuro, Sistema | Sistema |
 | Colore d'accento | Qualsiasi colore | Arancione (`#c2410c`) |
 | Lingua | Sistema, Italiano, English | Sistema |
+| Carattere | Predefinito, Inter, Lora (con grazie), JetBrains Mono (a spaziatura fissa), Atkinson Hyperlegible (alta leggibilità), OpenDyslexic (per la dislessia) | Predefinito |
+| Dimensione del testo | Da 12 a 24 px, con i pulsanti meno e più | 16 px |
 | Dimensione di cartelle e note | Compatta, Normale, Grande | Normale |
 | Intensità dei colori | Cursore da 25% a 175% | 100% |
 | Animazioni | Sistema, Assenti, Normali, Lente | Sistema |
 
-Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task.
+Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
 
 ## Note e sezioni
 
@@ -53,7 +55,7 @@ Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e sug
 | Posizione dei nuovi task | In cima, In fondo | In fondo |
 | Controllo ortografico | Sì / No | Sì |
 | Conferma l'eliminazione solo se c'è contenuto (note, sezioni e gruppi: se attiva, quelli vuoti vanno subito nel cestino con **Annulla**, gli altri chiedono conferma; se disattivata non chiede mai. Cartelle, workspace, task e selezioni multiple chiedono sempre) | Sì / No | Sì |
-| **All'avvio**: Riapri l'ultimo workspace all'avvio | Sì / No | No |
+| **All'avvio**: Apri all'avvio | Pagina iniziale, Ultimo workspace usato, oppure un workspace dell'elenco (sotto **Apri sempre**) | Pagina iniziale |
 | Riapri le note all'avvio | Sì / No | Sì |
 
 ## Audio
@@ -64,11 +66,14 @@ Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e sug
 | --- | --- | --- |
 | Volume predefinito | Cursore da 0% a 100% | 100% |
 | Mostra il player flottante | Sì / No | Sì |
+| Fissa il player (finché è fissato non si può trascinare) | Sì / No | No |
 | Dimensione del player | Piccolo, Normale, Grande | Normale |
 | Trasparenza del player | Cursore da 40% a 100% di opacità | 100% |
+| Ripeti il brano (quando finisce riparte da capo) | Sì / No | No |
+| Riprendi da dove eri (ogni brano riparte dal punto in cui lo avevi lasciato) | Sì / No | No |
 | Reimposta la posizione del player audio | Pulsante | |
 
-Quando **Mostra il player flottante** è disattivato, i file audio non vengono riprodotti. Vedi [File audio](./audio).
+Quando **Mostra il player flottante** è disattivato, i file audio non vengono riprodotti. Anche la velocità scelta nel player viene ricordata e non ha una riga qui. **Reimposta tutto** riporta volume, visibilità, fissaggio, dimensione, trasparenza, velocità, ripetizione e ripresa ai valori predefiniti. Vedi [File audio](./audio).
 
 ## Scorciatoie
 
@@ -106,6 +111,7 @@ Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-b
 | Riduci nell'area di notifica | Chiudendo la finestra EasyTask resta attivo nell'area di notifica. Per uscire usa **Esci** dal menu della sua icona. Il menu dell'icona ha anche **Apri EasyTask** | No |
 | Ricorda posizione e dimensione della finestra | Al prossimo avvio la finestra torna dove l'hai lasciata. Non disponibile nella versione portatile | Sì |
 | Tieni la finestra in primo piano | EasyTask resta sopra le altre finestre; si applica subito e viene ricordato all'avvio | No |
+| Accelerazione hardware | Usa la scheda grafica per disegnare l'app. Spegnila solo se vedi problemi grafici (schermo nero, sfarfallii). Si applica al prossimo avvio: un messaggio offre **Riavvia ora**. Se è spenta, EasyTask parte con `--disable-gpu` | Sì |
 
 ## Informazioni
 
