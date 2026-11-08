@@ -53,7 +53,7 @@ The backend picks the data folder in this order:
 
 `src/db/initDb.ts` applies the migrations in order and tracks them with `PRAGMA user_version`. The first migration creates the whole schema (`src/db/schema/initial.ts`): the older migrations were squashed into it.
 
-Rules for a new migration: append it, never edit one that was already applied, and keep it idempotent and additive. A database with a higher version than the app knows is refused as newer, and a safety copy is taken before migrating an existing database. Version 12 adds partial indexes on the trashed and archived rows, version 13 the background color of the notes and of the templates.
+Rules for a new migration: append it, never edit one that was already applied, and keep it idempotent and additive. A database with a higher version than the app knows is refused as newer, and a safety copy is taken before migrating an existing database. Version 12 adds partial indexes on the trashed and archived rows, version 13 the background color of the notes and of the templates, version 14 the table of the custom themes (global, not per workspace).
 
 ## Settings
 

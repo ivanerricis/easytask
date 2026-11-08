@@ -1,6 +1,6 @@
 import type Database from "@tauri-apps/plugin-sql";
 import i18n from "@/i18n";
-import { APPLICATION_ID, archiveSchema, collapsedSchema, groupStructureSchema, initialSchema, noteBackgroundSchema, sectionOrderSchema, sectionTitleSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
+import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, noteBackgroundSchema, sectionOrderSchema, sectionTitleSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { automationSchema } from "./schema/automation";
@@ -38,6 +38,8 @@ const migrations: string[][] = [
     trashIndexesSchema,
     // v13: background color of the notes and of the templates
     noteBackgroundSchema,
+    // v14: custom themes of the user (global, not per workspace)
+    customThemeSchema,
 ];
 
 /**
