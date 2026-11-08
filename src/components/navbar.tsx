@@ -13,7 +13,7 @@ type NavBarProps = {
 // The window controls use the text color, not the accent: the accent is chosen by the user and can be unreadable on the theme.
 // Closing turns red on hover, like the windows of the system.
 const WINDOW_BUTTON = "text-foreground"
-const CLOSE_BUTTON = "text-foreground hover:!bg-window-close hover:!text-white focus-visible:ring-offset-0"
+const CLOSE_BUTTON = "text-foreground hover:!bg-window-close hover:!text-window-close-foreground focus-visible:ring-offset-0"
 
 export const Navbar = React.memo(({ leftContainer, centerContainer, rightContainer }: NavBarProps) => {
     const { t } = useTranslation()
