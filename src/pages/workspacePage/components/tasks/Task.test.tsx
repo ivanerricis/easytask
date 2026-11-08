@@ -623,3 +623,25 @@ describe("Task insert lines between subtasks", () => {
         expect(vi.mocked(useNoteDrop).mock.calls.length).toBe(calls)
     })
 })
+
+describe("Task insertion line", () => {
+    const renderWith = (liveDrag: boolean) => {
+        vi.mocked(useNoteDrop).mockReturnValue({ setNodeRef: () => { }, zone: "before", active: { kind: "task" } } as never)
+        return renderTasks(
+            <PreferencesContext.Provider value={{ showTaskInsertLine: true, taskDensity: "normal", liveDrag } as never}>
+                <Task task={makeTask({ id: 10, text: "Primo" })} />
+            </PreferencesContext.Provider>,
+        )
+    }
+    const line = () => document.querySelector("[data-task-id='10'] > div.bg-primary")
+
+    it("is hidden while the live drag is on", () => {
+        renderWith(true)
+        expect(line()).toBeNull()
+    })
+
+    it("is drawn when the live drag is off", () => {
+        renderWith(false)
+        expect(line()).not.toBeNull()
+    })
+})

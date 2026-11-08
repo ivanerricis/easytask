@@ -22,6 +22,7 @@ import type { DropZone } from "../note-dnd"
 import { useIsTaskSelected, useSubtasksOpen } from "@/contexts/use-tabs"
 import { orderedVisibleTasks } from "../section/hide-completed"
 import { DropLine } from "../sidebar/DropLine"
+import { usePreference } from "@/contexts/use-preference"
 import type { TaskDensity } from "@/lib/store/preferences"
 import { TASK_DENSITIES } from "./task-density"
 import { SelectionMark } from "../sidebar/SelectionMark"
@@ -93,6 +94,8 @@ export const Task = React.memo((props: TaskProps) => {
 
 const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideCompleted = false, completedLast = false, renameOnClick = true, density = "normal", treeKey = "", isFirst = false, setRowRef, setWrapRef, dragProps, isDragging, dropZone }: TaskRowProps) => {
     const { t } = useTranslation()
+    // Same default as NoteDndProvider: with the live drag the tasks move aside by themselves
+    const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
     const [descriptionOpen, setDescriptionOpen] = useState(false)
     const [isAddingSubtask, setAddingSubtask] = useState(false)
     const { updateTaskCompletion, renameItem } = useWorkspaceActions()
@@ -199,7 +202,8 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                         (dropZone === "inside" || dropZone === "inside-start") && "bg-primary/15 ring-1 ring-inset ring-primary",
                     )}
                 >
-                    <DropLine zone={dropZone} outside />
+                    {/* With the live drag the insertion line of the task is hidden: the gap that opens is enough (Trello card 132 describes how it was, to restore it) */}
+                    {!liveDrag && <DropLine zone={dropZone} outside />}
                     <SelectionMark selected={multiSelected} />
                     {showChildren && <TaskChildrenLine isSubtask={isSubtask} sizes={sizes} />}
                     <div className="flex flex-col w-full">
