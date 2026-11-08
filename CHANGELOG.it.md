@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-11-08
+
 ### Aggiunto
 
 - Temi: nove temi predefiniti (Chiaro, Scuro, Nord, Solarized chiaro, Solarized scuro, Dracula, Seppia e due ad alto contrasto, con un rapporto di contrasto del testo di almeno 7:1, pensati per chi vede poco). Si sceglie da una galleria con anteprime in Impostazioni > Aspetto, oppure dal menu **Visualizza > Tema**, che ha anche **Gestisci temi…**. Lo sfondo della finestra nativa segue il tema, quindi all'avvio non c'è il lampo bianco.
@@ -515,7 +517,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0

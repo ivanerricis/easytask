@@ -2,7 +2,7 @@
   "name": "easytask-tauri",
   "private": true,
   "license": "MIT",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "type": "module",
   "scripts": {
     "tauri": "tauri",

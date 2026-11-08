@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-11-08
+
 ### Added
 
 - Themes: nine built-in themes (Light, Dark, Nord, Solarized Light, Solarized Dark, Dracula, Sepia, and two high contrast ones, with a text contrast ratio of at least 7:1, made for people with low vision). You choose from a gallery with previews in Settings > Appearance, or from the **View > Theme** menu, which also has **Manage themes…**. The native window background follows the theme, so there is no white flash at startup.
@@ -517,7 +519,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
