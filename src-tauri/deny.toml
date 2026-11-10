@@ -19,6 +19,7 @@ ignore = [
     # { id = "RUSTSEC-0000-0000", reason = "transitive dependency of tauri, no patched version available" },
     # Same justification as src-tauri/.cargo/audit.toml
     { id = "RUSTSEC-2023-0071", reason = "rsa (Marvin attack, no fix available) is only reached through sqlx-mysql, which is in Cargo.lock because of sqlx-macros-core but is never compiled: the app uses SQLite only. Revisit when sqlx drops the lockfile entry." },
+    { id = "RUSTSEC-2026-0459", reason = "libsqlite3-sys 0.30.1 (bundled SQLite < 3.54, uninitialized memory returned when a database is opened with a -wal sibling of a different page size) is pulled in by sqlx 0.8 via tauri-plugin-sql 2.6, which still requires sqlx 0.8; the fix needs libsqlite3-sys >= 0.39 (sqlx 0.9 uses ^0.37, so it would not help either). Local attack only, and the app opens only its own database: a restored backup is validated and the -wal/-shm files are removed before it replaces the database (src/db/backup.ts). Revisit when tauri-plugin-sql moves to a sqlx that depends on libsqlite3-sys >= 0.39. Added 2026-11-10." },
 ]
 
 [licenses]
