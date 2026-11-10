@@ -12,6 +12,8 @@ const ZOOMABLE = '.vp-doc img, .home-shot img'
 export default {
   extends: DefaultTheme,
   setup() {
+    // VitePress composable (Vue), not a React hook: the React rules do not apply here
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const route = useRoute()
     const init = () => mediumZoom(ZOOMABLE, { background: 'var(--vp-c-bg)' })
     onMounted(init)
