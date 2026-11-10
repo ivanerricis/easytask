@@ -22,3 +22,9 @@ export type UndoContextType = UndoSnapshot & {
 }
 
 export const UndoContext = createContext<UndoContextType | null>(null)
+
+/**
+ * The recorder alone, in its own context: it never changes identity, while the value of UndoContext changes at every recorded
+ * action. A component that only records (every task row does) must not re-render because of the history.
+ */
+export const UndoRecorderContext = createContext<UndoRecorder | null>(null)

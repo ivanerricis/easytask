@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { toast } from "sonner"
-import { UndoContext } from "@/contexts/undo/context"
+import { UndoContext, UndoRecorderContext } from "@/contexts/undo/context"
 import { DialogAddColor } from "./dialog-add-color"
 import { DialogDeleteItem } from "./dialog-delete"
 import { DialogRenameItem } from "./dialog-rename"
@@ -16,13 +16,13 @@ vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 const recorder = { rename: vi.fn(), color: vi.fn(), remove: vi.fn() }
 const undo = vi.fn()
 const withUndo = (ui: ReactNode) => (
-    <UndoContext.Provider value={{
+    <UndoRecorderContext.Provider value={recorder as never}><UndoContext.Provider value={{
         canUndo: false, canRedo: false, undoLabel: null, redoLabel: null,
         entries: { undo: [], redo: [] }, undoTo: vi.fn(), redoTo: vi.fn(),
         undo, redo: vi.fn(), isLatest: vi.fn(), clear: vi.fn(), recorder: recorder as never,
     }}>
         {ui}
-    </UndoContext.Provider>
+    </UndoContext.Provider></UndoRecorderContext.Provider>
 )
 
 beforeEach(() => {

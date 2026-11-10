@@ -9,7 +9,7 @@ import { useTemplateDrafts } from "../use-template-drafts"
 import { useActiveNoteActions } from "../use-active-note"
 import { useWorkspaceActions } from "../workspace-data"
 import { createUndoCommands, createUndoRecorder } from "./commands"
-import { UndoContext, type UndoContextType } from "./context"
+import { UndoContext, UndoRecorderContext, type UndoContextType } from "./context"
 import { runHistory, runHistoryTo } from "./run-history"
 import { UNDO_LIMIT, createUndoHistory, type UndoCommand } from "./stack"
 
@@ -110,5 +110,9 @@ export function UndoProvider({ children }: { children: React.ReactNode }) {
         [snapshot, entries, isLatest, clear, undo, redo, undoTo, redoTo, recorder],
     )
 
-    return <UndoContext.Provider value={value}>{children}</UndoContext.Provider>
+    return (
+        <UndoRecorderContext.Provider value={recorder}>
+            <UndoContext.Provider value={value}>{children}</UndoContext.Provider>
+        </UndoRecorderContext.Provider>
+    )
 }

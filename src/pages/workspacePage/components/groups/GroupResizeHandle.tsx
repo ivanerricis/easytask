@@ -41,7 +41,14 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
     // A pause still running when the group goes away is saved at once
     useEffect(() => flushKey, [flushKey])
 
-    const currentWidth = clampGroupWidth(dragWidth ?? width ?? getWidth())
+    // The automatic width is measured after the render (and again when the handle gets the focus, the content can have changed
+    // the group since), never during it: reading the layout in the render forces a reflow in every commit that touches the group
+    const [autoWidth, setAutoWidth] = useState<number | null>(null)
+    const getWidthRef = useRef(getWidth)
+    useEffect(() => { getWidthRef.current = getWidth })
+    useEffect(() => { if (width === null) setAutoWidth(getWidthRef.current()) }, [width])
+
+    const currentWidth = clampGroupWidth(dragWidth ?? width ?? autoWidth ?? GROUP_MIN_WIDTH)
 
     const startResizing = (e: React.MouseEvent) => {
         // A press here must not start the drag of the group
@@ -112,6 +119,7 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
             onPointerDown={e => e.stopPropagation()}
             onMouseDown={startResizing}
             onDoubleClick={reset}
+            onFocus={() => { if (width === null) setAutoWidth(getWidth()) }}
             onKeyDown={handleKeyDown}
         />
     )
