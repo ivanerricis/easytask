@@ -4,7 +4,7 @@ Un tema decide i colori di tutta l'app: sfondo, testo, schede, bordi, evidenziaz
 
 ## Scegliere un tema
 
-Apri **Impostazioni > Aspetto**. La galleria **Tema** mostra un'anteprima di ogni tema: fai clic su uno per usarlo e usa le frecce per scorrere la galleria. Il tema in uso è segnato **In uso**. Puoi usare anche il menu **Visualizza > Tema**, che elenca i temi e ha **Gestisci temi…** per aprire le impostazioni.
+Apri **Impostazioni > Aspetto**. La galleria **Tema** mostra un'anteprima di ogni tema: fai clic su uno per usarlo, oppure spostati tra i temi con i tasti freccia. Il tema in uso è segnato **In uso**. Puoi usare anche il menu **Visualizza > Tema**, che elenca i temi e ha **Gestisci temi…** per aprire le impostazioni.
 
 ![Galleria dei temi](../../screenshots/it/themes-gallery-light.png)
 

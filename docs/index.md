@@ -23,17 +23,29 @@ hero:
 
 features:
   - title: Workspaces and notes
-    details: Each workspace has its own folders, nestable without limit, and notes. Notes hold groups of sections, sections hold tasks, tasks hold sub-tasks.
+    details: Each workspace has its own folders, nestable without limit, and notes. Notes hold groups of sections, sections hold tasks, tasks hold sub-tasks. Open two notes side by side with the split view.
+    link: /guide/workspaces
+    linkText: Learn more
   - title: Colors everywhere
     details: Color workspaces, folders, notes, groups, sections and tasks. Pick an accent color and the color intensity that suits you.
+    link: /guide/colors
+    linkText: Learn more
   - title: Automations
     details: Per-note rules that act by themselves, for example move a task to "Done" when you complete it.
+    link: /guide/automations
+    linkText: Learn more
   - title: Templates, trash and archive
     details: Start notes from templates. Deleted items go to the trash, archived ones stay out of the way until you need them.
+    link: /guide/templates
+    linkText: Learn more
   - title: Keyboard first
     details: Undo and redo, note search, customizable shortcuts. Press ? in the app to see them all.
+    link: /guide/shortcuts
+    linkText: Learn more
   - title: Local and safe
     details: Everything is stored in a local database, with automatic backups, one-click restore and workspace export. Italian and English, nine themes (also high contrast) and your own.
+    link: /guide/data-and-backups
+    linkText: Learn more
 ---
 
 <div class="home-shot">

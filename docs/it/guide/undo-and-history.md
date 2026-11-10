@@ -19,7 +19,7 @@ In un campo di testo, `Ctrl+Z` e `Ctrl+Y` annullano e ripetono il testo che stai
 
 Puoi cambiare `Ctrl+Z` e `Ctrl+Y` in **Impostazioni > Scorciatoie**. `Ctrl+Maiusc+Z` è fissa. Vedi [Scorciatoie da tastiera](./shortcuts).
 
-Con lo [vista divisa](./folders-and-notes#dividere-in-due-aree) in due aree la cronologia resta una sola per tutto il workspace. Se annulli o ripeti un'azione fatta sulla nota dell'altra area, anche quella nota viene aggiornata.
+Con la [vista divisa](./folders-and-notes#dividere-in-due-aree) in due aree la cronologia resta una sola per tutto il workspace. Se annulli o ripeti un'azione fatta sulla nota dell'altra area, anche quella nota viene aggiornata.
 
 ## Cosa si può annullare
 

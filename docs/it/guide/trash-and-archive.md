@@ -4,7 +4,7 @@ Quando elimini qualcosa, finisce prima nel cestino, così puoi riportarlo indiet
 
 ## Spostare nel cestino
 
-Apri il menu di un elemento e scegli **Elimina**. L'app chiede "Spostare nel cestino?" e confermi con **Sposta nel cestino**. Puoi eliminare workspace, cartelle, note, gruppi, sezioni, task, file audio e [template](./templates).
+Apri il menu di un elemento e scegli **Elimina**. L'app chiede "Spostare nel cestino?" e confermi con **Sposta nel cestino**. Fanno eccezione note, sezioni e gruppi: con l'impostazione predefinita [Conferma l'eliminazione solo se c'è contenuto](./settings#note-e-sezioni) uno vuoto va subito nel cestino con **Annulla**. Puoi eliminare workspace, cartelle, note, gruppi, sezioni, task, file audio e [template](./templates).
 
 Per eliminare più cartelle e note insieme, selezionale nella barra laterale (`Ctrl+clic` aggiunge un elemento, `Maiusc+clic` seleziona un intervallo), apri il menu di una di esse e scegli **Elimina N elementi**.
 

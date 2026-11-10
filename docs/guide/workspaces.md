@@ -22,7 +22,7 @@ Above the list you find three buttons:
 Click a workspace to open it. A card shows its name, a colored bar on the left (if you gave it a color) and the creation and modification dates.
 
 ::: tip
-If you close the app while a workspace is open, EasyTask can reopen it at the next start. Turn this on or off in **Settings > Notes and sections > Reopen the last workspace at startup**.
+If you close the app while a workspace is open, EasyTask can reopen it at the next start. Choose it in **Settings > Notes and sections > Open at startup**: **Home page**, **Last workspace used** or **Always open** (a workspace you pick).
 :::
 
 ## Create a workspace
@@ -83,10 +83,12 @@ At the top of the window there is a text menu. On the home page it has fewer ent
 
 ![Application menu](../screenshots/en/app-menu-light.png)
 
+The screenshot shows the **File** menu inside a workspace.
+
 | Menu        | Entries on the home page                                                              |
 | ----------- | ------------------------------------------------------------------------------------- |
 | **File**    | **New workspace…**, **Trash…**, **Settings…**, **Exit**                               |
-| **View**    | **Theme**: light, dark or system                                                      |
-| **Help**    | **Keyboard shortcuts…**, **Release notes**, **About and updates…**                    |
+| **View**    | **Theme**: the built-in themes and your own, and **Manage themes…**                   |
+| **Help**    | **Documentation**, **Keyboard shortcuts…**, **Release notes**, **About and updates…** |
 
 Press `Alt` alone or `F10` to move the focus to the menu and use it with the keyboard.

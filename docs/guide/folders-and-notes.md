@@ -19,7 +19,7 @@ The top of the sidebar has buttons, in three groups:
 
 At the bottom you find **Templates**, **Archive**, **Trash** (with a counter of what they hold) and the workspace selector, to jump to another workspace. See [Templates](./templates) and [Trash and archive](./trash-and-archive).
 
-Right-click an empty area of the tree to get the same actions as the buttons.
+Right-click an empty area of the tree to create a note, a folder or a note from a template, to import, and to collapse or expand all folders.
 
 ### Show, hide and resize
 
@@ -92,7 +92,7 @@ A folder cannot be moved into itself or into one of its subfolders.
 2. `Shift`+click selects all the rows between the last clicked one and this one.
 3. Right-click a selected row (or use its menu button) to act on the whole selection.
 
-The menu then offers **Move**, **Color**, **Export**, **Archive** and **Delete** for all selected items, and you can drag the selection to move it all at once. `Esc` clears the selection. A plain click on a row clears it too.
+The menu then offers **Move**, **Color**, **Export**, **Archive N items** and **Delete N items** for all selected items, and you can drag the selection to move it all at once. `Esc` clears the selection. A plain click on a row clears it too.
 
 ## Open notes as tabs
 
@@ -126,13 +126,13 @@ The three shortcuts for the split can be changed in **Settings > Shortcuts**, ex
 
 ### The path bar
 
-Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find the **Hide completed tasks** button and the **Split into two areas** button (it reads **Close the split** while the view is split).
+Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find four buttons: **New group**, **Search in the note**, **Split into two areas** (it reads **Close the split** while the view is split) and **Hide completed tasks**.
 
 ![The path bar](../screenshots/en/path-bar-light.png)
 
 ### What is reopened at startup
 
-When you open a workspace, EasyTask reopens the notes that were open, the active one and the split into two areas (if you used it). This is saved for each workspace. To turn it off, go to **Settings > Notes and sections** and switch off **Reopen notes at startup**. The same page has **Reopen the last workspace at startup**.
+When you open a workspace, EasyTask reopens the notes that were open, the active one and the split into two areas (if you used it). This is saved for each workspace. To turn it off, go to **Settings > Notes and sections** and switch off **Reopen notes at startup**. The same page has **Open at startup**, which sets what EasyTask shows when it starts.
 
 ## Search a note
 

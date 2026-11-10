@@ -30,7 +30,7 @@ The template is an independent snapshot of the note at that moment. Later change
 There are three ways:
 
 - In the **New note** dialog, choose a template in the **From template** field. The field appears when the workspace has at least one template. **No template** creates an empty note.
-- In the menu **File > New note from template…** (or the button **New note from template** at the bottom of the sidebar). Choose the template, then fill in the dialog.
+- In the menu **File > New note from template…** (or the **New note from template** button at the top of the sidebar). Choose the template, then fill in the dialog.
 - In the templates dialog, click **Create note** on the template you want.
 
 The **New note from template** dialog asks for a **Name** and a **Destination**: the workspace root or one of the folders. Click **Create**. The note is added at the end of the destination and opens. It starts with the color of the template.
@@ -41,7 +41,7 @@ Open it from the **Templates** button at the bottom of the sidebar (it shows how
 
 ![Templates](../screenshots/en/templates-light.png)
 
-Use the search box to find a template. Each template shows the note it was made from and its creation date. The buttons of a template are:
+With more than 8 templates a search box appears at the top: use it to find one. Each template shows the note it was made from and its creation date. The buttons of a template are:
 
 | Button | What it does |
 | --- | --- |
@@ -53,6 +53,7 @@ Use the search box to find a template. Each template shows the note it was made 
 | **Delete** | Moves the template to the trash |
 
 **Update from note** is disabled when the source note no longer exists or is in the trash ("The source note no longer exists"), and also while the template is open in its editor (close the editor first).
+
 ## Edit a template
 
 Click **Edit** on a template: it opens in a tab of the open notes, marked with the **Template** badge so you never mistake it for a note. You edit it like any other note: add groups, sections and tasks, change colors, drag to reorder, undo and redo.
@@ -67,4 +68,5 @@ Click **Edit** on a template: it opens in a tab of the open notes, marked with t
 In a template, the actions that make no sense are hidden: archive, audio and [automations](./automations). Deleting an item shows a short "Deleted" notice instead of the usual one, and undo works on the template while its tab is open.
 
 Close the tab (or use **Close editor** in its menu) when you are done; the template keeps what you wrote.
+
 A deleted template goes to the trash, in the **Templates** tab: you can restore it there. See [Trash and archive](./trash-and-archive).

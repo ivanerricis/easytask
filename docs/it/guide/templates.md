@@ -30,7 +30,7 @@ Il template è un'istantanea indipendente della nota in quel momento. Le modific
 Ci sono tre modi:
 
 - Nella finestra **Nuova nota**, scegli un template nel campo **Da template**. Il campo compare quando il workspace ha almeno un template. **Nessun template** crea una nota vuota.
-- Dal menu **File > Nuova nota da template…** (o dal pulsante **Nuova nota da template** in fondo alla barra laterale). Scegli il template e compila la finestra.
+- Dal menu **File > Nuova nota da template…** (o dal pulsante **Nuova nota da template** in cima alla barra laterale). Scegli il template e compila la finestra.
 - Nella finestra dei template, fai clic su **Crea nota** sul template che vuoi.
 
 La finestra **Nuova nota da template** chiede un **Nome** e una **Destinazione**: la radice del workspace o una delle cartelle. Fai clic su **Crea**. La nota viene aggiunta in fondo alla destinazione e si apre. Parte con il colore del template.
@@ -41,7 +41,7 @@ Aprila dal pulsante **Template** in fondo alla barra laterale (mostra quanti tem
 
 ![Template](../../screenshots/it/templates-light.png)
 
-Usa la casella di ricerca per trovare un template. Ogni template mostra la nota da cui è stato creato e la data di creazione. I pulsanti di un template sono:
+Con più di 8 template compare in alto una casella di ricerca: usala per trovarne uno. Ogni template mostra la nota da cui è stato creato e la data di creazione. I pulsanti di un template sono:
 
 | Pulsante | Cosa fa |
 | --- | --- |
@@ -53,6 +53,7 @@ Usa la casella di ricerca per trovare un template. Ogni template mostra la nota 
 | **Elimina** | Sposta il template nel cestino |
 
 **Aggiorna dalla nota** è disattivato quando la nota di origine non esiste più o è nel cestino ("La nota di origine non esiste più"), e anche mentre il template è aperto nel suo editor (chiudi prima l'editor).
+
 ## Modificare un template
 
 Fai clic su **Modifica** su un template: si apre in una scheda tra le note aperte, con il badge **Template** così non lo scambi mai per una nota. Lo modifichi come una nota qualsiasi: aggiungi gruppi, sezioni e task, cambi i colori, trascini per riordinare, annulli e ripeti.
@@ -67,4 +68,5 @@ Fai clic su **Modifica** su un template: si apre in una scheda tra le note apert
 In un template le azioni che non hanno senso sono nascoste: archivio, audio e [automazioni](./automations). L'eliminazione di un elemento mostra un breve avviso "Eliminato" al posto del solito, e l'annulla funziona sul template finché la sua scheda è aperta.
 
 Chiudi la scheda (o usa **Chiudi editor** nel suo menu) quando hai finito: il template conserva quello che hai scritto.
+
 Un template eliminato va nel cestino, nella scheda **Template**: da lì puoi ripristinarlo. Vedi [Cestino e archivio](./trash-and-archive).

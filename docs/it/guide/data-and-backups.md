@@ -6,7 +6,7 @@ EasyTask tiene tutto sul tuo computer. Questa pagina spiega dove, come vengono f
 
 | Modalità | Posizione |
 | --- | --- |
-| Installata | `Documenti/EasyTask` |
+| Installata | `Documents/EasyTask` |
 | Portable | cartella `data` accanto a `EasyTask.exe` |
 | Personalizzata | La cartella indicata dalla variabile d'ambiente `EASYTASK_DATA_DIR` |
 
@@ -17,7 +17,7 @@ La cartella contiene:
 | Cosa | Dove |
 | --- | --- |
 | Database (workspace, cartelle, note, task) | `easytask.db` |
-| Impostazioni | nella stessa cartella |
+| Impostazioni | `settings.dat` |
 | Backup | `backups/` |
 | Copie fatte prima di un aggiornamento del database | `backups/pre-migration/` |
 | Log | `logs/` |

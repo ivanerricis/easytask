@@ -4,7 +4,7 @@ A theme decides the colors of the whole app: background, text, cards, borders, h
 
 ## Choose a theme
 
-Open **Settings > Appearance**. The **Theme** gallery shows a preview of every theme: click one to use it, and use the arrows to move through the gallery. The theme in use is marked **In use**. You can also use the **View > Theme** menu, which lists the themes and has **Manage themes…** to open the settings.
+Open **Settings > Appearance**. The **Theme** gallery shows a preview of every theme: click one to use it, or move between them with the arrow keys. The theme in use is marked **In use**. You can also use the **View > Theme** menu, which lists the themes and has **Manage themes…** to open the settings.
 
 ![Theme gallery](../screenshots/en/themes-gallery-light.png)
 

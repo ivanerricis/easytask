@@ -41,18 +41,35 @@ npm run e2e:typecheck
 - Labels come from the locale files through `tr("key")`: never hard-code UI strings in a spec.
 - On Windows, do not run from an elevated shell: WebView2 would not open its debug port. `e2e/run-as-basic-user.cmd` runs the suite with a limited token.
 
-The specs in `e2e/specs` cover:
+The specs in `e2e/specs` (one file per area) include:
 
 | Spec | Covers |
 | --- | --- |
 | `workspace-flow` | Workspace, folder, note, group, sections, tasks, trash, duplicates |
 | `settings-and-shortcuts` | Language setting, shortcuts dialog |
-| `layout` | Real geometry and styles, contrast in both themes |
+| `layout` | Real geometry and styles, audio player layout, WCAG contrast |
 | `features` | Move with undo and redo, trash, templates, appearance reset, confirmation dialogs |
 | `audio` | The audio player |
 | `automations` | Automations |
 | `app-menu` | The application menu |
 | `persistence` | Settings and data surviving a restart |
+| `collapsed-state` | Open and closed state of groups, sections and subtasks |
+| `drop-feedback` | Feedback of the drag at the edges of a group |
+| `free-order` | Free order of the tasks and the sections in a group |
+| `group-tasks` | Tasks directly in a group |
+| `group-width` | Group width |
+| `live-drag` | Live drag of the tasks and of the sections |
+| `note-background` | Note background |
+| `note-search` | Search in a note |
+| `path-bar` | Path bar |
+| `sidebar-keyboard` | Keyboard navigation of the sidebar tree |
+| `split-workspace` | Split workspace |
+| `task-insert-line` | Insert line between tasks |
+| `task-keyboard` | Keyboard navigation of the task list |
+| `task-multiselect` | Multi-selection of tasks |
+| `template-editor` | Template editor |
+| `themes` | Themes: gallery, editor, import and export |
+| `whats-new` | The What's new tab |
 
 See [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md) for the details.
 
@@ -81,7 +98,7 @@ Some things cannot be automated: native file dialogs, backup, import and export,
 - A backup can be restored on a clean data folder; a workspace can be exported and imported.
 - Audio files can be added with the native picker; media keys drive the player.
 - Portable mode, single instance, window position and theme survive a restart.
-- Dark and light theme, a different accent color and 150% scaling look right, in Italian and English.
+- Light, dark and a high contrast theme, a custom theme, a different accent color and 150% scaling look right, in Italian and English.
 - Uninstalling leaves the data folder.
 
 The full list is in [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
@@ -97,5 +114,7 @@ The full list is in [e2e/README.md](https://github.com/ivanerricis/easytask/blob
 | `backend` | On Windows and Linux: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` |
 | `audit` | `npm audit` (high and critical, production), `cargo audit`, `cargo deny`. Also runs weekly |
 | `e2e` | End-to-end on Linux. Not blocking for now |
+
+The `Docs` workflow (`docs.yml`) builds this site on every pull request that touches `docs/` and publishes it to GitHub Pages from `master`.
 
 The Windows e2e run starts manually (`workflow_dispatch`): on the hosted runner the driver cannot attach to the app, while the suite passes on a Windows machine.

@@ -18,7 +18,7 @@ The name is optional: press `Enter` on an empty field and the group or section i
 
 Click the name to rename it in place (`Enter` saves, `Esc` cancels), or open the menu of the group or section with its menu button or a right-click.
 
-A right-click on the empty area of the note (outside any group, section or task) opens a small menu with **New group** and **Hide / Show completed tasks**.
+A right-click on the empty area of the note (outside any group, section or task) opens a small menu with **New group**, **Hide completed tasks** / **Show completed tasks** and **Note background** (see [Colors](./colors#note-background)).
 
 ![Group menu](../screenshots/en/group-menu-light.png)
 
@@ -42,9 +42,9 @@ A right-click on the empty area of the note (outside any group, section or task)
 You can also move things by dragging:
 
 - Drag a group by its header to reorder the groups.
-- Drag a section onto another group, or between sections, to move it. While you drag, the other sections (and the list of the group tasks) step aside to open the room where it would land, in the same group or in another one, and the section you are dragging collapses. With **Live drag** off in **Settings > Notes and sections** a line shows where it lands instead. Drop it on the **New group** area at the edge to make it a group of its own.
+- Drag a section onto another group, or between sections, to move it. While you drag, the other sections (and the list of the group tasks) step aside to open the room where it would land, in the same group or in another one, and the section you are dragging collapses. With **Tasks and sections move aside while dragging** off in **Settings > Notes and sections** a line shows where it lands instead. Drop it on the **New group** area at the edge to make it a group of its own.
 
-The list of the group tasks follows the same order as the sections: by default it is at the top, and you can move it with **Move task list up** and **Move task list down** (also in the right-click menu of the group), which are disabled when the list is already at the end. [Undo](./undo-and-history.md) brings it back.
+The list of the group tasks follows the same order as the sections: by default it is at the top, and you can move it with **Move task list up** and **Move task list down** (also in the right-click menu of the group), which are disabled when the list is already at the end, and are not shown while the group has no sections. [Undo](./undo-and-history) brings it back.
 
 ### Collapse, counters and progress bars
 
@@ -75,7 +75,7 @@ Move the mouse between two tasks (of a section, of a group, or two subtasks): a 
 - With **Keep adding tasks** on, the field moves under the new task so you can keep inserting in order; with it off, it closes after each task.
 - When completed tasks are hidden, the line above the first visible task inserts before it, and the hidden ones stay where they are.
 - The line is mouse only, and is not shown while you drag or with several tasks selected.
-- Each insert is a single step in the [undo history](./undo-and-history.md).
+- Each insert is a single step in the [undo history](./undo-and-history).
 - You can turn the lines off with **Settings > Notes and sections > Line to insert a task**.
 
 ### Add a subtask
@@ -117,7 +117,7 @@ Drag a task by its row. While you drag, the other tasks step aside to open the r
 - on the middle of a task, to make it a subtask of that task (the task shows a ring instead of opening a gap);
 - on a section, to make it the last task of that section.
 
-With **Live drag** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
+With **Tasks and sections move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
 
 ### Use the keyboard
 
@@ -130,14 +130,15 @@ Every list of tasks is a tree for the keyboard and for screen readers: `Tab` ent
 - `Space` completes or reopens the task, `Enter` edits its text, `Shift+F10` (or the menu key) opens its menu.
 - `Alt+↑` and `Alt+↓` move the task one step among its siblings, like **Move up** and **Move down** in the menu. The focus stays on the task and a screen reader announces "Moved to position N of M" (or that it cannot move any further).
 
-The task that takes the focus becomes the selected one, as when you click it. When you delete, archive or move the focused task away, the focus passes to the next task (or the previous one) so you can go on. To select several tasks with the keyboard, see [Select several tasks](#select-several-tasks). All the keys are listed in [Keyboard shortcuts](./shortcuts.md#tasks-with-the-keyboard).
+The task that takes the focus becomes the selected one, as when you click it. When you delete, archive or move the focused task away, the focus passes to the next task (or the previous one) so you can go on. To select several tasks with the keyboard, see [Select several tasks](#select-several-tasks). All the keys are listed in [Keyboard shortcuts](./shortcuts#tasks-with-the-keyboard).
+
 ### Select several tasks
 
 Hold **Ctrl** (**Cmd** on macOS) and click to add a task to the selection or remove it. Click a task with **Shift** to select every visible task between the last one you clicked and this one, across sections and groups. **Esc** clears the selection, and so does a plain click.
 
 With the keyboard, focus a task and press **Shift+Down** or **Shift+Up** to extend the selection one task at a time (**Shift+End** and **Shift+Home** go to the last and first task of the list); going back toward the first task shrinks it again. **Ctrl+Space** (**Cmd+Space** on macOS) adds the focused task to the selection or removes it, so you can pick tasks that are not next to each other: move with the plain arrows, which keep the selection, and press it on each one. These keys do not change the task shown in the details panel. When the selection shrinks to one task or to none, a screen reader announces it; with two or more, it reads the counter.
 
-Right click a selected task (or open its menu) to act on all of them at once: **Delete**, **Archive**, **Color** and **Move to…** (the end of a section, or the tasks directly in a group). A selected task stands for its subtasks too, so they are deleted, archived and moved with it. Each action is a single step in the [undo history](./undo-and-history.md). Dragging still moves one task at a time.
+Right click a selected task (or open its menu) to act on all of them at once: **Delete N tasks**, **Archive N tasks**, **Color** and **Move to…** (the end of a section, or the tasks directly in a group). A selected task stands for its subtasks too, so they are deleted, archived and moved with it. Each action is a single step in the [undo history](./undo-and-history). Dragging still moves one task at a time.
 
 Selected tasks get a dashed outline (not only a tint) and are announced as "selected" by screen readers; with two or more selected, a counter such as "3 selected" appears at the bottom of the note.
 
@@ -145,7 +146,7 @@ Selected tasks get a dashed outline (not only a tint) and are announced as "sele
 
 ## Search in a note
 
-Press `Ctrl+F` or click the magnifier in the path bar above the groups to open the search field. As you type, the matches are highlighted in the text of tasks and subtasks and in the names of sections and groups (not in task descriptions), ignoring case and accents, and the counter shows which one you are on, like "3 of 12". **Enter** goes to the next match and **Shift+Enter** to the previous one; the current match is stronger, scrolls into view and opens the collapsed group or section that contains it. Completed tasks that are hidden are not searched. **Esc** (or the close button) closes the field and clears the highlights.
+Press `Ctrl+F` or click the magnifier in the path bar above the groups to open the search field. As you type, the matches are highlighted in the text of tasks and subtasks and in the names of sections and groups (not in task descriptions), ignoring case and accents, and the counter, inside the field, shows which one you are on, like "3 of 12", or "No results". **Enter** goes to the next match and **Shift+Enter** to the previous one; the current match is orange with a ring, scrolls into view and opens the collapsed group or section that contains it. Besides **Enter** and **Shift+Enter** you can use the **Next result** and **Previous result** buttons. Completed tasks that are hidden are not searched. **Esc** (or the close button) closes the field and clears the highlights.
 
 ## Hide completed tasks
 

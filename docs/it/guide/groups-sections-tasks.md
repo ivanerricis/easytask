@@ -18,7 +18,7 @@ Il nome è facoltativo: premi `Invio` su un campo vuoto e il gruppo o la sezione
 
 Fai clic sul nome per rinominarlo sul posto (`Invio` salva, `Esc` annulla), oppure apri il menu del gruppo o della sezione con il suo pulsante o con il clic destro.
 
-Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre un piccolo menu con **Nuovo gruppo** e **Nascondi / Mostra task completati**.
+Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre un piccolo menu con **Nuovo gruppo**, **Nascondi task completati** / **Mostra task completati** e **Sfondo della nota** (vedi [Colori](./colors#sfondo-della-nota)).
 
 ![Menu del gruppo](../../screenshots/it/group-menu-light.png)
 
@@ -44,11 +44,11 @@ Puoi spostare gli elementi anche trascinandoli:
 - Trascina un gruppo dalla sua intestazione per riordinare i gruppi.
 - Trascina una sezione su un altro gruppo, o tra due sezioni, per spostarla. Mentre trascini, le altre sezioni (e la lista dei task del gruppo) si scostano per aprire lo spazio dove atterrerebbe, nello stesso gruppo o in un altro, e la sezione trascinata si richiude. Con **Task e sezioni che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** una linea mostra invece dove cade. Rilasciala sull'area **Nuovo gruppo** al bordo per farne un gruppo a sé.
 
-La lista dei task del gruppo segue lo stesso ordine delle sezioni: di default è in cima, e la sposti con **Sposta lista task su** e **Sposta lista task giù** (anche nel menu del clic destro del gruppo), che sono disattivate quando la lista è già a un'estremità. [Annulla](./undo-and-history.md) la riporta com'era.
+La lista dei task del gruppo segue lo stesso ordine delle sezioni: di default è in cima, e la sposti con **Sposta lista task su** e **Sposta lista task giù** (anche nel menu del clic destro del gruppo), che sono disattivate quando la lista è già a un'estremità, e non compaiono finché il gruppo non ha sezioni. [Annulla](./undo-and-history) la riporta com'era.
 
 ### Comprimere, contatori e barre d'avanzamento
 
-Ogni gruppo e ogni sezione ha un pulsante per comprimerlo (**Comprimi gruppo**, **Comprimi sezione**). Un task con sottotask ha nel suo menu **Comprimi sottotask** / **Espandi sottotask**: finché sono compressi i sottotask non vengono disegnati e il task mostra sempre il conteggio dei sottotask completati (anche con **Mostra sottotask completati** disattivato). Aggiungere un sottotask a un task compresso lo espande prima. I sottotask nascosti contano comunque in ogni barra d'avanzamento e contatore. Cosa è aperto e cosa chiuso viene ricordato tra un avvio e l'altro dell'app; non fa parte di annulla/ripeti, dei template né degli export, e aprire o chiudere qualcosa non cambia la data di modifica della workspace. La ricerca apre ciò che nasconde un risultato solo finché è aperta. Un gruppo può mostrare quante sezioni, task e file audio contiene. Gruppi e sezioni possono mostrare anche una barra d'avanzamento con la percentuale di task completati (per un gruppo contano tutti i task e i sottotask). Scegli cosa mostrare in **Impostazioni > Note e sezioni**: **Mostra barra d'avanzamento nelle sezioni**, **Mostra barra d'avanzamento nei gruppi**, **Mostra numero di sezioni**, **Mostra numero di task**, **Mostra numero di file audio**. L'opzione **Linee tra i gruppi** disegna una sottile linea guida tra le colonne.
+Ogni gruppo e ogni sezione ha un pulsante per comprimerlo (**Comprimi gruppo**, **Comprimi sezione**). Un task con sottotask ha nel suo menu **Comprimi sottotask** / **Espandi sottotask**: finché sono compressi i sottotask non vengono disegnati e il task mostra sempre il conteggio dei sottotask completati (anche con **Mostra sottotask completati** disattivato). Aggiungere un sottotask a un task compresso lo espande prima. I sottotask nascosti contano comunque in ogni barra d'avanzamento e contatore. Cosa è aperto e cosa chiuso viene ricordato tra un avvio e l'altro dell'app; non fa parte di annulla/ripeti, dei template né degli export, e aprire o chiudere qualcosa non cambia la data di modifica del workspace. La ricerca apre ciò che nasconde un risultato solo finché è aperta. Un gruppo può mostrare quante sezioni, task e file audio contiene. Gruppi e sezioni possono mostrare anche una barra d'avanzamento con la percentuale di task completati (per un gruppo contano tutti i task e i sottotask). Scegli cosa mostrare in **Impostazioni > Note e sezioni**: **Mostra barra d'avanzamento nelle sezioni**, **Mostra barra d'avanzamento nei gruppi**, **Mostra numero di sezioni**, **Mostra numero di task**, **Mostra numero di file audio**. L'opzione **Linee tra i gruppi** disegna una sottile linea guida tra le colonne.
 
 ### Ridimensionare un gruppo
 
@@ -75,7 +75,7 @@ Passa il mouse tra due task (di una sezione, di un gruppo, o due sottotask): com
 - Con **Continua ad aggiungere task** attivo il campo si sposta sotto il nuovo task, così puoi continuare a inserire in ordine; se è disattivato si chiude dopo ogni task.
 - Quando i task completati sono nascosti, la linea sopra il primo task visibile inserisce prima di lui e i nascosti restano dove sono.
 - La linea funziona solo con il mouse e non compare durante un trascinamento o con più task selezionati.
-- Ogni inserimento è un unico passo nella [cronologia di annulla](./undo-and-history.md).
+- Ogni inserimento è un unico passo nella [cronologia di annulla](./undo-and-history).
 - Puoi disattivare le linee da **Impostazioni > Note e sezioni > Linea per inserire un task**.
 
 ### Aggiungere un sottotask
@@ -127,17 +127,18 @@ Ogni lista di task è un albero per la tastiera e per gli screen reader: `Tab` e
 
 - `↑` e `↓` vanno al task visibile precedente e successivo, `Home` e `End` al primo e all'ultimo. Le frecce non escono dalla sezione.
 - `→` apre i sottotask di un task (se sono chiusi) e poi va al primo; `←` li chiude e poi va al task padre.
-- `Spazio` completa o riapre il task, `Invio` ne modifica il testo, `Shift+F10` (o il tasto menu) apre il suo menu.
+- `Spazio` completa o riapre il task, `Invio` ne modifica il testo, `Maiusc+F10` (o il tasto menu) apre il suo menu.
 - `Alt+↑` e `Alt+↓` spostano il task di un passo tra i fratelli, come **Sposta su** e **Sposta giù** del menu. Il focus resta sul task e uno screen reader annuncia "Spostato in posizione N di M" (o che non si può spostare oltre).
 
-Il task che prende il focus diventa anche quello selezionato, come quando lo clicchi. Quando elimini, archivi o sposti altrove il task con il focus, il focus passa al task successivo (o al precedente) per poter continuare. Per selezionare più task da tastiera vedi [Selezionare più task](#selezionare-più-task). Tutti i tasti sono elencati in [Scorciatoie da tastiera](./shortcuts.md#task-da-tastiera).
+Il task che prende il focus diventa anche quello selezionato, come quando lo clicchi. Quando elimini, archivi o sposti altrove il task con il focus, il focus passa al task successivo (o al precedente) per poter continuare. Per selezionare più task da tastiera vedi [Selezionare più task](#selezionare-più-task). Tutti i tasti sono elencati in [Scorciatoie da tastiera](./shortcuts#task-da-tastiera).
+
 ### Selezionare più task
 
 Tieni premuto **Ctrl** (**Cmd** su macOS) e clicca per aggiungere un task alla selezione o toglierlo. Clicca un task con **Maiusc** per selezionare tutti i task visibili tra l'ultimo cliccato e questo, anche tra sezioni e gruppi. **Esc** annulla la selezione, come un normale clic.
 
-Da tastiera, porta il focus su un task e premi **Maiusc+Giù** o **Maiusc+Su** per estendere la selezione di un task alla volta (**Maiusc+Fine** e **Maiusc+Home** vanno all'ultimo e al primo task della lista); tornando verso il primo task la selezione si restringe. **Ctrl+Spazio** (**Cmd+Spazio** su macOS) aggiunge alla selezione il task con il focus o lo toglie, così puoi scegliere task non vicini: spostati con le frecce semplici, che mantengono la selezione, e premilo su ciascuno. Questi tasti non cambiano il task mostrato nel pannello dei dettagli. Quando la selezione scende a un solo task o a nessuno, uno screen reader lo annuncia; con due o più legge il contatore.
+Da tastiera, porta il focus su un task e premi **Maiusc+Giù** o **Maiusc+Su** per estendere la selezione di un task alla volta (**Maiusc+End** e **Maiusc+Home** vanno all'ultimo e al primo task della lista); tornando verso il primo task la selezione si restringe. **Ctrl+Spazio** (**Cmd+Spazio** su macOS) aggiunge alla selezione il task con il focus o lo toglie, così puoi scegliere task non vicini: spostati con le frecce semplici, che mantengono la selezione, e premilo su ciascuno. Questi tasti non cambiano il task mostrato nel pannello dei dettagli. Quando la selezione scende a un solo task o a nessuno, uno screen reader lo annuncia; con due o più legge il contatore.
 
-Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti insieme: **Elimina**, **Archivia**, **Colora** e **Sposta in…** (in fondo a una sezione, o tra i task diretti di un gruppo). Un task selezionato vale anche per i suoi sottotask, che vengono eliminati, archiviati e spostati con lui. Ogni azione è un solo passo nella [cronologia di annullamento](./undo-and-history.md). Il trascinamento sposta sempre un task alla volta.
+Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti insieme: **Elimina N task**, **Archivia N task**, **Colora** e **Sposta in…** (in fondo a una sezione, o tra i task diretti di un gruppo). Un task selezionato vale anche per i suoi sottotask, che vengono eliminati, archiviati e spostati con lui. Ogni azione è un solo passo nella [cronologia di annullamento](./undo-and-history). Il trascinamento sposta sempre un task alla volta.
 
 I task selezionati hanno un contorno tratteggiato (oltre alla tinta) e gli screen reader li annunciano come "selezionato"; con due o più task selezionati, in basso nella nota compare un contatore, ad esempio "3 selezionati".
 
@@ -145,7 +146,7 @@ I task selezionati hanno un contorno tratteggiato (oltre alla tinta) e gli scree
 
 ## Cercare in una nota
 
-Premi `Ctrl+F` o clicca la lente nella barra del percorso sopra i gruppi per aprire il campo di ricerca. Mentre scrivi, le corrispondenze vengono evidenziate nel testo di task e sottotask e nei nomi di sezioni e gruppi (non nelle descrizioni dei task), senza distinguere maiuscole e accenti, e il contatore indica a quale sei arrivato, ad esempio "3 di 12". **Invio** va alla corrispondenza successiva e **Maiusc+Invio** alla precedente; quella corrente è più marcata, viene portata in vista e apre il gruppo o la sezione compressi che la contengono. I task completati nascosti non vengono cercati. **Esc** (o il pulsante di chiusura) chiude il campo e toglie le evidenziazioni.
+Premi `Ctrl+F` o clicca la lente nella barra del percorso sopra i gruppi per aprire il campo di ricerca. Mentre scrivi, le corrispondenze vengono evidenziate nel testo di task e sottotask e nei nomi di sezioni e gruppi (non nelle descrizioni dei task), senza distinguere maiuscole e accenti, e il contatore, dentro il campo, indica a quale sei arrivato, ad esempio "3 di 12", oppure "Nessun risultato". **Invio** va alla corrispondenza successiva e **Maiusc+Invio** alla precedente; quella corrente è arancione con un anello, viene portata in vista e apre il gruppo o la sezione compressi che la contengono. Oltre a **Invio** e **Maiusc+Invio** puoi usare i pulsanti **Risultato successivo** e **Risultato precedente**. I task completati nascosti non vengono cercati. **Esc** (o il pulsante di chiusura) chiude il campo e toglie le evidenziazioni.
 
 ## Nascondere i task completati
 

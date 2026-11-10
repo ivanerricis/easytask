@@ -33,6 +33,8 @@ Folders and sub-tasks nest without limit. Groups and sections can be left withou
 - **Undo and redo** with a history of your actions. See [Undo and history](./undo-and-history).
 - **Audio**: attach audio files to a note and play them in the app. See [Audio](./audio).
 - **Search notes** and **customizable keyboard shortcuts**. See [Keyboard shortcuts](./shortcuts).
+- **Split view**: two notes side by side, each with its own tabs. See [Folders and notes](./folders-and-notes#split-into-two-areas).
+- **Note background**: a color behind the whole note. See [Colors](./colors#note-background).
 - **Export and import** a workspace as an `.easytask.json` file.
 - **Italian and English** interface, nine built-in themes (including high contrast) and your own custom themes. See [Themes](./themes).
 - **Updates** with signed releases. See [Updates](./updates).
