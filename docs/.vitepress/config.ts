@@ -1,6 +1,6 @@
 import { defineConfig, type DefaultTheme } from 'vitepress'
 
-const repo = 'https://github.com/ivanerricis/easytask-tauri'
+const repo = 'https://github.com/ivanerricis/easytask'
 
 type Labels = Record<keyof typeof en, string>
 
@@ -113,11 +113,11 @@ const it: Labels = {
 
 export default defineConfig({
   title: 'EasyTask',
-  base: '/easytask-tauri/',
+  base: '/easytask/',
   cleanUrls: true,
   lastUpdated: true,
   srcExclude: ['logo/**', 'screenshots/**', '**/node_modules/**'],
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/easytask-tauri/favicon.svg' }]],
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/easytask/favicon.svg' }]],
   themeConfig: {
     logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: 'EasyTask' },
     socialLinks: [{ icon: 'github', link: repo }],

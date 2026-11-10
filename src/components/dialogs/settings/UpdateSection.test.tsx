@@ -85,7 +85,7 @@ describe("UpdateSection", () => {
         render(<UpdateSection />)
         await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
         await userEvent.click(await screen.findByRole("button", { name: "Apri la pagina delle Release" }))
-        expect(openUrl).toHaveBeenCalledWith("https://github.com/ivanerricis/easytask-tauri/releases")
+        expect(openUrl).toHaveBeenCalledWith("https://github.com/ivanerricis/easytask/releases")
         expect(screen.queryByRole("button", { name: "Aggiorna ora" })).not.toBeInTheDocument()
         expect(update.downloadAndInstall).not.toHaveBeenCalled()
     })

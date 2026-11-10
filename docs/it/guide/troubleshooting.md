@@ -4,7 +4,7 @@ I problemi più comuni e come risolverli.
 
 ## Windows mostra "Windows ha protetto il PC"
 
-I file per Windows non sono ancora firmati, quindi SmartScreen li segnala. Clicca **Ulteriori informazioni**, poi **Esegui comunque**. Scarica EasyTask solo dalla [pagina delle Release](https://github.com/ivanerricis/easytask-tauri/releases). Vedi [Installazione](./install).
+I file per Windows non sono ancora firmati, quindi SmartScreen li segnala. Clicca **Ulteriori informazioni**, poi **Esegui comunque**. Scarica EasyTask solo dalla [pagina delle Release](https://github.com/ivanerricis/easytask/releases). Vedi [Installazione](./install).
 
 ## L'app non parte su Windows
 
@@ -46,8 +46,8 @@ EasyTask funziona in una sola istanza. Se lo avvii una seconda volta, viene most
 
 ## Segnalare un bug
 
-Apri una issue su [GitHub](https://github.com/ivanerricis/easytask-tauri/issues). Indica la versione (**Impostazioni > Informazioni**), il sistema, i passi per riprodurre il problema e, se puoi, il log.
+Apri una issue su [GitHub](https://github.com/ivanerricis/easytask/issues). Indica la versione (**Impostazioni > Informazioni**), il sistema, i passi per riprodurre il problema e, se puoi, il log.
 
 ## Segnalare un problema di sicurezza
 
-Non aprire una issue pubblica. Segnalalo in privato con un security advisory di GitHub, come descritto in [SECURITY.md](https://github.com/ivanerricis/easytask-tauri/blob/master/SECURITY.md). Solo l'ultima versione rilasciata riceve correzioni di sicurezza, quindi aggiorna prima di segnalare.
+Non aprire una issue pubblica. Segnalalo in privato con un security advisory di GitHub, come descritto in [SECURITY.md](https://github.com/ivanerricis/easytask/blob/master/SECURITY.md). Solo l'ultima versione rilasciata riceve correzioni di sicurezza, quindi aggiorna prima di segnalare.

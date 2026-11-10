@@ -16,10 +16,10 @@ hero:
       link: /it/guide/getting-started
     - theme: alt
       text: Download
-      link: https://github.com/ivanerricis/easytask-tauri/releases/latest
+      link: https://github.com/ivanerricis/easytask/releases/latest
     - theme: alt
       text: GitHub
-      link: https://github.com/ivanerricis/easytask-tauri
+      link: https://github.com/ivanerricis/easytask
 
 features:
   - title: Workspace e note

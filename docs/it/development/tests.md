@@ -54,7 +54,7 @@ Gli spec in `e2e/specs` coprono:
 | `app-menu` | Il menu dell'applicazione |
 | `persistence` | Impostazioni e dati che sopravvivono al riavvio |
 
-Per i dettagli vedi [e2e/README.md](https://github.com/ivanerricis/easytask-tauri/blob/master/e2e/README.md).
+Per i dettagli vedi [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
 
 ## Giro dell'interfaccia
 
@@ -84,7 +84,7 @@ Alcune cose non si possono automatizzare: finestre native di scelta file, backup
 - Tema chiaro e scuro, un altro colore principale e una scala del 150% sono corretti, in italiano e in inglese.
 - La disinstallazione lascia la cartella dati.
 
-La lista completa è in [e2e/README.md](https://github.com/ivanerricis/easytask-tauri/blob/master/e2e/README.md).
+La lista completa è in [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
 
 ## Integrazione continua
 

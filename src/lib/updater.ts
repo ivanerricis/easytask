@@ -5,7 +5,7 @@ import { createWindowEvent } from "@/lib/window-event"
 import { isPortable } from "@/db/appPaths"
 import { getCheckUpdatesOnStartup, getSkippedUpdateVersion } from "@/lib/store/preferences"
 
-const RELEASES_URL = "https://github.com/ivanerricis/easytask-tauri/releases"
+const RELEASES_URL = "https://github.com/ivanerricis/easytask/releases"
 /** Window event that asks the app to open the settings dialog on a category. */
 export const OPEN_SETTINGS_EVENT = "easytask:open-settings"
 /** Window event fired by the startup check when a new version is available (the update dialog listens to it). */

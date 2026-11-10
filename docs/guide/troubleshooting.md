@@ -4,7 +4,7 @@ Common problems and how to solve them.
 
 ## Windows shows "Windows protected your PC"
 
-The Windows files are not code-signed yet, so SmartScreen warns about them. Click **More info**, then **Run anyway**. Download EasyTask only from the [Releases page](https://github.com/ivanerricis/easytask-tauri/releases). See [Install](./install).
+The Windows files are not code-signed yet, so SmartScreen warns about them. Click **More info**, then **Run anyway**. Download EasyTask only from the [Releases page](https://github.com/ivanerricis/easytask/releases). See [Install](./install).
 
 ## The app does not start on Windows
 
@@ -46,8 +46,8 @@ EasyTask runs one instance at a time. If you start it a second time, the window 
 
 ## Report a bug
 
-Open an issue on [GitHub](https://github.com/ivanerricis/easytask-tauri/issues). Include your version (**Settings > About**), your system, the steps to reproduce and, if you can, the log.
+Open an issue on [GitHub](https://github.com/ivanerricis/easytask/issues). Include your version (**Settings > About**), your system, the steps to reproduce and, if you can, the log.
 
 ## Report a security issue
 
-Do not open a public issue. Report it privately through a GitHub security advisory, as described in [SECURITY.md](https://github.com/ivanerricis/easytask-tauri/blob/master/SECURITY.md). Only the latest released version receives security fixes, so update before reporting.
+Do not open a public issue. Report it privately through a GitHub security advisory, as described in [SECURITY.md](https://github.com/ivanerricis/easytask/blob/master/SECURITY.md). Only the latest released version receives security fixes, so update before reporting.
