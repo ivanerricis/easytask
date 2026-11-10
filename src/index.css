@@ -258,6 +258,10 @@ body,
   opacity: 1;
 }
 
+/* Live drag of the sidebar: the rows of an open folder are moved by a transform beyond the edge of the folder (the room opens below its
+   last row), so the folders do not clip their rows while some are shifted (the root of the tree carries data-tree-shifting). */
+[data-tree-shifting] [data-slot="collapsible-content"] { overflow: visible !important; }
+
 /* The font of the app (Settings > Appearance): applyFontFamily sets data-font on the root element. The fonts are
    bundled with the app (@fontsource) and their files load when one is chosen. "system" keeps the theme font. */
 html[data-font="inter"] { --app-font: "Inter Variable", ui-sans-serif, system-ui, "Segoe UI", sans-serif; }

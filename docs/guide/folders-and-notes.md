@@ -80,6 +80,8 @@ Drag a row in the tree and drop it where you want:
 - On a note: the item goes before it (upper half) or after it (lower half).
 - On a folder: in the middle of the row, the item goes inside the folder; near the top or bottom edge, before or after it.
 
+While you drag, the other rows step aside to open the room where the item would land and the room it leaves closes, so you see the final order before you drop. A folder that is open moves with the rows inside it. Over the middle of a folder the rows stay still and the folder is highlighted. With **Tasks, sections, groups, notes and folders move aside while dragging** off in **Settings > Notes and sections**, a line shows where it lands instead, as it does when you drag several selected items or use the keyboard.
+
 You can also drag with the keyboard: focus a row, press `Space`, move with the arrow keys, press `Space` again to drop, `Esc` to cancel. **Move to…** in the menu is another way that needs no dragging.
 
 ::: info

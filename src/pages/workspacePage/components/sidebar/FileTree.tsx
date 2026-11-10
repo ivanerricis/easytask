@@ -43,12 +43,12 @@ export const FileTree = ({ collapsedIds, onToggleFolder, onExpandFolder, onToggl
     const { t } = useTranslation()
     const tree = useTreeData()
     const store = useSelectionStore()
-    const { hoverStore, activeRef, multiCount, dndProps } = useTreeDnd({ tree, collapsedIds, onExpandFolder })
+    const flatRows = useMemo(() => flattenTree(tree, collapsedIds), [tree, collapsedIds])
+    const { hoverStore, activeRef, multiCount, dndProps } = useTreeDnd({ tree, rows: flatRows, collapsedIds, onExpandFolder })
 
     const activeItem = activeRef ? findTreeItem(tree, activeRef) : undefined
     const rootElRef = useRef<HTMLDivElement | null>(null)
     const virtualRef = useRef<VirtualTreeHandle>(null)
-    const flatRows = useMemo(() => flattenTree(tree, collapsedIds), [tree, collapsedIds])
     const virtualized = flatRows.length > VIRTUALIZE_THRESHOLD
     // The selection follows the rows in view: what disappears from the tree (or gets hidden) is deselected
     useEffect(() => { store?.sync(rowKeys(flatRows)) }, [store, flatRows])
