@@ -24,7 +24,7 @@ La cartella contiene:
 
 Per aprire la cartella vai in **Impostazioni > Dati > Cartella dati > Apri cartella dati** e clicca **Apri**.
 
-![Impostazioni Dati](../../screenshots/it/settings-data-light.png)
+![Impostazioni dei dati: backup, esportazione e importazione, cartella dei dati](../../screenshots/it/settings-data-light.png)
 
 ::: warning OneDrive
 Se la cartella dati è sincronizzata da OneDrive, **Impostazioni > Dati** mostra un avviso. La sincronizzazione può causare errori "database is locked" o copie in conflitto del database. Escludi la cartella da OneDrive oppure usa la modalità portable.

@@ -2,8 +2,8 @@
 
 Il workspace è il livello più alto di EasyTask: contiene le tue cartelle e le tue note. Usa un workspace per ogni progetto o ambito della tua vita. La home li elenca tutti.
 
-![Home](../../screenshots/it/home-light.png){.light-only}
-![Home](../../screenshots/it/home-dark.png){.dark-only}
+![La home con il titolo Bentornato, i pulsanti Nuovo workspace e Importa un workspace e i workspace recenti come schede](../../screenshots/it/home-light.png){.light-only}
+![La home con il titolo Bentornato, i pulsanti Nuovo workspace e Importa un workspace e i workspace recenti come schede](../../screenshots/it/home-dark.png){.dark-only}
 
 ## La home
 
@@ -17,7 +17,7 @@ Sopra l'elenco ci sono tre pulsanti:
 | **Ordina**                            | Ordina per **Ultima modifica**, **Data creazione** o **Nome**, in entrambe le direzioni. |
 | **Cestino**                           | Apre i workspace eliminati. Vedi [Cestino e archivio](./trash-and-archive).              |
 
-![Workspace come lista](../../screenshots/it/home-list-light.png)
+![I workspace recenti mostrati come elenco di righe compatte](../../screenshots/it/home-list-light.png)
 
 Fai clic su un workspace per aprirlo. La scheda mostra il nome, una barra colorata a sinistra (se gli hai dato un colore) e le date di creazione e di modifica.
 
@@ -32,7 +32,7 @@ Se chiudi l'app mentre un workspace è aperto, EasyTask può riaprirlo al prossi
 3. Se vuoi, scegli un colore con il pulsante accanto al nome.
 4. Fai clic su **Crea workspace**.
 
-![Finestra Crea workspace](../../screenshots/it/create-workspace-dialog-light.png)
+![La finestra Nuovo workspace con il campo per il nome](../../screenshots/it/create-workspace-dialog-light.png)
 
 I nomi dei workspace sono unici: se il nome è già usato, la finestra mostra un errore e scegli un altro nome.
 
@@ -40,7 +40,7 @@ I nomi dei workspace sono unici: se il nome è già usato, la finestra mostra un
 
 Fai clic sul pulsante del menu di un workspace (compare quando passi il mouse sulla scheda), oppure fai clic destro sulla scheda.
 
-![Menu del workspace](../../screenshots/it/home-workspace-menu-light.png)
+![Menu contestuale di un workspace nella home](../../screenshots/it/home-workspace-menu-light.png)
 
 | Voce               | Cosa fa                                                                                        |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
@@ -81,7 +81,7 @@ Alcuni limiti:
 
 In alto nella finestra c'è un menu di testo. Nella home ha meno voci che dentro un workspace.
 
-![Menu dell'applicazione](../../screenshots/it/app-menu-light.png)
+![La barra dei menu dell'applicazione con File, Modifica, Visualizza e Aiuto](../../screenshots/it/app-menu-light.png)
 
 Lo screenshot mostra il menu **File** dentro un workspace.
 

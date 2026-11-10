@@ -2,8 +2,8 @@
 
 The content of a note is organized in three levels. A note holds **groups**, shown side by side as columns. A group holds **sections**, stacked in the column. A section holds **tasks**, and a task can have **subtasks**, as deep as you need. A group can also hold tasks of its own, directly under its header, without any section. That list of tasks can sit anywhere among the sections of the group.
 
-![Task details](../screenshots/en/task-details-light.png){.light-only}
-![Task details](../screenshots/en/task-details-dark.png){.dark-only}
+![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-light.png){.light-only}
+![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-dark.png){.dark-only}
 
 ## Groups and sections
 
@@ -20,7 +20,7 @@ Click the name to rename it in place (`Enter` saves, `Esc` cancels), or open the
 
 A right-click on the empty area of the note (outside any group, section or task) opens a small menu with **New group**, **Hide completed tasks** / **Show completed tasks** and **Note background** (see [Colors](./colors#note-background)).
 
-![Group menu](../screenshots/en/group-menu-light.png)
+![Context menu of a group with Add audio files, New section, Move task list up and down, Rename, Change color, Move left and right, Automations, Archive and Delete](../screenshots/en/group-menu-light.png)
 
 | Entry                                  | Group | Section | What it does                                                    |
 | -------------------------------------- | :---: | :-----: | --------------------------------------------------------------- |
@@ -37,7 +37,7 @@ A right-click on the empty area of the note (outside any group, section or task)
 | **Archive**                            | yes   | yes     | Hides it without deleting. See [Trash and archive](./trash-and-archive). |
 | **Delete**                             | yes   | yes     | Moves it to the trash.                                          |
 
-![Section menu](../screenshots/en/section-menu-light.png)
+![Context menu of a section in the note](../screenshots/en/section-menu-light.png)
 
 You can also move things by dragging:
 
@@ -69,7 +69,7 @@ New tasks go to the end of the section. To put them at the top, choose **At the 
 
 Move the mouse between two tasks (of a section, of a group, or two subtasks): a thin line with a **+** in the middle appears. Click the **+** and a field opens right there. Type the text and press `Enter` to insert the task at that point; `Esc` closes the field and discards the text. The line also sits above the first task, to insert before it.
 
-![The line to insert a task](../screenshots/en/task-insert-field-light.png)
+![The field to insert a new task between two existing tasks](../screenshots/en/task-insert-field-light.png)
 
 - Only one field is open at a time: clicking another **+** moves it.
 - With **Keep adding tasks** on, the field moves under the new task so you can keep inserting in order; with it off, it closes after each task.
@@ -91,7 +91,7 @@ Point at a task and click **Add subtask**, or choose it from the task menu. Type
 
 Open the menu of the task (menu button or right-click):
 
-![Task menu](../screenshots/en/task-menu-light.png)
+![Context menu of a task with Add subtask, Add description, Add priority, Rename, Change color, Move up and down, Move to, Show details, Archive and Delete](../screenshots/en/task-menu-light.png)
 
 | Entry                                      | What it does                                                          |
 | ------------------------------------------ | --------------------------------------------------------------------- |
@@ -105,7 +105,7 @@ Open the menu of the task (menu button or right-click):
 | **Show details**                           | Selects the task in the details panel.                                |
 | **Archive**, **Delete**                    | Hide it or move it to the trash, with its subtasks.                   |
 
-![Task description](../screenshots/en/task-description-light.png)
+![A task with a description, shown in the details panel on the right](../screenshots/en/task-description-light.png)
 
 A task with a description shows a small icon: click it to read the description. The look of the tasks is set by **Task density** (**Compact**, **Normal**, **Roomy**) and **Colored task background**.
 
@@ -123,7 +123,7 @@ With **Tasks, sections and groups move aside while dragging** off in **Settings 
 
 Every list of tasks is a tree for the keyboard and for screen readers: `Tab` enters the list on a single task (the last one that had the focus, or the first) and the next `Tab` leaves it, so you do not have to cross every task. Inside the list:
 
-![The focus ring on a task](../screenshots/en/task-keyboard-light.png)
+![A task with the keyboard focus ring around its row](../screenshots/en/task-keyboard-light.png)
 
 - `↑` and `↓` go to the previous and next visible task, `Home` and `End` to the first and last one. The arrows do not leave the section.
 - `→` opens the subtasks of a task (if they are closed) and then goes to the first one; `←` closes them and then goes to the parent task.
@@ -142,7 +142,7 @@ Right click a selected task (or open its menu) to act on all of them at once: **
 
 Selected tasks get a dashed outline (not only a tint) and are announced as "selected" by screen readers; with two or more selected, a counter such as "3 selected" appears at the bottom of the note.
 
-![Selected tasks with the dashed outline and the counter](../screenshots/en/task-selection-light.png)
+![Three selected tasks with a dashed outline and the "3 selected" counter at the bottom](../screenshots/en/task-selection-light.png)
 
 ## Search in a note
 

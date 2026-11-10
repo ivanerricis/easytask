@@ -2,9 +2,9 @@
 
 EasyTask ha scorciatoie da tastiera per le azioni più comuni. Premi `?` per vedere l'elenco completo, oppure scegli **Aiuto > Scorciatoie da tastiera…** nel menu dell'applicazione.
 
-![Scorciatoie da tastiera](../../screenshots/it/shortcuts-light.png)
+![La finestra delle scorciatoie da tastiera con le scorciatoie Generali, ognuna con i suoi tasti, e l'inizio della sezione Note e tab](../../screenshots/it/shortcuts-light.png)
 
-Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per schede, barre laterali, ricerca, torna alla home, task completati, nuovo gruppo, documentazione, dimensione del testo, vista divisa e nuovo workspace funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
+Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per i tab, barre laterali, ricerca, torna alla home, task completati, nuovo gruppo, documentazione, dimensione del testo, vista divisa e nuovo workspace funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
 
 ## Generale
 
@@ -85,7 +85,7 @@ Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo
 
 La barra dei menu in alto ha **File**, **Modifica**, **Visualizza** e **Aiuto**. Premi e rilascia `Alt` da solo, oppure premi `F10`, per spostare lì il focus, poi usa le frecce. Premi di nuovo `Alt` per tornare dov'eri. Le voci del menu mostrano la loro scorciatoia.
 
-![Menu dell'applicazione](../../screenshots/it/app-menu-light.png)
+![La barra dei menu dell'applicazione con File, Modifica, Visualizza e Aiuto](../../screenshots/it/app-menu-light.png)
 
 ## Cambiare una scorciatoia
 
@@ -96,7 +96,7 @@ La barra dei menu in alto ha **File**, **Modifica**, **Visualizza** e **Aiuto**.
 
 Una scorciatoia deve usare `Ctrl` o `Alt`, tranne i tasti funzione come `F5`.
 
-![Impostazioni delle scorciatoie](../../screenshots/it/settings-shortcuts-light.png)
+![Impostazioni delle scorciatoie con l'elenco delle scorciatoie e i pulsanti Modifica](../../screenshots/it/settings-shortcuts-light.png)
 
 Un'azione con una scorciatoia personalizzata mostra un pulsante di ripristino. Cliccalo per tornare al valore predefinito di quell'azione. **Reimposta tutto**, in alto, riporta tutte le scorciatoie ai valori predefiniti.
 

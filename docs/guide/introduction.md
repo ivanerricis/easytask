@@ -2,8 +2,8 @@
 
 EasyTask is a desktop to-do list built around workspaces, inspired by tools like Notion, Obsidian and Trello. Everything is stored locally on your computer.
 
-![Workspace](../screenshots/en/workspace-light.png){.light-only}
-![Workspace](../screenshots/en/workspace-dark.png){.dark-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](../screenshots/en/workspace-light.png){.light-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](../screenshots/en/workspace-dark.png){.dark-only}
 
 ## Structure
 

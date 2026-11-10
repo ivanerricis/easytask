@@ -8,7 +8,7 @@ You can attach audio files to a group and play them while you work, without leav
 2. Choose **Add audio files**.
 3. Pick one or more files. Supported formats: `mp3`, `wav`, `ogg`, `m4a`, `aac`, `flac`, `opus` and `webm`.
 
-![Group menu](../screenshots/en/group-menu-light.png)
+![Context menu of a group with Add audio files, New section, Move task list up and down, Rename, Change color, Move left and right, Automations, Archive and Delete](../screenshots/en/group-menu-light.png)
 
 The files appear as a list in the group. Click a file to play it. The icon of the file shows its state: playing, paused, ended or not loaded.
 

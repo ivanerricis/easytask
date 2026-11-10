@@ -6,7 +6,7 @@ This walkthrough takes you from an empty app to a note with a few tasks.
 
 On the home page, click **New workspace** (or press `Ctrl+N`). Type a name in the **Create workspace** dialog and confirm.
 
-![Create workspace dialog](../screenshots/en/create-workspace-dialog-light.png)
+![The New workspace dialog with a field for the name](../screenshots/en/create-workspace-dialog-light.png)
 
 Open the workspace from the list on the home page.
 
@@ -16,7 +16,7 @@ In the sidebar, click **New folder** and give it a name. Folders are optional: y
 
 To create a note, click **New note** (or press `Ctrl+N`). In the **New note** dialog, type a name and click **Create**. You can also start from a template: see [Templates](./templates).
 
-![New note dialog](../screenshots/en/new-note-dialog-light.png)
+![The New note dialog with the Name field, a button to pick a color, and the Cancel and Create buttons](../screenshots/en/new-note-dialog-light.png)
 
 The note opens in a tab. Open notes stay in the tab bar.
 
@@ -26,7 +26,7 @@ A new note is empty. Click the **+** button (**New group**) in the bar above the
 
 Groups and sections can be left without a name. To name one, click its name and type.
 
-![Empty note](../screenshots/en/note-empty-light.png)
+![An empty note with the hints for the shortcuts and the New group button](../screenshots/en/note-empty-light.png)
 
 ## 4. Add tasks and sub-tasks
 
@@ -42,8 +42,8 @@ Click the checkbox of a task to complete it. A task with sub-tasks shows how man
 
 Select a task and open the details panel with `Ctrl+Shift+B`, or from **View > Details panel** in the menu. The panel shows the task details and its sub-tasks.
 
-![Task details](../screenshots/en/task-details-light.png){.light-only}
-![Task details](../screenshots/en/task-details-dark.png){.dark-only}
+![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-light.png){.light-only}
+![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-dark.png){.dark-only}
 
 ## Next steps
 

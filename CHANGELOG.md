@@ -11,6 +11,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Live drag of sections: while you drag a section the others step aside to open the room where it would land, in the same group or in another one, and the dragged section collapses. The insertion line of the sections is not shown during the drag.
 - Live drag of groups: while you drag a group by its header the other groups step sideways to open the room where it would land, and the dragged group collapses. The vertical insertion line of the groups is not shown during the drag. The sidebar behaves as before. The setting is now **Tasks, sections and groups move aside while dragging**: turn it off to get only the drop indicator.
 
+### Changed
+
+- Dragging is much smoother in big notes: the note is no longer redrawn as a whole during a drag and after a drop, so the stops of about a second are gone.
+- The match counter of the search is now shown inside the search field, without the empty space beside it.
+- The repository is now called `easytask`, so the address of the documentation site changed to `https://ivanerricis.github.io/easytask/`.
+
+### Fixed
+
+- Search: the current match now has a visible ring in every theme, and it also shows with the forced colors of Windows (high contrast mode).
+
 ## [0.21.0] - 2026-11-08
 
 ### Added

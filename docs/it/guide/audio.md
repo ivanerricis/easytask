@@ -8,7 +8,7 @@ Puoi allegare file audio a un gruppo e ascoltarli mentre lavori, senza uscire da
 2. Scegli **Aggiungi file audio**.
 3. Seleziona uno o più file. Formati supportati: `mp3`, `wav`, `ogg`, `m4a`, `aac`, `flac`, `opus` e `webm`.
 
-![Menu del gruppo](../../screenshots/it/group-menu-light.png)
+![Menu contestuale di un gruppo con Aggiungi file audio, Nuova sezione, Sposta lista task su e giù, Rinomina, Cambia colore, Sposta a sinistra e a destra, Automazioni, Archivia ed Elimina](../../screenshots/it/group-menu-light.png)
 
 I file compaiono come elenco nel gruppo. Clicca un file per riprodurlo. L'icona del file ne mostra lo stato: in riproduzione, in pausa, terminato o non caricato.
 

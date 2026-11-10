@@ -69,7 +69,7 @@ Gli spec in `e2e/specs` (un file per area) comprendono:
 | `task-multiselect` | Selezione multipla dei task |
 | `template-editor` | Editor dei template |
 | `themes` | Temi: galleria, editor, importazione ed esportazione |
-| `whats-new` | La scheda Novità |
+| `whats-new` | Il tab Novità |
 
 Per i dettagli vedi [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
 

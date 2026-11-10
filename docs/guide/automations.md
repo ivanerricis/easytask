@@ -13,13 +13,13 @@ The menus of a group and of a section have the same entry. It opens the automati
 
 The dialog lists the rules of the note. A note needs at least one section before you can create a rule.
 
-![Automations of a note](../screenshots/en/automations-light.png)
+![The Automations dialog listing one rule, with a switch, edit and delete buttons and a New automation button](../screenshots/en/automations-light.png)
 
 ## Create a rule
 
 Click **New automation**. The editor has three steps, shown at the top: **When**, **Then** and **Summary**. **Next** and **Back** move between them, and you can also click a step.
 
-![The automation editor](../screenshots/en/automation-editor-light.png)
+![Step 1 of the New automation dialog: the When step, with the trigger "a task is completed" and the section "Development" selected](../screenshots/en/automation-editor-light.png)
 
 1. **When**: choose what starts the rule, then, where it applies: **In which section** for a task trigger (or **Any section**), or **Group** for a group trigger (or **Any group**).
 2. **Then**: choose what should happen. Click **Add action** to add more actions, and the remove button to take one away.
