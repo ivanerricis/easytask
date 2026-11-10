@@ -46,7 +46,12 @@ const collisionDetection: CollisionDetection = ({ active, droppableContainers, d
         const rect = droppableRects.get(container.id)
         if (!accepts?.includes(kind) || !rect) continue
         const { x, y } = pointerCoordinates
-        if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) continue
+        // `left` and `top` of a dnd-kit Rect are getters that add up the scroll of every scrollable ancestor each time they are read
+        // (this runs for every droppable on every pointer move): two reads, the other edges from the size
+        const left = rect.left
+        if (x < left || x > left + rect.width) continue
+        const top = rect.top
+        if (y < top || y > top + rect.height) continue
         hits.push({ id: container.id, data: { droppableContainer: container, value: rect.width * rect.height } })
     }
     return hits.sort((a, b) => (a.data?.value as number) - (b.data?.value as number))
