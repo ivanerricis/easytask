@@ -1,10 +1,11 @@
 import type { DropZone, TaskTarget } from "./note-dnd"
 
 /**
- * Pure logic of the "live drag" of the tasks and of the sections: while one is dragged the other ones step aside (a visual `translateY`
- * of their outer wrapper) to open the room where the dragged one would land, and the room it leaves is closed.
+ * Pure logic of the "live drag" of the tasks, the sections and the groups: while one is dragged the other ones step aside (a visual
+ * translation of their outer wrapper) to open the room where the dragged one would land, and the room it leaves is closed.
  * A section is a row of the list of its group ("g-<groupId>", see {@link groupListKey}) and carries its tasks with it: only its own
- * wrapper moves.
+ * wrapper moves. The groups are the columns of the one list {@link GROUPS_LIST}: they step aside along the horizontal axis. The maths is
+ * the same on both axes: `top` and `height` of a node are its start and its size along the axis it is moved on (`left` and `width` for a group).
  * Nothing here touches React or the note data: it works on a snapshot of the sizes taken when the drag starts.
  * The order is the one drawn in the DOM (with "hide completed" and "completed last" it is not the order of the data).
  * @category Note DnD
@@ -17,7 +18,9 @@ export type LiveNodeInfo = {
     list: string
     /** Key of the wrapper of the parent task (null for a top level task). */
     parent: string | null
+    /** Start along the axis of the move (the top of a row, the left side of a group). */
     top: number
+    /** Size along the axis of the move (the height of a row, the width of a group). */
     height: number
 }
 
@@ -39,6 +42,9 @@ export type LiveSnapshot = {
  * `over` null = at the end of the list (a section dropped on the empty area of a group).
  */
 export type LivePending = { over: string | null, zone: DropZone | null, list: string }
+
+/** Key of the list of the groups of a note (the columns, moved along the horizontal axis). */
+export const GROUPS_LIST = "groups"
 
 /** Key of the list of the sections of a group. */
 export const groupListKey = (groupId: number): string => `g-${groupId}`
@@ -100,7 +106,9 @@ export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pendi
     // The room of the dragged task: from its top to the top of the next row of its list (the space between rows included)
     const sourceList = lists.get(source.list) ?? []
     const next = find(sourceList[sourceList.indexOf(dragged) + 1])
-    const size = next ? next.top - source.top : source.height
+    // (the last row has no next one: the gap before it is the one it leaves, when there is a previous row)
+    const previous = find(sourceList[sourceList.indexOf(dragged) - 1])
+    const size = next ? next.top - source.top : source.height + (previous ? Math.max(0, source.top - (previous.top + previous.height)) : 0)
     if (!(size > 0)) return NONE
 
     // The place: before the row that follows it in its list, or at the end of the list
@@ -186,6 +194,14 @@ export function holdHalfZone(previous: DropZone | null, next: DropZone, rect: { 
 }
 
 /**
+ * Same as {@link holdLiveZone} for the groups: two zones (left half = before, right half = after), the previous side is kept while
+ * the pointer is within `margin` px of the middle of the column.
+ * @category Note DnD
+ */
+export const holdHalfZoneX = (previous: DropZone | null, next: DropZone, rect: { left: number, width: number }, pointerX: number, margin = zoneHysteresis(rect.width)): DropZone =>
+    holdHalfZone(previous, next, { top: rect.left, height: rect.width }, pointerX, margin)
+
+/**
  * Whether the pointer is in the gap just outside a row (the few px between two sections belong to the group, not to a section):
  * the rows keep their place there instead of jumping to the "end of the group" and back.
  * @category Note DnD
@@ -196,6 +212,14 @@ export const isInRowGap = (rect: { top: number, bottom: number }, pointerY: numb
 /** Largest gap (px) between two sections that does not change the place shown (the rows of a group are 4px apart). */
 export const ROW_GAP_TOLERANCE = 8
 
+/**
+ * Whether the pointer is in the few px around a group column (the 8px between two groups and the padding above and below belong to
+ * no droppable): the columns keep their place there instead of jumping back and forth.
+ * @category Note DnD
+ */
+export const isInColumnGap = (rect: { left: number, right: number, top: number, bottom: number }, pointer: { x: number, y: number }, tolerance = ROW_GAP_TOLERANCE): boolean =>
+    isInRowGap({ top: rect.left, bottom: rect.right }, pointer.x, tolerance) && isInRowGap(rect, pointer.y, tolerance)
+
 type RectLike ={ top: number, bottom: number, left: number, right: number, width: number, height: number }
 
 /**
@@ -203,12 +227,15 @@ type RectLike ={ top: number, bottom: number, left: number, right: number, width
  * ancestors (the wrapper of a task and its subtasks move together). Without it the places the pointer is tested against would
  * move with the shift and the target would flicker between two places.
  * @param base Measure of the rect as it is on screen.
- * @param shiftOf The vertical shift currently applied to the element and its ancestors.
+ * @param shiftOf The shift currently applied to the element and its ancestors, along the given axis.
  * @category Note DnD
  */
-export const makeShiftFreeMeasure = <R extends RectLike>(base: (element: HTMLElement) => R, shiftOf: (element: HTMLElement) => number) =>
+export const makeShiftFreeMeasure = <R extends RectLike>(base: (element: HTMLElement) => R, shiftOf: (element: HTMLElement, axis: "x" | "y") => number) =>
     (element: HTMLElement): R => {
-        const rect = base(element)
-        const dy = shiftOf(element)
-        return dy ? { ...rect, top: rect.top - dy, bottom: rect.bottom - dy } : rect
+        let rect = base(element)
+        const dy = shiftOf(element, "y")
+        if (dy) rect = { ...rect, top: rect.top - dy, bottom: rect.bottom - dy }
+        const dx = shiftOf(element, "x")
+        if (dx) rect = { ...rect, left: rect.left - dx, right: rect.right - dx }
+        return rect
     }

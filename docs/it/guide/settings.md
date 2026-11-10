@@ -52,7 +52,7 @@ La galleria dei temi mostra un'anteprima di ciascuno; usa le frecce per scorrerl
 | **Comportamento**: Rinomina cliccando sul nome | Sì / No | Sì |
 | Continua ad aggiungere task (il campo resta aperto dopo aver creato un task) | Sì / No | Sì |
 | Linea per inserire un task (una linea con un + tra due task; con Continua ad aggiungere task il campo si sposta sotto il nuovo task) | Sì / No | Sì |
-| Task e sezioni che si spostano mentre li trascini (gli altri si scostano per aprire lo spazio dove atterrerebbe il task o la sezione trascinati; se disattivato resta solo l'indicatore del punto di rilascio) | Sì / No | Sì |
+| Task, sezioni e gruppi che si spostano mentre li trascini (gli altri si scostano per aprire lo spazio dove atterrerebbe il task, la sezione o il gruppo trascinati; se disattivato resta solo l'indicatore del punto di rilascio) | Sì / No | Sì |
 | Posizione dei nuovi task | In cima, In fondo | In fondo |
 | Controllo ortografico | Sì / No | Sì |
 | Conferma l'eliminazione solo se c'è contenuto (note, sezioni e gruppi: se attiva, quelli vuoti vanno subito nel cestino con **Annulla**, gli altri chiedono conferma; se disattivata non chiede mai. Cartelle, workspace, task e selezioni multiple chiedono sempre) | Sì / No | Sì |

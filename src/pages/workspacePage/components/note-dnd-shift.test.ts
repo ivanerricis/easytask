@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, registerShiftNode, sectionNodeKey, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, groupNodeKey, registerShiftNode, sectionNodeKey, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
 
 let frames: FrameRequestCallback[] = []
 const flushFrame = () => { const run = frames; frames = []; run.forEach(callback => callback(0)) }
@@ -297,5 +297,63 @@ describe("sections", () => {
         sectionWrapper(1, 5, 0, 100)
         wrapper(1, 1)
         expect([...readLiveSnapshot().items.keys()]).toEqual(["task-1"])
+    })
+})
+
+describe("groups (horizontal axis)", () => {
+    const groupWrapper = (id: number, left: number, width: number) => {
+        const node = document.createElement("div")
+        node.setAttribute(SHIFT_ATTR.groupWrap, String(id))
+        node.getBoundingClientRect = () => ({ left, width, top: 0, height: 500 }) as DOMRect
+        document.body.appendChild(node)
+        registerShiftNode(groupNodeKey(id), node)
+        return node
+    }
+
+    it("the key of a group is the key of its droppable", () => {
+        expect(groupNodeKey(7)).toBe("group-7")
+    })
+
+    it("moves the column sideways with a translateX and hides the dragged one", () => {
+        const a = groupWrapper(1, 0, 100)
+        const b = groupWrapper(2, 108, 100)
+        applyShifts(new Map([[groupNodeKey(2), -108]]), groupNodeKey(1), "x")
+        flushFrame()
+        expect(b.style.transform).toBe("translate3d(-108px, 0, 0)")
+        expect(a.style.opacity).toBe("0")
+        clearShifts(false)
+        expect(b.style.transform).toBe("")
+    })
+
+    it("shiftOf answers for the axis of the drag only (the sections inside ride on the column)", () => {
+        const column = groupWrapper(1, 0, 100)
+        const inner = document.createElement("span")
+        column.appendChild(inner)
+        applyShifts(new Map([[groupNodeKey(1), 40]]), null, "x")
+        flushFrame()
+        expect(shiftOf(inner, "x")).toBe(40)
+        expect(shiftOf(inner, "y")).toBe(0)
+    })
+
+    it("reads a matrix for the horizontal offset (an animation in progress)", () => {
+        const column = groupWrapper(1, 0, 100)
+        applyShifts(new Map([[groupNodeKey(1), 20]]), null, "x")
+        flushFrame()
+        const spy = vi.spyOn(window, "getComputedStyle")
+        spy.mockReturnValue({ transform: "matrix(1, 0, 0, 1, 7, 3)" } as CSSStyleDeclaration)
+        expect(shiftOf(column, "x")).toBe(7)
+        spy.mockReturnValue({ transform: "matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,9,3,0,1)" } as CSSStyleDeclaration)
+        expect(shiftOf(column, "x")).toBe(9)
+        spy.mockRestore()
+    })
+
+    it("reads the columns of a group drag as one list, with left and width as the start and the size", () => {
+        groupWrapper(1, 0, 100)
+        groupWrapper(2, 108, 60)
+        wrapper(1, 1)
+        const { items, lists } = readLiveSnapshot("group")
+        expect([...lists.keys()]).toEqual(["groups"])
+        expect(lists.get("groups")).toEqual(["group-1", "group-2"])
+        expect(items.get("group-2")).toMatchObject({ list: "groups", parent: null, top: 108, height: 60 })
     })
 })

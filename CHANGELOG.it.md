@@ -4,6 +4,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Trascinamento dal vivo di sezioni e gruppi: mentre trascini una sezione (nello stesso gruppo o in un altro) o un gruppo dalla sua intestazione, gli altri si scostano per aprire lo spazio dove atterrerebbe (le sezioni in verticale, i gruppi di lato) e quello trascinato si richiude. La linea di inserimento non compare durante il trascinamento. La barra laterale resta come prima. L'impostazione ora è **Task, sezioni e gruppi che si spostano mentre li trascini**: spegnila per avere solo l'indicatore del punto di rilascio.
+
 ## [0.21.0] - 2026-11-08
 
 ### Aggiunto

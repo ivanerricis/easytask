@@ -1,7 +1,7 @@
-import { buildLiveSnapshot, groupListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
+import { buildLiveSnapshot, GROUPS_LIST, groupListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
 
 /**
- * The visual side of the "live drag" of the tasks and the sections: a registry of the outer wrapper of every task and section and the code that moves them with
+ * The visual side of the "live drag" of the tasks, the sections and the groups: a registry of the outer wrapper of every task, section and group and the code that moves them with
  * `style.transform`, in `requestAnimationFrame`, without React (no state, no re-render per pointer move) and without touching the
  * order of the data. Module level on purpose: there is one note drag at a time and the rows only hand over their ref.
  * @category Note DnD
@@ -12,14 +12,19 @@ export const SHIFT_DURATION = 150
 
 /**
  * Attributes the wrappers carry so the layout (lists and parents) can be read back from the DOM. Written with these literal names by
- * the task wrapper (Task.tsx) and the section wrapper (Section.tsx, GroupTasks.tsx: `sectionWrap` = its id, `group` = the id of its group).
+ * the task wrapper (Task.tsx) and the section wrapper (Section.tsx, GroupTasks.tsx: `sectionWrap` = its id, `group` = the id of its group) and the column of a group (GroupContainer.tsx: `groupWrap` = its id).
  */
-export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section", sectionWrap: "data-section-wrap", group: "data-section-group" } as const
+export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section", sectionWrap: "data-section-wrap", group: "data-section-group", groupWrap: "data-group-wrap" } as const
+
+/** The axis a drag moves the wrappers on: the tasks and the sections step aside vertically, the groups (columns) horizontally. */
+export type ShiftAxis = "x" | "y"
 
 const nodes = new Map<string, HTMLElement>()
 /** What is applied now, by node. */
 const applied = new Map<HTMLElement, number>()
 let target: ReadonlyMap<string, number> = new Map()
+/** The axis of the shifts in `target` and in `applied` (one drag at a time, one axis). */
+let axis: ShiftAxis = "y"
 let hiddenKey: string | null = null
 let hiddenNode: HTMLElement | null = null
 let frame = 0
@@ -32,6 +37,9 @@ export const taskNodeKey = (taskId: number): string => `task-${taskId}`
 
 /** Key of the wrapper of a section in the registry (the same as the droppable key of its card, see noteKey). */
 export const sectionNodeKey = (sectionId: number): string => `section-${sectionId}`
+
+/** Key of the wrapper of a group (the column) in the registry (the same as the droppable key of the group, see noteKey). */
+export const groupNodeKey = (groupId: number): string => `group-${groupId}`
 
 /** Registers (or, with null, forgets) the wrapper of a task. A ref callback: it must be the same function while the key is. */
 export function registerShiftNode(key: string, node: HTMLElement | null): void {
@@ -64,7 +72,7 @@ const write = (animate: boolean) => {
     for (const [node, dy] of wanted) {
         if (applied.get(node) === dy) continue
         node.style.transition = transition
-        node.style.transform = `translate3d(0, ${dy}px, 0)`
+        node.style.transform = axis === "x" ? `translate3d(${dy}px, 0, 0)` : `translate3d(0, ${dy}px, 0)`
         applied.set(node, dy)
     }
 
@@ -100,11 +108,12 @@ function scheduleCleanup(node: HTMLElement) {
 }
 
 /**
- * Moves the wrappers by `shifts` (key -> dy); the ones that are not in it go back. The write happens in the next animation frame
- * (a later call before that replaces this one). `hidden` is the wrapper to hide (the dragged task whose room is closed).
+ * Moves the wrappers by `shifts` (key -> distance along `along`); the ones that are not in it go back. The write happens in the next
+ * animation frame (a later call before that replaces this one). `hidden` is the wrapper to hide (the dragged one whose room is closed).
  */
-export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string | null = null): void {
+export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string | null = null, along: ShiftAxis = "y"): void {
     target = shifts
+    axis = along
     hiddenKey = hidden
     if (frame) return
     frame = requestAnimationFrame(() => {
@@ -127,19 +136,25 @@ export function clearShifts(animate: boolean): void {
 /** Whether something is moved (or about to be). */
 export const hasShifts = (): boolean => applied.size > 0 || hiddenKey !== null || [...target.values()].some(dy => dy !== 0)
 
-/** The vertical offset of a node right now (an animation in progress included), from its inline transform. */
+/** The offset of a node along the axis right now (an animation in progress included), from its inline transform. */
 const currentOffset = (node: HTMLElement, wanted: number): number => {
     const value = (typeof getComputedStyle === "function" ? getComputedStyle(node).transform : "") || node.style.transform
     const matrix = /^matrix\(([^)]*)\)$/.exec(value)
-    if (matrix) return parseFloat(matrix[1].split(",")[5]) || 0
+    if (matrix) return parseFloat(matrix[1].split(",")[axis === "x" ? 4 : 5]) || 0
     const matrix3d = /^matrix3d\(([^)]*)\)$/.exec(value)
-    if (matrix3d) return parseFloat(matrix3d[1].split(",")[13]) || 0
-    const translate = /^translate3d\(\s*[^,]+,\s*(-?[\d.]+)px/.exec(value)
+    if (matrix3d) return parseFloat(matrix3d[1].split(",")[axis === "x" ? 12 : 13]) || 0
+    const translate = axis === "x"
+        ? /^translate3d\(\s*(-?[\d.]+)px/.exec(value)
+        : /^translate3d\(\s*[^,]+,\s*(-?[\d.]+)px/.exec(value)
     return translate ? parseFloat(translate[1]) : wanted
 }
 
-/** The shift applied to an element: the one of its own wrapper and of the wrappers of its ancestors (the subtasks ride on them). */
-export function shiftOf(element: HTMLElement): number {
+/**
+ * The shift applied to an element along `along`: the one of its own wrapper and of the wrappers of its ancestors (the subtasks ride on
+ * them). Zero for the other axis than the one the current drag moves on.
+ */
+export function shiftOf(element: HTMLElement, along: ShiftAxis = "y"): number {
+    if (along !== axis) return 0
     let total = 0
     for (const [node, dy] of applied) if (node.contains(element)) total += currentOffset(node, dy)
     return total
@@ -149,15 +164,25 @@ export function shiftOf(element: HTMLElement): number {
  * Reads the layout of the registered wrappers of the kind that is dragged (call it before anything is shifted: the snapshot must be
  * of the resting layout). Only the wrappers that can be moved are read: a section drag does not touch the hundreds of tasks.
  */
-export function readLiveSnapshot(kind: "task" | "section" = "task"): LiveSnapshot {
+export function readLiveSnapshot(kind: "task" | "section" | "group" = "task"): LiveSnapshot {
     const wanted = (node: HTMLElement) => kind === "task"
         ? node.hasAttribute(SHIFT_ATTR.task)
-        : node.hasAttribute(SHIFT_ATTR.sectionWrap)
+        : node.hasAttribute(kind === "group" ? SHIFT_ATTR.groupWrap : SHIFT_ATTR.sectionWrap)
     const sorted = [...nodes.values()]
         .filter(node => node.isConnected && wanted(node))
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     const infos: LiveNodeInfo[] = sorted.map(node => {
         const rect = node.getBoundingClientRect()
+        // The columns are laid out along the horizontal axis: left and width stand for top and height
+        if (kind === "group") {
+            return {
+                key: groupNodeKey(Number(node.getAttribute(SHIFT_ATTR.groupWrap))),
+                list: GROUPS_LIST,
+                parent: null,
+                top: rect.left,
+                height: rect.width,
+            }
+        }
         if (kind === "section") {
             return {
                 key: sectionNodeKey(Number(node.getAttribute(SHIFT_ATTR.sectionWrap))),
