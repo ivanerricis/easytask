@@ -1,5 +1,5 @@
 import { AddSection } from "../section/AddSection"
-import { useLayoutEffect, useMemo, useRef } from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef, type ReactNode } from "react"
 import { Group } from "./Group"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
@@ -14,6 +14,27 @@ import { NoteAnnouncer } from "../tasks/NoteAnnouncer"
 import { cn } from "@/lib/utils"
 import { groupsByPosition } from "@/lib/group-sections"
 import { useNoteBackgroundStyle } from "@/hooks/use-note-background"
+import { groupNodeKey, registerShiftNode, SHIFT_ATTR } from "../note-dnd-shift"
+
+type GroupColumnProps = {
+    groupId: number
+    /** The group has an explicit width: it does not shrink. */
+    fixedWidth: boolean
+    children: ReactNode
+}
+
+/**
+ * The column of a group: the group itself, its separator and its "new group" slot. It is the wrapper the live drag of the groups
+ * moves sideways (its sections ride on it), so it is registered with the shift registry.
+ */
+const GroupColumn = ({ groupId, fixedWidth, children }: GroupColumnProps) => {
+    const setRef = useCallback((node: HTMLElement | null) => registerShiftNode(groupNodeKey(groupId), node), [groupId])
+    return (
+        <div ref={setRef} {...{ [SHIFT_ATTR.groupWrap]: groupId }} className={cn("relative h-full w-fit", fixedWidth ? "shrink-0" : "max-w-full")}>
+            {children}
+        </div>
+    )
+}
 
 export const GroupContainer = () => {
     const { noteDataTree } = useActiveNote()
@@ -66,13 +87,13 @@ export const GroupContainer = () => {
                 {orderedGroups.length > 0 &&
                     orderedGroups
                         .map((group, index) => (
-                            <div key={group.id} className={cn("relative h-full w-fit", group.width ? "shrink-0" : "max-w-full")}>
+                            <GroupColumn key={group.id} groupId={group.id} fixedWidth={!!group.width}>
                                 {/* Vertical guide line centered in the gap (space-x-2) before every group but the first */}
                                 {showGroupSeparators && index > 0 &&
                                     <div data-testid="group-separator" aria-hidden className="pointer-events-none absolute -left-1 top-0 h-full w-px -translate-x-1/2 bg-border" />}
                                 <NewGroupSlot index={index} />
                                 <Group group={group} index={index} audioCount={audioCounts[group.id] ?? 0} />
-                            </div>
+                            </GroupColumn>
                         ))}
                 <NewGroupEnd index={groups?.length ?? 0}>
                     <AddSection />

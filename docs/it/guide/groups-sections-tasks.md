@@ -41,8 +41,8 @@ Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre
 
 Puoi spostare gli elementi anche trascinandoli:
 
-- Trascina un gruppo dalla sua intestazione per riordinare i gruppi.
-- Trascina una sezione su un altro gruppo, o tra due sezioni, per spostarla. Mentre trascini, le altre sezioni (e la lista dei task del gruppo) si scostano per aprire lo spazio dove atterrerebbe, nello stesso gruppo o in un altro, e la sezione trascinata si richiude. Con **Task e sezioni che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** una linea mostra invece dove cade. Rilasciala sull'area **Nuovo gruppo** al bordo per farne un gruppo a sé.
+- Trascina un gruppo dalla sua intestazione per riordinare i gruppi. Mentre trascini, gli altri gruppi si scostano di lato per aprire lo spazio dove atterrerebbe e il gruppo trascinato si richiude. Con **Task, sezioni e gruppi che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** una linea verticale mostra invece dove cade.
+- Trascina una sezione su un altro gruppo, o tra due sezioni, per spostarla. Mentre trascini, le altre sezioni (e la lista dei task del gruppo) si scostano per aprire lo spazio dove atterrerebbe, nello stesso gruppo o in un altro, e la sezione trascinata si richiude. Con **Task, sezioni e gruppi che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** una linea mostra invece dove cade. Rilasciala sull'area **Nuovo gruppo** al bordo per farne un gruppo a sé.
 
 La lista dei task del gruppo segue lo stesso ordine delle sezioni: di default è in cima, e la sposti con **Sposta lista task su** e **Sposta lista task giù** (anche nel menu del clic destro del gruppo), che sono disattivate quando la lista è già a un'estremità, e non compaiono finché il gruppo non ha sezioni. [Annulla](./undo-and-history) la riporta com'era.
 
@@ -117,7 +117,7 @@ Trascina un task dalla sua riga. Mentre trascini, gli altri task si scostano per
 - al centro di un task, per renderlo un sottotask di quel task (il task mostra un anello invece di aprire uno spazio);
 - su una sezione, per farne l'ultimo task di quella sezione.
 
-Con **Task e sezioni che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo.
+Con **Task, sezioni e gruppi che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo.
 
 ### Usare la tastiera
 

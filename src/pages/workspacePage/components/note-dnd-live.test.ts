@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildLiveSnapshot, computeLiveShifts, groupListKey, holdHalfZone, holdLiveZone, isInRowGap, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
+import { buildLiveSnapshot, computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
 
 /**
  * A tiny layout engine: a list is an array of rows, a row `[key, height, children?]`. Every row is a wrapper that is as tall as its
@@ -211,8 +211,13 @@ describe("makeShiftFreeMeasure", () => {
     const element = {} as HTMLElement
 
     it("takes the shift away from the top and the bottom only", () => {
-        const measure = makeShiftFreeMeasure(() => rect, () => -10)
+        const measure = makeShiftFreeMeasure(() => rect, (_, axis) => axis === "y" ? -10 : 0)
         expect(measure(element)).toEqual({ ...rect, top: 110, bottom: 140 })
+    })
+
+    it("takes the horizontal shift away from the left and the right side", () => {
+        const measure = makeShiftFreeMeasure(() => rect, (_, axis) => axis === "x" ? 20 : 0)
+        expect(measure(element)).toEqual({ ...rect, left: -15, right: 35 })
     })
 
     it("returns the same rect when nothing is shifted", () => {
@@ -223,7 +228,7 @@ describe("makeShiftFreeMeasure", () => {
     it("asks the shift of the element it measures", () => {
         const asked: HTMLElement[] = []
         makeShiftFreeMeasure(() => rect, el => { asked.push(el); return 0 })(element)
-        expect(asked).toEqual([element])
+        expect(asked).toEqual([element, element]) // one per axis
     })
 })
 
@@ -277,8 +282,8 @@ describe("computeLiveShifts: sections", () => {
     })
 
     it("same group, going up: the sections between the place and the source go down", () => {
-        expect(shiftsOf(nodes, "C", at("A", "before", "g-1"))).toEqual({ A: 60, B: 60 })
-        expect(shiftsOf(nodes, "C", at("A", "after", "g-1"))).toEqual({ B: 60 })
+        expect(shiftsOf(nodes, "C", at("A", "before", "g-1"))).toEqual({ A: 64, B: 64 })
+        expect(shiftsOf(nodes, "C", at("A", "after", "g-1"))).toEqual({ B: 64 })
     })
 
     it("the room is the one of the dragged section even when the others have another height", () => {
@@ -311,8 +316,8 @@ describe("computeLiveShifts: sections", () => {
     })
 
     it("the last section of its group leaves nothing to close", () => {
-        expect(shiftsOf(nodes, "Y", at("X", "before", "g-2"))).toEqual({ X: 20 })
-        expect(shiftsOf(nodes, "C", at("X", "before", "g-2"))).toEqual({ X: 60, Y: 60 })
+        expect(shiftsOf(nodes, "Y", at("X", "before", "g-2"))).toEqual({ X: 24 }) // its height plus the gap before it, which closes with it
+        expect(shiftsOf(nodes, "C", at("X", "before", "g-2"))).toEqual({ X: 64, Y: 64 })
     })
 
     it("does not move the tasks of a section: only the wrapper of the section is in the list", () => {
@@ -329,7 +334,7 @@ describe("computeLiveShifts: sections", () => {
     it("follows the order drawn: the list of the direct tasks is a row among the sections", () => {
         const drawn = spaced("g-1", 0, [["A", 40], ["list", 50], ["B", 30]])
         expect(shiftsOf(drawn, "A", at("B", "before", "g-1"))).toEqual({ list: -44 })
-        expect(shiftsOf(drawn, "B", at("list", "before", "g-1"))).toEqual({ list: 30 })
+        expect(shiftsOf(drawn, "B", at("list", "before", "g-1"))).toEqual({ list: 34 })
     })
 })
 
@@ -358,5 +363,56 @@ describe("isInRowGap", () => {
         expect(isInRowGap(row, 150)).toBe(true)
         expect(isInRowGap(row, 90)).toBe(false)
         expect(isInRowGap(row, 215)).toBe(false)
+    })
+})
+
+describe("groups (horizontal axis: top = left, height = width)", () => {
+    // Three columns 100, 60 and 80 wide with 8px between them: g1 at 0, g2 at 108, g3 at 176
+    const groups = () => buildLiveSnapshot(layout([{ list: GROUPS_LIST, top: 0, rows: [] }]).concat([
+        { key: "group-1", list: GROUPS_LIST, parent: null, top: 0, height: 100 },
+        { key: "group-2", list: GROUPS_LIST, parent: null, top: 108, height: 60 },
+        { key: "group-3", list: GROUPS_LIST, parent: null, top: 176, height: 80 },
+    ]))
+    const pending = (over: string, zone: "before" | "after"): LivePending => ({ over, zone, list: GROUPS_LIST })
+
+    it("moves the columns between the dragged one and the place by its width and the gap", () => {
+        const shifts = computeLiveShifts(groups(), "group-1", pending("group-3", "after"))
+        expect([...shifts]).toEqual([["group-2", -108], ["group-3", -108]])
+    })
+
+    it("opens the room before a column the dragged one jumps over, and closes the one it leaves", () => {
+        const shifts = computeLiveShifts(groups(), "group-3", pending("group-1", "before"))
+        // The last column has no next one: its width plus the gap before it
+        expect([...shifts]).toEqual([["group-1", 88], ["group-2", 88]])
+    })
+
+    it("moves nothing for the place it already has", () => {
+        expect(computeLiveShifts(groups(), "group-2", pending("group-3", "before")).size).toBe(0)
+        expect(computeLiveShifts(groups(), "group-2", pending("group-2", "after")).size).toBe(0)
+    })
+})
+
+describe("holdHalfZoneX", () => {
+    const rect = { left: 100, width: 200 } // middle at x=200, margin 3px
+    it("keeps the side until the pointer is past the middle by the margin", () => {
+        expect(holdHalfZoneX("before", "after", rect, 202)).toBe("before")
+        expect(holdHalfZoneX("before", "after", rect, 204)).toBe("after")
+        expect(holdHalfZoneX("after", "before", rect, 198)).toBe("after")
+        expect(holdHalfZoneX("after", "before", rect, 196)).toBe("before")
+    })
+    it("takes the real zone for a new column", () => {
+        expect(holdHalfZoneX(null, "after", rect, 201)).toBe("after")
+    })
+})
+
+describe("isInColumnGap", () => {
+    const rect = { left: 100, right: 200, top: 10, bottom: 300 }
+    it("holds within the tolerance around the column, on both axes", () => {
+        expect(isInColumnGap(rect, { x: 205, y: 100 })).toBe(true)
+        expect(isInColumnGap(rect, { x: 95, y: 5 })).toBe(true)
+    })
+    it("lets go farther away", () => {
+        expect(isInColumnGap(rect, { x: 209, y: 100 })).toBe(false)
+        expect(isInColumnGap(rect, { x: 150, y: 320 })).toBe(false)
     })
 })

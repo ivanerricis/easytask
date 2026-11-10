@@ -41,8 +41,8 @@ A right-click on the empty area of the note (outside any group, section or task)
 
 You can also move things by dragging:
 
-- Drag a group by its header to reorder the groups.
-- Drag a section onto another group, or between sections, to move it. While you drag, the other sections (and the list of the group tasks) step aside to open the room where it would land, in the same group or in another one, and the section you are dragging collapses. With **Tasks and sections move aside while dragging** off in **Settings > Notes and sections** a line shows where it lands instead. Drop it on the **New group** area at the edge to make it a group of its own.
+- Drag a group by its header to reorder the groups. While you drag, the other groups step sideways to open the room where it would land and the group you are dragging collapses. With **Tasks, sections and groups move aside while dragging** off in **Settings > Notes and sections** a vertical line shows where it lands instead.
+- Drag a section onto another group, or between sections, to move it. While you drag, the other sections (and the list of the group tasks) step aside to open the room where it would land, in the same group or in another one, and the section you are dragging collapses. With **Tasks, sections and groups move aside while dragging** off in **Settings > Notes and sections** a line shows where it lands instead. Drop it on the **New group** area at the edge to make it a group of its own.
 
 The list of the group tasks follows the same order as the sections: by default it is at the top, and you can move it with **Move task list up** and **Move task list down** (also in the right-click menu of the group), which are disabled when the list is already at the end, and are not shown while the group has no sections. [Undo](./undo-and-history) brings it back.
 
@@ -117,7 +117,7 @@ Drag a task by its row. While you drag, the other tasks step aside to open the r
 - on the middle of a task, to make it a subtask of that task (the task shows a ring instead of opening a gap);
 - on a section, to make it the last task of that section.
 
-With **Tasks and sections move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
+With **Tasks, sections and groups move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
 
 ### Use the keyboard
 

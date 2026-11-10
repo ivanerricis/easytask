@@ -314,3 +314,143 @@ describe("Live drag of the sections", () => {
         }
     })
 })
+
+/**
+ * Live drag of the groups: with the pointer still down the other columns step aside sideways (the wrapper of the whole column gets a
+ * `translateX`, its sections ride on it) to open the room where the dragged one would land, and the dragged one collapses. After the
+ * drop the order is the visual one, Ctrl+Z restores it and no column keeps a transform. With the preference on the vertical line
+ * of the drop is not drawn; with it off the line is drawn and nothing moves.
+ */
+const THIRD_GROUP = "Live Drag Group Three"
+
+type GroupBox = { title: string; left: number; width: number; transform: string; opacity: string; line: boolean }
+
+/** The columns of the groups, left to right by their VISUAL position (transforms included). */
+const groupBoxes = async (): Promise<GroupBox[]> => {
+    const found = await browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-group-wrap]")).map(wrap => {
+        const rect = wrap.getBoundingClientRect()
+        const card = wrap.querySelector<HTMLElement>("[data-group-card]")!
+        // The vertical insertion line of a group is a direct child of the card
+        const line = Array.from(card.children).some(child => child.classList.contains("bg-primary") && child.classList.contains("w-0.5"))
+        return { title: wrap.querySelector<HTMLElement>("button[title]")?.title ?? "", left: rect.left, width: rect.width, transform: wrap.style.transform, opacity: wrap.style.opacity, line }
+    }))
+    return found.sort((a, b) => a.left - b.left)
+}
+
+const groupBox = async (title: string) => {
+    const found = (await groupBoxes()).find(item => item.title === title)
+    if (!found) throw new Error(`group "${title}" not found`)
+    return found
+}
+
+/** Titles of the groups left to right. */
+const groupOrder = async () => (await groupBoxes()).map(item => item.title)
+
+const waitForGroupOrder = async (expected: string[]) =>
+    browser.waitUntil(async () => JSON.stringify(await groupOrder()) === JSON.stringify(expected), {
+        timeoutMsg: `the groups are not ${expected.join(" > ")}: ${JSON.stringify(await groupOrder())}`,
+    })
+
+const strayColumnTransforms = async () =>
+    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-group-wrap]")).filter(wrap => wrap.style.transform !== "").length)
+
+/**
+ * Presses on the title of a group, moves over the group `target` (the point at `where` of its width: 0.1 = left half, 0.9 = right
+ * half) and calls `whilePressed` with the pointer still down, then releases.
+ */
+const dragGroup = async (source: string, target: string, where: number, whilePressed: () => Promise<void>) => {
+    const points = await browser.execute((from: string, to: string, f: number) => {
+        const wrap = (title: string) => Array.from(document.querySelectorAll<HTMLElement>("[data-group-wrap]"))
+            .find(el => el.querySelector<HTMLElement>("button[title]")?.title === title)!
+        const a = wrap(from).querySelector<HTMLElement>("button[title]")!.getBoundingClientRect()
+        const card = wrap(to).querySelector<HTMLElement>("[data-group-card]")!.getBoundingClientRect()
+        return { a: { x: Math.round(a.left + a.width / 2), y: Math.round(a.top + a.height / 2) }, b: { x: Math.round(card.left + card.width * f), y: Math.round(a.top + a.height / 2) } }
+    }, source, target, where)
+    const steps = 30
+    const at = (i: number) => ({ x: Math.round(points.a.x + ((points.b.x - points.a.x) * i) / steps), y: points.a.y })
+    const first = browser.action("pointer", { parameters: { pointerType: "mouse" } })
+    first.move({ ...at(0), origin: "viewport" }).down()
+    for (let i = 1; i <= 6; i++) first.move({ ...at(i), origin: "viewport", duration: 20 })
+    await first.perform(true)
+    for (let i = 7; i <= steps; i++) await browser.action("pointer", { parameters: { pointerType: "mouse" } }).move({ ...at(i), origin: "viewport", duration: 20 }).perform(true)
+    try {
+        await browser.pause(400) // the shifts glide for 150 ms
+        await whilePressed()
+    } finally {
+        await browser.releaseActions()
+    }
+    await browser.pause(400)
+}
+
+describe("Live drag of the groups", () => {
+    it("builds a third group", async function () {
+        if (process.platform === "linux") return this.skip()
+        await byLabel(await tr("menu.newGroup")).click()
+        await typeInto(byLabel(await tr("groups.nameLabel")), THIRD_GROUP)
+        await browser.keys("Enter")
+        await byText(THIRD_GROUP).waitForDisplayed()
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+    })
+
+    it("the columns it passes step left by its room, the dragged one collapses, no line is drawn; the drop and the undo are visual", async function () {
+        if (process.platform === "linux") return this.skip()
+        const before = { one: await groupBox(GROUP), two: await groupBox(SECOND_GROUP), three: await groupBox(THIRD_GROUP) }
+        const room = before.two.left - before.one.left
+
+        await dragGroup(GROUP, THIRD_GROUP, 0.9, async () => {
+            expect((await groupBox(GROUP)).opacity).toBe("0")
+            const two = await groupBox(SECOND_GROUP)
+            const three = await groupBox(THIRD_GROUP)
+            expect(two.transform).not.toBe("")
+            expect(three.transform).not.toBe("")
+            expect(Math.abs(two.left - (before.two.left - room))).toBeLessThan(3)
+            expect(Math.abs(three.left - (before.three.left - room))).toBeLessThan(3)
+            expect((await groupBoxes()).some(item => item.line)).toBe(false)
+        })
+
+        await waitForGroupOrder([SECOND_GROUP, THIRD_GROUP, GROUP])
+        expect(await strayColumnTransforms()).toBe(0)
+
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+        expect(await strayColumnTransforms()).toBe(0)
+    })
+
+    it("going back left opens the room before the column", async function () {
+        if (process.platform === "linux") return this.skip()
+        const before = { one: await groupBox(GROUP), two: await groupBox(SECOND_GROUP) }
+
+        await dragGroup(THIRD_GROUP, GROUP, 0.1, async () => {
+            expect((await groupBox(THIRD_GROUP)).opacity).toBe("0")
+            expect((await groupBox(GROUP)).left).toBeGreaterThan(before.one.left + 3)
+            expect((await groupBox(SECOND_GROUP)).left).toBeGreaterThan(before.two.left + 3)
+        })
+
+        await waitForGroupOrder([THIRD_GROUP, GROUP, SECOND_GROUP])
+        expect(await strayColumnTransforms()).toBe(0)
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+    })
+
+    it("with Live drag off nothing moves and the vertical line of the drop is drawn", async function () {
+        if (process.platform === "linux") return this.skip()
+        await setLiveDrag(false)
+        try {
+            const before = await groupBoxes()
+            await dragGroup(GROUP, THIRD_GROUP, 0.9, async () => {
+                const during = await groupBoxes()
+                for (const item of during) {
+                    expect(item.transform).toBe("")
+                    expect(Math.abs(item.left - before.find(old => old.title === item.title)!.left)).toBeLessThan(2)
+                }
+                expect(during.some(item => item.line)).toBe(true)
+            })
+            await waitForGroupOrder([SECOND_GROUP, THIRD_GROUP, GROUP])
+            expect(await strayColumnTransforms()).toBe(0)
+        } finally {
+            await setLiveDrag(true)
+        }
+    })
+})

@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, groupListKey, holdHalfZone, holdLiveZone, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
 import { getGroupLabel } from "./groups/group-label"
@@ -57,6 +57,9 @@ const collisionDetection: CollisionDetection = ({ active, droppableContainers, d
  * target would flip between the place and its shifted copy.
  */
 const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => getClientRect(element, { ignoreTransform: true }), shiftOf) } }
+
+/** The edges of a droppable as dnd-kit measures them. */
+type Rect = { top: number, bottom: number, left: number, right: number }
 
 /** A click without moving (5px) is not a drag. A module constant on purpose: see the sensors in NoteDndProvider. */
 const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 5 } }
@@ -118,14 +121,14 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const { moveGroupTo } = useGroupMoves()
     const pendingRef = useRef<PendingDrop | null>(null)
     const lastMoveRef = useRef<{ key: string, tree: NoteDataTree } | null>(null)
-    // Live drag of the tasks and the sections: the rows are moved with a transform (see note-dnd-shift), never through React state
+    // Live drag of the tasks, the sections and the groups: the rows are moved with a transform (see note-dnd-shift), never through React state
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
-    const liveRef = useRef<{ snapshot: LiveSnapshot, dragged: string } | null>(null)
+    const liveRef = useRef<{ snapshot: LiveSnapshot, dragged: string, axis: "x" | "y" } | null>(null)
     /**
      * The place the rows are showing now (with hysteresis: it can lag behind the real zone by a few px), the key of what it was computed
      * from, the tree of that moment and, for a place next to a section, the rect it was measured at (null place: nothing is moved).
      */
-    const liveShownRef = useRef<{ key: string, tree: NoteDataTree, place: LivePending | null, rect: { top: number, bottom: number } | null } | null>(null)
+    const liveShownRef = useRef<{ key: string, tree: NoteDataTree, place: LivePending | null, rect: Rect | null } | null>(null)
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
@@ -165,12 +168,12 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     }
 
     /** Moves the rows to open the room of `place` (null: puts them back). The other drops keep the ring / the line. */
-    const syncLive = (place: LivePending | null, shown?: { key: string, tree: NoteDataTree, rect?: { top: number, bottom: number } | null }) => {
+    const syncLive = (place: LivePending | null, shown?: { key: string, tree: NoteDataTree, rect?: Rect | null }) => {
         const live = liveRef.current
         if (!live) return
         liveShownRef.current = shown ? { key: shown.key, tree: shown.tree, place, rect: shown.rect ?? null } : null
         const shifts = place ? computeLiveShifts(live.snapshot, live.dragged, place) : null
-        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null)
+        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis)
     }
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -182,13 +185,19 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             announce(t("tasks.keyboard.dragSingle"))
         }
         // The layout at rest, before anything moves: the sizes the shifts are computed from
-        liveRef.current = liveDrag && (data?.kind === "task" || data?.kind === "section") ? { snapshot: readLiveSnapshot(data.kind), dragged: noteKey(data.kind, data.id) } : null
+        liveRef.current = liveDrag && data ? { snapshot: readLiveSnapshot(data.kind), dragged: noteKey(data.kind, data.id), axis: data.kind === "group" ? "x" : "y" } : null
         store.set({ active: data ? { kind: data.kind, id: data.id } : null })
     }
 
     const handleDragMove = (event: DragMoveEvent) => {
         const dragged = event.active.data.current as NoteDragRef | undefined
         const over = event.over
+        // The few px around a column belong to no group: the columns (and the drop) keep the place of the group left behind
+        if (dragged?.kind === "group" && !over && liveRef.current) {
+            const shown = liveShownRef.current
+            const pointer = getPointer(event)
+            if (shown?.place && shown.rect && pointer && isInColumnGap(shown.rect, pointer)) return
+        }
         if (!dragged || !over || !noteDataTree) {
             pendingRef.current = null
             lastMoveRef.current = null
@@ -248,7 +257,23 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
                         ? { over: overKey, zone: liveZone, list }
                         : { over: null, zone: null, list } // on the empty area of a group: at its end
                 }
-                syncLive(place, { key, tree: noteDataTree, rect: place?.over ? { top: over.rect.top, bottom: over.rect.bottom } : null })
+                syncLive(place, { key, tree: noteDataTree, rect: place?.over ? over.rect : null })
+            }
+        } else if (liveRef.current && dragged.kind === "group") {
+            if (overRef.kind !== "group") {
+                if (liveShownRef.current) syncLive(null)
+            } else {
+                const overKey = noteKey("group", overRef.id)
+                const shown = liveShownRef.current
+                const pointerX = getPointer(event)?.x
+                const liveZone = shown?.place?.over === overKey && shown.place.zone && pointerX != null
+                    ? holdHalfZoneX(shown.place.zone, zone, over.rect, pointerX)
+                    : zone
+                const key = `${overKey}|${liveZone}`
+                if (!(shown && shown.key === key && shown.tree === noteDataTree)) {
+                    const target = computeGroupTarget(noteDataTree, dragged.id, overRef, liveZone)
+                    syncLive(target ? { over: overKey, zone: liveZone, list: GROUPS_LIST } : null, { key, tree: noteDataTree, rect: target ? over.rect : null })
+                }
             }
         }
 
@@ -280,7 +305,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const pending = pendingRef.current
         const shifted = hasShifts()
         reset()
-        if (shifted && (pending?.kind === "task" || (pending?.kind === "section" && pending.target.type === "group"))) {
+        if (shifted && (pending?.kind === "task" || pending?.kind === "group" || (pending?.kind === "section" && pending.target.type === "group"))) {
             // The optimistic update below replaces the tree: the rows go back in that commit (see the layout effect)
             settleRef.current = setTimeout(() => { settleRef.current = null; clearShifts(false) }, SETTLE_TIMEOUT)
         } else {

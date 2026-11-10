@@ -18,6 +18,7 @@ import { useGroupOpen } from "@/contexts/use-tabs"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { DropLine } from "../sidebar/DropLine"
 import { directIndexOf } from "@/lib/group-sections"
+import { usePreference } from "@/contexts/use-preference"
 
 type GroupProps = {
     group: GroupType
@@ -45,6 +46,8 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
         setDragRef(node)
     }, [setDropRef, setDragRef])
     const draggingGroup = active?.kind === "group"
+    // With the live drag the other groups step aside instead of the line
+    const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
     const [isOpen, toggleOpen] = useGroupOpen(group.id)
     const isDraft = useIsActiveDraft()
     const directIndex = directIndexOf(group)
@@ -107,7 +110,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
                 !draggingGroup && zone && "ring-2 ring-primary",
             )}
         >
-            {draggingGroup && <DropLine zone={zone} vertical className={zone === "before" ? "-left-[5px] z-30" : "-right-[5px] z-30"} />}
+            {draggingGroup && !liveDrag && <DropLine zone={zone} vertical className={zone === "before" ? "-left-[5px] z-30" : "-right-[5px] z-30"} />}
             <GroupHeader
                 group={group}
                 index={index}

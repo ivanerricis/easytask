@@ -3,7 +3,7 @@ import { act, render } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { NoteDndProvider } from "./NoteDndProvider"
-import { registerShiftNode, sectionNodeKey } from "./note-dnd-shift"
+import { groupNodeKey, registerShiftNode, sectionNodeKey } from "./note-dnd-shift"
 import type { NoteDataTree } from "@/types/types"
 
 type Handlers = {
@@ -28,10 +28,11 @@ vi.mock("@/contexts/use-active-note", () => ({ useActiveNote: () => ({ noteDataT
 vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ header: () => 0.5 }) }))
 const moveTaskTo = vi.fn()
 const moveSectionTo = vi.fn()
+const moveGroupMock = vi.fn()
 vi.mock("./note-dnd-state", async importActual => ({
     ...await importActual<typeof import("./note-dnd-state")>(),
     useNoteMoves: () => ({ moveSectionTo, moveTaskTo }),
-    useGroupMoves: () => ({ moveGroupTo: vi.fn() }),
+    useGroupMoves: () => ({ moveGroupTo: (...args: unknown[]) => moveGroupMock(...args) }),
 }))
 let liveDrag: boolean | undefined = true
 vi.mock("@/contexts/use-preference", () => ({ usePreference: (selector: (p: { liveDrag?: boolean }) => unknown) => selector({ liveDrag }) }))
@@ -46,6 +47,7 @@ beforeEach(() => {
     tree = makeTree([1, 2, 3])
     moveTaskTo.mockReset()
     moveSectionTo.mockReset()
+    moveGroupMock.mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length })
     vi.stubGlobal("cancelAnimationFrame", () => { frames = [] })
     window.matchMedia = (() => ({ matches: false })) as unknown as typeof window.matchMedia
@@ -382,5 +384,111 @@ describe("NoteDndProvider live drag of the sections", () => {
         act(() => handlers.onDragCancel())
         expect(shiftsOfCards()).toEqual({})
         expect(cards.get(10)!.style.opacity).toBe("")
+    })
+})
+
+describe("NoteDndProvider live drag of the groups", () => {
+    // Three columns 100, 60 and 80 wide, 8px apart: g1 at 0, g2 at 108, g3 at 176
+    const layout: [id: number, left: number, width: number][] = [[1, 0, 100], [2, 108, 60], [3, 176, 80]]
+    const columns = new Map<number, HTMLElement>()
+    const groupTree = () => ({
+        groups: layout.map(([id], position) => ({ id, position, sections: [] })),
+    }) as unknown as NoteDataTree
+
+    beforeEach(() => {
+        tree = groupTree()
+        for (const [id, left, width] of layout) {
+            const node = document.createElement("div")
+            node.setAttribute("data-group-wrap", String(id))
+            node.getBoundingClientRect = () => ({ left, width, top: 0, height: 500 }) as DOMRect
+            document.body.appendChild(node)
+            registerShiftNode(groupNodeKey(id), node)
+            columns.set(id, node)
+        }
+    })
+    afterEach(() => {
+        for (const [id] of layout) registerShiftNode(groupNodeKey(id), null)
+    })
+
+    const startGroup = (id: number) => act(() => handlers.onDragStart({ active: { data: { current: { kind: "group", id } } } }))
+    const moveTo = (activeId: number, overId: number | null, pointerX: number, pointerY = 100) => act(() => {
+        const [, left, width] = layout.find(row => row[0] === overId) ?? [0, 0, 0]
+        handlers.onDragMove({
+            active: { data: { current: { kind: "group", id: activeId } }, rect: { current: { translated: null } } },
+            over: overId === null ? null : { data: { current: { kind: "group", id: overId } }, rect: { left, width, right: left + width, top: 0, bottom: 500, height: 500 } },
+            activatorEvent: { clientX: pointerX, clientY: pointerY },
+            delta: { x: 0, y: 0 },
+        })
+        flushFrame()
+    })
+    const shiftsOfColumns = () => Object.fromEntries(layout.map(([id]) => [id, columns.get(id)!.style.transform]).filter(([, transform]) => transform))
+
+    it("the columns it passes step aside by its width and the dragged one collapses", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250) // right half of g3: after it
+        expect(shiftsOfColumns()).toEqual({ 2: "translate3d(-108px, 0, 0)", 3: "translate3d(-108px, 0, 0)" })
+        expect(columns.get(1)!.style.opacity).toBe("0")
+    })
+
+    it("going left opens the room before the column", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(3)
+        moveTo(3, 1, 10) // left half of g1: before it
+        expect(shiftsOfColumns()).toEqual({ 1: "translate3d(88px, 0, 0)", 2: "translate3d(88px, 0, 0)" })
+    })
+
+    it("keeps the side a few px past the middle (hysteresis) and moves nothing where the order does not change", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250)
+        const after = shiftsOfColumns()
+        moveTo(1, 3, 214) // 2px left of the middle of g3: still after
+        expect(shiftsOfColumns()).toEqual(after)
+        moveTo(1, 3, 180) // clearly before g3: the dragged one goes between g2 and g3
+        expect(shiftsOfColumns()).toEqual({ 2: "translate3d(-108px, 0, 0)" })
+        moveTo(1, 1, 90)
+        expect(shiftsOfColumns()).toEqual({})
+        expect(columns.get(1)!.style.opacity).toBe("")
+    })
+
+    it("in the gap around the column the columns keep the place, farther away they go back", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250)
+        const shown = shiftsOfColumns()
+        moveTo(1, null, 260) // 4px right of g3, over no group
+        expect(shiftsOfColumns()).toEqual(shown)
+        moveTo(1, null, 300)
+        expect(shiftsOfColumns()).toEqual({})
+    })
+
+    it("moves nothing when the live drag is off", () => {
+        liveDrag = false
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250)
+        expect(shiftsOfColumns()).toEqual({})
+    })
+
+    it("a drop keeps the columns where they are until the tree has the move, then puts them back at once", async () => {
+        const { rerender } = render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250)
+        await act(async () => { await handlers.onDragEnd() })
+        expect(moveGroupMock).toHaveBeenCalledWith(1, 2)
+        expect(shiftsOfColumns()[3]).toBe("translate3d(-108px, 0, 0)")
+        tree = groupTree()
+        rerender(<NoteDndProvider>{null}</NoteDndProvider>)
+        expect(shiftsOfColumns()).toEqual({})
+        expect(columns.get(1)!.style.opacity).toBe("")
+    })
+
+    it("a cancelled drag brings the columns back", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 3, 250)
+        act(() => handlers.onDragCancel())
+        expect(shiftsOfColumns()).toEqual({})
     })
 })
