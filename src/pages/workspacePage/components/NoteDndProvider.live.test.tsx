@@ -3,7 +3,7 @@ import { act, render } from "@testing-library/react"
 import type { ReactNode } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { NoteDndProvider } from "./NoteDndProvider"
-import { registerShiftNode } from "./note-dnd-shift"
+import { registerShiftNode, sectionNodeKey } from "./note-dnd-shift"
 import type { NoteDataTree } from "@/types/types"
 
 type Handlers = {
@@ -27,9 +27,10 @@ let tree = makeTree([1, 2, 3])
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNote: () => ({ noteDataTree: tree }) }))
 vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ header: () => 0.5 }) }))
 const moveTaskTo = vi.fn()
+const moveSectionTo = vi.fn()
 vi.mock("./note-dnd-state", async importActual => ({
     ...await importActual<typeof import("./note-dnd-state")>(),
-    useNoteMoves: () => ({ moveSectionTo: vi.fn(), moveTaskTo }),
+    useNoteMoves: () => ({ moveSectionTo, moveTaskTo }),
     useGroupMoves: () => ({ moveGroupTo: vi.fn() }),
 }))
 let liveDrag: boolean | undefined = true
@@ -44,6 +45,7 @@ beforeEach(() => {
     liveDrag = true
     tree = makeTree([1, 2, 3])
     moveTaskTo.mockReset()
+    moveSectionTo.mockReset()
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length })
     vi.stubGlobal("cancelAnimationFrame", () => { frames = [] })
     window.matchMedia = (() => ({ matches: false })) as unknown as typeof window.matchMedia
@@ -206,5 +208,179 @@ describe("NoteDndProvider live drag of the tasks", () => {
         moveOver(1, 3, 0.9)
         unmount()
         expect(transforms()).toEqual(["", "", ""])
+    })
+})
+
+describe("NoteDndProvider live drag of the sections", () => {
+    // Group 1: A (40), B (100), C (60); group 2: X (80), Y (20). Sections are 4px apart. Each section carries a task.
+    const layout: [id: number, group: number, top: number, height: number][] = [
+        [10, 1, 0, 40], [11, 1, 44, 100], [12, 1, 148, 60], [20, 2, 0, 80], [21, 2, 84, 20],
+    ]
+    const cards = new Map<number, HTMLElement>()
+    const sectionTree = () => ({
+        groups: [
+            { id: 1, position: 0, sections: [10, 11, 12].map(id => ({ id, groupID: 1, tasks: [task(id)] })) },
+            { id: 2, position: 1, sections: [20, 21].map(id => ({ id, groupID: 2, tasks: [task(id)] })) },
+        ],
+    }) as unknown as NoteDataTree
+    const heightOf = (id: number) => layout.find(row => row[0] === id)![3]
+    const topOf = (id: number) => layout.find(row => row[0] === id)![2]
+
+    beforeEach(() => {
+        tree = sectionTree()
+        for (const [id, group, top, height] of layout) {
+            const node = document.createElement("div")
+            node.setAttribute("data-section-wrap", String(id))
+            node.setAttribute("data-section-group", String(group))
+            node.getBoundingClientRect = () => ({ top, height }) as DOMRect
+            document.body.appendChild(node)
+            registerShiftNode(sectionNodeKey(id), node)
+            cards.set(id, node)
+        }
+    })
+    afterEach(() => {
+        for (const [id] of layout) registerShiftNode(sectionNodeKey(id), null)
+    })
+
+    const startSection = (id: number) => act(() => handlers.onDragStart({ active: { data: { current: { kind: "section", id } } } }))
+    const moveTo = (activeId: number, kind: string, id: number, box: { top: number, height: number }, pointerY: number) => act(() => {
+        handlers.onDragMove({
+            active: { data: { current: { kind: "section", id: activeId } }, rect: { current: { translated: null } } },
+            over: { data: { current: { kind, id } }, rect: { ...box, bottom: box.top + box.height } },
+            activatorEvent: { clientX: 5, clientY: pointerY },
+            delta: { x: 0, y: 0 },
+        })
+        flushFrame()
+    })
+    /** The pointer is at `ratio` of the section (0.1 = before, 0.9 = after). */
+    const over = (activeId: number, overId: number, ratio: number) =>
+        moveTo(activeId, "section", overId, { top: topOf(overId), height: heightOf(overId) }, topOf(overId) + heightOf(overId) * ratio)
+    const shiftsOfCards = () => Object.fromEntries(layout.map(([id]) => [id, cards.get(id)!.style.transform]).filter(([, transform]) => transform))
+
+    it("same group: the sections it passes step up by its room and the dragged one collapses", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 12, 0.9) // after C
+        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        expect(cards.get(10)!.style.opacity).toBe("0")
+    })
+
+    it("another group: closes the room it leaves and opens the one it takes", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(11)
+        over(11, 20, 0.1) // before X
+        expect(shiftsOfCards()).toEqual({
+            12: "translate3d(0, -104px, 0)", 20: "translate3d(0, 104px, 0)", 21: "translate3d(0, 104px, 0)",
+        })
+    })
+
+    it("the last place of another group: only the group it leaves closes", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 21, 0.9) // after Y
+        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+    })
+
+    it("follows the pointer from a section to another one", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(12)
+        over(12, 10, 0.1) // before A
+        expect(Object.keys(shiftsOfCards())).toEqual(["10", "11"])
+        over(12, 11, 0.9) // after B: it is where it is
+        expect(shiftsOfCards()).toEqual({})
+        expect(cards.get(12)!.style.opacity).toBe("")
+    })
+
+    it("on the empty area of a group the section goes last: the sections it leaves close, none opens", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        moveTo(10, "group", 2, { top: 0, height: 400 }, 300)
+        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        moveTo(10, "group", 1, { top: 0, height: 400 }, 300)
+        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+    })
+
+    it("in the gap between two sections (over the group) the rows keep the place of the section left behind", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 11, 0.9) // after B
+        const shown = shiftsOfCards()
+        expect(shown).toEqual({ 11: "translate3d(0, -44px, 0)" })
+        // 4px under B, over the group: not the end of the group
+        moveTo(10, "group", 1, { top: 0, height: 400 }, 148)
+        expect(shiftsOfCards()).toEqual(shown)
+        // far from any section: the end of the group
+        moveTo(10, "group", 1, { top: 0, height: 400 }, 300)
+        expect(Object.keys(shiftsOfCards())).toEqual(["11", "12"])
+    })
+
+    it("keeps the side of a section a few px past the middle (hysteresis)", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 11, 0.9) // after B
+        const after = shiftsOfCards()
+        over(10, 11, 0.51) // 1 px past the middle: still after
+        expect(shiftsOfCards()).toEqual(after)
+        over(10, 11, 0.3) // clearly before: where it is
+        expect(shiftsOfCards()).toEqual({})
+    })
+
+    it("moves nothing over a slot of a new group, over the section itself, or where the order does not change", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(11)
+        over(11, 12, 0.1) // before C: B is already there
+        expect(shiftsOfCards()).toEqual({})
+        over(11, 11, 0.9)
+        expect(shiftsOfCards()).toEqual({})
+        over(11, 20, 0.1)
+        expect(Object.keys(shiftsOfCards()).length).toBeGreaterThan(0)
+        moveTo(11, "new-group", 1, { top: 0, height: 20 }, 10)
+        expect(shiftsOfCards()).toEqual({})
+        expect(cards.get(11)!.style.opacity).toBe("")
+    })
+
+    it("moves nothing when the live drag is off", () => {
+        liveDrag = false
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 12, 0.9)
+        expect(shiftsOfCards()).toEqual({})
+        expect(cards.get(10)!.style.opacity).toBe("")
+    })
+
+    it("does not move the tasks inside the sections", () => {
+        const row = document.createElement("div")
+        row.setAttribute("data-task-wrap", "10")
+        row.setAttribute("data-task-section", "11")
+        cards.get(11)!.appendChild(row)
+        registerShiftNode("task-10", row)
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 12, 0.9)
+        expect(row.style.transform).toBe("")
+        registerShiftNode("task-10", null)
+    })
+
+    it("a drop to another group keeps the cards where they are until the tree has the move, then puts them back at once", async () => {
+        const { rerender } = render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(11)
+        over(11, 20, 0.1)
+        await act(async () => { await handlers.onDragEnd() })
+        expect(moveSectionTo).toHaveBeenCalledWith(11, { type: "group", groupId: 2, index: 0 })
+        expect(shiftsOfCards()[20]).toBe("translate3d(0, 104px, 0)")
+
+        tree = sectionTree()
+        rerender(<NoteDndProvider>{null}</NoteDndProvider>)
+        expect(shiftsOfCards()).toEqual({})
+        expect(cards.get(11)!.style.opacity).toBe("")
+    })
+
+    it("a cancelled drag brings the cards back", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startSection(10)
+        over(10, 12, 0.9)
+        act(() => handlers.onDragCancel())
+        expect(shiftsOfCards()).toEqual({})
+        expect(cards.get(10)!.style.opacity).toBe("")
     })
 })

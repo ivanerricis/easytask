@@ -1,7 +1,7 @@
-import { buildLiveSnapshot, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
+import { buildLiveSnapshot, groupListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
 
 /**
- * The visual side of the "live drag" of the tasks: a registry of the outer wrapper of every task and the code that moves them with
+ * The visual side of the "live drag" of the tasks and the sections: a registry of the outer wrapper of every task and section and the code that moves them with
  * `style.transform`, in `requestAnimationFrame`, without React (no state, no re-render per pointer move) and without touching the
  * order of the data. Module level on purpose: there is one note drag at a time and the rows only hand over their ref.
  * @category Note DnD
@@ -10,9 +10,11 @@ import { buildLiveSnapshot, type LiveNodeInfo, type LiveSnapshot } from "./note-
 /** Duration of the shift of a row, in ms. */
 export const SHIFT_DURATION = 150
 
-/** Attributes the wrapper carries so the layout (lists and parents) can be read back from the DOM. */
-/** Written by the task wrapper (Task.tsx) with these literal names. */
-export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section" } as const
+/**
+ * Attributes the wrappers carry so the layout (lists and parents) can be read back from the DOM. Written with these literal names by
+ * the task wrapper (Task.tsx) and the section wrapper (Section.tsx, GroupTasks.tsx: `sectionWrap` = its id, `group` = the id of its group).
+ */
+export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section", sectionWrap: "data-section-wrap", group: "data-section-group" } as const
 
 const nodes = new Map<string, HTMLElement>()
 /** What is applied now, by node. */
@@ -27,6 +29,9 @@ const reducedMotion = () => typeof window !== "undefined" && !!window.matchMedia
 
 /** Key of the wrapper of a task in the registry (the same as the droppable key of its row, see noteKey). */
 export const taskNodeKey = (taskId: number): string => `task-${taskId}`
+
+/** Key of the wrapper of a section in the registry (the same as the droppable key of its card, see noteKey). */
+export const sectionNodeKey = (sectionId: number): string => `section-${sectionId}`
 
 /** Registers (or, with null, forgets) the wrapper of a task. A ref callback: it must be the same function while the key is. */
 export function registerShiftNode(key: string, node: HTMLElement | null): void {
@@ -140,15 +145,30 @@ export function shiftOf(element: HTMLElement): number {
     return total
 }
 
-/** Reads the layout of the registered wrappers (call it before anything is shifted: the snapshot must be of the resting layout). */
-export function readLiveSnapshot(): LiveSnapshot {
+/**
+ * Reads the layout of the registered wrappers of the kind that is dragged (call it before anything is shifted: the snapshot must be
+ * of the resting layout). Only the wrappers that can be moved are read: a section drag does not touch the hundreds of tasks.
+ */
+export function readLiveSnapshot(kind: "task" | "section" = "task"): LiveSnapshot {
+    const wanted = (node: HTMLElement) => kind === "task"
+        ? node.hasAttribute(SHIFT_ATTR.task)
+        : node.hasAttribute(SHIFT_ATTR.sectionWrap)
     const sorted = [...nodes.values()]
-        .filter(node => node.isConnected)
+        .filter(node => node.isConnected && wanted(node))
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     const infos: LiveNodeInfo[] = sorted.map(node => {
+        const rect = node.getBoundingClientRect()
+        if (kind === "section") {
+            return {
+                key: sectionNodeKey(Number(node.getAttribute(SHIFT_ATTR.sectionWrap))),
+                list: groupListKey(Number(node.getAttribute(SHIFT_ATTR.group))),
+                parent: null,
+                top: rect.top,
+                height: rect.height,
+            }
+        }
         const parentNode = node.parentElement?.closest<HTMLElement>(`[${SHIFT_ATTR.task}]`)
         const parentId = parentNode?.getAttribute(SHIFT_ATTR.task)
-        const rect = node.getBoundingClientRect()
         return {
             key: `task-${node.getAttribute(SHIFT_ATTR.task)}`,
             list: parentId ? `t-${parentId}` : `s-${node.getAttribute(SHIFT_ATTR.section)}`,

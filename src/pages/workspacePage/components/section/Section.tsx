@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils"
 import { useNoteDndSelector, useNoteDrag, useNoteDrop } from "../note-dnd-state"
 import { useSectionOpen } from "@/contexts/use-tabs"
 import { DropLine } from "../sidebar/DropLine"
+import { registerShiftNode, sectionNodeKey } from "../note-dnd-shift"
+import { usePreference } from "@/contexts/use-preference"
 
 type SectionProps = {
     section: SectionType
@@ -18,10 +20,14 @@ export const Section = memo(({ section }: SectionProps) => {
     const { setNodeRef: setDragRef, dragProps, isDragging } = useNoteDrag("section", section.id)
 
     // The card is both a drop target (sections and tasks) and the dimmed source while it is dragged
+    // It is also moved by the live drag of the sections (a transform of the whole card, tasks included)
+    const sectionId = section.id
     const setRef = useCallback((node: HTMLElement | null) => {
         setDropRef(node)
         setDragRef(node)
-    }, [setDropRef, setDragRef])
+        registerShiftNode(sectionNodeKey(sectionId), node)
+    }, [setDropRef, setDragRef, sectionId])
+    const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
 
     const draggingSection = active?.kind === "section"
     // A dragged task: the whole card is outlined when it is the destination, wherever the pointer is inside it
@@ -31,6 +37,8 @@ export const Section = memo(({ section }: SectionProps) => {
         <div
             ref={setRef}
             data-section-card
+            data-section-wrap={section.id}
+            data-section-group={section.groupID}
             className={cn(
                 // As wide as its group (the group caps the column width)
                 "relative w-full min-w-[250px] border bg-accent rounded-xs flex flex-col p-1",
@@ -38,7 +46,7 @@ export const Section = memo(({ section }: SectionProps) => {
                 !draggingSection && (zone || taskDestination) && "border-primary ring-2 ring-primary",
             )}
         >
-            {draggingSection && <DropLine zone={zone} className={zone === "before" ? "-top-[3px]" : "-bottom-[3px]"} />}
+            {draggingSection && !liveDrag && <DropLine zone={zone} className={zone === "before" ? "-top-[3px]" : "-bottom-[3px]"} />}
             <SectionHeader
                 isOpen={isOpen}
                 onOpenChange={toggleOpen}

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { GroupTasks } from "./GroupTasks"
 import { makeDefaultSection, makeGroup, makeTask } from "@/test/ui-fixtures"
 import type { Task } from "@/types/types"
+import { PreferencesContext } from "@/contexts/preferences-context-object"
 
 const drop = { zone: null as string | null, dragging: null as string | null }
 const useNoteDrop = vi.fn((kind: string, id: number) => { void kind; void id; return { setNodeRef: vi.fn(), zone: drop.zone, active: drop.dragging ? { kind: drop.dragging } : null } })
@@ -84,10 +85,15 @@ describe("GroupTasks", () => {
         expect(container.querySelector("[data-direct-tasks]")).not.toHaveClass("ring-2")
     })
 
-    it("draws an insertion line above or below the list for a dragged section, instead of outlining it", () => {
+    it("draws an insertion line above or below the list for a dragged section, instead of outlining it, when the live drag is off", () => {
         drop.dragging = "section"
         drop.zone = "before"
-        const { container, rerender } = render(<GroupTasks group={withTasks("Uno")} />)
+        const tree = () => (
+            <PreferencesContext.Provider value={{ liveDrag: false } as never}>
+                <GroupTasks group={withTasks("Uno")} />
+            </PreferencesContext.Provider>
+        )
+        const { container, rerender } = render(tree())
         const area = container.querySelector("[data-direct-tasks]") as HTMLElement
         expect(area).not.toHaveClass("ring-2")
         const line = area.querySelector(".bg-primary") as HTMLElement
@@ -96,10 +102,24 @@ describe("GroupTasks", () => {
         expect(line.className.split(/\s+/)).not.toContain("-top-[3px]")
 
         drop.zone = "after"
-        rerender(<GroupTasks group={{ ...withTasks("Uno") }} />)
+        rerender(tree())
         const after = (area.querySelector(".bg-primary") as HTMLElement).className.split(/\s+/)
         expect(after).toContain("bottom-0")
         expect(after).not.toContain("-bottom-[3px]")
+    })
+
+    it("draws no insertion line for a dragged section while the live drag is on: the sections step aside instead", () => {
+        drop.dragging = "section"
+        drop.zone = "before"
+        const { container } = render(<GroupTasks group={withTasks("Uno")} />)
+        expect(container.querySelector("[data-direct-tasks] .bg-primary")).toBeNull()
+    })
+
+    it("carries the attributes the live drag reads the layout from", () => {
+        const { container } = render(<GroupTasks group={withTasks("Uno")} />)
+        const area = container.querySelector("[data-direct-tasks]") as HTMLElement
+        expect(area).toHaveAttribute("data-section-wrap", "12")
+        expect(area).toHaveAttribute("data-section-group", "4")
     })
 
     it("positions the area so the insertion line is drawn inside it, with the classes kept apart", () => {

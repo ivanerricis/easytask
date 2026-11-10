@@ -1,8 +1,10 @@
 import type { DropZone, TaskTarget } from "./note-dnd"
 
 /**
- * Pure logic of the "live drag" of the tasks: while a task is dragged the other ones step aside (a visual `translateY`
+ * Pure logic of the "live drag" of the tasks and of the sections: while one is dragged the other ones step aside (a visual `translateY`
  * of their outer wrapper) to open the room where the dragged one would land, and the room it leaves is closed.
+ * A section is a row of the list of its group ("g-<groupId>", see {@link groupListKey}) and carries its tasks with it: only its own
+ * wrapper moves.
  * Nothing here touches React or the note data: it works on a snapshot of the sizes taken when the drag starts.
  * The order is the one drawn in the DOM (with "hide completed" and "completed last" it is not the order of the data).
  * @category Note DnD
@@ -11,7 +13,7 @@ import type { DropZone, TaskTarget } from "./note-dnd"
 /** A task wrapper (the task with its open subtasks) as measured in the DOM. */
 export type LiveNodeInfo = {
     key: string
-    /** The list it belongs to: "s-<sectionId>" for the top level tasks of a section, "t-<taskId>" for the subtasks of a task. */
+    /** The list it belongs to: "s-<sectionId>" for the top level tasks of a section, "t-<taskId>" for the subtasks of a task, "g-<groupId>" for the sections of a group. */
     list: string
     /** Key of the wrapper of the parent task (null for a top level task). */
     parent: string | null
@@ -32,8 +34,14 @@ export type LiveSnapshot = {
     lists: Map<string, string[]>
 }
 
-/** What the drag is over: a task row, the side of it and the list the target belongs to (see {@link taskListKey}). */
-export type LivePending = { over: string, zone: DropZone | null, list: string }
+/**
+ * What the drag is over: a row, the side of it and the list the target belongs to (see {@link taskListKey}, {@link groupListKey}).
+ * `over` null = at the end of the list (a section dropped on the empty area of a group).
+ */
+export type LivePending = { over: string | null, zone: DropZone | null, list: string }
+
+/** Key of the list of the sections of a group. */
+export const groupListKey = (groupId: number): string => `g-${groupId}`
 
 /** Key of the list a target (section + parent task) belongs to. */
 export const taskListKey = (target: Pick<TaskTarget, "sectionId" | "parentTaskId">): string =>
@@ -80,13 +88,14 @@ const NONE: ReadonlyMap<string, number> = new Map()
  */
 export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pending: LivePending): ReadonlyMap<string, number> {
     const { items, lists } = snapshot
-    if (pending.zone !== "before" && pending.zone !== "after") return NONE
+    const atEnd = pending.over === null
+    if (!atEnd && pending.zone !== "before" && pending.zone !== "after") return NONE
     const find = (key: string | undefined) => key === undefined ? undefined : items.get(key)
     const source = items.get(dragged)
-    const over = items.get(pending.over)
-    if (!source || !over || over.key === dragged || over.list !== pending.list) return NONE
+    const over = atEnd ? undefined : items.get(pending.over!)
+    if (!source || (!atEnd && (!over || over.key === dragged || over.list !== pending.list))) return NONE
     // Under itself (or one of its subtasks) nothing can be dropped
-    if (over.ord >= source.ord && over.ord <= source.end) return NONE
+    if (over && over.ord >= source.ord && over.ord <= source.end) return NONE
 
     // The room of the dragged task: from its top to the top of the next row of its list (the space between rows included)
     const sourceList = lists.get(source.list) ?? []
@@ -95,22 +104,22 @@ export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pendi
     if (!(size > 0)) return NONE
 
     // The place: before the row that follows it in its list, or at the end of the list
-    const rest = (lists.get(over.list) ?? []).filter(key => key !== dragged)
-    const place = rest.indexOf(over.key) + (pending.zone === "after" ? 1 : 0)
+    const rest = (lists.get(pending.list) ?? []).filter(key => key !== dragged)
+    const place = over ? rest.indexOf(over.key) + (pending.zone === "after" ? 1 : 0) : rest.length
     const firstAfter = find(rest[place])
     const last = find(rest[rest.length - 1])
     const threshold = firstAfter ? firstAfter.ord : (last ? last.end + 1 : Infinity)
 
     const sourceChain = chainOf(items, source)
-    const overAncestors = chainOf(items, over).slice(1)
-    const scope = new Set<string>([...sourceChain, ...overAncestors, over].map(item => item.list))
+    const overAncestors = over ? chainOf(items, over).slice(1) : []
+    const scope = new Set<string>([...sourceChain, ...overAncestors, ...(over ? [over] : [])].map(item => item.list).concat(pending.list))
 
     /** A row follows the place it is compared to when it, or one of the parents, is a later sibling. */
     const followsSource = (item: LiveItem) =>
         chainOf(items, item).some(y => sourceChain.some(a => y.list === a.list && y.ord > a.end))
     const followsPlace = (item: LiveItem) =>
         chainOf(items, item).some(y =>
-            (y.list === over.list && y.ord >= threshold) || overAncestors.some(a => y.list === a.list && y.ord > a.end))
+            (y.list === pending.list && y.ord >= threshold) || overAncestors.some(a => y.list === a.list && y.ord > a.end))
 
     const displacement = new Map<string, number>()
     const displacementOf = (item: LiveItem): number => {
@@ -162,6 +171,30 @@ export function holdLiveZone(previous: DropZone | null, next: DropZone, rect: { 
     if (previous === "after" || previous === "inside-start") return y > lower - margin ? previous : next
     return next
 }
+
+/**
+ * Same as {@link holdLiveZone} for the rows that have only two zones (a section card: top half = before, bottom half = after):
+ * the previous side is kept while the pointer is within `margin` px of the middle.
+ * @category Note DnD
+ */
+export function holdHalfZone(previous: DropZone | null, next: DropZone, rect: { top: number, height: number }, pointerY: number, margin = zoneHysteresis(rect.height)): DropZone {
+    if (previous === null || previous === next || (previous !== "before" && previous !== "after")) return next
+    const y = pointerY - rect.top
+    const middle = rect.height / 2
+    if (previous === "before") return y < middle + margin ? previous : next
+    return y > middle - margin ? previous : next
+}
+
+/**
+ * Whether the pointer is in the gap just outside a row (the few px between two sections belong to the group, not to a section):
+ * the rows keep their place there instead of jumping to the "end of the group" and back.
+ * @category Note DnD
+ */
+export const isInRowGap = (rect: { top: number, bottom: number }, pointerY: number, tolerance = ROW_GAP_TOLERANCE): boolean =>
+    pointerY >= rect.top - tolerance && pointerY <= rect.bottom + tolerance
+
+/** Largest gap (px) between two sections that does not change the place shown (the rows of a group are 4px apart). */
+export const ROW_GAP_TOLERANCE = 8
 
 type RectLike ={ top: number, bottom: number, left: number, right: number, width: number, height: number }
 

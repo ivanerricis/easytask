@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Live drag of sections: while you drag a section the others step aside to open the room where it would land, in the same group or in another one, and the dragged section collapses. The insertion line of the sections is not shown during the drag. Groups and the sidebar behave as before. The setting is now **Tasks and sections move aside while dragging**: turn it off to get only the drop indicator.
+
 ## [0.21.0] - 2026-11-08
 
 ### Added

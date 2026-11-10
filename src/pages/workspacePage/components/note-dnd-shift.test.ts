@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, registerShiftNode, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, registerShiftNode, sectionNodeKey, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
 
 let frames: FrameRequestCallback[] = []
 const flushFrame = () => { const run = frames; frames = []; run.forEach(callback => callback(0)) }
@@ -29,6 +29,7 @@ beforeEach(() => {
 afterEach(() => {
     clearShifts(false)
     for (const id of [1, 2, 3, 4]) registerShiftNode(`task-${id}`, null)
+    for (const id of [1, 2, 3, 4]) registerShiftNode(sectionNodeKey(id), null)
     document.body.innerHTML = ""
     vi.unstubAllGlobals()
     vi.useRealTimers()
@@ -251,5 +252,50 @@ describe("readLiveSnapshot", () => {
         const b = wrapper(2, 1)
         a.before(b)
         expect([...readLiveSnapshot().items.keys()]).toEqual(["task-2", "task-1"])
+    })
+})
+
+describe("sections", () => {
+    const sectionWrapper = (id: number, group: number, top: number, height: number, parent?: HTMLElement) => {
+        const node = document.createElement("div")
+        node.setAttribute(SHIFT_ATTR.sectionWrap, String(id))
+        node.setAttribute(SHIFT_ATTR.group, String(group))
+        node.getBoundingClientRect = () => ({ top, height }) as DOMRect
+        ;(parent ?? document.body).appendChild(node)
+        registerShiftNode(sectionNodeKey(id), node)
+        return node
+    }
+
+    it("the key of a section is the key of its droppable", () => {
+        expect(sectionNodeKey(7)).toBe("section-7")
+    })
+
+    it("moves the card of a section (its tasks ride on it)", () => {
+        const card = sectionWrapper(1, 1, 0, 100)
+        const row = wrapper(1, 1, card)
+        applyShifts(new Map([[sectionNodeKey(1), 30]]), null)
+        flushFrame()
+        expect(card.style.transform).toBe("translate3d(0, 30px, 0)")
+        expect(row.style.transform).toBe("")
+        // the droppables inside it are measured without the shift
+        expect(shiftOf(row)).toBe(30)
+    })
+
+    it("reads the sections of a section drag by group, in document order, and leaves the tasks out", () => {
+        const first = sectionWrapper(1, 5, 0, 100)
+        wrapper(1, 1, first)
+        sectionWrapper(2, 5, 104, 60)
+        sectionWrapper(3, 6, 0, 80)
+        const { items, lists } = readLiveSnapshot("section")
+        expect([...lists.keys()].sort()).toEqual(["g-5", "g-6"])
+        expect(lists.get("g-5")).toEqual(["section-1", "section-2"])
+        expect(items.get("section-2")).toMatchObject({ list: "g-5", parent: null, top: 104, height: 60 })
+        expect(items.has("task-1")).toBe(false)
+    })
+
+    it("a task drag does not read the sections", () => {
+        sectionWrapper(1, 5, 0, 100)
+        wrapper(1, 1)
+        expect([...readLiveSnapshot().items.keys()]).toEqual(["task-1"])
     })
 })

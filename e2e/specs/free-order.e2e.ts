@@ -1,7 +1,7 @@
 import { browser, expect } from "@wdio/globals"
 import {
     addTaskToGroup, byLabel, byText, createFromSidebar, createWorkspace, directTasks, groupCard, newSectionInGroup, openContextMenu,
-    openWorkspace, sectionCard, sql, tr, treeRow, typeInto, waitForApp,
+    openWorkspace, sectionCard, setLiveDrag, sql, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
 const WORKSPACE = "Free Order Workspace"
@@ -194,7 +194,13 @@ describe("Free order of the tasks and the sections in a group", () => {
         await waitForOrder([SECOND, "tasks", FIRST])
     })
 
-    // The WebKitGTK driver of the Linux CI does not deliver the pointer events of a drag: the two drag specs run on Windows
+    // The WebKitGTK driver of the Linux CI does not deliver the pointer events of a drag: the two drag specs run on Windows.
+    // The insertion line of the sections is drawn only with the live drag off (with it on the sections step aside: see live-drag.e2e.ts)
+    it("turns the live drag off for the insertion lines", async function () {
+        if (process.platform === "linux") return this.skip()
+        await setLiveDrag(false)
+    })
+
     it("shows the insertion line on the list of the direct tasks when a section is dragged over it, and drops the section there", async function () {
         if (process.platform === "linux") return this.skip()
         // [SECOND, tasks, FIRST]: FIRST goes right above the list (top half), then SECOND right below it (bottom half)
@@ -217,5 +223,10 @@ describe("Free order of the tasks and the sections in a group", () => {
         expect(sample).toEqual({ found: true, visible: true })
         // Dropped on the top half of the list: the section goes right above it, at the top of the group
         await waitForOrder([SECOND, "tasks", FIRST])
+    })
+
+    after(async function () {
+        if (process.platform === "linux") return
+        await setLiveDrag(true)
     })
 })

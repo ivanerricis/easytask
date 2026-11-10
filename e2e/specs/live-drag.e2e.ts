@@ -1,7 +1,7 @@
 import { browser, expect } from "@wdio/globals"
 import {
-    addTaskToSection, byLabel, byText, closeAllDialogs, createFromSidebar, createWorkspace, groupCard, newSectionInGroup, openSettingsOn,
-    openWorkspace, sectionCard, settingsSwitch, sql, tr, treeRow, typeInto, waitForApp,
+    addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, groupCard, newSectionInGroup,
+    openWorkspace, sectionCard, setLiveDrag, sql, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
 /**
@@ -59,14 +59,6 @@ const waitForSaved = async (expected: string[]) =>
 
 const strayTransforms = async () =>
     browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-task-wrap]")).filter(wrap => wrap.style.transform !== "").length)
-
-/** Sets the "Live drag" preference of Settings > Notes. */
-const setLiveDrag = async (on: boolean) => {
-    await openSettingsOn("notes")
-    const toggle = await settingsSwitch("settings.notes.liveDrag.label")
-    if (((await toggle.getAttribute("aria-checked")) === "true") !== on) await toggle.click()
-    await closeAllDialogs()
-}
 
 /**
  * Presses on the source task, moves over the target (the point at `where` of its height, 0.92 = bottom edge, i.e. "after") and calls
@@ -174,5 +166,151 @@ describe("Live drag of the tasks", () => {
         await waitForSaved([TASKS[1], TASKS[2], TASKS[0], TASKS[3]])
         expect(await strayTransforms()).toBe(0)
         await setLiveDrag(true)
+    })
+})
+
+/**
+ * Live drag of the sections: with the pointer still down the other sections step aside (the wrapper of the whole card gets a
+ * `transform`, its tasks ride on it) to open the room where the dragged one would land, and the dragged one collapses. It works inside
+ * a group and from a group to another one. After the drop the order is the visual one, Ctrl+Z restores it and no card keeps a transform.
+ */
+const SECOND_GROUP = "Live Drag Group Two"
+const S_ONE = SECTION
+const S_TWO = "Live Section Two"
+const S_THREE = "Live Section Three"
+const S_OTHER = "Live Section Other"
+
+type SectionBox = { title: string; top: number; height: number; transform: string; opacity: string }
+
+/** The section cards of a group (the list of the direct tasks is not one of them), top to bottom by their VISUAL position. */
+const sectionBoxes = async (group: string): Promise<SectionBox[]> => {
+    const found = await browser.execute((el: HTMLElement) => Array.from(el.querySelectorAll<HTMLElement>("[data-section-card]")).map(card => {
+        const rect = card.getBoundingClientRect()
+        return { title: card.querySelector<HTMLElement>("button[title]")?.title ?? "", top: rect.top, height: rect.height, transform: card.style.transform, opacity: card.style.opacity }
+    }), (await groupCard(group).getElement()) as unknown as HTMLElement)
+    return found.sort((a, b) => a.top - b.top)
+}
+
+const sectionBox = async (group: string, title: string) => {
+    const found = (await sectionBoxes(group)).find(item => item.title === title)
+    if (!found) throw new Error(`section "${title}" not found in ${group}`)
+    return found
+}
+
+/** Titles of the sections of a group in the order they are drawn. */
+const sectionOrder = async (group: string) => (await sectionBoxes(group)).map(item => item.title)
+
+const waitForSectionOrder = async (group: string, expected: string[]) =>
+    browser.waitUntil(async () => JSON.stringify(await sectionOrder(group)) === JSON.stringify(expected), {
+        timeoutMsg: `${group} does not show ${expected.join(" > ")}: ${JSON.stringify(await sectionOrder(group))}`,
+    })
+
+const strayCardTransforms = async () =>
+    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-section-card], [data-direct-tasks]")).filter(card => card.style.transform !== "").length)
+
+/**
+ * Presses on the header of a section, moves over the section `target` (the point at `where` of its height: 0.1 = top half, 0.9 = bottom
+ * half) and calls `whilePressed` with the pointer still down, then releases.
+ */
+const dragSection = async (source: string, target: string, where: number, whilePressed: () => Promise<void>) => {
+    const points = await browser.execute((from: string, to: string, f: number) => {
+        const card = (title: string) => Array.from(document.querySelectorAll<HTMLElement>("[data-section-card]"))
+            .find(el => el.querySelector<HTMLElement>("button[title]")?.title === title)!
+        const a = card(from).querySelector<HTMLElement>("button[title]")!.getBoundingClientRect()
+        const b = card(to).getBoundingClientRect()
+        return { a: { x: Math.round(a.left + a.width / 2), y: Math.round(a.top + a.height / 2) }, b: { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height * f) } }
+    }, source, target, where)
+    const steps = 30
+    const at = (i: number) => ({ x: Math.round(points.a.x + ((points.b.x - points.a.x) * i) / steps), y: Math.round(points.a.y + ((points.b.y - points.a.y) * i) / steps) })
+    const first = browser.action("pointer", { parameters: { pointerType: "mouse" } })
+    first.move({ ...at(0), origin: "viewport" }).down()
+    for (let i = 1; i <= 6; i++) first.move({ ...at(i), origin: "viewport", duration: 20 })
+    await first.perform(true)
+    for (let i = 7; i <= steps; i++) await browser.action("pointer", { parameters: { pointerType: "mouse" } }).move({ ...at(i), origin: "viewport", duration: 20 }).perform(true)
+    try {
+        await browser.pause(400) // the shifts glide for 150 ms
+        await whilePressed()
+    } finally {
+        await browser.releaseActions()
+    }
+    await browser.pause(400)
+}
+
+describe("Live drag of the sections", () => {
+    it("builds a group of three sections and a second group", async function () {
+        if (process.platform === "linux") return this.skip()
+        await newSectionInGroup(groupCard(GROUP), S_TWO)
+        await newSectionInGroup(groupCard(GROUP), S_THREE)
+        await byLabel(await tr("menu.newGroup")).click()
+        await typeInto(byLabel(await tr("groups.nameLabel")), SECOND_GROUP)
+        await browser.keys("Enter")
+        await byText(SECOND_GROUP).waitForDisplayed()
+        await newSectionInGroup(groupCard(SECOND_GROUP), S_OTHER)
+        await waitForSectionOrder(GROUP, [S_ONE, S_TWO, S_THREE])
+    })
+
+    it("inside a group: the sections it passes step up by its room, the dragged one collapses; the drop and the undo are visual", async function () {
+        if (process.platform === "linux") return this.skip()
+        const before = { one: await sectionBox(GROUP, S_ONE), two: await sectionBox(GROUP, S_TWO), three: await sectionBox(GROUP, S_THREE) }
+        const room = before.two.top - before.one.top
+
+        await dragSection(S_ONE, S_THREE, 0.9, async () => {
+            expect((await sectionBox(GROUP, S_ONE)).opacity).toBe("0")
+            const two = await sectionBox(GROUP, S_TWO)
+            const three = await sectionBox(GROUP, S_THREE)
+            expect(two.transform).not.toBe("")
+            expect(three.transform).not.toBe("")
+            expect(Math.abs(two.top - (before.two.top - room))).toBeLessThan(3)
+            expect(Math.abs(three.top - (before.three.top - room))).toBeLessThan(3)
+        })
+
+        await waitForSectionOrder(GROUP, [S_TWO, S_THREE, S_ONE])
+        expect(await strayCardTransforms()).toBe(0)
+
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForSectionOrder(GROUP, [S_ONE, S_TWO, S_THREE])
+        expect(await strayCardTransforms()).toBe(0)
+    })
+
+    it("to another group: the group it leaves closes, the one it joins opens, and the section lands there", async function () {
+        if (process.platform === "linux") return this.skip()
+        const before = { one: await sectionBox(GROUP, S_ONE), two: await sectionBox(GROUP, S_TWO), other: await sectionBox(SECOND_GROUP, S_OTHER) }
+        const room = before.two.top - before.one.top
+
+        await dragSection(S_ONE, S_OTHER, 0.1, async () => {
+            expect((await sectionBox(GROUP, S_ONE)).opacity).toBe("0")
+            const two = await sectionBox(GROUP, S_TWO)
+            const other = await sectionBox(SECOND_GROUP, S_OTHER)
+            expect(Math.abs(two.top - (before.two.top - room))).toBeLessThan(3)
+            expect(Math.abs(other.top - (before.other.top + room))).toBeLessThan(3)
+        })
+
+        await waitForSectionOrder(SECOND_GROUP, [S_ONE, S_OTHER])
+        await waitForSectionOrder(GROUP, [S_TWO, S_THREE])
+        expect(await strayCardTransforms()).toBe(0)
+
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForSectionOrder(GROUP, [S_ONE, S_TWO, S_THREE])
+        await waitForSectionOrder(SECOND_GROUP, [S_OTHER])
+    })
+
+    it("moves nothing while dragging a section when Live drag is off", async function () {
+        if (process.platform === "linux") return this.skip()
+        await setLiveDrag(false)
+        try {
+            const before = await sectionBoxes(GROUP)
+            await dragSection(S_ONE, S_THREE, 0.9, async () => {
+                for (const item of await sectionBoxes(GROUP)) {
+                    expect(item.transform).toBe("")
+                    expect(Math.abs(item.top - before.find(old => old.title === item.title)!.top)).toBeLessThan(2)
+                }
+            })
+            await waitForSectionOrder(GROUP, [S_TWO, S_THREE, S_ONE])
+            expect(await strayCardTransforms()).toBe(0)
+        } finally {
+            await setLiveDrag(true)
+        }
     })
 })
