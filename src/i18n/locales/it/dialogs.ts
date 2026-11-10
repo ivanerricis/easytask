@@ -7,7 +7,7 @@ export const dialogs = {
         description: "La nuova nota sarà una copia del template scelto.",
         placeholder: "Cerca il template da cui creare la nota…",
         heading: "Template",
-        none: "Non ci sono ancora template. Creane uno con il pulsante \"Template\" in fondo alla sidebar.",
+        none: "Non ci sono ancora template. Creane uno con il pulsante \"Template\" in fondo alla barra laterale.",
     },
     color: {
         swatch: "Colore {{color}}",

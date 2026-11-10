@@ -13,13 +13,13 @@ I menu di un gruppo e di una sezione hanno la stessa voce. Apre le automazioni d
 
 La finestra elenca le regole della nota. Per creare una regola la nota deve avere almeno una sezione.
 
-![Automazioni di una nota](../../screenshots/it/automations-light.png)
+![La finestra Automazioni con una regola nell'elenco, con interruttore, pulsanti per modificare ed eliminare e il pulsante Nuova automazione](../../screenshots/it/automations-light.png)
 
 ## Creare una regola
 
 Fai clic su **Nuova automazione**. L'editor ha tre passaggi, indicati in alto: **Quando**, **Allora** e **Riepilogo**. **Avanti** e **Indietro** ti muovono tra i passaggi, e puoi anche fare clic su un passaggio.
 
-![L'editor delle automazioni](../../screenshots/it/automation-editor-light.png)
+![Primo passo della finestra Nuova automazione: il passo Quando, con il trigger "un task viene completato" e la sezione "Development" selezionata](../../screenshots/it/automation-editor-light.png)
 
 1. **Quando**: scegli cosa fa partire la regola e dove vale: **In quale sezione** per un evento sui task (oppure **Qualsiasi sezione**), **Gruppo** per un evento sui gruppi (oppure **Qualsiasi gruppo**).
 2. **Allora**: scegli cosa deve succedere. Fai clic su **Aggiungi azione** per aggiungerne altre e sul pulsante di rimozione per toglierne una.

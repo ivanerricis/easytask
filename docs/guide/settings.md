@@ -15,8 +15,8 @@ Press `Esc`, click the X button or choose a category to clear the search.
 
 ## Appearance
 
-![Appearance settings](../screenshots/en/settings-appearance-light.png){.light-only}
-![Appearance settings](../screenshots/en/settings-appearance-dark.png){.dark-only}
+![Appearance settings with the gallery of the nine built-in themes, the custom themes and the accent color](../screenshots/en/settings-appearance-light.png){.light-only}
+![Appearance settings with the gallery of the nine built-in themes, the custom themes and the accent color](../screenshots/en/settings-appearance-dark.png){.dark-only}
 
 | Option | Choices | Default |
 | --- | --- | --- |
@@ -29,11 +29,11 @@ Press `Esc`, click the X button or choose a category to clear the search.
 | Color intensity | Slider from 25% to 175% | 100% |
 | Animations | System, Off, Normal, Slow | System |
 
-The theme gallery shows a preview of each theme; move between them with the arrow keys. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups and sections, not the task colors. With **Animations** set to System, EasyTask follows the system setting.
+The theme gallery shows a preview of each theme; move between them with the arrow keys. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups, sections, the note background and the light background of colored tasks, not the color bar of the tasks. With **Animations** set to System, EasyTask follows the system setting.
 
 ## Notes and sections
 
-![Notes settings](../screenshots/en/settings-notes-light.png)
+![Settings of notes and sections](../screenshots/en/settings-notes-light.png)
 
 | Option | Choices | Default |
 | --- | --- | --- |
@@ -80,11 +80,11 @@ When **Show the floating player** is off, audio files are not played. The playba
 
 Lists every shortcut you can change, grouped as in the shortcuts dialog. See [Keyboard shortcuts](./shortcuts#change-a-shortcut).
 
-![Shortcut settings](../screenshots/en/settings-shortcuts-light.png)
+![Shortcut settings with the list of shortcuts and their Edit buttons](../screenshots/en/settings-shortcuts-light.png)
 
 ## Data
 
-![Data settings](../screenshots/en/settings-data-light.png)
+![Data settings: backups, export and import, data folder](../screenshots/en/settings-data-light.png)
 
 | Section | Option | Choices | Default |
 | --- | --- | --- | --- |
@@ -116,6 +116,6 @@ Backups, restore and the data folder are explained in [Data and backups](./data-
 
 ## About
 
-![About settings](../screenshots/en/settings-about-light.png)
+![About settings with the version of the app and the update check](../screenshots/en/settings-about-light.png)
 
 Shows the version (also the Tauri version), the author, the repository, the documentation link and the path of the database. It also has **Check for updates** and the **Check at startup** switch (on by default). See [Updates](./updates).

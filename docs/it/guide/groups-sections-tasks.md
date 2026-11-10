@@ -2,8 +2,8 @@
 
 Il contenuto di una nota è organizzato su tre livelli. Una nota contiene dei **gruppi**, affiancati come colonne. Un gruppo contiene delle **sezioni**, impilate nella colonna. Una sezione contiene dei **task**, e un task può avere dei **sottotask**, annidati quanto serve. Un gruppo può anche contenere task propri, subito sotto l'intestazione, senza alcuna sezione. Questa lista di task può stare in qualsiasi punto tra le sezioni del gruppo.
 
-![Dettagli del task](../../screenshots/it/task-details-light.png){.light-only}
-![Dettagli del task](../../screenshots/it/task-details-dark.png){.dark-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
 
 ## Gruppi e sezioni
 
@@ -20,7 +20,7 @@ Fai clic sul nome per rinominarlo sul posto (`Invio` salva, `Esc` annulla), oppu
 
 Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre un piccolo menu con **Nuovo gruppo**, **Nascondi task completati** / **Mostra task completati** e **Sfondo della nota** (vedi [Colori](./colors#sfondo-della-nota)).
 
-![Menu del gruppo](../../screenshots/it/group-menu-light.png)
+![Menu contestuale di un gruppo con Aggiungi file audio, Nuova sezione, Sposta lista task su e giù, Rinomina, Cambia colore, Sposta a sinistra e a destra, Automazioni, Archivia ed Elimina](../../screenshots/it/group-menu-light.png)
 
 | Voce                                   | Gruppo | Sezione | Cosa fa                                                          |
 | -------------------------------------- | :----: | :-----: | ---------------------------------------------------------------- |
@@ -37,7 +37,7 @@ Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre
 | **Archivia**                           | sì     | sì      | Lo nasconde senza eliminarlo. Vedi [Cestino e archivio](./trash-and-archive). |
 | **Elimina**                            | sì     | sì      | Lo sposta nel cestino.                                           |
 
-![Menu della sezione](../../screenshots/it/section-menu-light.png)
+![Menu contestuale di una sezione nella nota](../../screenshots/it/section-menu-light.png)
 
 Puoi spostare gli elementi anche trascinandoli:
 
@@ -69,7 +69,7 @@ I nuovi task vanno in fondo alla sezione. Per metterli in cima scegli **In cima*
 
 Passa il mouse tra due task (di una sezione, di un gruppo, o due sottotask): compare una linea sottile con un **+** al centro. Fai clic sul **+** e proprio lì si apre un campo. Scrivi il testo e premi `Invio` per inserire il task in quel punto; `Esc` chiude il campo e scarta il testo. La linea c'è anche sopra il primo task, per inserire prima di lui.
 
-![La linea per inserire un task](../../screenshots/it/task-insert-field-light.png)
+![Il campo per inserire un nuovo task tra due task esistenti](../../screenshots/it/task-insert-field-light.png)
 
 - È aperto un solo campo alla volta: facendo clic su un altro **+** il campo si sposta.
 - Con **Continua ad aggiungere task** attivo il campo si sposta sotto il nuovo task, così puoi continuare a inserire in ordine; se è disattivato si chiude dopo ogni task.
@@ -91,7 +91,7 @@ Passa il mouse su un task e fai clic su **Aggiungi sottotask**, oppure scegli la
 
 Apri il menu del task (pulsante del menu o clic destro):
 
-![Menu del task](../../screenshots/it/task-menu-light.png)
+![Menu contestuale di un task con Aggiungi sottoattività, Aggiungi descrizione, Aggiungi priorità, Rinomina, Cambia colore, Sposta su e giù, Sposta in, Mostra dettagli, Archivia ed Elimina](../../screenshots/it/task-menu-light.png)
 
 | Voce                                         | Cosa fa                                                              |
 | -------------------------------------------- | -------------------------------------------------------------------- |
@@ -105,7 +105,7 @@ Apri il menu del task (pulsante del menu o clic destro):
 | **Mostra dettagli**                          | Seleziona il task nel pannello dei dettagli.                         |
 | **Archivia**, **Elimina**                    | Lo nascondono o lo spostano nel cestino, con i suoi sottotask.       |
 
-![Descrizione del task](../../screenshots/it/task-description-light.png)
+![Un task con una descrizione, mostrata nel pannello dei dettagli a destra](../../screenshots/it/task-description-light.png)
 
 Un task con una descrizione mostra una piccola icona: fai clic per leggerla. L'aspetto dei task dipende da **Densità dei task** (**Compatta**, **Normale**, **Ampia**) e da **Sfondo colorato dei task**.
 
@@ -123,7 +123,7 @@ Con **Task, sezioni, gruppi, note e cartelle che si spostano mentre li trascini*
 
 Ogni lista di task è un albero per la tastiera e per gli screen reader: `Tab` entra nella lista su un solo task (l'ultimo che ha avuto il focus, o il primo) e il `Tab` successivo ne esce, così non devi attraversare ogni task. Dentro la lista:
 
-![L'anello di focus su un task](../../screenshots/it/task-keyboard-light.png)
+![Un task con l'anello del focus da tastiera intorno alla sua riga](../../screenshots/it/task-keyboard-light.png)
 
 - `↑` e `↓` vanno al task visibile precedente e successivo, `Home` e `End` al primo e all'ultimo. Le frecce non escono dalla sezione.
 - `→` apre i sottotask di un task (se sono chiusi) e poi va al primo; `←` li chiude e poi va al task padre.
@@ -142,7 +142,7 @@ Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti i
 
 I task selezionati hanno un contorno tratteggiato (oltre alla tinta) e gli screen reader li annunciano come "selezionato"; con due o più task selezionati, in basso nella nota compare un contatore, ad esempio "3 selezionati".
 
-![Task selezionati con il contorno tratteggiato e il contatore](../../screenshots/it/task-selection-light.png)
+![Tre task selezionati con il contorno tratteggiato e il contatore "3 selezionati" in basso](../../screenshots/it/task-selection-light.png)
 
 ## Cercare in una nota
 
@@ -160,7 +160,7 @@ Con l'opzione attiva, la selezione dei task, la ricerca e la tastiera seguono l'
 
 ## Il pannello dei dettagli
 
-Il pannello a destra ha due schede. Aprilo o chiudilo con `Ctrl+Maiusc+B` o **Visualizza > Pannello dei dettagli**.
+Il pannello a destra ha due tab. Aprilo o chiudilo con `Ctrl+Maiusc+B` o **Visualizza > Pannello dei dettagli**.
 
 **Dettagli** mostra:
 

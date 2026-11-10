@@ -30,10 +30,10 @@ Se sei aggiornato, l'app mostra "EasyTask è aggiornato."
 
 ## Novità dopo un aggiornamento
 
-La prima volta che apri un workspace dopo un aggiornamento si apre una scheda **Novità** con le note della versione che stai usando, nella lingua dell'app.
+La prima volta che apri un workspace dopo un aggiornamento si apre un tab **Novità** con le note della versione che stai usando, nella lingua dell'app.
 
-![La scheda Novità](../../screenshots/it/whats-new-light.png){.light-only}
-![La scheda Novità](../../screenshots/it/whats-new-dark.png){.dark-only}
+![La tab Novità con le note della versione corrente](../../screenshots/it/whats-new-light.png){.light-only}
+![La tab Novità con le note della versione corrente](../../screenshots/it/whats-new-dark.png){.dark-only}
 
 - Si apre una sola volta per ogni aggiornamento.
 - Si chiude come una nota: **Chiudi nota corrente** o `Ctrl+L`.

@@ -9,6 +9,16 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 - Trascinamento dal vivo di sezioni e gruppi: mentre trascini una sezione (nello stesso gruppo o in un altro) o un gruppo dalla sua intestazione, gli altri si scostano per aprire lo spazio dove atterrerebbe (le sezioni in verticale, i gruppi di lato) e quello trascinato si richiude. La linea di inserimento non compare durante il trascinamento.
 - Trascinamento dal vivo della barra laterale: mentre trascini una nota o una cartella (con le sue sottocartelle e note aperte) le altre righe si scostano per aprire lo spazio dove atterrerebbe e chiudere quello che lascia, invece di mostrare una linea; rilasciando al centro di una cartella questa resta evidenziata, e la linea torna con l'impostazione spenta, trascinando più elementi selezionati o con la tastiera. L'impostazione ora è **Task, sezioni, gruppi, note e cartelle che si spostano mentre li trascini**: spegnila per avere solo l'indicatore del punto di rilascio.
 
+### Modificato
+
+- Il trascinamento è molto più fluido nelle note grandi: la nota non viene più ridisegnata per intero durante il trascinamento e dopo il rilascio, quindi le fermate di circa un secondo non ci sono più.
+- Il contatore dei risultati della ricerca ora è dentro il campo di ricerca, senza lo spazio vuoto accanto.
+- Il repository ora si chiama `easytask`, quindi l'indirizzo del sito della documentazione è cambiato in `https://ivanerricis.github.io/easytask/`.
+
+### Corretto
+
+- Ricerca: il risultato corrente ora ha un anello visibile in ogni tema, e si vede anche con i colori forzati di Windows (modalità a contrasto elevato).
+
 ## [0.21.0] - 2026-11-08
 
 ### Aggiunto

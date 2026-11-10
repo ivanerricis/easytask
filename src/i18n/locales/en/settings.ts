@@ -82,17 +82,10 @@ export const settings: Translation["settings"] = {
         },
         title: "Appearance",
         reset: {
-            description: "Puts the theme (back to the one of the system), accent color, language, app size, size of folders and notes and color intensity back to their defaults.",
+            description: "Puts the theme (back to the one of the system), accent color, language, app size, size of folders and notes, font, color intensity and animations back to their defaults.",
             confirmTitle: "Reset the appearance?",
-            confirmDescription: "Theme (back to the one of the system), accent color, language, app size, size of folders and notes and color intensity go back to their defaults. Your custom themes and your data are not touched.",
+            confirmDescription: "Theme (back to the one of the system), accent color, language, app size, size of folders and notes, font, color intensity and animations go back to their defaults. Your custom themes and your data are not touched.",
             confirm: "Reset",
-        },
-        theme: {
-            label: "Theme",
-            description: "Choose between light, dark or the system theme.",
-            light: "Light",
-            dark: "Dark",
-            toggle: "Toggle theme",
         },
         accent: {
             label: "Accent color",
@@ -141,7 +134,7 @@ export const settings: Translation["settings"] = {
         },
         colorIntensity: {
             label: "Color intensity",
-            description: "How strongly the colors of folders, notes, groups and sections show. It does not change the task colors.",
+            description: "How strongly the colors of folders, notes, groups, sections and the note background show. It also changes the light background of colored tasks, not the color bar of the tasks.",
             reset: "Reset",
         },
     },

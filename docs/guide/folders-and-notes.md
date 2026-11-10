@@ -2,8 +2,8 @@
 
 Inside a workspace, the left sidebar shows a tree of folders and notes. Folders can contain other folders without any depth limit. Notes hold your tasks and open as tabs.
 
-![An open note](../screenshots/en/workspace-light.png){.light-only}
-![An open note](../screenshots/en/workspace-dark.png){.dark-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](../screenshots/en/workspace-light.png){.light-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](../screenshots/en/workspace-dark.png){.dark-only}
 
 ## The sidebar
 
@@ -38,7 +38,7 @@ To make rows smaller or larger, go to **Settings > Appearance > Size of folders 
 | New note or folder inside a folder | Open the menu of the folder and choose **New note** or **New folder**                        |
 | New note from a template        | **New note from template** button, or **File > New note from template…**                        |
 
-![New note dialog](../screenshots/en/new-note-dialog-light.png)
+![The New note dialog with the Name field, a button to pick a color, and the Cancel and Create buttons](../screenshots/en/new-note-dialog-light.png)
 
 In the **New note** dialog type a **Name**. You can also pick a template in **From template** (the default is **No template**). In the workspace root you can give the note a color right away.
 
@@ -48,7 +48,7 @@ Names must be unique inside the same folder. If a name is already used, the dial
 
 Click the menu button of a row (it appears when you point at it) or right-click the row.
 
-![Folder menu](../screenshots/en/folder-menu-light.png)
+![Context menu of a folder in the sidebar](../screenshots/en/folder-menu-light.png)
 
 | Entry                | Folder | Note | What it does                                                                        |
 | -------------------- | :----: | :--: | ----------------------------------------------------------------------------------- |
@@ -69,7 +69,7 @@ Click the menu button of a row (it appears when you point at it) or right-click 
 | **Archive**          | yes    | yes  | Hides the item without deleting it.                                                 |
 | **Delete**           | yes    | yes  | Moves the item to the trash, after confirming.                                      |
 
-![Note menu](../screenshots/en/note-menu-light.png)
+![Context menu of a note in the sidebar](../screenshots/en/note-menu-light.png)
 
 You can also give a color to the background of an open note, see [Note background](./colors#note-background).
 
@@ -130,7 +130,7 @@ The three shortcuts for the split can be changed in **Settings > Shortcuts**, ex
 
 Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find four buttons: **New group**, **Search in the note**, **Split into two areas** (it reads **Close the split** while the view is split) and **Hide completed tasks**.
 
-![The path bar](../screenshots/en/path-bar-light.png){.wide-strip}
+![The path bar above a note: the name of the note on the left, and on the right the buttons for a new group, search in the note, split into two areas and hide completed tasks](../screenshots/en/path-bar-light.png){.wide-strip}
 
 ### What is reopened at startup
 
@@ -140,6 +140,6 @@ When you open a workspace, EasyTask reopens the notes that were open, the active
 
 Press `Ctrl+K`, or click the **Search…** field at the top of the window, then type part of a note name. The list shows each match with the path of its folder. Choose one to open it.
 
-![Note search](../screenshots/en/note-search-light.png)
+![The "Search a note…" window with the suggested notes and their path, and the Undo and Redo actions below](../screenshots/en/note-search-light.png)
 
 The same list also offers the last action you can undo or redo. See [Undo and history](./undo-and-history).

@@ -14,7 +14,7 @@ Deleting is always reversible while the item is in the trash. You can also undo 
 
 Open it with the **Trash** button at the bottom of the sidebar (it shows how many items it holds) or with **File > Trash…**.
 
-![Trash](../screenshots/en/trash-light.png)
+![The Trash dialog with a list of types on the left (Folders, Notes, Groups, Sections, Tasks, Audio files, Templates) and a deleted task with restore and delete buttons, plus the Empty trash button](../screenshots/en/trash-light.png)
 
 The items are grouped by type, one tab for each: **Folders**, **Notes**, **Groups**, **Sections**, **Tasks**, **Audio files** and **Templates**. Each tab shows how many items it has. A row shows the name, where the item was, what it contained and when it was deleted ("Deleted on…").
 
@@ -64,7 +64,7 @@ An [automation](./automations) can also archive a group.
 
 Open it with the **Archive** button at the bottom of the sidebar (with the number of archived items) or with **File > Archive…**.
 
-![Archive](../screenshots/en/archive-light.png)
+![The Archive dialog with the archived items grouped by type](../screenshots/en/archive-light.png)
 
 There is one tab for each type: **Folders**, **Notes**, **Groups**, **Sections** and **Tasks**. A row shows the name, where it was and when it was archived ("Archived on…").
 

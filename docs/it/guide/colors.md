@@ -10,7 +10,7 @@ Puoi dare un colore a workspace, cartelle, note, gruppi, sezioni e task. I color
 
 Questa voce c'è nel menu di ogni elemento: i workspace nella home, cartelle e note nella barra laterale, gruppi, sezioni e task nella nota. Anche il pannello dei dettagli mostra il colore dell'elemento selezionato nel campo **Colore**: fai clic per aprire la stessa tavolozza.
 
-![Colore di un task](../../screenshots/it/task-color-light.png)
+![Il menu di un task aperto su Cambia colore, con la palette dei colori e il pulsante Nessun colore](../../screenshots/it/task-color-light.png)
 
 ## La tavolozza
 
@@ -37,7 +37,7 @@ Puoi dare un colore a tutto lo sfondo di una nota.
 2. Scegli **Sfondo della nota**.
 3. Clicca un colore della tavolozza.
 
-![Sfondo della nota](../../screenshots/it/note-background-light.png)
+![Menu del clic destro sullo spazio vuoto di una nota con Nuovo gruppo, Nascondi task completati e Sfondo della nota, con la palette dei colori aperta e uno sfondo blu applicato alla nota](../../screenshots/it/note-background-light.png)
 
 Il colore è uno strato leggero, leggibile sia nel tema chiaro sia in quello scuro, e segue l'**Intensità dei colori**. Scegli **Nessun colore** per toglierlo. Puoi annullarlo con `Ctrl+Z`. Lo sfondo si mantiene quando duplichi una nota, nei template e nelle esportazioni.
 
@@ -60,7 +60,7 @@ Le finestre per un nuovo workspace, una nuova cartella e una nuova nota hanno un
 Apri **Impostazioni > Aspetto**.
 
 - **Colore d'accento**: usato per pulsanti, selezioni ed evidenziazioni. Ogni [tema](./themes) ha il suo accento; il colore scelto qui lo sovrascrive e **Usa l'accento del tema** ripristina quello del tema.
-- **Intensità dei colori**: quanto risaltano i colori di cartelle, note, gruppi, sezioni e dello sfondo della nota. Va dal 25% al 175% (il valore predefinito è 100%) e ha il pulsante **Reimposta**. Non cambia i colori dei task.
+- **Intensità dei colori**: quanto risaltano i colori di cartelle, note, gruppi, sezioni e dello sfondo della nota. Va dal 25% al 175% (il valore predefinito è 100%) e ha il pulsante **Reimposta**. Cambia anche lo sfondo leggero dei task colorati, non la loro barra colorata.
 
 ### Avviso di contrasto
 

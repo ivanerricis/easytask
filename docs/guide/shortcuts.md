@@ -2,7 +2,7 @@
 
 EasyTask has keyboard shortcuts for the most common actions. Press `?` to see the full list, or choose **Help > Keyboard shortcuts…** in the app menu.
 
-![Keyboard shortcuts](../screenshots/en/shortcuts-light.png)
+![The Keyboard shortcuts dialog with the General shortcuts, each with its keys, and the start of the Notes and tabs section](../screenshots/en/shortcuts-light.png)
 
 The shortcuts work when you are not typing, with a few exceptions: the shortcuts for tabs, sidebars, search, back to home, hiding completed tasks, new group, the documentation, text size, split view and new workspace also work inside text fields. `Ctrl+Z` and `Ctrl+Y` do not, because the field has its own undo.
 
@@ -85,7 +85,7 @@ The arrows stay inside the list of the section (or of the tasks directly in a gr
 
 The menu bar at the top has **File**, **Edit**, **View** and **Help**. Press and release `Alt` on its own, or press `F10`, to move the focus to it, then use the arrow keys. Press `Alt` again to go back to where you were. The menu entries show their shortcut.
 
-![App menu](../screenshots/en/app-menu-light.png)
+![The application menu bar with File, Edit, View and Help](../screenshots/en/app-menu-light.png)
 
 ## Change a shortcut
 
@@ -96,7 +96,7 @@ The menu bar at the top has **File**, **Edit**, **View** and **Help**. Press and
 
 A shortcut must use `Ctrl` or `Alt`, except function keys such as `F5`.
 
-![Shortcut settings](../screenshots/en/settings-shortcuts-light.png)
+![Shortcut settings with the list of shortcuts and their Edit buttons](../screenshots/en/settings-shortcuts-light.png)
 
 An action with a custom shortcut shows a reset button. Click it to go back to the default for that action. **Reset all** at the top puts every shortcut back to its default.
 

@@ -6,7 +6,7 @@ Questa guida ti porta da un'app vuota a una nota con qualche task.
 
 Nella home clicca **Nuovo workspace** (oppure premi `Ctrl+N`). Scrivi un nome nella finestra **Crea workspace** e conferma.
 
-![Finestra Crea workspace](../../screenshots/it/create-workspace-dialog-light.png)
+![La finestra Nuovo workspace con il campo per il nome](../../screenshots/it/create-workspace-dialog-light.png)
 
 Apri il workspace dall'elenco nella home.
 
@@ -16,9 +16,9 @@ Nella barra laterale clicca **Nuova cartella** e dai un nome. Le cartelle sono f
 
 Per creare una nota clicca **Nuova nota** (oppure premi `Ctrl+N`). Nella finestra **Nuova nota** scrivi un nome e clicca **Crea**. Puoi anche partire da un template: vedi [Template](./templates).
 
-![Finestra Nuova nota](../../screenshots/it/new-note-dialog-light.png)
+![La finestra Nuova nota con il campo Nome, un pulsante per scegliere un colore e i pulsanti Annulla e Crea](../../screenshots/it/new-note-dialog-light.png)
 
-La nota si apre in una scheda. Le note aperte restano nella barra delle schede.
+La nota si apre in un tab. Le note aperte restano nella barra dei tab.
 
 ## 3. Aggiungi un gruppo e una sezione
 
@@ -26,7 +26,7 @@ Una nota nuova è vuota. Clicca il pulsante **+** (**Nuovo gruppo**) nella barra
 
 Gruppi e sezioni possono restare senza nome. Per dare un nome, clicca sul nome e scrivi.
 
-![Nota vuota](../../screenshots/it/note-empty-light.png)
+![Una nota vuota con i suggerimenti sulle scorciatoie e il pulsante Nuovo gruppo](../../screenshots/it/note-empty-light.png)
 
 ## 4. Aggiungi task e sottotask
 
@@ -42,8 +42,8 @@ Clicca la casella di un task per completarlo. Un task con sottotask mostra quant
 
 Seleziona un task e apri il pannello dei dettagli con `Ctrl+Shift+B`, oppure da **Visualizza > Pannello dei dettagli** nel menu. Il pannello mostra i dettagli del task e i suoi sottotask.
 
-![Dettagli del task](../../screenshots/it/task-details-light.png){.light-only}
-![Dettagli del task](../../screenshots/it/task-details-dark.png){.dark-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
 
 ## Prossimi passi
 

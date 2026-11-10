@@ -12,7 +12,7 @@ I template appartengono a un workspace: ogni workspace ha i suoi e non sono cond
 
 Puoi anche aprire la finestra dei template e fare clic su **Nuovo template**: ti chiede di scegliere una nota e poi il nome. Il nome deve essere unico nel workspace.
 
-![Creare un template](../../screenshots/it/create-template-light.png)
+![La finestra per creare un template](../../screenshots/it/create-template-light.png)
 
 ### Cosa copia un template
 
@@ -39,14 +39,14 @@ La finestra **Nuova nota da template** chiede un **Nome** e una **Destinazione**
 
 Aprila dal pulsante **Template** in fondo alla barra laterale (mostra quanti template hai) oppure da **File > Template…**.
 
-![Template](../../screenshots/it/templates-light.png)
+![La finestra Template con un template e i suoi pulsanti per creare una nota, modificare, rinominare, aggiornare, altre azioni ed eliminare, più il pulsante Nuovo template](../../screenshots/it/templates-light.png)
 
 Con più di 8 template compare in alto una casella di ricerca: usala per trovarne uno. Ogni template mostra la nota da cui è stato creato e la data di creazione. I pulsanti di un template sono:
 
 | Pulsante | Cosa fa |
 | --- | --- |
 | **Crea nota** | Crea una nota dal template |
-| **Modifica** | Apre il template in una scheda per modificarlo (vedi [Modificare un template](#modificare-un-template)) |
+| **Modifica** | Apre il template in un tab per modificarlo (vedi [Modificare un template](#modificare-un-template)) |
 | Rinomina | Cambia il nome del template |
 | **Aggiorna dalla nota** | Sostituisce il contenuto del template con quello attuale della nota di origine. L'app chiede conferma con **Sovrascrivi template**. Le note già create dal template non cambiano |
 | **Altre azioni** (**...**) | **Duplica** crea una copia del template. **Aggiorna da un'altra nota** sostituisce il contenuto con quello di una nota che scegli, che diventa la nota di origine (l'app chiede conferma) |
@@ -56,17 +56,17 @@ Con più di 8 template compare in alto una casella di ricerca: usala per trovarn
 
 ## Modificare un template
 
-Fai clic su **Modifica** su un template: si apre in una scheda tra le note aperte, con il badge **Template** così non lo scambi mai per una nota. Lo modifichi come una nota qualsiasi: aggiungi gruppi, sezioni e task, cambi i colori, trascini per riordinare, annulli e ripeti.
+Fai clic su **Modifica** su un template: si apre in un tab tra le note aperte, con il badge **Template** così non lo scambi mai per una nota. Lo modifichi come una nota qualsiasi: aggiungi gruppi, sezioni e task, cambi i colori, trascini per riordinare, annulli e ripeti.
 
-![Un template aperto nel suo editor](../../screenshots/it/template-editor-light.png)
+![Un template aperto nel suo editor, con il badge Template](../../screenshots/it/template-editor-light.png)
 
 - **Salvataggio automatico.** Non c'è un pulsante di salvataggio. Un piccolo stato accanto al percorso mostra **Salvataggio...** e poi **Salvato**; se il salvataggio non riesce compare un errore con **Riprova**. Le note già create dal template non cambiano.
 - **Duplica.** Nel menu **...** del template, **Duplica** crea una copia che puoi modificare separatamente.
 - **Aggiorna da un'altra nota.** Nello stesso menu, **Aggiorna da un'altra nota...** sostituisce il contenuto con quello di una nota che scegli, che diventa la nota di origine.
-- **Recupero.** Se l'app viene chiusa mentre un template è aperto, le modifiche non si perdono. Con l'opzione **Riapri le note all'avvio** attiva, la scheda si riapre dove l'avevi lasciata. Con l'opzione spenta, le modifiche vengono salvate nel template all'avvio e un avviso ti dice che sono state recuperate.
+- **Recupero.** Se l'app viene chiusa mentre un template è aperto, le modifiche non si perdono. Con l'opzione **Riapri le note all'avvio** attiva, il tab si riapre dove l'avevi lasciata. Con l'opzione spenta, le modifiche vengono salvate nel template all'avvio e un avviso ti dice che sono state recuperate.
 
-In un template le azioni che non hanno senso sono nascoste: archivio, audio e [automazioni](./automations). L'eliminazione di un elemento mostra un breve avviso "Eliminato" al posto del solito, e l'annulla funziona sul template finché la sua scheda è aperta.
+In un template le azioni che non hanno senso sono nascoste: archivio, audio e [automazioni](./automations). L'eliminazione di un elemento mostra un breve avviso "Eliminato" al posto del solito, e l'annulla funziona sul template finché il suo tab è aperto.
 
-Chiudi la scheda (o usa **Chiudi editor** nel suo menu) quando hai finito: il template conserva quello che hai scritto.
+Chiudi il tab (o usa **Chiudi editor** nel suo menu) quando hai finito: il template conserva quello che hai scritto.
 
 Un template eliminato va nel cestino, nella scheda **Template**: da lì puoi ripristinarlo. Vedi [Cestino e archivio](./trash-and-archive).

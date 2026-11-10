@@ -15,8 +15,8 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 
 ## Aspetto
 
-![Impostazioni Aspetto](../../screenshots/it/settings-appearance-light.png){.light-only}
-![Impostazioni Aspetto](../../screenshots/it/settings-appearance-dark.png){.dark-only}
+![Impostazioni Aspetto con la galleria dei nove temi predefiniti, i temi personalizzati e il colore d'accento](../../screenshots/it/settings-appearance-light.png){.light-only}
+![Impostazioni Aspetto con la galleria dei nove temi predefiniti, i temi personalizzati e il colore d'accento](../../screenshots/it/settings-appearance-dark.png){.dark-only}
 
 | Opzione | Scelte | Predefinito |
 | --- | --- | --- |
@@ -29,11 +29,11 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 | Intensità dei colori | Cursore da 25% a 175% | 100% |
 | Animazioni | Sistema, Assenti, Normali, Lente | Sistema |
 
-La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i tasti freccia. Vedi [Temi](./themes). Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
+La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i tasti freccia. Vedi [Temi](./themes). Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi, sezioni, lo sfondo della nota e lo sfondo leggero dei task colorati, non la barra colorata dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
 
 ## Note e sezioni
 
-![Impostazioni Note](../../screenshots/it/settings-notes-light.png)
+![Impostazioni di note e sezioni](../../screenshots/it/settings-notes-light.png)
 
 | Opzione | Scelte | Predefinito |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 
 ## Audio
 
-![Impostazioni Audio](../../screenshots/it/settings-audio-light.png)
+![Impostazioni dell'audio](../../screenshots/it/settings-audio-light.png)
 
 | Opzione | Scelte | Predefinito |
 | --- | --- | --- |
@@ -80,11 +80,11 @@ Quando **Mostra il player flottante** è disattivato, i file audio non vengono r
 
 Elenca tutte le scorciatoie che puoi cambiare, raggruppate come nella finestra delle scorciatoie. Vedi [Scorciatoie da tastiera](./shortcuts#cambiare-una-scorciatoia).
 
-![Impostazioni Scorciatoie](../../screenshots/it/settings-shortcuts-light.png)
+![Impostazioni delle scorciatoie con l'elenco delle scorciatoie e i pulsanti Modifica](../../screenshots/it/settings-shortcuts-light.png)
 
 ## Dati
 
-![Impostazioni Dati](../../screenshots/it/settings-data-light.png)
+![Impostazioni dei dati: backup, esportazione e importazione, cartella dei dati](../../screenshots/it/settings-data-light.png)
 
 | Sezione | Opzione | Scelte | Predefinito |
 | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-b
 
 ## Sistema
 
-![Impostazioni Sistema](../../screenshots/it/settings-system-light.png)
+![Impostazioni di sistema](../../screenshots/it/settings-system-light.png)
 
 | Opzione | Cosa fa | Predefinito |
 | --- | --- | --- |
@@ -116,6 +116,6 @@ Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-b
 
 ## Informazioni
 
-![Impostazioni Informazioni](../../screenshots/it/settings-about-light.png)
+![Impostazioni Informazioni con la versione dell'app e il controllo degli aggiornamenti](../../screenshots/it/settings-about-light.png)
 
 Mostra la versione (anche quella di Tauri), l'autore, il repository, il link alla documentazione e il percorso del database. Ha anche **Controlla aggiornamenti** e l'interruttore **Controlla all'avvio** (attivo di default). Vedi [Aggiornamenti](./updates).

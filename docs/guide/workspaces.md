@@ -2,8 +2,8 @@
 
 A workspace is the top level of EasyTask: it holds your folders and notes. Use one workspace per project or area of your life. The home page lists them all.
 
-![Home page](../screenshots/en/home-light.png){.light-only}
-![Home page](../screenshots/en/home-dark.png){.dark-only}
+![The home page with the Welcome back title, the New workspace and Import a workspace buttons and the recent workspaces as cards](../screenshots/en/home-light.png){.light-only}
+![The home page with the Welcome back title, the New workspace and Import a workspace buttons and the recent workspaces as cards](../screenshots/en/home-dark.png){.dark-only}
 
 ## The home page
 
@@ -17,7 +17,7 @@ Above the list you find three buttons:
 | **Sort**          | Sorts by **Last edited**, **Creation date** or **Name**, in either direction.                      |
 | **Trash**         | Opens the workspaces you deleted. See [Trash and archive](./trash-and-archive).                    |
 
-![Workspaces as a list](../screenshots/en/home-list-light.png)
+![The recent workspaces shown as a list of compact rows](../screenshots/en/home-list-light.png)
 
 Click a workspace to open it. A card shows its name, a colored bar on the left (if you gave it a color) and the creation and modification dates.
 
@@ -32,7 +32,7 @@ If you close the app while a workspace is open, EasyTask can reopen it at the ne
 3. Optionally pick a color with the color button next to the name.
 4. Click **Create workspace**.
 
-![Create workspace dialog](../screenshots/en/create-workspace-dialog-light.png)
+![The New workspace dialog with a field for the name](../screenshots/en/create-workspace-dialog-light.png)
 
 Workspace names are unique: if the name is already used, the dialog shows an error and you pick another one.
 
@@ -40,7 +40,7 @@ Workspace names are unique: if the name is already used, the dialog shows an err
 
 Click the menu button on a workspace (it appears when you point at the card), or right-click the card.
 
-![Workspace menu](../screenshots/en/home-workspace-menu-light.png)
+![Context menu of a workspace on the home page](../screenshots/en/home-workspace-menu-light.png)
 
 | Entry             | What it does                                                                      |
 | ----------------- | --------------------------------------------------------------------------------- |
@@ -81,7 +81,7 @@ Some limits:
 
 At the top of the window there is a text menu. On the home page it has fewer entries than inside a workspace.
 
-![Application menu](../screenshots/en/app-menu-light.png)
+![The application menu bar with File, Edit, View and Help](../screenshots/en/app-menu-light.png)
 
 The screenshot shows the **File** menu inside a workspace.
 
