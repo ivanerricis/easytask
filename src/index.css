@@ -64,6 +64,8 @@ body,
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-highlight-active: var(--highlight-active);
+  --color-highlight-active-foreground: var(--highlight-active-foreground);
+  --color-highlight-ring: var(--highlight-ring);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-info: var(--info);
@@ -112,6 +114,8 @@ body,
   --highlight: #fee97e;
   --highlight-foreground: #171717;
   --highlight-active: #fb923c;
+  --highlight-active-foreground: #000000;
+  --highlight-ring: #0a0a0a;
   --success: #047857;
   --success-foreground: #ffffff;
   --info: #0369a1;
@@ -156,7 +160,9 @@ body,
   --window-close-foreground: #ffffff;
   --highlight: #836712;
   --highlight-foreground: #ffffff;
-  --highlight-active: #fb923c;
+  --highlight-active: #ea580c;
+  --highlight-active-foreground: #000000;
+  --highlight-ring: #ffffff;
   --success: #34d399;
   --success-foreground: #171717;
   --info: #38bdf8;
@@ -261,3 +267,36 @@ html[data-font="atkinson"] { --app-font: "Atkinson Hyperlegible Next Variable", 
 html[data-font="opendyslexic"] { --app-font: "OpenDyslexic", ui-sans-serif, system-ui, "Segoe UI", sans-serif; }
 html[data-font]:not([data-font="system"]),
 html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-font); }
+
+/* Windows forced colors (high contrast mode of the system): the browser drops the backgrounds, box-shadows and rings and
+   uses the system palette, so the search marks, the focus and the borders have to be drawn with system colors. */
+@media (forced-colors: active) {
+  mark {
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  mark[data-active] {
+    outline: 2px solid CanvasText;
+    outline-offset: 1px;
+    box-shadow: none;
+  }
+
+  /* the focus rings of the controls are box-shadows (removed by the browser): an outline replaces them */
+  :focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  /* cards and fields that only had a shadow as their edge */
+  [data-slot="card"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="popover-content"],
+  [data-slot="dialog-content"] {
+    border: 1px solid ButtonBorder;
+  }
+}
