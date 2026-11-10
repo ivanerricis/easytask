@@ -57,3 +57,93 @@ html:not(.dark) .home-shot img.dark-only {
   border: 1px solid var(--vp-c-divider);
   border-radius: 12px;
 }
+
+/* Screenshots: reserve the room before they load (no layout shift) and soften them in the dark theme */
+/* (the path bar is a thin strip, marked with {.wide-strip} in the markdown) */
+.vp-doc img:not(.wide-strip),
+.home-shot img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1440 / 900;
+  cursor: zoom-in;
+}
+
+.dark .vp-doc img:not(.dark-only):not(.light-only) {
+  filter: brightness(0.88) contrast(1.02);
+}
+
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+  z-index: 100;
+}
+
+/* The hero logo is a dark square: give it an edge on the dark background */
+.dark .VPHero .VPImage.image-src {
+  border-radius: 22%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 12px 40px rgba(251, 149, 81, 0.18);
+}
+
+.home-shot {
+  padding-bottom: 24px;
+}
+
+/* Hero and buttons on a phone */
+@media (max-width: 639px) {
+  .VPHero .VPImage.image-src {
+    max-width: 112px;
+    max-height: 112px;
+  }
+
+  .VPHero .actions {
+    gap: 8px;
+  }
+
+  .VPHero .action .VPButton {
+    padding: 0 16px;
+  }
+}
+
+/* Tables as wide as the text on a computer; on a phone they scroll inside their box */
+@media (min-width: 640px) {
+  .vp-doc table {
+    display: table;
+    width: 100%;
+  }
+}
+
+.vp-doc th {
+  white-space: nowrap;
+}
+
+/* Inline code is not a link: do not paint it in the brand color */
+.vp-doc :not(pre):not(a) > code {
+  color: var(--vp-c-text-1);
+}
+
+/* Language list in the phone menu: bigger touch targets */
+.VPNavScreenTranslations .item .link,
+.VPNavScreenTranslations .title {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Focus ring in the brand color */
+:root {
+  --focus: #c2410c;
+}
+
+.dark {
+  --focus: #fdba8c;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+.VPButton:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}

@@ -128,7 +128,7 @@ Le tre scorciatoie della divisione si possono cambiare in **Impostazioni > Scorc
 
 Sotto i tab, una barra sottile mostra il percorso della nota aperta, ad esempio `Lavoro > Progetti > Piano`. Fai clic su una cartella o sulla nota nel percorso per mostrarla nella barra laterale: la barra si apre se era chiusa, le cartelle sopra si espandono e l'elemento viene selezionato. Un percorso lungo mantiene la prima cartella e gli ultimi due elementi. A destra della stessa barra ci sono quattro pulsanti: **Nuovo gruppo**, **Cerca nella nota**, **Dividi in due aree** (diventa **Chiudi la divisione** quando la vista è divisa) e **Nascondi task completati**.
 
-![La barra del percorso](../../screenshots/it/path-bar-light.png)
+![La barra del percorso](../../screenshots/it/path-bar-light.png){.wide-strip}
 
 ### Cosa si riapre all'avvio
 

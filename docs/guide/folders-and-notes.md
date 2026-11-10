@@ -128,7 +128,7 @@ The three shortcuts for the split can be changed in **Settings > Shortcuts**, ex
 
 Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find four buttons: **New group**, **Search in the note**, **Split into two areas** (it reads **Close the split** while the view is split) and **Hide completed tasks**.
 
-![The path bar](../screenshots/en/path-bar-light.png)
+![The path bar](../screenshots/en/path-bar-light.png){.wide-strip}
 
 ### What is reopened at startup
 
