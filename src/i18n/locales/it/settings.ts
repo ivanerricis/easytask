@@ -80,17 +80,10 @@ export const settings = {
         },
         title: "Aspetto",
         reset: {
-            description: "Riporta il tema (a quello del sistema), colore d'accento, lingua, dimensione dell'app, dimensione di cartelle e note e intensità dei colori ai valori predefiniti.",
+            description: "Riporta il tema (a quello del sistema), colore d'accento, lingua, dimensione dell'app, dimensione di cartelle e note, carattere, intensità dei colori e animazioni ai valori predefiniti.",
             confirmTitle: "Reimpostare l'aspetto?",
-            confirmDescription: "Il tema (quello del sistema), il colore d'accento, la lingua, dimensione dell'app, dimensione di cartelle e note e intensità dei colori tornano ai valori predefiniti. I tuoi temi personalizzati e i tuoi dati non vengono toccati.",
+            confirmDescription: "Il tema (quello del sistema), il colore d'accento, la lingua, dimensione dell'app, dimensione di cartelle e note, carattere, intensità dei colori e animazioni tornano ai valori predefiniti. I tuoi temi personalizzati e i tuoi dati non vengono toccati.",
             confirm: "Reimposta",
-        },
-        theme: {
-            label: "Tema",
-            description: "Scegli tra tema chiaro, scuro o quello del sistema.",
-            light: "Chiaro",
-            dark: "Scuro",
-            toggle: "Cambia tema",
         },
         accent: {
             label: "Colore d'accento",
@@ -139,7 +132,7 @@ export const settings = {
         },
         colorIntensity: {
             label: "Intensità dei colori",
-            description: "Quanto risaltano i colori di cartelle, note, gruppi e sezioni. Non cambia i colori dei task.",
+            description: "Quanto risaltano i colori di cartelle, note, gruppi, sezioni e dello sfondo della nota. Cambia anche lo sfondo leggero dei task colorati, non la barra colorata dei task.",
             reset: "Reimposta",
         },
     },
