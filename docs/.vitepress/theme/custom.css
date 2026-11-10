@@ -25,6 +25,17 @@
   --vp-button-brand-text: #16181d;
 }
 
+/* Links and code in a tip block: brand-1 (#c2410c) on the tinted background is 4.21:1; brand-2 (#9a3412) is 5.94:1, so it reaches AA (4.5:1). Dark already passes (5.78:1) */
+html:not(.dark) .custom-block.tip a,
+html:not(.dark) .custom-block.tip code {
+  color: var(--vp-c-brand-2);
+}
+
+html:not(.dark) .custom-block.tip a:hover,
+html:not(.dark) .custom-block.tip a:hover > code {
+  color: #7c2d12;
+}
+
 .vp-doc img {
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;

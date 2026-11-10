@@ -24,7 +24,7 @@ The folder contains:
 
 To open the folder, go to **Settings > Data > Data folder > Open data folder** and click **Open**.
 
-![Data settings](../screenshots/en/settings-data-light.png)
+![Data settings: backups, export and import, data folder](../screenshots/en/settings-data-light.png)
 
 ::: warning OneDrive
 If the data folder is synced by OneDrive, **Settings > Data** shows a warning. Syncing can cause "database is locked" errors or conflicting copies of the database. Exclude the folder from OneDrive or use portable mode.

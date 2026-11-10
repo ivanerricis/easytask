@@ -46,7 +46,7 @@ The toast of an automation has the same button. If you have done something else 
 
 Open the right panel and choose the **History** tab. Show or hide the panel with `Ctrl+Shift+B`.
 
-![History tab](../screenshots/en/history-light.png)
+![The History tab of the right panel, with the Undo and Redo buttons and the list of the latest actions, the current state marked at the top](../screenshots/en/history-light.png)
 
 - The list shows the actions you can undo, the most recent first. The top one is marked **Current state**.
 - Click an entry to go back to that point. EasyTask undoes every action above it, in one step.

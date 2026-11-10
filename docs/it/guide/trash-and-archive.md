@@ -14,7 +14,7 @@ Finché l'elemento è nel cestino, l'eliminazione è sempre reversibile. Puoi an
 
 Aprilo con il pulsante **Cestino** in fondo alla barra laterale (mostra quanti elementi contiene) oppure con **File > Cestino…**.
 
-![Cestino](../../screenshots/it/trash-light.png)
+![La finestra Cestino con a sinistra l'elenco dei tipi (Cartelle, Note, Gruppi, Sezioni, Task, File audio, Template) e un task eliminato con i pulsanti per ripristinarlo ed eliminarlo, più il pulsante Svuota cestino](../../screenshots/it/trash-light.png)
 
 Gli elementi sono raggruppati per tipo, una scheda per ciascuno: **Cartelle**, **Note**, **Gruppi**, **Sezioni**, **Task**, **File audio** e **Template**. Ogni scheda mostra quanti elementi ha. Una riga mostra il nome, dov'era l'elemento, cosa conteneva e quando è stato eliminato ("Eliminato il…").
 
@@ -64,7 +64,7 @@ Anche un'[automazione](./automations) può archiviare un gruppo.
 
 Aprila con il pulsante **Archivio** in fondo alla barra laterale (con il numero di elementi archiviati) oppure con **File > Archivio…**.
 
-![Archivio](../../screenshots/it/archive-light.png)
+![La finestra Archivio con gli elementi archiviati raggruppati per tipo](../../screenshots/it/archive-light.png)
 
 C'è una scheda per ogni tipo: **Cartelle**, **Note**, **Gruppi**, **Sezioni** e **Task**. Una riga mostra il nome, dov'era e quando è stato archiviato ("Archiviato il…").
 

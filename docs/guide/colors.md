@@ -10,7 +10,7 @@ You can give a color to workspaces, folders, notes, groups, sections and tasks. 
 
 The menu of every item has this entry: workspaces on the home page, folders and notes in the sidebar, groups, sections and tasks in the note. The details panel also shows the color of the selected item in a **Color** field: click it to open the same palette.
 
-![Task color](../screenshots/en/task-color-light.png)
+![A task context menu open on Change color, showing the palette of colors and the No color button](../screenshots/en/task-color-light.png)
 
 ## The palette
 
@@ -37,7 +37,7 @@ You can give a color to the whole background of a note.
 2. Choose **Note background**.
 3. Click a color of the palette.
 
-![Note background](../screenshots/en/note-background-light.png)
+![Right click menu of the empty space of a note with New group, Hide completed tasks and Note background, with the color palette open and a blue background applied to the note](../screenshots/en/note-background-light.png)
 
 The color is a light layer that stays readable in both the light and the dark theme, and it follows **Color intensity**. Choose **No color** to remove it. You can undo it with `Ctrl+Z`. The background is kept when you duplicate a note, in templates and in exports.
 
@@ -60,7 +60,7 @@ The dialogs for a new workspace, folder and note have a palette button next to t
 Open **Settings > Appearance**.
 
 - **Accent color**: used for buttons, selections and highlights. Every [theme](./themes) has its own accent; the color you pick here overrides it, and **Use the accent of the theme** brings the theme's one back.
-- **Color intensity**: how strongly the colors of folders, notes, groups, sections and the note background show. It goes from 25% to 175% (100% is the default) and has a **Reset** button. It does not change the color of the tasks.
+- **Color intensity**: how strongly the colors of folders, notes, groups, sections and the note background show. It goes from 25% to 175% (100% is the default) and has a **Reset** button. It also changes the light background of colored tasks, not their color bar.
 
 ### Contrast warning
 

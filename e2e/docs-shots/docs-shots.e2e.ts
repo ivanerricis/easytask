@@ -161,7 +161,6 @@ const tourFor = async (nextLang: Lang) => {
     await waitHome()
 
     /* ---------------------------------------------------------------- home */
-    await attempt("home-empty", async () => { await shot("home-empty") })
     await attempt("create-workspace-dialog", async () => {
         await byText(await tr("home.createWorkspace.open")).click()
         const dialog = $('[role="dialog"]')
@@ -297,7 +296,6 @@ const tourFor = async (nextLang: Lang) => {
     await attempt("task-insert-line", async () => {
         const zone = await insertZoneAbove(n.tMockups)
         await hoverInsertZone(zone)
-        await shot("task-insert-line", 200)
         await zone.$("button").click()
         await browser.waitUntil(async () => (await insertFields()).length === 1, { timeoutMsg: "the insert field did not open" })
         await shot("task-insert-field", 200)

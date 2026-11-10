@@ -12,7 +12,7 @@ Templates belong to a workspace: each workspace has its own, and they are not sh
 
 You can also open the templates dialog and click **New template**: it asks you to choose a note, then the name. The name must be unique in the workspace.
 
-![Create a template](../screenshots/en/create-template-light.png)
+![The dialog to create a template](../screenshots/en/create-template-light.png)
 
 ### What a template copies
 
@@ -39,7 +39,7 @@ The **New note from template** dialog asks for a **Name** and a **Destination**:
 
 Open it from the **Templates** button at the bottom of the sidebar (it shows how many templates you have), or from **File > Templates…**.
 
-![Templates](../screenshots/en/templates-light.png)
+![The Templates dialog with one template and its buttons to create a note, edit, rename, refresh, more actions and delete, plus the New template button](../screenshots/en/templates-light.png)
 
 With more than 8 templates a search box appears at the top: use it to find one. Each template shows the note it was made from and its creation date. The buttons of a template are:
 
@@ -58,7 +58,7 @@ With more than 8 templates a search box appears at the top: use it to find one. 
 
 Click **Edit** on a template: it opens in a tab of the open notes, marked with the **Template** badge so you never mistake it for a note. You edit it like any other note: add groups, sections and tasks, change colors, drag to reorder, undo and redo.
 
-![A template open in its editor](../screenshots/en/template-editor-light.png)
+![A template open in its editor, with the Template badge](../screenshots/en/template-editor-light.png)
 
 - **Saved automatically.** There is no save button. A short status next to the path shows **Saving...** and then **Saved**; if saving fails it shows an error with **Retry**. Notes already created from the template do not change.
 - **Duplicate.** In the **...** menu of the template, **Duplicate** creates a copy you can edit separately.

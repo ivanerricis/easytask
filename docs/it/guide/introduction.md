@@ -2,8 +2,8 @@
 
 EasyTask è una todo list per desktop basata sui workspace, ispirata a strumenti come Notion, Obsidian e Trello. Tutto viene salvato in locale sul tuo computer.
 
-![Workspace](../../screenshots/it/workspace-light.png){.light-only}
-![Workspace](../../screenshots/it/workspace-dark.png){.dark-only}
+![Una nota aperta con gruppi e sezioni colorati e i suoi task, l'albero delle cartelle a sinistra, i tab in alto e il pannello dei dettagli a destra](../../screenshots/it/workspace-light.png){.light-only}
+![Una nota aperta con gruppi e sezioni colorati e i suoi task, l'albero delle cartelle a sinistra, i tab in alto e il pannello dei dettagli a destra](../../screenshots/it/workspace-dark.png){.dark-only}
 
 ## Struttura
 
@@ -33,7 +33,7 @@ Cartelle e sottotask si annidano senza limiti. Gruppi e sezioni possono restare 
 - **Annulla e ripeti** con la cronologia delle azioni. Vedi [Annulla e cronologia](./undo-and-history).
 - **Audio**: allega file audio a una nota e ascoltali nell'app. Vedi [Audio](./audio).
 - **Ricerca delle note** e **scorciatoie da tastiera personalizzabili**. Vedi [Scorciatoie da tastiera](./shortcuts).
-- **Vista divisa**: due note affiancate, ognuna con le sue schede. Vedi [Cartelle e note](./folders-and-notes#dividere-in-due-aree).
+- **Vista divisa**: due note affiancate, ognuna con i suoi tab. Vedi [Cartelle e note](./folders-and-notes#dividere-in-due-aree).
 - **Sfondo della nota**: un colore dietro tutta la nota. Vedi [Colori](./colors#sfondo-della-nota).
 - **Esporta e importa** un workspace come file `.easytask.json`.
 - Interfaccia in **italiano e inglese**, nove temi predefiniti (anche ad alto contrasto) e temi personalizzati. Vedi [Temi](./themes).

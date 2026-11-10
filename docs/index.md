@@ -50,7 +50,7 @@ features:
 
 <div class="home-shot">
 
-![EasyTask with an open note](./screenshots/en/workspace-light.png){.light-only}
-![EasyTask with an open note](./screenshots/en/workspace-dark.png){.dark-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](./screenshots/en/workspace-light.png){.light-only}
+![An open note with colored groups and sections and its tasks, the folder tree on the left, the tabs on top and the details panel on the right](./screenshots/en/workspace-dark.png){.dark-only}
 
 </div>
