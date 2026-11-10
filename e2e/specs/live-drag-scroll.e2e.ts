@@ -95,7 +95,6 @@ const cardPoint = (kind: "group" | "section" | "task", name: string, fx: number,
     return { x: Math.round(r.left + r.width * x), y: Math.round(r.top + r.height * y) }
 }, kind, name, fx, fy)
 
-type ColumnSample = { title: string, left: number, right: number, transform: string, opacity: string }
 
 /** The group columns of the open panes with their visual boxes, left to right, plus the geometry of the scrolling container. */
 const columns = (paneIndex: 0 | 1 | null) => browser.execute((index: number | null) => {
