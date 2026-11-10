@@ -4,7 +4,7 @@ EasyTask has keyboard shortcuts for the most common actions. Press `?` to see th
 
 ![Keyboard shortcuts](../screenshots/en/shortcuts-light.png)
 
-The shortcuts work when you are not typing, with a few exceptions: the shortcuts for tabs, sidebars, search, back to home, hiding completed tasks and new group also work inside text fields. `Ctrl+Z` and `Ctrl+Y` do not, because the field has its own undo.
+The shortcuts work when you are not typing, with a few exceptions: the shortcuts for tabs, sidebars, search, back to home, hiding completed tasks, new group, the documentation, text size, split view and new workspace also work inside text fields. `Ctrl+Z` and `Ctrl+Y` do not, because the field has its own undo.
 
 ## General
 
@@ -12,6 +12,10 @@ The shortcuts work when you are not typing, with a few exceptions: the shortcuts
 | --- | --- | --- |
 | Show shortcuts | `?` | No |
 | Open the documentation | `F1` | Yes |
+| Make the app text bigger | `Ctrl+Plus` | No |
+| Make the app text bigger (alternative) | `Ctrl+=` | No |
+| Make the app text smaller | `Ctrl+Minus` | No |
+| Back to the normal app text size | `Ctrl+0` | No |
 | Back to home | `Ctrl+H` | Yes |
 | Show or hide the sidebar | `Ctrl+B` | Yes |
 | Show or hide the details and history panel | `Ctrl+Shift+B` | Yes |
@@ -67,7 +71,8 @@ These keys work when a task row has the focus (click a task or reach it with `Ta
 | Extend the selection to the first or last task | `Shift+Home` / `Shift+End` |
 | Add the task to the selection, or remove it | `Ctrl+Space` (`Cmd+Space` on macOS) |
 
-The arrows stay inside the list of the section (or of the tasks directly in a group): they do not jump to the next section. After `Alt+↑` or `Alt+↓` the focus stays on the task and a screen reader announces its new position ("Moved to position 2 of 5"). The selection keys do not change the task shown in the details panel. See [Use the keyboard](./groups-sections-tasks.md#use-the-keyboard).
+The arrows stay inside the list of the section (or of the tasks directly in a group): they do not jump to the next section. After `Alt+↑` or `Alt+↓` the focus stays on the task and a screen reader announces its new position ("Moved to position 2 of 5"). The selection keys do not change the task shown in the details panel. See [Use the keyboard](./groups-sections-tasks#use-the-keyboard).
+
 ## Home page
 
 | Action | Shortcut | Can be changed |

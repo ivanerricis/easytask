@@ -22,7 +22,7 @@ Sopra l'elenco ci sono tre pulsanti:
 Fai clic su un workspace per aprirlo. La scheda mostra il nome, una barra colorata a sinistra (se gli hai dato un colore) e le date di creazione e di modifica.
 
 ::: tip
-Se chiudi l'app mentre un workspace è aperto, EasyTask può riaprirlo al prossimo avvio. Attiva o disattiva l'opzione in **Impostazioni > Note e sezioni > Riapri l'ultimo workspace all'avvio**.
+Se chiudi l'app mentre un workspace è aperto, EasyTask può riaprirlo al prossimo avvio. Scegli in **Impostazioni > Note e sezioni > Apri all'avvio**: **Pagina iniziale**, **Ultimo workspace usato** oppure **Apri sempre** (un workspace a tua scelta).
 :::
 
 ## Creare un workspace
@@ -83,10 +83,12 @@ In alto nella finestra c'è un menu di testo. Nella home ha meno voci che dentro
 
 ![Menu dell'applicazione](../../screenshots/it/app-menu-light.png)
 
+Lo screenshot mostra il menu **File** dentro un workspace.
+
 | Menu          | Voci nella home                                                                       |
 | ------------- | ------------------------------------------------------------------------------------- |
 | **File**      | **Nuovo workspace…**, **Cestino…**, **Impostazioni…**, **Esci**                       |
-| **Visualizza**| **Tema**: chiaro, scuro o di sistema                                                  |
-| **Aiuto**     | **Scorciatoie da tastiera…**, **Note di rilascio**, **Informazioni e aggiornamenti…** |
+| **Visualizza**| **Tema**: i temi predefiniti e i tuoi, e **Gestisci temi…**                           |
+| **Aiuto**     | **Documentazione**, **Scorciatoie da tastiera…**, **Note di rilascio**, **Informazioni e aggiornamenti…** |
 
 Premi `Alt` da solo oppure `F10` per portare il focus sul menu e usarlo da tastiera.

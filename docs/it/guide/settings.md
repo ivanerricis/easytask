@@ -4,13 +4,13 @@ Apri le impostazioni dal menu dell'applicazione (**File > Impostazioni…**). Le
 
 ## Cercare nelle impostazioni
 
-Scrivi nel campo **Cerca nelle impostazioni…** in alto a sinistra per trovare un'opzione dal nome o dalla descrizione. La ricerca guarda in tutte le categorie e mostra solo le righe che corrispondono. Gli accenti non contano.
+Scrivi nel campo di ricerca (**Cerca…**) in alto a sinistra per trovare un'opzione dal nome o dalla descrizione. La ricerca guarda in tutte le categorie e mostra solo le righe che corrispondono. Gli accenti non contano.
 
 Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 
 ## Pulsanti di reimpostazione
 
-- Una riga diversa dal valore predefinito mostra accanto una piccola freccia di ripristino (colore d'accento, carattere, dimensione del testo, intensità dei colori, ogni scorciatoia).
+- Una riga diversa dal valore predefinito mostra accanto una piccola freccia di ripristino (colore d'accento, dimensione del testo, intensità dei colori, ogni scorciatoia).
 - **Reimposta tutto**, in alto in una categoria, riporta l'intera categoria ai valori predefiniti. C'è in Aspetto, Audio e Scorciatoie. Aspetto e Scorciatoie chiedono prima conferma. I tuoi dati non vengono mai toccati.
 
 ## Aspetto
@@ -29,7 +29,7 @@ Premi `Esc`, clicca la X o scegli una categoria per cancellare la ricerca.
 | Intensità dei colori | Cursore da 25% a 175% | 100% |
 | Animazioni | Sistema, Assenti, Normali, Lente | Sistema |
 
-La galleria dei temi mostra un'anteprima di ciascuno; usa le frecce per scorrerla. Vedi [Temi](./themes). Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
+La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i tasti freccia. Vedi [Temi](./themes). Se il colore d'accento ha poco contrasto con lo sfondo, EasyTask ti avvisa e suggerisce un colore simile più visibile. Il carattere e la dimensione del testo cambiano tutta l'app: **Dimensione del testo** ingrandisce o riduce insieme testi, icone e spazi, e puoi usare anche `Ctrl`+`Più`, `Ctrl`+`Meno` e `Ctrl`+`0` (torna a 16 px). I caratteri sono inclusi nell'app, quindi funzionano anche offline. L'intensità dei colori cambia cartelle, note, gruppi e sezioni, non i colori dei task. Con **Animazioni** su Sistema, EasyTask segue l'impostazione del sistema.
 
 ## Note e sezioni
 
@@ -118,4 +118,4 @@ Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-b
 
 ![Impostazioni Informazioni](../../screenshots/it/settings-about-light.png)
 
-Mostra la versione, l'autore e il repository, e il percorso del database. Ha anche **Controlla aggiornamenti** e l'interruttore **Controlla all'avvio** (attivo di default). Vedi [Aggiornamenti](./updates).
+Mostra la versione (anche quella di Tauri), l'autore, il repository, il link alla documentazione e il percorso del database. Ha anche **Controlla aggiornamenti** e l'interruttore **Controlla all'avvio** (attivo di default). Vedi [Aggiornamenti](./updates).

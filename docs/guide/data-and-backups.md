@@ -17,7 +17,7 @@ The folder contains:
 | What | Where |
 | --- | --- |
 | Database (workspaces, folders, notes, tasks) | `easytask.db` |
-| Settings | in the same folder |
+| Settings | `settings.dat` |
 | Backups | `backups/` |
 | Copies made before a database update | `backups/pre-migration/` |
 | Logs | `logs/` |

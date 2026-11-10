@@ -5,7 +5,7 @@ Come avviare EasyTask dal codice sorgente, costruire gli installer e lavorare su
 ## Prerequisiti
 
 - [Node.js](https://nodejs.org/) LTS. La CI usa la versione 24.
-- [Rust](https://www.rust-lang.org/tools/install), installato con `rustup`.
+- [Rust](https://www.rust-lang.org/tools/install) (1.77.2 o più recente), installato con `rustup`.
 - Su Windows: gli strumenti di compilazione C++ MSVC e WebView2.
 - Su Linux: i pacchetti WebKitGTK. Su Ubuntu 24.04 la CI li installa con:
 
@@ -49,7 +49,7 @@ Il primo avvio compila il backend Rust e richiede qualche minuto. Quelli success
 
 ## Usare una cartella dati separata
 
-Di default l'app salva i dati in `Documenti/EasyTask`. Durante lo sviluppo puoi indicare un'altra cartella con la variabile d'ambiente `EASYTASK_DATA_DIR`. Il percorso deve essere assoluto.
+Di default l'app salva i dati in `Documents/EasyTask`. Durante lo sviluppo puoi indicare un'altra cartella con la variabile d'ambiente `EASYTASK_DATA_DIR`. Il percorso deve essere assoluto.
 
 ::: code-group
 ```powershell [Windows (PowerShell)]

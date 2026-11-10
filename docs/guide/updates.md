@@ -12,6 +12,8 @@ A few seconds after startup, EasyTask looks silently for a new version. If one i
 | **Later** | Closes the dialog. It is offered again at the next start. |
 | **Skip this version** | Not offered again until a newer version is out. |
 
+If another dialog is open, EasyTask shows a short notice with **Show** and opens the update dialog when the other one is closed.
+
 Do not close the app while it downloads and installs: it restarts by itself.
 
 To turn the startup check off, go to **Settings > About** and turn off **Check at startup**.

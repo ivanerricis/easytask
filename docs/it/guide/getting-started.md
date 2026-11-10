@@ -22,7 +22,7 @@ La nota si apre in una scheda. Le note aperte restano nella barra delle schede.
 
 ## 3. Aggiungi un gruppo e una sezione
 
-Una nota nuova è vuota. Clicca il pulsante **+** (**Nuovo gruppo**) nella barra sopra la nota, accanto alla ricerca (oppure premi `Alt+N`) per aggiungere un gruppo. Un gruppo contiene task, aggiunti con il suo pulsante **Nuovo task**, e sezioni, aggiunte dal menu del gruppo con **Nuova sezione**.
+Una nota nuova è vuota. Clicca il pulsante **+** (**Nuovo gruppo**) nella barra sopra la nota, accanto alla ricerca (oppure premi `Alt+N`) per aggiungere un gruppo. Un gruppo contiene task, aggiunti con il suo pulsante **Nuovo task**, e sezioni, aggiunte dal menu del gruppo con **Nuova sezione**. Una nota vuota mostra anche un pulsante **Nuovo gruppo** al centro.
 
 Gruppi e sezioni possono restare senza nome. Per dare un nome, clicca sul nome e scrivi.
 

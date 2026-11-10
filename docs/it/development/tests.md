@@ -41,18 +41,35 @@ npm run e2e:typecheck
 - Le etichette arrivano dai file delle lingue tramite `tr("chiave")`: non scrivere mai testi dell'interfaccia a mano in uno spec.
 - Su Windows non eseguirli da una shell con privilegi di amministratore: WebView2 non aprirebbe la porta di debug. `e2e/run-as-basic-user.cmd` esegue la suite con un token limitato.
 
-Gli spec in `e2e/specs` coprono:
+Gli spec in `e2e/specs` (un file per area) comprendono:
 
 | Spec | Copre |
 | --- | --- |
 | `workspace-flow` | Workspace, cartella, nota, gruppo, sezioni, task, cestino, duplicati |
 | `settings-and-shortcuts` | Impostazione della lingua, finestra delle scorciatoie |
-| `layout` | Geometria e stili reali, contrasto in entrambi i temi |
+| `layout` | Geometria e stili reali, layout del lettore audio, contrasto WCAG |
 | `features` | Sposta con annulla e ripeti, cestino, modelli, ripristino dell'aspetto, finestre di conferma |
 | `audio` | Il lettore audio |
 | `automations` | Le automazioni |
 | `app-menu` | Il menu dell'applicazione |
 | `persistence` | Impostazioni e dati che sopravvivono al riavvio |
+| `collapsed-state` | Stato aperto e chiuso di gruppi, sezioni e sottotask |
+| `drop-feedback` | Feedback del trascinamento ai bordi di un gruppo |
+| `free-order` | Ordine libero di task e sezioni in un gruppo |
+| `group-tasks` | Task direttamente in un gruppo |
+| `group-width` | Larghezza dei gruppi |
+| `live-drag` | Trascinamento in tempo reale di task e sezioni |
+| `note-background` | Sfondo della nota |
+| `note-search` | Ricerca in una nota |
+| `path-bar` | Barra del percorso |
+| `sidebar-keyboard` | Navigazione da tastiera dell'albero nella barra laterale |
+| `split-workspace` | Workspace diviso in due aree |
+| `task-insert-line` | Linea per inserire un task tra due altri |
+| `task-keyboard` | Navigazione da tastiera nella lista dei task |
+| `task-multiselect` | Selezione multipla dei task |
+| `template-editor` | Editor dei template |
+| `themes` | Temi: galleria, editor, importazione ed esportazione |
+| `whats-new` | La scheda Novità |
 
 Per i dettagli vedi [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
 
@@ -81,7 +98,7 @@ Alcune cose non si possono automatizzare: finestre native di scelta file, backup
 - Un backup si ripristina su una cartella dati pulita; un workspace si esporta e si reimporta.
 - I file audio si aggiungono con il selettore nativo; i tasti multimediali comandano il lettore.
 - Modalità portatile, istanza singola, posizione della finestra e tema sopravvivono al riavvio.
-- Tema chiaro e scuro, un altro colore principale e una scala del 150% sono corretti, in italiano e in inglese.
+- Un tema chiaro, uno scuro e uno ad alto contrasto, un tema personalizzato, un altro colore principale e una scala del 150% sono corretti, in italiano e in inglese.
 - La disinstallazione lascia la cartella dati.
 
 La lista completa è in [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
@@ -97,5 +114,7 @@ La lista completa è in [e2e/README.md](https://github.com/ivanerricis/easytask/
 | `backend` | Su Windows e Linux: `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` |
 | `audit` | `npm audit` (alto e critico, produzione), `cargo audit`, `cargo deny`. Gira anche ogni settimana |
 | `e2e` | End-to-end su Linux. Per ora non bloccante |
+
+Il workflow `Docs` (`docs.yml`) costruisce questo sito a ogni pull request che tocca `docs/` e lo pubblica su GitHub Pages da `master`.
 
 L'esecuzione e2e su Windows parte a mano (`workflow_dispatch`): sul runner ospitato il driver non riesce ad agganciarsi all'app, mentre la suite passa su un computer Windows.

@@ -1,11 +1,21 @@
-import { defineConfig, type DefaultTheme } from 'vitepress'
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { defineConfig, type DefaultTheme, type HeadConfig } from 'vitepress'
 
 const repo = 'https://github.com/ivanerricis/easytask'
+// Public address of the site (GitHub Pages), used for canonical and hreflang links.
+const siteUrl = 'https://ivanerricis.github.io/easytask/'
+const descriptions = {
+  en: 'A desktop todo list built on workspaces: folders, notes, groups, sections and tasks, stored on your computer.',
+  it: 'Una todo list per desktop basata sui workspace: cartelle, note, gruppi, sezioni e task, salvati sul tuo computer.',
+}
+const docsDir = fileURLToPath(new URL('..', import.meta.url))
 
 type Labels = Record<keyof typeof en, string>
 
 function sidebar(prefix: string, t: Labels): DefaultTheme.Sidebar {
-  return [
+  return {
+    [`${prefix}/guide/`]: [
     {
       text: t.start,
       items: [
@@ -39,6 +49,8 @@ function sidebar(prefix: string, t: Labels): DefaultTheme.Sidebar {
         { text: t.troubleshooting, link: `${prefix}/guide/troubleshooting` },
       ],
     },
+    ],
+    [`${prefix}/development/`]: [
     {
       text: t.development,
       items: [
@@ -48,7 +60,8 @@ function sidebar(prefix: string, t: Labels): DefaultTheme.Sidebar {
         { text: t.contributing, link: `${prefix}/development/contributing` },
       ],
     },
-  ]
+    ],
+  }
 }
 
 const en = {
@@ -117,10 +130,45 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
   srcExclude: ['logo/**', 'screenshots/**', '**/node_modules/**'],
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/easytask/favicon.svg' }]],
+  sitemap: { hostname: siteUrl },
+  markdown: { image: { lazyLoading: true } },
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/easytask/favicon.svg' }],
+    ['meta', { name: 'theme-color', content: '#c2410c' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: 'EasyTask' }],
+    ['meta', { property: 'og:image', content: `${siteUrl}og-image.png` }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+  ],
+  // Canonical, hreflang and Open Graph links for every page.
+  transformPageData(pageData) {
+    const rel = pageData.relativePath.replace(/\.md$/, '')
+    const isIt = rel.startsWith('it/')
+    const path = (isIt ? rel.slice(3) : rel).replace(/(^|\/)index$/, '$1')
+    const en = path
+    const it = `it/${path}`
+    const exists = (p: string) => existsSync(`${docsDir}${p === '' || p.endsWith('/') ? `${p}index` : p}.md`)
+    const self = siteUrl + (isIt ? it : en)
+    const head: HeadConfig[] = [
+      ['link', { rel: 'canonical', href: self }],
+      ['meta', { property: 'og:url', content: self }],
+      ['meta', { property: 'og:title', content: pageData.frontmatter.title ?? pageData.title }],
+      ['meta', { property: 'og:description', content: pageData.frontmatter.description || pageData.description || descriptions[isIt ? 'it' : 'en'] }],
+      ['meta', { property: 'og:locale', content: isIt ? 'it_IT' : 'en_US' }],
+    ]
+    if (exists(en) && exists(it)) {
+      head.push(
+        ['link', { rel: 'alternate', hreflang: 'en', href: siteUrl + en }],
+        ['link', { rel: 'alternate', hreflang: 'it', href: siteUrl + it }],
+        ['link', { rel: 'alternate', hreflang: 'x-default', href: siteUrl + en }],
+      )
+    }
+    pageData.frontmatter.head = [...(pageData.frontmatter.head ?? []), ...head]
+  },
   themeConfig: {
-    logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: 'EasyTask' },
-    socialLinks: [{ icon: 'github', link: repo }],
+    // The site name next to the logo already says "EasyTask": the image is decorative.
+    logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: '' },
+    socialLinks: [{ icon: 'github', link: repo, ariaLabel: 'GitHub' }],
     search: { provider: 'local' },
     footer: { message: 'MIT License', copyright: 'Copyright © EasyTask contributors' },
   },
@@ -128,7 +176,7 @@ export default defineConfig({
     root: {
       label: 'English',
       lang: 'en',
-      description: 'A desktop todo list built on workspaces: folders, notes, groups, sections and tasks, stored on your computer.',
+      description: descriptions.en,
       themeConfig: {
         nav: [
           { text: en.guide, link: '/guide/introduction', activeMatch: '/guide/' },
@@ -143,8 +191,9 @@ export default defineConfig({
       label: 'Italiano',
       lang: 'it',
       link: '/it/',
-      description: 'Una todo list per desktop basata sui workspace: cartelle, note, gruppi, sezioni e task, salvati sul tuo computer.',
+      description: descriptions.it,
       themeConfig: {
+        socialLinks: [{ icon: 'github', link: repo, ariaLabel: 'Repository GitHub' }],
         nav: [
           { text: it.guide, link: '/it/guide/introduction', activeMatch: '/it/guide/' },
           { text: it.development, link: '/it/development/local', activeMatch: '/it/development/' },
