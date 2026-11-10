@@ -15,6 +15,10 @@ import { selectionKey } from "./selection"
 import { useSelectionStore } from "./selection-context"
 import { useSelectionActions } from "./selection-actions"
 import { useMoveTreeItem } from "./use-move-tree-item"
+import { useTreeLive } from "./use-tree-live"
+import { holdTreeZone } from "./tree-dnd-live"
+import { isInRowGap } from "../note-dnd-live"
+import type { FlatRow } from "./flat-tree"
 import type { PlannedMove } from "./tree-multi-move"
 
 /** Id of the droppable of the empty root area. */
@@ -38,6 +42,8 @@ const getPointerY = (event: DragMoveEvent): number | null => {
 
 type UseTreeDndOptions = {
     tree: TreeData
+    /** The visible rows, in the order they are drawn (the live drag works out the room of the rows from it). */
+    rows: FlatRow[]
     collapsedIds: Set<number>
     onExpandFolder: (folderId: number) => void
 }
@@ -46,7 +52,7 @@ type UseTreeDndOptions = {
  * Drag & drop of the tree: the sensors, the spoken texts, the handlers of the drag (the zone and the target being hovered, the
  * plan of a move of the whole selection) and the auto expand of a collapsed folder that is hovered for a while.
  */
-export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOptions) => {
+export const useTreeDnd = ({ tree, rows, collapsedIds, onExpandFolder }: UseTreeDndOptions) => {
     const { currentWorkspace } = useWorkspace()
     const moveItem = useMoveTreeItem()
     // What is hovered lives in a store: each row reads only its own drop zone (see TreeHover)
@@ -63,6 +69,10 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
     const multiTargetsRef = useRef<TreeRef[]>([])
     // What the last pointer move resolved to: while it stays the same nothing needs recomputing
     const lastMoveRef = useRef<{ tree: object, active: string, over: string | null, zone: DropZone } | null>(null)
+    // Live drag: the rows step aside (see use-tree-live). What the rows show now: the row, its zone and its rect (the pointer in the
+    // few px between two rows keeps the place of the row left behind)
+    const live = useTreeLive(rows, tree)
+    const liveShownRef = useRef<{ over: string | null, zone: DropZone, rect: { top: number, bottom: number } | null } | null>(null)
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -81,6 +91,7 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
         multiPlanRef.current = null
         multiTargetsRef.current = []
         lastMoveRef.current = null
+        liveShownRef.current = null
         setMultiCount(0)
         setActiveRef(null)
         hoverStore.set(NO_TREE_HOVER)
@@ -93,7 +104,9 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
         const targets = dragsSelection ? selectionActions.getTargets() : []
         multiTargetsRef.current = targets.map(item => ({ type: item.itemType, id: item.id }))
         lastMoveRef.current = null
+        liveShownRef.current = null
         setMultiCount(targets.length)
+        if (data) live.start(data, { keyboard: (event.activatorEvent as Event | null)?.type === "keydown", selection: targets.length > 0 })
     }
 
     const onDragMove = (event: DragMoveEvent) => {
@@ -103,20 +116,31 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
             targetRef.current = null
             multiPlanRef.current = null
             lastMoveRef.current = null
+            if (liveShownRef.current) live.show(null, "inside", false)
+            liveShownRef.current = null
             hoverStore.set(NO_TREE_HOVER)
             return
         }
+
+        const pointerY = getPointerY(event)
+        // The few px between two rows belong to the empty area of the root: the rows (and the drop) keep the place of the row left behind
+        const shown = liveShownRef.current
+        if (live.active() && over.id === ROOT_DROP_ID && shown?.rect && pointerY != null && isInRowGap(shown.rect, pointerY)) return
 
         let overRef: TreeRef | null = null
         let zone: DropZone = "inside"
         if (over.id !== ROOT_DROP_ID) {
             overRef = over.data.current as TreeRef
-            const pointerY = getPointerY(event)
             if (pointerY == null) return
             const overItem = findTreeItem(tree, overRef)
             const expandedWithChildren = overRef.type === "folder" && !collapsedIds.has(overRef.id) &&
                 !!overItem && "subfolders" in overItem && (overItem.subfolders.length + overItem.notes.length) > 0
             zone = computeDropZone(overRef.type, over.rect, pointerY, { expandedWithChildren })
+            // The rows follow the zone with a small hysteresis; the drop uses the same zone, so what is shown is what is dropped
+            if (live.active()) {
+                const previous = shown?.over === treeRowKey(overRef.type, overRef.id) ? shown.zone : null
+                zone = holdTreeZone(overRef.type, previous, zone, over.rect, pointerY)
+            }
         }
 
         // Same row, zone and tree as the last move: the target and the plan would come out the same
@@ -132,10 +156,13 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
         const target = multiCount > 0 ? null : computeDropTarget(tree, active, overRef, zone)
         targetRef.current = target
         const valid = multiCount > 0 ? !!plan : !!target
+        // With the live drag the rows open the room: the line (before / after) and the ring of the first place are not drawn, the root is not tinted
+        const shifted = live.active() && live.show(target, zone, overRef !== null)
+        if (live.active()) liveShownRef.current = { over: overKey, zone, rect: overRef ? { top: over.rect.top, bottom: over.rect.bottom } : null }
         const next: TreeHover = {
             overKey: overRef && valid ? treeRowKey(overRef.type, overRef.id) : null,
-            zone: valid ? zone : null,
-            rootActive: !overRef && valid,
+            zone: valid && !shifted ? zone : null,
+            rootActive: !overRef && valid && !shifted,
         }
         const prev = hoverStore.getState()
         if (prev.overKey !== next.overKey || prev.zone !== next.zone || prev.rootActive !== next.rootActive) hoverStore.set(next)
@@ -147,6 +174,7 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
         const target = targetRef.current
         const plan = multiPlanRef.current
         reset()
+        live.finish(!!active && !!event.over && (!!target || !!plan))
         if (active && event.over && plan && selectionActions) {
             await selectionActions.executeMove(plan)
             const folderId = plan[0].to.folderId
@@ -162,6 +190,7 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
     const onDragCancel = () => {
         markTreeDragEnd()
         reset()
+        live.finish(false)
     }
 
     // Open a collapsed folder after hovering it for a while during a drag
@@ -184,6 +213,6 @@ export const useTreeDnd = ({ tree, collapsedIds, onExpandFolder }: UseTreeDndOpt
 
     return {
         hoverStore, activeRef, multiCount,
-        dndProps: { sensors, accessibility, collisionDetection, onDragStart, onDragMove, onDragEnd, onDragCancel },
+        dndProps: { sensors, accessibility, collisionDetection, measuring: live.measuring, onDragStart, onDragMove, onDragEnd, onDragCancel },
     }
 }

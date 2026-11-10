@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, type FocusEvent } from "react"
 import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { createExternalStore, useStoreSelector, type ExternalStore } from "@/lib/external-store"
 import type { DropZone, TreeItemType } from "./tree-dnd"
+import { registerTreeRow } from "./tree-live-shift"
 
 export const treeRowKey = (type: TreeItemType, id: number) => `${type}-${id}`
 
@@ -68,7 +69,8 @@ export function useTreeRow(type: TreeItemType, id: number) {
         setDragRef(node)
         setActivatorNodeRef(node)
         setDropRef(node)
-    }, [setDragRef, setActivatorNodeRef, setDropRef])
+        registerTreeRow(key, node)
+    }, [key, setDragRef, setActivatorNodeRef, setDropRef])
 
     return { ref, attributes, listeners, isDragging }
 }

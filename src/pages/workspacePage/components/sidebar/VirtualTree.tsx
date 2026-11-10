@@ -3,11 +3,12 @@ import { defaultRangeExtractor, useVirtualizer, type Range } from "@tanstack/rea
 import { ItemNote } from "../note/Note"
 import { ItemFolder } from "../folder/Folder"
 import type { FlatRow } from "./flat-tree"
-import { useItemSize } from "./item-size"
+import { TREE_ROW_GAP, useItemSize } from "./item-size"
 
-/** Vertical gap between rows (gap-1 in the recursive layout). */
-const ROW_GAP = 4
+const ROW_GAP = TREE_ROW_GAP
 const OVERSCAN = 10
+/** Most rows added to the overscan while an open folder is dragged (live drag: the rows of the room it leaves come from farther away). */
+const MAX_DRAG_OVERSCAN = 60
 
 /** What the tree can be asked to do from outside. */
 export type VirtualTreeHandle = {
@@ -37,6 +38,14 @@ export const VirtualTree = ({ rows, collapsedIds, onToggleFolder, activeKey, tab
         [rows, activeKey],
     )
 
+    // The room of a dragged open folder is as tall as its rows: rows from that far away are shifted into view, so they are mounted
+    const dragOverscan = useMemo(() => {
+        if (activeIndex < 0) return 0
+        let end = activeIndex
+        while (end + 1 < rows.length && end - activeIndex < MAX_DRAG_OVERSCAN && rows[end + 1].depth > rows[activeIndex].depth) end++
+        return end - activeIndex
+    }, [rows, activeIndex])
+
     const tabStopIndex = useMemo(
         () => tabStopKey ? rows.findIndex(row => row.key === tabStopKey) : -1,
         [rows, tabStopKey],
@@ -54,7 +63,7 @@ export const VirtualTree = ({ rows, collapsedIds, onToggleFolder, activeKey, tab
         count: rows.length,
         getScrollElement,
         estimateSize: () => rowSize,
-        overscan: OVERSCAN,
+        overscan: OVERSCAN + dragOverscan,
         rangeExtractor,
         getItemKey: (index) => rows[index]?.key ?? index,
     })
