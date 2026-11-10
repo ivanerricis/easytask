@@ -33,7 +33,7 @@ export function Highlight({ text, query, active = -1, markClassName }: Highlight
                         // Yellow like the search of a browser, readable on both themes; the current match is orange with a ring (theme tokens)
                         "rounded-xs box-decoration-clone px-px",
                         isActive
-                            ? "bg-highlight-active text-black ring-2 ring-highlight-active"
+                            ? "bg-highlight-active text-highlight-active-foreground ring-2 ring-highlight-ring"
                             : "bg-highlight text-highlight-foreground",
                         markClassName,
                     )}
