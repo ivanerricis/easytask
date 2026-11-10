@@ -99,6 +99,6 @@ describe("NoteDndProvider renders", () => {
         act(() => dnd.set({ hover: { overKey: "task-2", zone: "inside", targetSectionId: null } }))
         act(() => dnd.set({ hover: { overKey: null, zone: null, targetSectionId: null } }))
         expect(handlers.onDragStart).toBe(rendered)
-        expect(document.head.textContent).toContain("not-allowed")
+        expect(document.body.querySelector<HTMLElement>("[data-drag-cursor]")?.style.cursor).toBe("not-allowed")
     })
 })
