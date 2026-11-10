@@ -24,6 +24,8 @@ describe("Highlight", () => {
         expect(first).not.toHaveAttribute("data-active")
         expect(second).toHaveAttribute("data-active", "true")
         expect(second.className).toContain("bg-highlight-active")
+        expect(second.className).toContain("ring-highlight-ring")
+        expect(second.className).not.toContain("ring-highlight-active")
         expect(first.className).toContain("bg-highlight text-highlight-foreground")
         expect(first.className).not.toContain("bg-highlight-active")
         expect(first.className + second.className).not.toMatch(/yellow|orange|dark:/)

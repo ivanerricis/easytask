@@ -49,7 +49,15 @@ export function themeCssVars(def: ThemeDefinition, accentOverride?: string | nul
     const toward = c.foreground
     // Search highlight (yellow, like the one of a browser) and its current match
     const highlight = tintWithText(dark ? "#eab308" : "#fde047", dark ? 0.5 : 0.7, c.background, min)
-    const highlightActive = hc ? (dark ? "#00e5ff" : "#ff8c00") : "#fb923c"
+    // Darker orange on the dark themes (a light one leaves no ring that reads on both the mark and the background)
+    const highlightActive = hc ? (dark ? "#9a3412" : "#ff8c00") : dark ? "#ea580c" : "#fb923c"
+    // Ring around the current match: the foreground moved toward white or black until it reads (3:1, 7:1 in the high-contrast themes) on the mark and on the background
+    const ringSurfaces = [c.background, highlightActive]
+    const ringMin = hc ? 7 : 3
+    const ringWeakest = (ring: string) => Math.min(...ringSurfaces.map(surface => contrastRatio(ring, surface)))
+    const highlightRing = ["#ffffff", "#000000"]
+        .map(target => readable(c.foreground, ringSurfaces, target, ringMin))
+        .reduce((best, ring) => ringWeakest(ring) > ringWeakest(best) ? ring : best)
     // Status colors: emerald/sky moved toward the foreground until they read on the background and on their own 15% tint
     const status = (hue: string) => {
         const surfaces = [c.background, c.card]
@@ -94,6 +102,8 @@ export function themeCssVars(def: ThemeDefinition, accentOverride?: string | nul
         "--highlight": highlight,
         "--highlight-foreground": textColorOn(highlight),
         "--highlight-active": highlightActive,
+        "--highlight-active-foreground": textColorOn(highlightActive),
+        "--highlight-ring": highlightRing,
         "--success": success,
         "--success-foreground": textColorOn(success),
         "--info": info,

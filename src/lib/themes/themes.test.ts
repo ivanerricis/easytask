@@ -128,9 +128,13 @@ describe("high-contrast themes", () => {
 describe("derived tokens", () => {
     it.each(BUILTIN_THEMES.map(t => [t.id, t] as const))("%s: new tokens are present and readable", (_id, theme) => {
         const v = themeCssVars(theme)
-        for (const name of ["--highlight", "--highlight-foreground", "--highlight-active", "--success", "--success-foreground", "--info", "--info-foreground",
+        for (const name of ["--highlight", "--highlight-foreground", "--highlight-active", "--highlight-active-foreground", "--highlight-ring", "--success", "--success-foreground", "--info", "--info-foreground",
             "--control-hover", "--overlay", "--window-close", "--window-close-foreground", "--thumb", "--priority", "--body-surface"]) expect(v[name], name).toBeDefined()
         expect(contrastRatio(v["--highlight-foreground"], v["--highlight"])).toBeGreaterThanOrEqual(4.5)
+        const ringMin = theme.highContrast ? 7 : 3
+        expect(contrastRatio(v["--highlight-ring"], v["--highlight-active"])).toBeGreaterThanOrEqual(ringMin)
+        expect(contrastRatio(v["--highlight-ring"], theme.colors.background)).toBeGreaterThanOrEqual(ringMin)
+        expect(contrastRatio(v["--highlight-active-foreground"], v["--highlight-active"])).toBeGreaterThanOrEqual(theme.highContrast ? 7 : 4.5)
         expect(contrastRatio(v["--success"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--info"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
         expect(contrastRatio(v["--priority"], theme.colors.background)).toBeGreaterThanOrEqual(4.5)
