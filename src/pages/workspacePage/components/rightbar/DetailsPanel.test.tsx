@@ -8,7 +8,7 @@ import i18n from "@/i18n"
 import type { NoteDataTree } from "@/types/types"
 import { TabsProvider } from "@/contexts/tabs-context"
 import { useSelectTask, useTabsActions } from "@/contexts/use-tabs"
-import { UndoContext, type UndoContextType } from "@/contexts/undo/context"
+import { UndoContext, UndoRecorderContext, type UndoContextType } from "@/contexts/undo/context"
 import { DetailsPanel } from "./DetailsPanel"
 import { makeDefaultSection, makeGroup, makeNote, makeSection, makeTask } from "@/test/ui-fixtures"
 
@@ -78,9 +78,11 @@ function Selector() {
 
 const renderPanel = (noteId: number | null = 1, over: Partial<ReturnType<typeof makeNote>> = {}) => render(
     <TabsProvider notes={[makeNote({ id: 1, name: "Mia nota", color: "#ff0000", creation_date: "2026-01-02", creation_time: "08:00:00", edit_date: "2026-02-03", edit_time: "12:00:00", ...over })]} workspaceId={null}>
-        <UndoContext.Provider value={undoValue}>
-            <Setup noteId={noteId}><Selector /><DetailsPanel /></Setup>
-        </UndoContext.Provider>
+        <UndoRecorderContext.Provider value={recorder as never}>
+            <UndoContext.Provider value={undoValue}>
+                <Setup noteId={noteId}><Selector /><DetailsPanel /></Setup>
+            </UndoContext.Provider>
+        </UndoRecorderContext.Provider>
     </TabsProvider>,
 )
 

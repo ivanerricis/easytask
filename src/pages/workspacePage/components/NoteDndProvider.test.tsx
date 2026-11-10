@@ -1,14 +1,15 @@
 import { act, render } from "@testing-library/react"
-import type { ReactNode } from "react"
+import { useContext, type ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NoteDndProvider } from "./NoteDndProvider"
 import { createSelectionStore } from "./sidebar/selection"
 import { TaskSelectionContext } from "./tasks/use-task-selection"
 import { taskKey } from "./tasks/task-selection"
+import { NoteDndStoreContext, type NoteDndStore } from "./note-dnd-state"
 import { announce } from "./tasks/note-announcer-store"
 
 // DndContext is replaced by a stub that hands its handlers to the test: the pointer sensor needs a real browser
-type Handlers = { onDragStart: (event: unknown) => void, onDragCancel: () => void }
+type Handlers = { onDragStart: (event: unknown) => void, onDragCancel: () => void, sensors: unknown }
 let handlers: Handlers
 vi.mock("@dnd-kit/core", async importActual => ({
     ...await importActual<typeof import("@dnd-kit/core")>(),
@@ -71,5 +72,33 @@ describe("NoteDndProvider drag of a selected task", () => {
         setup()
         startDrag("section", 1)
         expect(store.getSelected().size).toBe(2)
+    })
+})
+
+describe("NoteDndProvider renders", () => {
+    const store = createSelectionStore()
+    let dnd: NoteDndStore
+    const Grab = () => { dnd = useContext(NoteDndStoreContext); return null }
+    const tree = () => (
+        <TaskSelectionContext.Provider value={store}>
+            <NoteDndProvider><Grab /></NoteDndProvider>
+        </TaskSelectionContext.Provider>
+    )
+
+    it("keeps the same sensors across renders (new options would change the listeners of every draggable)", () => {
+        const view = render(tree())
+        const first = handlers.sensors
+        view.rerender(tree())
+        expect(handlers.sensors).toBe(first)
+    })
+
+    it("does not render again when the target of the drag changes, and the cursor follows it", () => {
+        render(tree())
+        startDrag("task", 1)
+        const rendered = handlers.onDragStart
+        act(() => dnd.set({ hover: { overKey: "task-2", zone: "inside", targetSectionId: null } }))
+        act(() => dnd.set({ hover: { overKey: null, zone: null, targetSectionId: null } }))
+        expect(handlers.onDragStart).toBe(rendered)
+        expect(document.head.textContent).toContain("not-allowed")
     })
 })

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { memo, useEffect, useState, type ReactNode } from "react"
 import { act, renderHook, waitFor } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -103,14 +103,14 @@ const taskIds = (result: { current: ReturnType<typeof useAll> }) =>
     result.current.note.noteDataTree?.groups[0]?.sections[0]?.tasks.map(t => t.id)
 
 /** A workspace with a folder (1) holding a note (11), a root note (10, open) and a root folder (2). */
-async function setup(note: unknown = noteData()) {
+async function setup(note: unknown = noteData(), wrap = wrapper) {
     vi.mocked(getDBWorkspaceData).mockResolvedValue({
         folders: [makeFolder({ id: 1, name: "Docs" }), makeFolder({ id: 2, name: "Other", position: 1 })],
         notes: [makeNote({ id: 10, name: "Open note", position: 0 }), makeNote({ id: 11, folderID: 1, name: "Inner", position: 0 })],
     } as never)
     vi.mocked(getDBNoteData).mockResolvedValue(note as never)
 
-    const hook = renderHook(() => useAll(), { wrapper })
+    const hook = renderHook(() => useAll(), { wrapper: wrap })
     await act(async () => { hook.result.current.workspace.setCurrentWorkspace(makeWorkspace({ id: 1 })) })
     await act(() => hook.result.current.data.getWorkspaceData(1))
     await act(async () => { hook.result.current.tabs.openNote(10) })
@@ -143,6 +143,19 @@ describe("UndoProvider", () => {
         expect(() => renderHook(() => useUndo())).toThrow(/UndoProvider/)
         expect(() => renderHook(() => useUndoRecorder().rename("task", 1, "a", "b"))).not.toThrow()
         spy.mockRestore()
+    })
+
+    it("a component that only records does not render again when the history changes", async () => {
+        let renders = 0
+        const Recording = memo(function Recording() { renders++; useUndoRecorder(); return null })
+        const { result } = await setup(noteData(), ({ children }) => wrapper({ children: <>{children}<Recording /></> }))
+        const before = renders
+        await act(async () => {
+            await result.current.data.renameItem("note", 10, "Renamed")
+            result.current.recorder.rename("note", 10, "Open note", "Renamed")
+        })
+        expect(result.current.undo.canUndo).toBe(true)
+        expect(renders).toBe(before)
     })
 
     it("starts empty", async () => {

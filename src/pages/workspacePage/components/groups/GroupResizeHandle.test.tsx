@@ -125,3 +125,16 @@ describe("GroupResizeHandle with the automatic width", () => {
         expect(onResize).toHaveBeenLastCalledWith(289)
     })
 })
+describe("GroupResizeHandle measuring", () => {
+    it("measures the automatic width after the render, once, and again when it gets the focus", () => {
+        let measured = 300
+        const getWidth = vi.fn(() => measured)
+        render(<GroupResizeHandle getWidth={getWidth} width={null} onResize={vi.fn()} onCommit={vi.fn()} />)
+        const handle = screen.getByRole("separator", { name: "Ridimensiona il gruppo" })
+        expect(getWidth).toHaveBeenCalledTimes(1)
+        expect(handle).toHaveAttribute("aria-valuenow", "300")
+        measured = 320
+        act(() => handle.focus())
+        expect(handle).toHaveAttribute("aria-valuenow", "320")
+    })
+})

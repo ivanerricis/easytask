@@ -24,7 +24,7 @@ import { taskKey } from "./tasks/task-selection"
 import { announce } from "./tasks/note-announcer-store"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import type { NoteDataTree } from "@/types/types"
-import { NO_HOVER, NoteDndStoreContext, createNoteDndStore, noteKey, useGroupMoves, useNoteMoves, type NoteHover } from "./note-dnd-state"
+import { NO_HOVER, NoteDndStoreContext, createNoteDndStore, noteKey, useGroupMoves, useNoteDndSelector, useNoteMoves, type NoteHover } from "./note-dnd-state"
 
 type PendingDrop =
     | { kind: "section", id: number, target: SectionTarget }
@@ -55,6 +55,21 @@ const collisionDetection: CollisionDetection = ({ active, droppableContainers, d
  * target would flip between the place and its shifted copy.
  */
 const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => getClientRect(element, { ignoreTransform: true }), shiftOf) } }
+
+/** A click without moving (5px) is not a drag. A module constant on purpose: see the sensors in NoteDndProvider. */
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 5 } }
+
+/**
+ * The cursor of the whole window while something is dragged. Over nothing valid (no droppable, or a no-op target such as a task
+ * under itself) it says the drop does nothing. It is its own component so that the changes of the target re-render only this
+ * (a render of the provider walks the whole note).
+ */
+const DragCursor = () => {
+    const active = useNoteDndSelector(state => state.active !== null)
+    const noTarget = useNoteDndSelector(state => state.hover.overKey === null)
+    useGrabbingCursor(active, noTarget)
+    return null
+}
 
 /** Longest wait for the optimistic update of a drop before the rows are put back anyway. */
 const SETTLE_TIMEOUT = 500
@@ -121,7 +136,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         clearShifts(false)
     }, [])
 
-    const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+    // Options with a stable identity: a new object per render would change the sensors, and with them the listeners of every draggable
+    const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS))
 
     const accessibility = buildDndAccessibility(entry => {
         const ref = entry.data.current as { kind?: NoteOverKind, id?: number } | undefined
@@ -252,10 +268,6 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         clearShifts(true)
     }
 
-    // Over nothing valid (no droppable, or a no-op target such as a task under itself) the cursor says the drop does nothing
-    const noTarget = useSyncExternalStore(store.subscribe, () => store.getState().hover.overKey === null)
-    useGrabbingCursor(active !== null, noTarget)
-
     const preview = useMemo(() => {
         if (!active || !noteDataTree) return null
         if (active.kind === "group") {
@@ -304,6 +316,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
                 measuring={liveDrag ? LIVE_MEASURING : undefined}
             >
                 {children}
+                <DragCursor />
                 {createPortal(<DragOverlay dropAnimation={null}>{preview && <div className="rotate-2">{preview}</div>}</DragOverlay>, document.body)}
             </DndContext>
         </NoteDndStoreContext.Provider>
