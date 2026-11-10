@@ -1,6 +1,6 @@
 # Annulla e cronologia
 
-EasyTask ricorda le tue ultime azioni nel workspace aperto. Puoi annullarle, ripeterle o tornare a un punto qualsiasi dalla scheda **Cronologia**.
+EasyTask ricorda le tue ultime azioni nel workspace aperto. Puoi annullarle, ripeterle o tornare a un punto qualsiasi dal tab **Cronologia**.
 
 ## Annulla e ripeti
 
@@ -9,7 +9,7 @@ EasyTask ricorda le tue ultime azioni nel workspace aperto. Puoi annullarle, rip
 | Annulla l'ultima azione | `Ctrl+Z` |
 | Ripeti l'azione annullata | `Ctrl+Y` oppure `Ctrl+Maiusc+Z` |
 
-Puoi usare anche **Annulla** e **Ripeti** nel menu **Modifica** del menu dell'applicazione, o i due pulsanti in alto nella scheda Cronologia.
+Puoi usare anche **Annulla** e **Ripeti** nel menu **Modifica** del menu dell'applicazione, o i due pulsanti in alto nel tab Cronologia.
 
 Ogni annullamento o ripetizione mostra un avviso, per esempio "Annullato: Rinomina task". L'avviso ha un pulsante per l'azione opposta, così puoi ripensarci subito.
 
@@ -42,11 +42,11 @@ Quando elimini qualcosa, l'avviso che lo conferma ha un pulsante **Annulla**. Cl
 
 L'avviso di un'automazione ha lo stesso pulsante. Se nel frattempo hai fatto altro, usa la cronologia.
 
-## La scheda Cronologia
+## Il tab Cronologia
 
-Apri il pannello a destra e scegli la scheda **Cronologia**. Mostra o nascondi il pannello con `Ctrl+Maiusc+B`.
+Apri il pannello a destra e scegli il tab **Cronologia**. Mostra o nascondi il pannello con `Ctrl+Maiusc+B`.
 
-![Scheda Cronologia](../../screenshots/it/history-light.png)
+![La tab Cronologia del pannello a destra, con i pulsanti Annulla e Ripeti e l'elenco delle ultime azioni, con lo stato corrente in cima](../../screenshots/it/history-light.png)
 
 - L'elenco mostra le azioni che puoi annullare, la più recente in alto. Quella in cima è segnata come **Stato attuale**.
 - Clicca una voce per tornare a quel punto. EasyTask annulla tutte le azioni che stanno sopra, in un solo passaggio.

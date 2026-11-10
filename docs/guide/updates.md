@@ -32,8 +32,8 @@ If you are up to date, the app says "EasyTask is up to date."
 
 The first time you open a workspace after an update, a **What's new** tab opens with the release notes of the version you are now using, in the language of the app.
 
-![The What's new tab](../screenshots/en/whats-new-light.png){.light-only}
-![The What's new tab](../screenshots/en/whats-new-dark.png){.dark-only}
+![The What's new tab with the release notes of the current version](../screenshots/en/whats-new-light.png){.light-only}
+![The What's new tab with the release notes of the current version](../screenshots/en/whats-new-dark.png){.dark-only}
 
 - It opens only once for each update.
 - Close it like a note: **Close current note** or `Ctrl+L`.

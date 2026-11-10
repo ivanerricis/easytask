@@ -50,7 +50,7 @@ features:
 
 <div class="home-shot">
 
-![EasyTask con una nota aperta](../screenshots/it/workspace-light.png){.light-only}
-![EasyTask con una nota aperta](../screenshots/it/workspace-dark.png){.dark-only}
+![Una nota aperta con gruppi e sezioni colorati e i suoi task, l'albero delle cartelle a sinistra, i tab in alto e il pannello dei dettagli a destra](../screenshots/it/workspace-light.png){.light-only}
+![Una nota aperta con gruppi e sezioni colorati e i suoi task, l'albero delle cartelle a sinistra, i tab in alto e il pannello dei dettagli a destra](../screenshots/it/workspace-dark.png){.dark-only}
 
 </div>
