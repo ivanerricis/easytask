@@ -1,7 +1,7 @@
 import { browser, expect } from "@wdio/globals"
 import {
     addTaskToGroup, byLabel, byText, createFromSidebar, createWorkspace, directTasks, groupCard, newSectionInGroup, openContextMenu,
-    openWorkspace, sectionCard, tr, treeRow, typeInto, waitForApp,
+    openWorkspace, sectionCard, setLiveDrag, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
 /**
@@ -143,6 +143,11 @@ describe("Feedback of the drag at the edges of a group", () => {
         await waitForOrder(["tasks", S1, S2, S3])
     })
 
+    it("turns the live drag off: the insertion line of the sections is drawn only without it", async function () {
+        if (process.platform === "linux") return this.skip()
+        await setLiveDrag(false)
+    })
+
     it("shows the insertion line under the LAST section, whole", async function () {
         if (process.platform === "linux") return this.skip()
         const sample = await dragAndMeasure(() => header(S1), () => sectionCard(S3), "bottom", "line")
@@ -216,5 +221,10 @@ describe("Feedback of the drag at the edges of a group", () => {
         expect(rects.barWidth).toBeGreaterThan(0)
         // The handle sits outside the group: it must not overlap the scrollbar, i.e. start where the scrollbar ends (or after)
         expect(rects.handleLeft).toBeGreaterThanOrEqual(rects.barRight - 0.5)
+    })
+
+    after(async function () {
+        if (process.platform === "linux") return
+        await setLiveDrag(true)
     })
 })

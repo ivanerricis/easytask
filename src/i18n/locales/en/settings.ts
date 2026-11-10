@@ -355,8 +355,8 @@ export const settings: Translation["settings"] = {
             description: "After creating a task the field stays open for the next one. Esc or an empty field closes it.",
         },
         liveDrag: {
-            label: "Tasks move aside while dragging",
-            description: "Dragging a task makes the others step aside to open the room where it would land. If off, only the drop indicator is shown.",
+            label: "Tasks and sections move aside while dragging",
+            description: "Dragging a task or a section makes the others step aside to open the room where it would land. If off, only the drop indicator is shown.",
         },
         showTaskInsertLine: {
             label: "Line to insert a task",

@@ -42,7 +42,7 @@ A right-click on the empty area of the note (outside any group, section or task)
 You can also move things by dragging:
 
 - Drag a group by its header to reorder the groups.
-- Drag a section onto another group, or between sections, to move it. A line shows where it lands, also above or below the list of the group tasks. Drop it on the **New group** area at the edge to make it a group of its own.
+- Drag a section onto another group, or between sections, to move it. While you drag, the other sections (and the list of the group tasks) step aside to open the room where it would land, in the same group or in another one, and the section you are dragging collapses. With **Live drag** off in **Settings > Notes and sections** a line shows where it lands instead. Drop it on the **New group** area at the edge to make it a group of its own.
 
 The list of the group tasks follows the same order as the sections: by default it is at the top, and you can move it with **Move task list up** and **Move task list down** (also in the right-click menu of the group), which are disabled when the list is already at the end. [Undo](./undo-and-history.md) brings it back.
 

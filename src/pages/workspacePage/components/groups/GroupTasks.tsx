@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from "react"
+import { memo, useCallback, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import i18n from "@/i18n"
 import type { Group, Section } from "@/types/types"
@@ -9,6 +9,8 @@ import { ensureDBDefaultSection } from "@/db/queries/task"
 import { useNoteDndSelector, useNoteDrop } from "../note-dnd-state"
 import { AddTask } from "../tasks/AddTask"
 import { DropLine } from "../sidebar/DropLine"
+import { registerShiftNode, sectionNodeKey } from "../note-dnd-shift"
+import { usePreference } from "@/contexts/use-preference"
 import { TaskList } from "../tasks/TaskList"
 
 type DirectTasksProps = {
@@ -25,15 +27,24 @@ const DirectTasks = memo(({ section }: DirectTasksProps) => {
     const { setNodeRef, zone, active } = useNoteDrop("section", section.id)
     const draggingSection = active?.kind === "section"
     const taskDestination = useNoteDndSelector(state => state.active?.kind === "task" && state.hover.targetSectionId === section.id)
+    const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
+    // A row among the sections for the live drag of the sections: it steps aside with its tasks
+    const sectionId = section.id
+    const setRef = useCallback((node: HTMLElement | null) => {
+        setNodeRef(node)
+        registerShiftNode(sectionNodeKey(sectionId), node)
+    }, [setNodeRef, sectionId])
 
     return (
         <div
-            ref={setNodeRef}
+            ref={setRef}
             data-direct-tasks
+            data-section-wrap={section.id}
+            data-section-group={section.groupID}
             className={cn("relative flex flex-col gap-1 w-full rounded-xs", !draggingSection && (zone || taskDestination) && "ring-2 ring-primary")}
         >
             {/* Drawn inside the box: the list can be the first or the last item of the group, where a line outside would be cut by the scrolling area */}
-            {draggingSection && <DropLine zone={zone} />}
+            {draggingSection && !liveDrag && <DropLine zone={zone} />}
             {/* Without tasks only the button is left: the empty box would just be a double border */}
             {section.tasks.length > 0 &&
                 <div className="flex flex-col w-full border bg-body-surface">

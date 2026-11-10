@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildLiveSnapshot, computeLiveShifts, holdLiveZone, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
+import { buildLiveSnapshot, computeLiveShifts, groupListKey, holdHalfZone, holdLiveZone, isInRowGap, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
 
 /**
  * A tiny layout engine: a list is an array of rows, a row `[key, height, children?]`. Every row is a wrapper that is as tall as its
@@ -250,5 +250,113 @@ describe("holdLiveZone", () => {
         const row = { top: 0, height: 34 } // lower border at 25.5, margin 1.36
         expect(holdLiveZone("inside", "after", row, 27)).toBe("after")
         expect(holdLiveZone("inside", "after", row, 26)).toBe("inside")
+    })
+})
+
+describe("groupListKey", () => {
+    it("is the list of the sections of a group", () => {
+        expect(groupListKey(7)).toBe("g-7")
+    })
+})
+
+describe("computeLiveShifts: sections", () => {
+    // Group 1 has A (40), B (100), C (60); group 2 has X (80), Y (20). 4px between the sections (like the gap of a group)
+    const spaced = (list: string, top: number, heights: [string, number][]): LiveNodeInfo[] => {
+        let y = top
+        return heights.map(([key, height]) => { const node = { key, list, parent: null, top: y, height }; y += height + 4; return node })
+    }
+    const nodes = [
+        ...spaced("g-1", 0, [["A", 40], ["B", 100], ["C", 60]]),
+        ...spaced("g-2", 0, [["X", 80], ["Y", 20]]),
+    ]
+    const at = (over: string | null, zone: "before" | "after" | null, list: string): LivePending => ({ over, zone, list })
+
+    it("same group, going down: the sections it passes go up by its room (height + gap), the others stay", () => {
+        expect(shiftsOf(nodes, "A", at("C", "after", "g-1"))).toEqual({ B: -44, C: -44 })
+        expect(shiftsOf(nodes, "A", at("C", "before", "g-1"))).toEqual({ B: -44 })
+    })
+
+    it("same group, going up: the sections between the place and the source go down", () => {
+        expect(shiftsOf(nodes, "C", at("A", "before", "g-1"))).toEqual({ A: 60, B: 60 })
+        expect(shiftsOf(nodes, "C", at("A", "after", "g-1"))).toEqual({ B: 60 })
+    })
+
+    it("the room is the one of the dragged section even when the others have another height", () => {
+        expect(shiftsOf(nodes, "A", at("B", "after", "g-1"))).toEqual({ B: -44 })
+        expect(shiftsOf(nodes, "B", at("A", "before", "g-1"))).toEqual({ A: 104 })
+    })
+
+    it("a place that leaves the order as it is moves nothing", () => {
+        expect(shiftsOf(nodes, "B", at("C", "before", "g-1"))).toEqual({})
+        expect(shiftsOf(nodes, "B", at("A", "after", "g-1"))).toEqual({})
+    })
+
+    it("another group: closes the room in the source group, opens it in the destination group", () => {
+        expect(shiftsOf(nodes, "A", at("Y", "before", "g-2"))).toEqual({ B: -44, C: -44, Y: 44 })
+        expect(shiftsOf(nodes, "B", at("X", "before", "g-2"))).toEqual({ C: -104, X: 104, Y: 104 })
+    })
+
+    it("the last position of another group opens nothing (no row follows the place)", () => {
+        expect(shiftsOf(nodes, "A", at("Y", "after", "g-2"))).toEqual({ B: -44, C: -44 })
+        expect(shiftsOf(nodes, "A", at(null, null, "g-2"))).toEqual({ B: -44, C: -44 })
+    })
+
+    it("the end of a group: the sections after the source close, the ones before stay", () => {
+        expect(shiftsOf(nodes, "A", at(null, null, "g-1"))).toEqual({ B: -44, C: -44 })
+        expect(shiftsOf(nodes, "C", at(null, null, "g-1"))).toEqual({})
+    })
+
+    it("a group without rows (collapsed or empty) is a place too: only the source group closes", () => {
+        expect(shiftsOf(nodes, "B", at(null, null, "g-9"))).toEqual({ C: -104 })
+    })
+
+    it("the last section of its group leaves nothing to close", () => {
+        expect(shiftsOf(nodes, "Y", at("X", "before", "g-2"))).toEqual({ X: 20 })
+        expect(shiftsOf(nodes, "C", at("X", "before", "g-2"))).toEqual({ X: 60, Y: 60 })
+    })
+
+    it("does not move the tasks of a section: only the wrapper of the section is in the list", () => {
+        const withTasks = [...nodes, { key: "t1", list: "s-1", parent: null, top: 10, height: 10 }]
+        expect(Object.keys(shiftsOf(withTasks, "A", at("C", "after", "g-1")))).toEqual(["B", "C"])
+    })
+
+    it("a place in the wrong list, or under the section itself, moves nothing", () => {
+        expect(shiftsOf(nodes, "A", at("Y", "before", "g-1"))).toEqual({})
+        expect(shiftsOf(nodes, "A", at("A", "after", "g-1"))).toEqual({})
+        expect(shiftsOf(nodes, "A", at("Y", null, "g-2"))).toEqual({})
+    })
+
+    it("follows the order drawn: the list of the direct tasks is a row among the sections", () => {
+        const drawn = spaced("g-1", 0, [["A", 40], ["list", 50], ["B", 30]])
+        expect(shiftsOf(drawn, "A", at("B", "before", "g-1"))).toEqual({ list: -44 })
+        expect(shiftsOf(drawn, "B", at("list", "before", "g-1"))).toEqual({ list: 30 })
+    })
+})
+
+describe("holdHalfZone", () => {
+    const rect = { top: 100, height: 100 } // middle at 150, margin 3
+    it("follows the real zone when there is nothing before, or it did not change", () => {
+        expect(holdHalfZone(null, "after", rect, 140)).toBe("after")
+        expect(holdHalfZone("before", "before", rect, 140)).toBe("before")
+    })
+    it("keeps the side a few px past the middle", () => {
+        expect(holdHalfZone("before", "after", rect, 152)).toBe("before")
+        expect(holdHalfZone("before", "after", rect, 154)).toBe("after")
+        expect(holdHalfZone("after", "before", rect, 148)).toBe("after")
+        expect(holdHalfZone("after", "before", rect, 146)).toBe("before")
+    })
+    it("does not hold a zone that is not a side", () => {
+        expect(holdHalfZone("inside", "before", rect, 150)).toBe("before")
+    })
+})
+
+describe("isInRowGap", () => {
+    it("is true a little outside the row, false farther away", () => {
+        const row = { top: 100, bottom: 200 }
+        expect(isInRowGap(row, 96)).toBe(true)
+        expect(isInRowGap(row, 207)).toBe(true)
+        expect(isInRowGap(row, 150)).toBe(true)
+        expect(isInRowGap(row, 90)).toBe(false)
+        expect(isInRowGap(row, 215)).toBe(false)
     })
 })
