@@ -63,5 +63,8 @@ export const ITEM_SIZES: Record<SidebarItemSize, ItemSizeClasses> = {
     },
 }
 
+/** Vertical gap between the rows of the tree (gap-1 in the recursive layout). */
+export const TREE_ROW_GAP = 4
+
 /** Size classes for the size chosen in the settings. */
 export const useItemSize = (): ItemSizeClasses => ITEM_SIZES[usePreference(p => p.sidebarItemSize) ?? "normal"]

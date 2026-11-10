@@ -23,7 +23,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 }))
 vi.mock("@/contexts/undo/use-undo", async () => (await import("@/test/mocks")).undoModuleMock())
 vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ item: () => "#000" }) }))
-vi.mock("./item-size", () => ({ useItemSize: () => ({ row: "", text: "" }) }))
+vi.mock("./item-size", () => ({ TREE_ROW_GAP: 4, useItemSize: () => ({ row: "", text: "" }) }))
 // Counters: the menu is rendered by FileTree itself, the rows only when their own props change
 vi.mock("./TreeBackgroundMenu", () => ({
     TreeBackgroundMenu: ({ children }: { children: ReactNode }) => { renders.menu++; return <>{children}</> },

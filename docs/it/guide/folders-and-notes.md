@@ -80,6 +80,8 @@ Trascina una riga dell'albero e rilasciala dove vuoi:
 - Su una nota: l'elemento va prima (metà alta) o dopo (metà bassa).
 - Su una cartella: al centro della riga l'elemento va dentro la cartella; vicino al bordo alto o basso, prima o dopo.
 
+Mentre trascini, le altre righe si scostano per aprire lo spazio dove l'elemento atterrerebbe e lo spazio che lascia si richiude, così vedi l'ordine finale prima di rilasciare. Una cartella aperta si muove con le righe al suo interno. Sul centro di una cartella le righe restano ferme e la cartella è evidenziata. Con **Task, sezioni, gruppi, note e cartelle che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** si vede invece una linea che mostra dove cade, come quando trascini più elementi selezionati o usi la tastiera.
+
 Puoi trascinare anche con la tastiera: seleziona una riga, premi `Spazio`, spostati con le frecce, premi di nuovo `Spazio` per rilasciare, `Esc` per annullare. **Sposta in…** nel menu è un altro modo che non richiede il trascinamento.
 
 ::: info
