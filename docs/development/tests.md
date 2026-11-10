@@ -54,7 +54,7 @@ The specs in `e2e/specs` cover:
 | `app-menu` | The application menu |
 | `persistence` | Settings and data surviving a restart |
 
-See [e2e/README.md](https://github.com/ivanerricis/easytask-tauri/blob/master/e2e/README.md) for the details.
+See [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md) for the details.
 
 ## UI tour
 
@@ -84,7 +84,7 @@ Some things cannot be automated: native file dialogs, backup, import and export,
 - Dark and light theme, a different accent color and 150% scaling look right, in Italian and English.
 - Uninstalling leaves the data folder.
 
-The full list is in [e2e/README.md](https://github.com/ivanerricis/easytask-tauri/blob/master/e2e/README.md).
+The full list is in [e2e/README.md](https://github.com/ivanerricis/easytask/blob/master/e2e/README.md).
 
 ## Continuous integration
 

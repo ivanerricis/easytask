@@ -1,15 +1,15 @@
 # EasyTask
 
-[![CI](https://github.com/ivanerricis/easytask-tauri/actions/workflows/ci.yml/badge.svg)](https://github.com/ivanerricis/easytask-tauri/actions/workflows/ci.yml)
-[![Coverage](https://codecov.io/gh/ivanerricis/easytask-tauri/graph/badge.svg)](https://codecov.io/gh/ivanerricis/easytask-tauri)
-[![Release](https://img.shields.io/github/v/release/ivanerricis/easytask-tauri)](https://github.com/ivanerricis/easytask-tauri/releases/latest)
-[![License: MIT](https://img.shields.io/github/license/ivanerricis/easytask-tauri)](LICENSE)
+[![CI](https://github.com/ivanerricis/easytask/actions/workflows/ci.yml/badge.svg)](https://github.com/ivanerricis/easytask/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/ivanerricis/easytask/graph/badge.svg)](https://codecov.io/gh/ivanerricis/easytask)
+[![Release](https://img.shields.io/github/v/release/ivanerricis/easytask)](https://github.com/ivanerricis/easytask/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/ivanerricis/easytask)](LICENSE)
 
 An **advanced todo list** based on **Workspaces**, inspired by tools like Notion, Obsidian and Trello.
 Each Workspace is fully customizable and supports hierarchical management of elements, with the ability to color any object.
 Everything is stored locally on your computer.
 
-**Documentation:** [ivanerricis.github.io/easytask-tauri](https://ivanerricis.github.io/easytask-tauri/) (English) · [in italiano](https://ivanerricis.github.io/easytask-tauri/it/). In the app, press `F1` or open **Help > Documentation**.
+**Documentation:** [ivanerricis.github.io/easytask](https://ivanerricis.github.io/easytask/) (English) · [in italiano](https://ivanerricis.github.io/easytask/it/). In the app, press `F1` or open **Help > Documentation**.
 
 ---
 
@@ -72,7 +72,7 @@ Default shortcuts (all but the fixed ones can be changed in Settings > Shortcuts
 
 ## Installation (for users)
 
-Download the latest build from the [Releases page](https://github.com/ivanerricis/easytask-tauri/releases).
+Download the latest build from the [Releases page](https://github.com/ivanerricis/easytask/releases).
 
 | Platform | File | Notes |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ macOS builds are not provided.
 so SmartScreen may show "Windows protected your PC" the first time you run them. This does not mean the file is harmful:
 Windows only warns about programs from publishers it does not know.
 To continue, click **More info** and then **Run anyway**. You can download the files only from the
-[Releases page](https://github.com/ivanerricis/easytask-tauri/releases) of this repository. Code signing is planned.
+[Releases page](https://github.com/ivanerricis/easytask/releases) of this repository. Code signing is planned.
 
 **Portable version (Windows).** The zip contains `EasyTask.exe`, `portable.txt` and a short readme.
 Requirements: 64-bit Windows 10/11 with the Microsoft Edge WebView2 Runtime (already included in Windows 11 and recent Windows 10).
@@ -148,8 +148,8 @@ Settings > Data has a button that opens it in the file manager, plus the backup,
 ### Setup and commands
 
 ```bash
-git clone https://github.com/ivanerricis/easytask-tauri
-cd easytask-tauri
+git clone https://github.com/ivanerricis/easytask
+cd easytask
 npm install
 ```
 
@@ -179,7 +179,7 @@ The e2e suite builds a debug app and runs it against a temporary data folder (`E
 On pushes to `master` and on pull requests, GitHub Actions runs:
 
 - version check (`package.json`, `Cargo.toml` and `tauri.conf.json` must agree)
-- frontend: ESLint, type-check of the e2e specs, tests with coverage (uploaded to [Codecov](https://codecov.io/gh/ivanerricis/easytask-tauri) for the badge, never blocking), build (`tsc -b` and Vite)
+- frontend: ESLint, type-check of the e2e specs, tests with coverage (uploaded to [Codecov](https://codecov.io/gh/ivanerricis/easytask) for the badge, never blocking), build (`tsc -b` and Vite)
 - backend (Windows and Linux): `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test`
 - audit (blocking): `npm audit` (high/critical, production dependencies), `cargo audit`, `cargo deny`; it also runs every Monday, on its own
 - e2e on Linux, split in 3 parallel shards (**not blocking** for now); the Windows run starts manually (`workflow_dispatch`), because the hosted runner cannot attach the driver to the app, while the suite passes on a Windows machine (`npm run e2e`)

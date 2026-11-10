@@ -4,7 +4,7 @@ Grazie per voler dare una mano. Questa pagina spiega come proporre una modifica.
 
 ## Idee e bug
 
-Per un bug o un'idea apri prima una [issue](https://github.com/ivanerricis/easytask-tauri/issues). Ci sono modelli per entrambi. Per una modifica grande, discutine in una issue prima di scrivere codice.
+Per un bug o un'idea apri prima una [issue](https://github.com/ivanerricis/easytask/issues). Ci sono modelli per entrambi. Per una modifica grande, discutine in una issue prima di scrivere codice.
 
 ## Fare una modifica
 
@@ -60,8 +60,8 @@ Per ogni modifica visibile all'utente aggiungi una riga sotto `## [Unreleased]` 
 
 ## Release
 
-Solo il maintainer pubblica le release. I passaggi sono in [RELEASING.md](https://github.com/ivanerricis/easytask-tauri/blob/master/RELEASING.md).
+Solo il maintainer pubblica le release. I passaggi sono in [RELEASING.md](https://github.com/ivanerricis/easytask/blob/master/RELEASING.md).
 
 ## Sicurezza
 
-Non aprire una issue pubblica per una vulnerabilità. Segnalala in privato come descritto in [SECURITY.md](https://github.com/ivanerricis/easytask-tauri/blob/master/SECURITY.md).
+Non aprire una issue pubblica per una vulnerabilità. Segnalala in privato come descritto in [SECURITY.md](https://github.com/ivanerricis/easytask/blob/master/SECURITY.md).

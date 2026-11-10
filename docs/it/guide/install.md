@@ -1,6 +1,6 @@
 # Installazione
 
-Scarica EasyTask dalla [pagina delle Release](https://github.com/ivanerricis/easytask-tauri/releases). Scarica i file solo da lì.
+Scarica EasyTask dalla [pagina delle Release](https://github.com/ivanerricis/easytask/releases). Scarica i file solo da lì.
 
 ## Download
 

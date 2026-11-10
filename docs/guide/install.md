@@ -1,6 +1,6 @@
 # Install
 
-Download EasyTask from the [Releases page](https://github.com/ivanerricis/easytask-tauri/releases). Download the files only from there.
+Download EasyTask from the [Releases page](https://github.com/ivanerricis/easytask/releases). Download the files only from there.
 
 ## Downloads
 

@@ -259,15 +259,15 @@ describe("DialogSettings", () => {
     it("opens the repository link with the opener plugin", async () => {
         const user = await open()
         await user.click(screen.getByRole("tab", { name: "Informazioni" }))
-        await user.click(await screen.findByRole("button", { name: "https://github.com/ivanerricis/easytask-tauri" }))
-        expect(openUrl).toHaveBeenCalledWith("https://github.com/ivanerricis/easytask-tauri")
+        await user.click(await screen.findByRole("button", { name: "https://github.com/ivanerricis/easytask" }))
+        expect(openUrl).toHaveBeenCalledWith("https://github.com/ivanerricis/easytask")
     })
 
     it("shows a toast when the link cannot be opened", async () => {
         vi.mocked(openUrl).mockRejectedValue(new Error("denied"))
         const user = await open()
         await user.click(screen.getByRole("tab", { name: "Informazioni" }))
-        await user.click(await screen.findByRole("button", { name: "https://github.com/ivanerricis/easytask-tauri" }))
+        await user.click(await screen.findByRole("button", { name: "https://github.com/ivanerricis/easytask" }))
         await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("denied")))
     })
 })
