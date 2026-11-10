@@ -12,6 +12,8 @@ Pochi secondi dopo l'avvio, EasyTask cerca in silenzio una nuova versione. Se ce
 | **Più tardi** | Chiude la finestra. Viene riproposta al prossimo avvio. |
 | **Salta questa versione** | Non viene riproposta finché non esce una versione più recente. |
 
+Se è aperta un'altra finestra, EasyTask mostra un breve avviso con **Mostra** e apre la finestra dell'aggiornamento quando l'altra si chiude.
+
 Non chiudere l'app durante il download e l'installazione: si riavvia da sola.
 
 Per disattivare il controllo all'avvio vai in **Impostazioni > Informazioni** e disattiva **Controlla all'avvio**.
@@ -34,7 +36,7 @@ La prima volta che apri un workspace dopo un aggiornamento si apre una scheda **
 ![La scheda Novità](../../screenshots/it/whats-new-dark.png){.dark-only}
 
 - Si apre una sola volta per ogni aggiornamento.
-- Si chiude come una nota: **Chiudi la nota corrente** o `Ctrl+L`.
+- Si chiude come una nota: **Chiudi nota corrente** o `Ctrl+L`.
 - Non è una nota: non ha un menu e non viene riaperta all'avvio.
 - Una nuova installazione non la mostra.
 

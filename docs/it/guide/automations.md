@@ -9,7 +9,7 @@ Ogni regola appartiene a una nota e vede e modifica solo quella nota.
 1. Apri il menu della nota nella barra laterale (il pulsante **...** o il clic destro).
 2. Scegli **Automazioni…**.
 
-I menu di un gruppo e di una sezione hanno la stessa voce e aprono le automazioni della nota a cui appartengono.
+I menu di un gruppo e di una sezione hanno la stessa voce. Apre le automazioni della nota, e **Nuova automazione** parte con quel gruppo o quella sezione già scelti.
 
 La finestra elenca le regole della nota. Per creare una regola la nota deve avere almeno una sezione.
 

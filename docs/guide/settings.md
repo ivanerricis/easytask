@@ -4,13 +4,13 @@ Open the settings from the app menu (**File > Settings…**). Options are groupe
 
 ## Search the settings
 
-Type in the **Search settings…** box at the top left to find an option by its name or description. The search looks in all categories and shows only the matching rows. Accents do not matter.
+Type in the search box (**Search…**) at the top left to find an option by its name or description. The search looks in all categories and shows only the matching rows. Accents do not matter.
 
 Press `Esc`, click the X button or choose a category to clear the search.
 
 ## Reset buttons
 
-- A row that differs from its default shows a small reset arrow next to it (accent color, font, text size, color intensity, each shortcut).
+- A row that differs from its default shows a small reset arrow next to it (accent color, text size, color intensity, each shortcut).
 - **Reset all** at the top of a category puts the whole category back to its defaults. It is in Appearance, Audio and Shortcuts. Appearance and Shortcuts ask for confirmation first. Your data is never touched.
 
 ## Appearance
@@ -29,7 +29,7 @@ Press `Esc`, click the X button or choose a category to clear the search.
 | Color intensity | Slider from 25% to 175% | 100% |
 | Animations | System, Off, Normal, Slow | System |
 
-The theme gallery shows a preview of each theme; use the arrows to move through it. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups and sections, not the task colors. With **Animations** set to System, EasyTask follows the system setting.
+The theme gallery shows a preview of each theme; move between them with the arrow keys. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups and sections, not the task colors. With **Animations** set to System, EasyTask follows the system setting.
 
 ## Notes and sections
 
@@ -118,4 +118,4 @@ Backups, restore and the data folder are explained in [Data and backups](./data-
 
 ![About settings](../screenshots/en/settings-about-light.png)
 
-Shows the version, the author and the repository, and the path of the database. It also has **Check for updates** and the **Check at startup** switch (on by default). See [Updates](./updates).
+Shows the version (also the Tauri version), the author, the repository, the documentation link and the path of the database. It also has **Check for updates** and the **Check at startup** switch (on by default). See [Updates](./updates).

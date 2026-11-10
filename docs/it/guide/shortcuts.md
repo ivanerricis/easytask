@@ -4,7 +4,7 @@ EasyTask ha scorciatoie da tastiera per le azioni più comuni. Premi `?` per ved
 
 ![Scorciatoie da tastiera](../../screenshots/it/shortcuts-light.png)
 
-Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per schede, barre laterali, ricerca, torna alla home, task completati e nuovo gruppo funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
+Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per schede, barre laterali, ricerca, torna alla home, task completati, nuovo gruppo, documentazione, dimensione del testo, vista divisa e nuovo workspace funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
 
 ## Generale
 
@@ -12,6 +12,10 @@ Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quell
 | --- | --- | --- |
 | Mostra le scorciatoie | `?` | No |
 | Apri la documentazione | `F1` | Sì |
+| Ingrandisci il testo dell'app | `Ctrl+Più` | No |
+| Ingrandisci il testo dell'app (alternativa) | `Ctrl+=` | No |
+| Riduci il testo dell'app | `Ctrl+Meno` | No |
+| Dimensione normale del testo dell'app | `Ctrl+0` | No |
 | Torna alla home | `Ctrl+H` | Sì |
 | Mostra o nascondi la barra laterale | `Ctrl+B` | Sì |
 | Mostra o nascondi il pannello dei dettagli e della cronologia | `Ctrl+Maiusc+B` | Sì |
@@ -61,13 +65,14 @@ Questi tasti funzionano quando una riga di task ha il focus (clicca un task o ra
 | Chiudere i sottotask, poi andare al task padre | `←` |
 | Completare o riaprire il task | `Spazio` |
 | Modificare il testo del task | `Invio` |
-| Aprire il menu del task | `Shift+F10` o il tasto menu |
+| Aprire il menu del task | `Maiusc+F10` o il tasto menu |
 | Spostare il task di un passo su o giù | `Alt+↑` / `Alt+↓` |
 | Estendere la selezione al task precedente o successivo | `Maiusc+↑` / `Maiusc+↓` |
-| Estendere la selezione al primo o all'ultimo task | `Maiusc+Home` / `Maiusc+Fine` |
+| Estendere la selezione al primo o all'ultimo task | `Maiusc+Home` / `Maiusc+End` |
 | Aggiungere il task alla selezione, o toglierlo | `Ctrl+Spazio` (`Cmd+Spazio` su macOS) |
 
-Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo): non saltano alla sezione successiva. Dopo `Alt+↑` o `Alt+↓` il focus resta sul task e uno screen reader annuncia la nuova posizione ("Spostato in posizione 2 di 5"). I tasti di selezione non cambiano il task mostrato nel pannello dei dettagli. Vedi [Usare la tastiera](./groups-sections-tasks.md#usare-la-tastiera).
+Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo): non saltano alla sezione successiva. Dopo `Alt+↑` o `Alt+↓` il focus resta sul task e uno screen reader annuncia la nuova posizione ("Spostato in posizione 2 di 5"). I tasti di selezione non cambiano il task mostrato nel pannello dei dettagli. Vedi [Usare la tastiera](./groups-sections-tasks#usare-la-tastiera).
+
 ## Pagina iniziale
 
 | Azione | Scorciatoia | Modificabile |

@@ -19,7 +19,7 @@ In cima alla barra laterale ci sono dei pulsanti, in tre gruppi:
 
 In basso trovi **Template**, **Archivio**, **Cestino** (con un contatore di quanto contengono) e il selettore del workspace, per passare a un altro workspace. Vedi [Template](./templates) e [Cestino e archivio](./trash-and-archive).
 
-Fai clic destro su un'area vuota dell'albero per avere le stesse azioni dei pulsanti.
+Fai clic destro su un'area vuota dell'albero per creare una nota, una cartella o una nota da template, per importare e per comprimere o espandere tutte le cartelle.
 
 ### Mostrare, nascondere e ridimensionare
 
@@ -92,7 +92,7 @@ Una cartella non si può spostare dentro se stessa o in una sua sottocartella.
 2. `Maiusc`+clic seleziona tutte le righe tra l'ultima cliccata e questa.
 3. Fai clic destro su una riga selezionata (o usa il suo pulsante del menu) per agire su tutta la selezione.
 
-Il menu offre allora **Sposta**, **Colore**, **Esporta**, **Archivia** ed **Elimina** per tutti gli elementi selezionati, e puoi trascinare la selezione per spostarla in blocco. `Esc` annulla la selezione. Anche un semplice clic su una riga la annulla.
+Il menu offre allora **Sposta**, **Colore**, **Esporta**, **Archivia N elementi** ed **Elimina N elementi** per tutti gli elementi selezionati, e puoi trascinare la selezione per spostarla in blocco. `Esc` annulla la selezione. Anche un semplice clic su una riga la annulla.
 
 ## Aprire le note in schede
 
@@ -126,13 +126,13 @@ Le tre scorciatoie della divisione si possono cambiare in **Impostazioni > Scorc
 
 ### La barra del percorso
 
-Sotto i tab, una barra sottile mostra il percorso della nota aperta, ad esempio `Lavoro > Progetti > Piano`. Fai clic su una cartella o sulla nota nel percorso per mostrarla nella barra laterale: la barra si apre se era chiusa, le cartelle sopra si espandono e l'elemento viene selezionato. Un percorso lungo mantiene la prima cartella e gli ultimi due elementi. A destra della stessa barra ci sono il pulsante **Nascondi task completati** e il pulsante **Dividi in due aree** (diventa **Chiudi la divisione** quando la vista è divisa).
+Sotto i tab, una barra sottile mostra il percorso della nota aperta, ad esempio `Lavoro > Progetti > Piano`. Fai clic su una cartella o sulla nota nel percorso per mostrarla nella barra laterale: la barra si apre se era chiusa, le cartelle sopra si espandono e l'elemento viene selezionato. Un percorso lungo mantiene la prima cartella e gli ultimi due elementi. A destra della stessa barra ci sono quattro pulsanti: **Nuovo gruppo**, **Cerca nella nota**, **Dividi in due aree** (diventa **Chiudi la divisione** quando la vista è divisa) e **Nascondi task completati**.
 
-![La barra del percorso](../../screenshots/it/path-bar-light.png)
+![La barra del percorso](../../screenshots/it/path-bar-light.png){.wide-strip}
 
 ### Cosa si riapre all'avvio
 
-Quando apri un workspace, EasyTask riapre le note che erano aperte, quella attiva e la divisione in due aree (se l'hai usata). Il salvataggio è per ogni workspace. Per disattivarlo vai in **Impostazioni > Note e sezioni** e spegni **Riapri le note all'avvio**. Nella stessa pagina c'è **Riapri l'ultimo workspace all'avvio**.
+Quando apri un workspace, EasyTask riapre le note che erano aperte, quella attiva e la divisione in due aree (se l'hai usata). Il salvataggio è per ogni workspace. Per disattivarlo vai in **Impostazioni > Note e sezioni** e spegni **Riapri le note all'avvio**. Nella stessa pagina c'è **Apri all'avvio**, che decide cosa mostra EasyTask quando parte.
 
 ## Cercare una nota
 

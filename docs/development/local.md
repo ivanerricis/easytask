@@ -5,7 +5,7 @@ How to run EasyTask from source, build the installers and work on this documenta
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) LTS. CI uses version 24.
-- [Rust](https://www.rust-lang.org/tools/install), installed with `rustup`.
+- [Rust](https://www.rust-lang.org/tools/install) (1.77.2 or newer), installed with `rustup`.
 - On Windows: the MSVC C++ build tools and WebView2.
 - On Linux: the WebKitGTK packages. On Ubuntu 24.04 CI installs them with:
 

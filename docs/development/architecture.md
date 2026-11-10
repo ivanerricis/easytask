@@ -20,12 +20,15 @@ A short tour of how EasyTask is built, for someone who wants to change the code.
 | `src/contexts` | React contexts for workspace data, tabs, preferences, shortcuts, audio, automations and undo |
 | `src/hooks` | Reusable hooks (for example `useItemMutations`, `useAfterMenuClose`) |
 | `src/db` | SQLite access: connection, schema, migrations, queries, backups |
+| `src/types` | Shared TypeScript types |
+| `src/test` | Test helpers and mocks |
 | `src/lib` | Plain logic: preferences store, automations engine, updater, colors, themes (`lib/themes`: built-in themes, validation, contrast checks, CSS variables), shortcuts, workspace import and export. `lib/tabs` holds the pure tab and layout reducers, with no dependency on contexts |
 | `src/i18n` | i18next setup and the `it` and `en` locale files |
 | `src-tauri/src` | The Rust backend (`lib.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permissions granted to the frontend |
 | `e2e` | End-to-end specs, UI tour and docs screenshots |
 | `scripts` | Version bump and check scripts |
+| `.github` | CI workflows and composite actions |
 
 Tests sit next to the code they test, as `*.test.ts(x)`.
 
@@ -85,4 +88,4 @@ The locale files are in `src/i18n/locales/it` and `src/i18n/locales/en`, split b
 
 The backend registers these plugins: single-instance, window-state, dialog, fs, sql, store, opener, clipboard-manager, process, log, updater and autostart.
 
-The frontend can only call what `src-tauri/capabilities/default.json` allows for the `main` window. For example, `fs` is limited to the listed operations, `opener` can only open the project's GitHub URLs, and `sql` and `store` are limited to the listed commands. If you add a feature that needs a new plugin command, add its permission there.
+The frontend can only call what `src-tauri/capabilities/default.json` allows for the `main` window. For example, `fs` is limited to the listed operations, `opener` can only open the project's GitHub and documentation URLs, and `sql` and `store` are limited to the listed commands. If you add a feature that needs a new plugin command, add its permission there.

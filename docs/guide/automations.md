@@ -9,7 +9,7 @@ Every rule belongs to one note and only sees and changes that note.
 1. Open the menu of the note in the sidebar (the **...** button or a right click).
 2. Choose **Automations…**.
 
-The menus of a group and of a section have the same entry, and open the automations of the note they belong to.
+The menus of a group and of a section have the same entry. It opens the automations of the note, and **New automation** starts with that group or section already chosen.
 
 The dialog lists the rules of the note. A note needs at least one section before you can create a rule.
 

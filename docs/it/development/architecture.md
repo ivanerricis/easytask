@@ -20,12 +20,15 @@ Un breve giro di come è fatto EasyTask, per chi vuole modificare il codice.
 | `src/contexts` | Context React per dati del workspace, schede, preferenze, scorciatoie, audio, automazioni e annulla |
 | `src/hooks` | Hook riutilizzabili (per esempio `useItemMutations`, `useAfterMenuClose`) |
 | `src/db` | Accesso a SQLite: connessione, schema, migrazioni, query, backup |
+| `src/types` | Tipi TypeScript condivisi |
+| `src/test` | Helper e mock dei test |
 | `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, temi (`lib/themes`: temi predefiniti, validazione, controlli di contrasto, variabili CSS), scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di schede e layout, senza dipendenze dai context |
 | `src/i18n` | Configurazione di i18next e file delle lingue `it` e `en` |
 | `src-tauri/src` | Il backend Rust (`lib.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permessi concessi al frontend |
 | `e2e` | Test end-to-end, giro dell'interfaccia e screenshot della documentazione |
 | `scripts` | Script per cambiare e controllare la versione |
+| `.github` | Workflow di CI e azioni composite |
 
 I test stanno accanto al codice che provano, come `*.test.ts(x)`.
 
@@ -47,7 +50,7 @@ Il backend sceglie la cartella dati in quest'ordine:
 
 1. `EASYTASK_DATA_DIR`, se impostata.
 2. Una cartella `data` accanto all'eseguibile, se accanto c'è un file `portable.txt` (modalità portatile).
-3. `Documenti/EasyTask`.
+3. `Documents/EasyTask`.
 
 ## Migrazioni
 
@@ -85,4 +88,4 @@ I file delle lingue sono in `src/i18n/locales/it` e `src/i18n/locales/en`, divis
 
 Il backend registra questi plugin: single-instance, window-state, dialog, fs, sql, store, opener, clipboard-manager, process, log, updater e autostart.
 
-Il frontend può chiamare solo ciò che `src-tauri/capabilities/default.json` consente alla finestra `main`. Per esempio `fs` è limitato alle operazioni elencate, `opener` può aprire solo gli URL GitHub del progetto, e `sql` e `store` sono limitati ai comandi elencati. Se una funzione richiede un nuovo comando di un plugin, aggiungi il relativo permesso lì.
+Il frontend può chiamare solo ciò che `src-tauri/capabilities/default.json` consente alla finestra `main`. Per esempio `fs` è limitato alle operazioni elencate, `opener` può aprire solo gli URL GitHub e della documentazione del progetto, e `sql` e `store` sono limitati ai comandi elencati. Se una funzione richiede un nuovo comando di un plugin, aggiungi il relativo permesso lì.

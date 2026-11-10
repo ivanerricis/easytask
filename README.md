@@ -113,7 +113,7 @@ The folder holds the SQLite database (`easytask.db`), settings, `backups/` and `
 Settings > Data has a button that opens it in the file manager, plus the backup, restore, export and import controls.
 
 > **Database from another version.** A database created by an older EasyTask is upgraded automatically at startup
-> (the schema is at version 13 in 0.19.0), after a safety copy in `backups/pre-migration/` (the last 10 are kept);
+> (the schema is at version 14 in 0.21.0), after a safety copy in `backups/pre-migration/` (the last 10 are kept);
 > an older version of the app cannot open a database that a newer one has upgraded, and refuses it with a message.
 > The only databases that are not upgraded are the ones created before the first migrations were squashed into a single
 > initial schema (no EasyTask `application_id` in the file): the app stops with the message "Database from an older,
