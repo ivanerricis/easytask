@@ -178,7 +178,7 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ### Aggiunto
 
-- Sito della documentazione in italiano e in inglese: [ivanerricis.github.io/easytask-tauri/it](https://ivanerricis.github.io/easytask-tauri/it/). Si apre da Aiuto > Documentazione, con `F1` (la scorciatoia si cambia in Impostazioni > Scorciatoie) o da Impostazioni > Informazioni. Si apre nella lingua dell'app.
+- Sito della documentazione in italiano e in inglese: [ivanerricis.github.io/easytask/it](https://ivanerricis.github.io/easytask/it/). Si apre da Aiuto > Documentazione, con `F1` (la scorciatoia si cambia in Impostazioni > Scorciatoie) o da Impostazioni > Informazioni. Si apre nella lingua dell'app.
 
 ### Modificato
 
@@ -517,28 +517,28 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask-tauri/compare/v0.21.0...HEAD
-[0.21.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.20.0...v0.21.0
-[0.20.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.19.0...v0.20.0
-[0.19.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.18.0...v0.19.0
-[0.18.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.17.0...v0.18.0
-[0.17.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.16.0...v0.17.0
-[0.16.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.15.0...v0.16.0
-[0.15.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.14.0...v0.15.0
-[0.14.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.13.0...v0.14.0
-[0.13.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.12.0...v0.13.0
-[0.12.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.11.0...v0.12.0
-[0.11.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.10.1...v0.11.0
-[0.10.1]: https://github.com/ivanerricis/easytask-tauri/compare/v0.10.0...v0.10.1
-[0.10.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.9.1...v0.10.0
-[0.9.1]: https://github.com/ivanerricis/easytask-tauri/compare/v0.9.0...v0.9.1
-[0.9.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.8.1...v0.9.0
-[0.8.1]: https://github.com/ivanerricis/easytask-tauri/compare/v0.8.0...v0.8.1
-[0.8.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.7.0...v0.8.0
-[0.7.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.6.0...v0.7.0
-[0.6.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.5.0...v0.6.0
-[0.5.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/ivanerricis/easytask-tauri/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/ivanerricis/easytask-tauri/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0
+[0.20.0]: https://github.com/ivanerricis/easytask/compare/v0.19.0...v0.20.0
+[0.19.0]: https://github.com/ivanerricis/easytask/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/ivanerricis/easytask/compare/v0.17.0...v0.18.0
+[0.17.0]: https://github.com/ivanerricis/easytask/compare/v0.16.0...v0.17.0
+[0.16.0]: https://github.com/ivanerricis/easytask/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/ivanerricis/easytask/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/ivanerricis/easytask/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/ivanerricis/easytask/compare/v0.12.0...v0.13.0
+[0.12.0]: https://github.com/ivanerricis/easytask/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/ivanerricis/easytask/compare/v0.10.1...v0.11.0
+[0.10.1]: https://github.com/ivanerricis/easytask/compare/v0.10.0...v0.10.1
+[0.10.0]: https://github.com/ivanerricis/easytask/compare/v0.9.1...v0.10.0
+[0.9.1]: https://github.com/ivanerricis/easytask/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/ivanerricis/easytask/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/ivanerricis/easytask/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/ivanerricis/easytask/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/ivanerricis/easytask/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/ivanerricis/easytask/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/ivanerricis/easytask/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/ivanerricis/easytask/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/ivanerricis/easytask/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/ivanerricis/easytask/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/ivanerricis/easytask/releases/tag/v0.1.0

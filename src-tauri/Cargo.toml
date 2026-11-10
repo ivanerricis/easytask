@@ -5,7 +5,7 @@ description = "EasyTask: desktop task and workspace manager"
 authors = ["Ivan Erricis"]
 license = "MIT"
 publish = false
-repository = "https://github.com/ivanerricis/easytask-tauri"
+repository = "https://github.com/ivanerricis/easytask"
 edition = "2021"
 rust-version = "1.77.2"
 

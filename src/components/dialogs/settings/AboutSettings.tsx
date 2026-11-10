@@ -12,7 +12,7 @@ import { TooltipCustom } from "@/components/tooltip-custom"
 import { SettingsCard, SettingsPanel } from "./SettingsRow"
 import { UpdateSection } from "./UpdateSection"
 
-const REPO_URL = "https://github.com/ivanerricis/easytask-tauri"
+const REPO_URL = "https://github.com/ivanerricis/easytask"
 const DB_FILE = "easytask.db"
 const EMPTY = "—"
 

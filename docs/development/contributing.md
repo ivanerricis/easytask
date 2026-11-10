@@ -4,7 +4,7 @@ Thanks for wanting to help. This page explains how to propose a change.
 
 ## Ideas and bugs
 
-Open an [issue](https://github.com/ivanerricis/easytask-tauri/issues) first for a bug or a feature idea. There are templates for both. For a big change, discuss it in an issue before writing code.
+Open an [issue](https://github.com/ivanerricis/easytask/issues) first for a bug or a feature idea. There are templates for both. For a big change, discuss it in an issue before writing code.
 
 ## Make a change
 
@@ -60,8 +60,8 @@ For any change the user can see, add a line under `## [Unreleased]` in both `CHA
 
 ## Releases
 
-Only the maintainer publishes releases. The steps are in [RELEASING.md](https://github.com/ivanerricis/easytask-tauri/blob/master/RELEASING.md).
+Only the maintainer publishes releases. The steps are in [RELEASING.md](https://github.com/ivanerricis/easytask/blob/master/RELEASING.md).
 
 ## Security
 
-Do not open a public issue for a vulnerability. Report it privately as described in [SECURITY.md](https://github.com/ivanerricis/easytask-tauri/blob/master/SECURITY.md).
+Do not open a public issue for a vulnerability. Report it privately as described in [SECURITY.md](https://github.com/ivanerricis/easytask/blob/master/SECURITY.md).

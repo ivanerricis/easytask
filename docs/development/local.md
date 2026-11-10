@@ -20,8 +20,8 @@ See the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for oth
 ## Get the code and run it
 
 ```bash
-git clone https://github.com/ivanerricis/easytask-tauri
-cd easytask-tauri
+git clone https://github.com/ivanerricis/easytask
+cd easytask
 npm install
 npm run tauri:dev
 ```

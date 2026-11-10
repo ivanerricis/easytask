@@ -34,13 +34,13 @@
       "identifier": "opener:allow-open-url",
       "allow": [
         {
-          "url": "https://github.com/ivanerricis/easytask-tauri"
+          "url": "https://github.com/ivanerricis/easytask"
         },
         {
-          "url": "https://github.com/ivanerricis/easytask-tauri/*"
+          "url": "https://github.com/ivanerricis/easytask/*"
         },
         {
-          "url": "https://ivanerricis.github.io/easytask-tauri/*"
+          "url": "https://ivanerricis.github.io/easytask/*"
         }
       ]
     },

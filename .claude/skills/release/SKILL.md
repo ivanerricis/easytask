@@ -31,7 +31,7 @@ git switch -c chore/release-X.Y.Z
 Edit `CHANGELOG.md` (English) and `CHANGELOG.it.md` (Italian translation of the same section; Italian headings are `Aggiunto`, `Modificato`, `Corretto`). Keep a Changelog format:
 - Rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and add a fresh empty `## [Unreleased]` above it.
 - Sections `### Added` / `### Changed` / `### Fixed`; entries are full sentences describing the user-visible effect (see 0.10.1 / 0.10.0 for tone).
-- Bottom links: change `[Unreleased]: .../compare/vPREV...HEAD` to `vX.Y.Z...HEAD` and add `[X.Y.Z]: https://github.com/ivanerricis/easytask-tauri/compare/vPREV...vX.Y.Z`. Same in both files.
+- Bottom links: change `[Unreleased]: .../compare/vPREV...HEAD` to `vX.Y.Z...HEAD` and add `[X.Y.Z]: https://github.com/ivanerricis/easytask/compare/vPREV...vX.Y.Z`. Same in both files.
 - `release:check` and the workflow fail if either file lacks the `## [X.Y.Z]` section. The notes go in the release as `## English` + `## Italiano`.
 
 ## 4. Bump
@@ -117,10 +117,10 @@ gh release edit vX.Y.Z --draft=false
 
 ## 11. Post-release check
 
-The updater endpoint (`plugins.updater.endpoints` in `src-tauri/tauri.conf.json`) is `https://github.com/ivanerricis/easytask-tauri/releases/latest/download/latest.json`; it resolves to the latest published release.
+The updater endpoint (`plugins.updater.endpoints` in `src-tauri/tauri.conf.json`) is `https://github.com/ivanerricis/easytask/releases/latest/download/latest.json`; it resolves to the latest published release.
 ```
 gh release view vX.Y.Z --json isDraft,url
-curl -sL https://github.com/ivanerricis/easytask-tauri/releases/latest/download/latest.json
+curl -sL https://github.com/ivanerricis/easytask/releases/latest/download/latest.json
 ```
 Confirm `version` is X.Y.Z. Suggest that the user tries "Check for updates" in Settings > About from the previous version. If a published release is bad, set it back to draft or delete it so the updater stops offering it, then ship a new version.
 
