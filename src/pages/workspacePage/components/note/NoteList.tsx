@@ -9,7 +9,7 @@ import { NoteHeader } from "./NoteHeader"
 import { WhatsNewHeader } from "../whats-new/WhatsNewHeader"
 import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { DropLine } from "../sidebar/DropLine"
-import { barDndId, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
+import { barDndId, keepInBar, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
 import { TabsDndProvider } from "./TabsDndProvider"
 import { TabsDndContext } from "./tabs-dnd-context-object"
 import type { Note } from "@/types/types"
@@ -20,7 +20,10 @@ import type { Note } from "@/types/types"
  */
 const Tab = ({ note, indicator, dndId = note.id, overlay = false }: { note: Note, indicator: TabZone | null, dndId?: string | number, overlay?: boolean }) => {
     const { setNodeRef: setDropRef } = useDroppable({ id: dndId })
-    const { setNodeRef: setDragRef, listeners, transform, isDragging } = useDraggable({ id: dndId })
+    const { setNodeRef: setDragRef, listeners, transform, isDragging, node, activeNodeRect } = useDraggable({ id: dndId })
+    // With no overlay the tab itself follows the pointer: kept inside the visible part of its bar, or past the right end it would widen the
+    // scrollable area and the bar would show a horizontal scrollbar it does not need (only what is drawn: the drop target is still the pointer's)
+    const shown = !overlay && isDragging ? keepInBar(transform, activeNodeRect, node.current?.parentElement) : transform
 
     return (
         <div
@@ -29,7 +32,7 @@ const Tab = ({ note, indicator, dndId = note.id, overlay = false }: { note: Note
                 setDragRef(node)
             }}
             {...listeners}
-            style={{ transform: CSS.Translate.toString(transform) }}
+            style={{ transform: CSS.Translate.toString(shown) }}
             // The bar draws the lines between the tabs (divide-x): the last tab closes itself on the right
             className={cn("relative min-w-28 shrink-0 last:border-r", isDragging && (overlay ? "opacity-40" : "z-10 opacity-70"))}
         >

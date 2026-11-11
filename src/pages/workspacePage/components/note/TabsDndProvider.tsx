@@ -10,7 +10,7 @@ import type { PaneIndex } from "@/contexts/layout-reducer"
 import { useLayoutActions } from "@/contexts/use-layout"
 import { useTabs, useTabsActions } from "@/contexts/use-tabs"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
-import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { announce } from "../tasks/note-announcer-store"
 import {
     barDndId, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop,
@@ -100,6 +100,8 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
 
     const handleDragMove = (event: DragMoveEvent) => {
         const { over, active, activatorEvent, delta } = event
+        // Outside every bar there is nothing to drop the tab on: the cursor says so (over its own tab it is a reorder that changes nothing)
+        setGrabCursorNotAllowed(!over)
         const origin = activatorEvent as { clientX?: number } | null
         if (!over || over.id === active.id || typeof origin?.clientX !== "number") return updateHover(null)
         const tab = parseId(over.id)
