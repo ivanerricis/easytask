@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-11
+
 ### Aggiunto
 
 - Trascinamento dal vivo di sezioni e gruppi: mentre trascini una sezione (nello stesso gruppo o in un altro) o un gruppo dalla sua intestazione, gli altri si scostano per aprire lo spazio dove atterrerebbe (le sezioni in verticale, i gruppi di lato) e quello trascinato si richiude. La linea di inserimento non compare durante il trascinamento.
@@ -19,6 +21,11 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 ### Corretto
 
 - Ricerca: il risultato corrente ora ha un anello visibile in ogni tema, e si vede anche con i colori forzati di Windows (modalità a contrasto elevato).
+- Annulla: premere Ctrl+Z subito dopo aver colorato più task selezionati (o cartelle e note) poteva non fare nulla; il passo da annullare ora è sempre pronto.
+- Trascinando una nota o una cartella nella barra laterale, o un tab fuori dalle barre della vista divisa, ora il cursore mostra il divieto sopra i punti dove non si può rilasciare.
+- Trascinando un tab fino all'estremità destra di una barra sola non compare più una barra di scorrimento orizzontale inutile.
+- Trascinando un elemento di una nota in vista divisa: vicino ai bordi scorrono da sole solo la fila dei gruppi e le liste dei gruppi, quindi l'altro pannello e la pagina non scorrono più su e giù.
+- Il tab attivo del pannello destro (Dettagli, Cronologia) ha una sola sottolineatura invece di due.
 
 ## [0.21.0] - 2026-11-08
 
@@ -533,7 +540,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/ivanerricis/easytask/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask/compare/v0.18.0...v0.19.0
