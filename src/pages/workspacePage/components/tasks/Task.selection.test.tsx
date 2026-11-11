@@ -241,6 +241,8 @@ describe("actions (one undo step each)", () => {
         fireEvent.click(await screen.findByRole("radio", { name: "Colore Rosso" }))
         await waitFor(() => expect(recorder.colorMany).toHaveBeenCalledTimes(1))
         expect(updateItemColor.mock.calls.map(call => call[1])).toEqual([10, 12, 13])
+        // Tracked, so an undo asked right after the last write waits for the step to be recorded
+        expect(recorder.track).toHaveBeenCalled()
         expect(recorder.colorMany.mock.calls[0][0]).toEqual([
             { itemType: "task", id: 10, name: "Primo", before: null, after: "#e6194b" },
             { itemType: "task", id: 12, name: "Terzo", before: null, after: "#e6194b" },

@@ -88,7 +88,8 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         store?.reset()
     }, [getTargets, removeTask, archiveItem, recorder, store, isDraft])
 
-    const applyColor = useCallback(async (color: string | null) => {
+    // Tracked: an undo asked while the writes run (or right after the last one, before the command is recorded) waits for them
+    const applyColor = useCallback((color: string | null) => recorder.track((async () => {
         const tree = getNoteTree()
         if (!tree) return
         const changes: ColorChange[] = []
@@ -103,7 +104,7 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
             reportError(err, getErrorMessage(err))
         }
         if (changes.length > 0) recorder.colorMany(changes)
-    }, [getNoteTree, selectedIds, patchTask, updateItemColor, recorder])
+    })()), [getNoteTree, selectedIds, patchTask, updateItemColor, recorder])
 
     const moveTo = useCallback((sectionId: number) => recorder.track((async () => {
         const done: TaskMoveStep[] = []

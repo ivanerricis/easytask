@@ -86,7 +86,8 @@ export function SelectionActionsProvider({ children }: { children: ReactNode }) 
         store?.reset()
     }, [getTargets, archiveItem, recorder, store])
 
-    const applyColor = useCallback(async (color: string | null) => {
+    // Tracked: an undo asked while the writes run (or right after the last one, before the command is recorded) waits for them
+    const applyColor = useCallback((color: string | null) => recorder.track((async () => {
         const { folders, notes } = listTreeItems(tree)
         const changes: ColorChange[] = []
         try {
@@ -101,7 +102,7 @@ export function SelectionActionsProvider({ children }: { children: ReactNode }) 
             reportError(error, getErrorMessage(error))
         }
         if (changes.length > 0) recorder.colorMany(changes)
-    }, [tree, store, updateItemColor, recorder])
+    })()), [tree, store, updateItemColor, recorder])
 
     const executeMove = useCallback(async (plan: PlannedMove[]) => {
         const done: TreeMoveStep[] = []
