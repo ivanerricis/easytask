@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, type KeyboardEvent } from "react"
+import { useCallback, useContext, useEffect, useRef, type KeyboardEvent } from "react"
 import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useActiveNoteId, useTabs, useTabsActions } from "@/contexts/use-tabs"
@@ -9,6 +9,7 @@ import { NoteHeader } from "./NoteHeader"
 import { WhatsNewHeader } from "../whats-new/WhatsNewHeader"
 import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { DropLine } from "../sidebar/DropLine"
+import { registerShiftNode, SHIFT_ATTR, tabNodeKey } from "../note-dnd-shift"
 import { barDndId, keepInBar, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
 import { TabsDndProvider } from "./TabsDndProvider"
 import { TabsDndContext } from "./tabs-dnd-context-object"
@@ -16,27 +17,35 @@ import type { Note } from "@/types/types"
 
 /**
  * One draggable / droppable tab. `dndId` is the note id in a bar with its own dnd context, `tab:<pane>:<noteId>` in the shared one;
- * `overlay` is true when a `DragOverlay` shows the dragged tab (the original then stays in place, dimmed).
+ * `overlay` is true when a `DragOverlay` shows the dragged tab (the original then stays in place, dimmed). `live`: the live drag is on,
+ * the other tabs step aside (the wrapper is registered for it, see note-dnd-shift) instead of the drop line.
  */
-const Tab = ({ note, indicator, dndId = note.id, overlay = false }: { note: Note, indicator: TabZone | null, dndId?: string | number, overlay?: boolean }) => {
+const Tab = ({ note, pane, indicator, dndId = note.id, overlay = false, live = false }: { note: Note, pane: number, indicator: TabZone | null, dndId?: string | number, overlay?: boolean, live?: boolean }) => {
     const { setNodeRef: setDropRef } = useDroppable({ id: dndId })
     const { setNodeRef: setDragRef, listeners, transform, isDragging, node, activeNodeRect } = useDraggable({ id: dndId })
     // With no overlay the tab itself follows the pointer: kept inside the visible part of its bar, or past the right end it would widen the
     // scrollable area and the bar would show a horizontal scrollbar it does not need (only what is drawn: the drop target is still the pointer's)
-    const shown = !overlay && isDragging ? keepInBar(transform, activeNodeRect, node.current?.parentElement) : transform
+    // (with the live drag the transform of the wrapper is the one of the shift: the one of dnd-kit must not overwrite it)
+    const shown = live ? null : !overlay && isDragging ? keepInBar(transform, activeNodeRect, node.current?.parentElement) : transform
+    // A stable ref callback: a new one per render would unregister the wrapper (and forget its shift) on every hover change
+    const shiftKey = tabNodeKey(pane, note.id)
+    const setRef = useCallback((element: HTMLElement | null) => {
+        setDropRef(element)
+        setDragRef(element)
+        registerShiftNode(shiftKey, element)
+    }, [setDropRef, setDragRef, shiftKey])
+    const wrapAttributes = { [SHIFT_ATTR.tab]: note.id, [SHIFT_ATTR.tabBar]: pane }
 
     return (
         <div
-            ref={node => {
-                setDropRef(node)
-                setDragRef(node)
-            }}
+            ref={setRef}
+            {...wrapAttributes}
             {...listeners}
             style={{ transform: CSS.Translate.toString(shown) }}
             // The bar draws the lines between the tabs (divide-x): the last tab closes itself on the right
             className={cn("relative min-w-28 shrink-0 last:border-r", isDragging && (overlay ? "opacity-40" : "z-10 opacity-70"))}
         >
-            {!isDragging && <DropLine zone={indicator} vertical className="z-20" />}
+            {!isDragging && !live && <DropLine zone={indicator} vertical className="z-20" />}
             {isWhatsNewTab(note.id) ? <WhatsNewHeader /> : <NoteHeader note={note} />}
         </div>
     )
@@ -86,7 +95,7 @@ const BAR_CLASS = "flex shrink-0 w-full overflow-x-auto overflow-y-hidden bg-sec
  * (`bar:<pane>`, also the target of an empty bar) and keeps a minimum height so an empty pane can still receive a tab.
  * Not split: the only bar, whose tabs can just be reordered (plain note ids, no minimum height).
  */
-function TabBar({ hover, split }: { hover: TabHover | null, split: boolean }) {
+function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean, live: boolean }) {
     const { t } = useTranslation()
     const { tabs } = useTabs()
     const pane = usePane()?.pane ?? 0
@@ -110,8 +119,10 @@ function TabBar({ hover, split }: { hover: TabHover | null, split: boolean }) {
                 <Tab
                     key={note.id}
                     note={note}
+                    pane={pane}
                     dndId={split ? tabDndId(pane, note.id) : note.id}
-                    overlay={split}
+                    overlay={split || live}
+                    live={live}
                     indicator={mine?.overId === note.id ? mine.zone : null}
                 />
             ))}
@@ -123,7 +134,7 @@ function TabBar({ hover, split }: { hover: TabHover | null, split: boolean }) {
 
 function NoteListInContext() {
     const shared = useContext(TabsDndContext)!
-    return <TabBar hover={shared.hover} split={shared.split} />
+    return <TabBar hover={shared.hover} split={shared.split} live={shared.live} />
 }
 
 /**

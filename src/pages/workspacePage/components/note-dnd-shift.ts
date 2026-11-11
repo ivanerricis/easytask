@@ -1,7 +1,7 @@
-import { buildLiveSnapshot, GROUPS_LIST, groupListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
+import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
 
 /**
- * The visual side of the "live drag" of the tasks, the sections and the groups: a registry of the outer wrapper of every task, section and group and the code that moves them with
+ * The visual side of the "live drag" of the tasks, the sections, the groups and the open tabs: a registry of the outer wrapper of every task, section, group and tab and the code that moves them with
  * `style.transform`, in `requestAnimationFrame`, without React (no state, no re-render per pointer move) and without touching the
  * order of the data. Module level on purpose: there is one note drag at a time and the rows only hand over their ref.
  * @category Note DnD
@@ -12,11 +12,11 @@ export const SHIFT_DURATION = 150
 
 /**
  * Attributes the wrappers carry so the layout (lists and parents) can be read back from the DOM. Written with these literal names by
- * the task wrapper (Task.tsx) and the section wrapper (Section.tsx, GroupTasks.tsx: `sectionWrap` = its id, `group` = the id of its group) and the column of a group (GroupContainer.tsx: `groupWrap` = its id).
+ * the task wrapper (Task.tsx) and the section wrapper (Section.tsx, GroupTasks.tsx: `sectionWrap` = its id, `group` = the id of its group) and the column of a group (GroupContainer.tsx: `groupWrap` = its id) and the tab wrapper (NoteList.tsx: `tab` = the id of its note, `tabBar` = the pane of its bar).
  */
-export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section", sectionWrap: "data-section-wrap", group: "data-section-group", groupWrap: "data-group-wrap" } as const
+export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section", sectionWrap: "data-section-wrap", group: "data-section-group", groupWrap: "data-group-wrap", tab: "data-tab-wrap", tabBar: "data-tab-bar" } as const
 
-/** The axis a drag moves the wrappers on: the tasks and the sections step aside vertically, the groups (columns) horizontally. */
+/** The axis a drag moves the wrappers on: the tasks and the sections step aside vertically, the groups (columns) and the tabs horizontally. */
 export type ShiftAxis = "x" | "y"
 
 const nodes = new Map<string, HTMLElement>()
@@ -40,6 +40,9 @@ export const sectionNodeKey = (sectionId: number): string => `section-${sectionI
 
 /** Key of the wrapper of a group (the column) in the registry (the same as the droppable key of the group, see noteKey). */
 export const groupNodeKey = (groupId: number): string => `group-${groupId}`
+
+/** Key of the wrapper of a tab in the registry: the note id is only unique inside a pane when the workspace is split. */
+export const tabNodeKey = (pane: number, noteId: number): string => `tab-${pane}-${noteId}`
 
 /** Registers (or, with null, forgets) the wrapper of a task. A ref callback: it must be the same function while the key is. */
 export function registerShiftNode(key: string, node: HTMLElement | null): void {
@@ -164,15 +167,25 @@ export function shiftOf(element: HTMLElement, along: ShiftAxis = "y"): number {
  * Reads the layout of the registered wrappers of the kind that is dragged (call it before anything is shifted: the snapshot must be
  * of the resting layout). Only the wrappers that can be moved are read: a section drag does not touch the hundreds of tasks.
  */
-export function readLiveSnapshot(kind: "task" | "section" | "group" = "task"): LiveSnapshot {
-    const wanted = (node: HTMLElement) => kind === "task"
-        ? node.hasAttribute(SHIFT_ATTR.task)
-        : node.hasAttribute(kind === "group" ? SHIFT_ATTR.groupWrap : SHIFT_ATTR.sectionWrap)
+export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "task"): LiveSnapshot {
+    const attribute = { task: SHIFT_ATTR.task, section: SHIFT_ATTR.sectionWrap, group: SHIFT_ATTR.groupWrap, tab: SHIFT_ATTR.tab }[kind]
+    const wanted = (node: HTMLElement) => node.hasAttribute(attribute)
     const sorted = [...nodes.values()]
         .filter(node => node.isConnected && wanted(node))
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     const infos: LiveNodeInfo[] = sorted.map(node => {
         const rect = node.getBoundingClientRect()
+        // The tabs of a bar: one list per bar, laid out along the horizontal axis (left and width stand for top and height)
+        if (kind === "tab") {
+            const pane = Number(node.getAttribute(SHIFT_ATTR.tabBar))
+            return {
+                key: tabNodeKey(pane, Number(node.getAttribute(SHIFT_ATTR.tab))),
+                list: tabListKey(pane),
+                parent: null,
+                top: rect.left,
+                height: rect.width,
+            }
+        }
         // The columns are laid out along the horizontal axis: left and width stand for top and height
         if (kind === "group") {
             return {

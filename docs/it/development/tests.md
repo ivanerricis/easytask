@@ -59,6 +59,7 @@ Gli spec in `e2e/specs` (un file per area) comprendono:
 | `group-tasks` | Task direttamente in un gruppo |
 | `group-width` | Larghezza dei gruppi |
 | `live-drag` | Trascinamento in tempo reale di task e sezioni |
+| `live-drag-tabs` | Trascinamento in tempo reale dei tab aperti |
 | `note-background` | Sfondo della nota |
 | `note-search` | Ricerca in una nota |
 | `path-bar` | Barra del percorso |

@@ -59,6 +59,7 @@ The specs in `e2e/specs` (one file per area) include:
 | `group-tasks` | Tasks directly in a group |
 | `group-width` | Group width |
 | `live-drag` | Live drag of the tasks and of the sections |
+| `live-drag-tabs` | Live drag of the open tabs |
 | `note-background` | Note background |
 | `note-search` | Search in a note |
 | `path-bar` | Path bar |

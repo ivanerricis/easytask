@@ -348,8 +348,8 @@ export const settings: Translation["settings"] = {
             description: "After creating a task the field stays open for the next one. Esc or an empty field closes it.",
         },
         liveDrag: {
-            label: "Tasks, sections, groups, notes and folders move aside while dragging",
-            description: "Dragging a task, a section, a group or a note or folder of the sidebar makes the others step aside to open the room where it would land. If off, only the drop indicator is shown.",
+            label: "Tasks, sections, groups, notes, folders and tabs move aside while dragging",
+            description: "Dragging a task, a section, a group, a note or folder of the sidebar or an open tab makes the others step aside to open the room where it would land. If off, only the drop indicator is shown.",
         },
         showTaskInsertLine: {
             label: "Line to insert a task",

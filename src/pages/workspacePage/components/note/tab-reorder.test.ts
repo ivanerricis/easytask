@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest"
 import {
-    barDndId, computeCrossPaneIndex, computeTabMove, computeTabZone, keepInBar, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabDndId,
+    barDndId, computeCrossPaneIndex, computeTabMove, computeTabZone, keepInBar, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabDndId, tabLivePending,
 } from "./tab-reorder"
+
+describe("tabLivePending", () => {
+    it("makes the place of a hover over a tab: its registry key, the side and the list of its bar", () => {
+        expect(tabLivePending({ pane: 0, overId: 5, zone: "before" })).toEqual({ over: "tab-0-5", zone: "before", list: "b-0" })
+        expect(tabLivePending({ pane: 1, overId: 5, zone: "after" })).toEqual({ over: "tab-1-5", zone: "after", list: "b-1" })
+    })
+
+    it("moves nothing over nothing, nor over an empty bar", () => {
+        expect(tabLivePending(null)).toBeNull()
+        expect(tabLivePending({ pane: 1, overId: null, zone: "after" })).toBeNull()
+    })
+})
 
 describe("computeTabZone", () => {
     it("splits a tab in before / after", () => {

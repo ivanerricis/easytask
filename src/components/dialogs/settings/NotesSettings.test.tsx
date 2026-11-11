@@ -50,7 +50,7 @@ describe("NotesSettings", () => {
     it("toggles the live drag", async () => {
         prefs.liveDrag = true
         render(<NotesSettings />)
-        const toggle = screen.getByRole("switch", { name: "Task, sezioni, gruppi, note e cartelle che si spostano mentre li trascini" })
+        const toggle = screen.getByRole("switch", { name: "Task, sezioni, gruppi, note, cartelle e tab che si spostano mentre li trascini" })
         expect(toggle).toBeChecked()
         await userEvent.click(toggle)
         expect(setters.setLiveDrag).toHaveBeenCalledWith(false)

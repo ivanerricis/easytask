@@ -49,6 +49,9 @@ export const GROUPS_LIST = "groups"
 /** Key of the list of the sections of a group. */
 export const groupListKey = (groupId: number): string => `g-${groupId}`
 
+/** Key of the list of the open tabs of a bar (`pane`: 0 for the only bar of a workspace that is not split). They step aside along the horizontal axis. */
+export const tabListKey = (pane: number): string => `b-${pane}`
+
 /** Key of the list a target (section + parent task) belongs to. */
 export const taskListKey = (target: Pick<TaskTarget, "sectionId" | "parentTaskId">): string =>
     target.parentTaskId != null ? `t-${target.parentTaskId}` : `s-${target.sectionId}`
