@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildLiveSnapshot, computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
+import { buildLiveSnapshot, computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, tabListKey, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
 
 /**
  * A tiny layout engine: a list is an array of rows, a row `[key, height, children?]`. Every row is a wrapper that is as tall as its
@@ -414,5 +414,43 @@ describe("isInColumnGap", () => {
     it("lets go farther away", () => {
         expect(isInColumnGap(rect, { x: 209, y: 100 })).toBe(false)
         expect(isInColumnGap(rect, { x: 150, y: 320 })).toBe(false)
+    })
+})
+
+describe("computeLiveShifts: tabs (horizontal axis, one list per bar)", () => {
+    // Bar 0: a 100 wide, b 140, c 80 (no gap, the lines are inside the tabs); bar 1: x 100, y 120
+    const tab = (key: string, list: string, left: number, width: number): LiveNodeInfo => ({ key, list, parent: null, top: left, height: width })
+    const bar0 = tabListKey(0)
+    const bar1 = tabListKey(1)
+    const nodes = [tab("a", bar0, 0, 100), tab("b", bar0, 100, 140), tab("c", bar0, 240, 80), tab("x", bar1, 400, 100), tab("y", bar1, 500, 120)]
+
+    it("a bar is one list: its key is b-<pane>", () => {
+        expect(bar0).toBe("b-0")
+        expect(bar1).toBe("b-1")
+    })
+
+    it("a tab dropped after a later one: the tabs in between move left by its width", () => {
+        expect(shiftsOf(nodes, "a", { over: "c", zone: "after", list: bar0 })).toEqual({ b: -100, c: -100 })
+    })
+
+    it("a tab dropped before an earlier one: the room is the width of the dragged tab, whatever the others measure", () => {
+        expect(shiftsOf(nodes, "b", { over: "a", zone: "before", list: bar0 })).toEqual({ a: 140 })
+        expect(shiftsOf(nodes, "c", { over: "a", zone: "before", list: bar0 })).toEqual({ a: 80, b: 80 })
+    })
+
+    it("another bar: the tabs after the dragged one close the room, the tabs after the place open it", () => {
+        expect(shiftsOf(nodes, "a", { over: "y", zone: "before", list: bar1 })).toEqual({ b: -100, c: -100, y: 100 })
+        expect(shiftsOf(nodes, "b", { over: "x", zone: "before", list: bar1 })).toEqual({ c: -140, x: 140, y: 140 })
+    })
+
+    it("after the last tab of the other bar: nothing opens there, the source bar closes", () => {
+        expect(shiftsOf(nodes, "a", { over: "y", zone: "after", list: bar1 })).toEqual({ b: -100, c: -100 })
+        expect(shiftsOf(nodes, "a", { over: null, zone: null, list: bar1 })).toEqual({ b: -100, c: -100 })
+    })
+
+    it("over its own place nothing moves", () => {
+        expect(shiftsOf(nodes, "b", { over: "a", zone: "after", list: bar0 })).toEqual({})
+        expect(shiftsOf(nodes, "b", { over: "c", zone: "before", list: bar0 })).toEqual({})
+        expect(shiftsOf(nodes, "b", { over: "b", zone: "before", list: bar0 })).toEqual({})
     })
 })
