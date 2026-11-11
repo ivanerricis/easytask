@@ -39,10 +39,20 @@ const colors = async () => {
     return rows.map(row => [row.text, row.color?.toLowerCase() ?? null])
 }
 
-const waitForColors = (expected: (string | null)[]) =>
-    browser.waitUntil(async () => JSON.stringify((await colors()).map(([, color]) => color)) === JSON.stringify(expected), {
-        timeoutMsg: `the colors of the tasks are not ${expected.join(", ")}`,
-    })
+const show = (list: (string | null)[]) => list.map(color => color ?? "none").join(", ")
+
+const waitForColors = async (expected: (string | null)[]) => {
+    let last: (string | null)[] = []
+    try {
+        await browser.waitUntil(async () => {
+            last = (await colors()).map(([, color]) => color)
+            return JSON.stringify(last) === JSON.stringify(expected)
+        })
+    } catch {
+        // "none" stands for no color: an empty message would hide whether the write or the undo is the one that did not happen
+        throw new Error(`the colors of the tasks are not ${show(expected)} (they are ${show(last)})`)
+    }
+}
 
 describe("Multi-selection of tasks", () => {
     before(async () => {
