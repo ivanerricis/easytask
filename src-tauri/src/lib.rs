@@ -538,7 +538,11 @@ fn window_state_filename(data_dir_override: Option<&str>) -> String {
         .map(str::trim)
         .map(PathBuf::from)
         .filter(|dir| dir.is_absolute())
-        .map(|dir| dir.join(".window-state.json").to_string_lossy().into_owned())
+        .map(|dir| {
+            dir.join(".window-state.json")
+                .to_string_lossy()
+                .into_owned()
+        })
         .unwrap_or_else(|| tauri_plugin_window_state::DEFAULT_FILENAME.to_string())
 }
 
