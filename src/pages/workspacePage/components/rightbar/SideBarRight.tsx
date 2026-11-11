@@ -54,7 +54,7 @@ export const SideBarRight = () => {
                         <TabsTrigger
                             key={item}
                             value={item}
-                            className="h-auto flex-1 rounded-none border-0 border-b-2 border-transparent px-3 py-2 data-[state=active]:border-primary data-[state=active]:font-semibold"
+                            className="h-auto flex-1 rounded-none border-0 border-b-2 border-transparent px-3 py-2 after:hidden data-[state=active]:border-primary data-[state=active]:font-semibold"
                         >
                             {t(`rightPanel.${item}`)}
                         </TabsTrigger>
