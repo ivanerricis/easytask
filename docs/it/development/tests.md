@@ -36,7 +36,7 @@ E2E_SKIP_BUILD=1 npm run e2e   # riusa il binario debug esistente
 npm run e2e:typecheck
 ```
 
-- L'app usa una cartella dati temporanea (`EASYTASK_DATA_DIR`), quindi i tuoi dati non vengono toccati.
+- L'app usa una cartella dati temporanea (`EASYTASK_DATA_DIR`), quindi i tuoi dati non vengono toccati. Anche lo stato salvato della finestra (`.window-state.json`) sta in quella cartella e non nel tuo profilo: gli spec non leggono né cambiano la finestra della tua app installata (dentro una stessa esecuzione, uno spec può comunque partire con la dimensione lasciata dallo spec precedente: uno spec che dipende dalla dimensione la imposta da sé).
 - Gli spec girano uno alla volta sulla stessa cartella dati: usa nomi univoci e non dipendere dall'ordine dei file.
 - Le etichette arrivano dai file delle lingue tramite `tr("chiave")`: non scrivere mai testi dell'interfaccia a mano in uno spec.
 - Su Windows non eseguirli da una shell con privilegi di amministratore: WebView2 non aprirebbe la porta di debug. `e2e/run-as-basic-user.cmd` esegue la suite con un token limitato.

@@ -528,6 +528,20 @@ fn single_instance_enabled(debug_build: bool, data_dir_override: bool) -> bool {
     !debug_build && !data_dir_override
 }
 
+/// File of the window state of the plugin. By default it is `.window-state.json` in the user profile (the plugin joins the
+/// name to the app config folder); with an `EASYTASK_DATA_DIR` override it is a file inside that folder, so the e2e runs (and
+/// any other run with its own data) neither read nor overwrite the window of the installed app. An absolute path replaces the
+/// config folder in the join, which is how the plugin takes it. A relative or empty override is ignored here (the data folder
+/// resolution reports it).
+fn window_state_filename(data_dir_override: Option<&str>) -> String {
+    data_dir_override
+        .map(str::trim)
+        .map(PathBuf::from)
+        .filter(|dir| dir.is_absolute())
+        .map(|dir| dir.join(".window-state.json").to_string_lossy().into_owned())
+        .unwrap_or_else(|| tauri_plugin_window_state::DEFAULT_FILENAME.to_string())
+}
+
 /// Gives the process the identity of the installed app (the identifier of the bundle, the same of its Start menu
 /// shortcut). Without it Windows shows "Unknown app" in the media overlay (volume flyout, lock screen) while a sound plays.
 #[cfg(windows)]
@@ -563,6 +577,9 @@ pub fn run() {
     if !portable_install() {
         builder = builder.plugin(
             tauri_plugin_window_state::Builder::default()
+                .with_filename(window_state_filename(
+                    std::env::var(DATA_DIR_ENV).ok().as_deref(),
+                ))
                 .skip_initial_state("main")
                 .build(),
         );
@@ -1013,6 +1030,33 @@ mod tests {
         assert!(!single_instance_enabled(true, false));
         assert!(!single_instance_enabled(false, true));
         assert!(!single_instance_enabled(true, true));
+    }
+
+    #[test]
+    fn window_state_stays_in_the_profile_without_an_override() {
+        assert_eq!(
+            window_state_filename(None),
+            tauri_plugin_window_state::DEFAULT_FILENAME
+        );
+        assert_eq!(
+            window_state_filename(Some("  ")),
+            tauri_plugin_window_state::DEFAULT_FILENAME
+        );
+        assert_eq!(
+            window_state_filename(Some("relative/dir")),
+            tauri_plugin_window_state::DEFAULT_FILENAME
+        );
+    }
+
+    #[test]
+    fn window_state_moves_into_the_data_dir_override() {
+        let dir = temp_dir("window-state");
+        let name = window_state_filename(Some(dir.to_str().unwrap()));
+        let path = PathBuf::from(&name);
+        assert_eq!(path, dir.join(".window-state.json"));
+        // joined to any config folder it still resolves to the file in the override
+        assert_eq!(std::env::temp_dir().join("config").join(&name), path);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 
     #[test]
