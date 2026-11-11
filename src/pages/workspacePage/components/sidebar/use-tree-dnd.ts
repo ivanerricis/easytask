@@ -4,7 +4,7 @@ import {
     type CollisionDetection, type DragEndEvent, type DragMoveEvent, type DragStartEvent,
 } from "@dnd-kit/core"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
-import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { useWorkspace } from "@/contexts/use-workspace"
 import {
     computeDropTarget, computeDropZone, findTreeItem,
@@ -119,6 +119,7 @@ export const useTreeDnd = ({ tree, rows, collapsedIds, onExpandFolder }: UseTree
             if (liveShownRef.current) live.show(null, "inside", false)
             liveShownRef.current = null
             hoverStore.set(NO_TREE_HOVER)
+            setGrabCursorNotAllowed(true)
             return
         }
 
@@ -156,6 +157,8 @@ export const useTreeDnd = ({ tree, rows, collapsedIds, onExpandFolder }: UseTree
         const target = multiCount > 0 ? null : computeDropTarget(tree, active, overRef, zone)
         targetRef.current = target
         const valid = multiCount > 0 ? !!plan : !!target
+        // Over nothing the item can be dropped on (no row, or a no-op target such as a folder into itself) the cursor says so
+        setGrabCursorNotAllowed(!valid)
         // With the live drag the rows open the room: the line (before / after) and the ring of the first place are not drawn, the root is not tinted
         const shifted = live.active() && live.show(target, zone, overRef !== null)
         if (live.active()) liveShownRef.current = { over: overKey, zone, rect: overRef ? { top: over.rect.top, bottom: over.rect.bottom } : null }

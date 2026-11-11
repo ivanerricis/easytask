@@ -4,6 +4,16 @@ import { useEffect } from "react"
 export const GRAB_COVER_ATTR = "data-drag-cursor"
 
 /**
+ * Switches the cursor of the cover between the closed hand and "not allowed" without a render: for the drags whose state lives in a
+ * ref / a store (the tree of the sidebar), where a React state would re-render the whole tree each time the pointer crosses a border.
+ * Does nothing when no cover is shown (no drag in progress).
+ */
+export const setGrabCursorNotAllowed = (notAllowed: boolean) => {
+    const cover = document.querySelector<HTMLElement>(`[${GRAB_COVER_ATTR}]`)
+    if (cover) cover.style.cursor = notAllowed ? "not-allowed" : "grabbing"
+}
+
+/**
  * While `active` (an item is being dragged) the whole window shows the closed hand, whatever is under the pointer.
  * With `notAllowed` too (the pointer is over nothing the item can be dropped on) it shows the "not allowed" cursor instead.
  *
