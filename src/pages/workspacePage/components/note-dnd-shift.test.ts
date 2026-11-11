@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, groupNodeKey, registerShiftNode, sectionNodeKey, shiftOf, SHIFT_ATTR, SHIFT_DURATION, taskNodeKey } from "./note-dnd-shift"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, groupNodeKey, registerShiftNode, sectionNodeKey, shiftOf, SHIFT_ATTR, SHIFT_DURATION, tabNodeKey, taskNodeKey } from "./note-dnd-shift"
 
 let frames: FrameRequestCallback[] = []
 const flushFrame = () => { const run = frames; frames = []; run.forEach(callback => callback(0)) }
@@ -355,5 +355,43 @@ describe("groups (horizontal axis)", () => {
         expect([...lists.keys()]).toEqual(["groups"])
         expect(lists.get("groups")).toEqual(["group-1", "group-2"])
         expect(items.get("group-2")).toMatchObject({ list: "groups", parent: null, top: 108, height: 60 })
+    })
+})
+
+describe("tabs (horizontal axis)", () => {
+    const tabWrapper = (pane: number, id: number, left: number, width: number) => {
+        const node = document.createElement("div")
+        node.setAttribute(SHIFT_ATTR.tab, String(id))
+        node.setAttribute(SHIFT_ATTR.tabBar, String(pane))
+        node.getBoundingClientRect = () => ({ left, width, top: 0, height: 42 }) as DOMRect
+        document.body.appendChild(node)
+        registerShiftNode(tabNodeKey(pane, id), node)
+        return node
+    }
+
+    it("the key of a tab carries its pane (a note id is only unique inside a pane)", () => {
+        expect(tabNodeKey(0, 7)).toBe("tab-0-7")
+        expect(tabNodeKey(1, 7)).toBe("tab-1-7")
+    })
+
+    it("reads the tabs of every bar as one list per bar, with left and width as the start and the size", () => {
+        tabWrapper(0, 1, 0, 100)
+        tabWrapper(0, 2, 100, 140)
+        tabWrapper(1, 10, 400, 100)
+        wrapper(1, 1)
+        const { items, lists } = readLiveSnapshot("tab")
+        expect([...lists.keys()]).toEqual(["b-0", "b-1"])
+        expect(lists.get("b-0")).toEqual(["tab-0-1", "tab-0-2"])
+        expect(lists.get("b-1")).toEqual(["tab-1-10"])
+        expect(items.get("tab-0-2")).toMatchObject({ list: "b-0", parent: null, top: 100, height: 140 })
+    })
+
+    it("moves a tab sideways and hides the dragged one", () => {
+        const a = tabWrapper(0, 1, 0, 100)
+        const b = tabWrapper(0, 2, 100, 100)
+        applyShifts(new Map([[tabNodeKey(0, 2), -100]]), tabNodeKey(0, 1), "x")
+        flushFrame()
+        expect(b.style.transform).toBe("translate3d(-100px, 0, 0)")
+        expect(a.style.opacity).toBe("0")
     })
 })

@@ -1,5 +1,7 @@
 import { halfZone } from "@/lib/drop-zone"
 import type { PaneIndex } from "@/contexts/layout-reducer"
+import { tabListKey, type LivePending } from "../note-dnd-live"
+import { tabNodeKey } from "../note-dnd-shift"
 
 export type TabZone = "before" | "after"
 
@@ -101,6 +103,16 @@ export function resolveTabDrop(
     }
     const index = computeCrossPaneIndex(idsByPane[hover.pane], hover.overId, hover.zone)
     return { kind: "move", noteId, fromPane, toPane: hover.pane, index }
+}
+
+/**
+ * What the tabs of the live drag show for a hover: the room opens before / after the tab the dragged one is over, in the bar it belongs
+ * to (the registry key of the tab, the list of the bar). Null (nothing moves) over nothing and over a bar itself, which is the empty bar:
+ * it has no tab to step aside and keeps its drop line.
+ */
+export function tabLivePending(hover: TabHover | null): LivePending | null {
+    if (!hover || hover.overId === null) return null
+    return { over: tabNodeKey(hover.pane, hover.overId), zone: hover.zone, list: tabListKey(hover.pane) }
 }
 
 /** The move of a dragged tab, held between the left and right edges of its bar (`rect`: the tab at rest, measured without the move). */

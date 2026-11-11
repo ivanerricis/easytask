@@ -7,6 +7,8 @@ export type TabsDndContextType = {
     hover: TabHover | null
     /** Whether the workspace is split: two bars with the shared ids (`tab:<pane>:<id>`), else one bar with the plain note ids. */
     split: boolean
+    /** Whether the live drag is on: the tabs step aside (no drop line) and the dragged tab is shown in the overlay, even with one bar. */
+    live: boolean
 }
 
 /** Null outside `TabsDndProvider`: a `NoteList` then wraps itself in one. */
