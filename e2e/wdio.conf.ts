@@ -156,6 +156,17 @@ export const config: Options.Testrunner & { capabilities: unknown[] } = {
         throw new Error("tauri-driver did not start listening on port 4444")
     },
 
+    // The window state of the app lives in the temporary data folder now, so every session starts at the default size (1000x700).
+    // Several specs were written for the maximized window the real profile used to hand them: start there on Windows
+    before: async () => {
+        if (process.platform !== "win32") return
+        // The window is created hidden and shown after the setup: wait until the page has a size before touching the window
+        const inner = () => browser.execute(() => window.innerWidth).catch(() => 0)
+        await browser.waitUntil(async () => (await inner()) > 0, { timeout: 30_000, timeoutMsg: "the page has no size (the window is not shown)" })
+        await browser.maximizeWindow()
+        await browser.waitUntil(async () => (await inner()) >= 1200, { timeout: 20_000, timeoutMsg: `the window did not maximize: inner width ${await inner()}` })
+    },
+
     afterTest: async (test, _context, result) => {
         if (result.passed) return
         const name = `${test.parent} ${test.title}`.replace(/[^\w-]+/g, "_")
