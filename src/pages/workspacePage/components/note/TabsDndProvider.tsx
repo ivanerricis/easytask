@@ -20,6 +20,9 @@ import { TabsDndContext, type TabsDndContextType } from "./tabs-dnd-context-obje
 
 type Dragging = { pane: PaneIndex, noteId: number }
 
+/** Auto scroll of the drag of the tabs: just the tab bars (`role="tablist"`), and not up and down. */
+const AUTO_SCROLL = { canScroll: (element: Element) => element.getAttribute("role") === "tablist", threshold: { x: 0.2, y: 0 } }
+
 /**
  * First the bar under the pointer (both axes), then inside it the tab under the pointer's x (the first / last one past either end,
  * so a tab can be dropped at either end of a bar), else the bar itself (an empty bar).
@@ -142,6 +145,9 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                 sensors={sensors}
                 accessibility={accessibility}
                 modifiers={split ? undefined : [restrictToHorizontalAxis]}
+                // Only the tab bars scroll while a tab is dragged (sideways, to reach the tabs out of sight): the dragged tab, or its overlay,
+                // goes over the pane under the bars and would make the panes and the page scroll up and down
+                autoScroll={AUTO_SCROLL}
                 collisionDetection={split ? collisionDetection : singleCollisionDetection}
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
