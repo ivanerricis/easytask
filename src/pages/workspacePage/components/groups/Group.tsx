@@ -129,7 +129,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
                     at the edge of the group, so its scrollbar sits entirely under the header (the resize handle is outside the group,
                     in the gap, and does not cover it); the 2px of padding keep the drop ring of an item from being cut. The tasks get
                     narrower only while the scrollbar is there. */}
-                <div className="flex flex-col gap-1 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
+                <div data-group-list className="flex flex-col gap-1 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
                     {group.sections.map((section, position) => (
                         <Fragment key={section.id}>
                             {position === directIndex && <GroupTasks group={group} />}

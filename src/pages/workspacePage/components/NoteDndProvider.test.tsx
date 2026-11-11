@@ -9,7 +9,7 @@ import { NoteDndStoreContext, type NoteDndStore } from "./note-dnd-state"
 import { announce } from "./tasks/note-announcer-store"
 
 // DndContext is replaced by a stub that hands its handlers to the test: the pointer sensor needs a real browser
-type Handlers = { onDragStart: (event: unknown) => void, onDragCancel: () => void, sensors: unknown }
+type Handlers = { autoScroll: { canScroll: (element: Element) => boolean, threshold: { x: number, y: number } }, onDragStart: (event: unknown) => void, onDragCancel: () => void, sensors: unknown }
 let handlers: Handlers
 vi.mock("@dnd-kit/core", async importActual => ({
     ...await importActual<typeof import("@dnd-kit/core")>(),
@@ -100,5 +100,19 @@ describe("NoteDndProvider renders", () => {
         act(() => dnd.set({ hover: { overKey: null, zone: null, targetSectionId: null } }))
         expect(handlers.onDragStart).toBe(rendered)
         expect(document.body.querySelector<HTMLElement>("[data-drag-cursor]")?.style.cursor).toBe("not-allowed")
+    })
+})
+
+describe("NoteDndProvider auto scroll", () => {
+    it("scrolls only the row of the groups and the list of a group, with explicit bands", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        const el = (attrs: Record<string, string>) => Object.entries(attrs).reduce((node, [k, v]) => (node.setAttribute(k, v), node), document.createElement("div"))
+        const { canScroll, threshold } = handlers.autoScroll
+        expect(canScroll(el({ "data-testid": "group-scroll" }))).toBe(true)
+        expect(canScroll(el({ "data-group-list": "" }))).toBe(true)
+        expect(canScroll(el({ "data-pane": "0" }))).toBe(false)
+        expect(canScroll(el({ role: "tablist" }))).toBe(false)
+        expect(canScroll(document.body)).toBe(false)
+        expect(threshold).toEqual({ x: 0.2, y: 0.2 })
     })
 })
