@@ -125,10 +125,47 @@ const feedbackIn = (paneIndex: 0 | 1) => browser.execute((index: number) => {
     return root.querySelectorAll("[data-section-card].ring-primary, [data-direct-tasks].ring-primary, [data-group-card].ring-primary, [data-task-id].ring-primary").length
 }, paneIndex)
 
+/**
+ * Sets the window size and waits until the page really has it (the window may start maximized, or at the size another spec left;
+ * WebKitGTK resizes after the command returns). Compares the inner size with a margin for the frame of a decorated window.
+ */
+const resizeWindow = async (width: number, height: number) => {
+    const margin = 40
+    await browser.setWindowSize(width, height)
+    let seen = { width: 0, height: 0 }
+    await browser.waitUntil(async () => {
+        seen = await browser.execute(() => ({ width: window.innerWidth, height: window.innerHeight }))
+        return Math.abs(seen.width - width) <= margin && Math.abs(seen.height - height) <= margin
+    }, { timeoutMsg: `the window did not reach ${width}x${height}: inner size ${seen.width}x${seen.height}` })
+}
+
+/**
+ * The scroll offsets of every element that may not scroll during a drag: all but the row of the groups and the lists of the groups
+ * of the pane the drag happens in (those scroll by themselves near their edges). Compared before and after the drag.
+ */
+const offsetsOutside = (paneIndex: 0 | 1 | null) => browser.execute((index: number | null) => {
+    const scope = index === null ? null : document.querySelector(`[data-pane="${index}"]`)
+    const own = (el: Element) => (el.matches('[data-testid="group-scroll"], [data-group-list]') && (scope === null || scope.contains(el)))
+    return Array.from(document.querySelectorAll<HTMLElement>("*")).map((el, i) => ({ i, el }))
+        .filter(({ el }) => !own(el) && (el.scrollTop !== 0 || el.scrollLeft !== 0 || el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth))
+        .map(({ i, el }) => `${i}:${el.tagName.toLowerCase()}${el.getAttribute("data-pane") ? `[pane ${el.getAttribute("data-pane")}]` : ""}${el.getAttribute("data-testid") ? `[${el.getAttribute("data-testid")}]` : ""}@${Math.round(el.scrollLeft)},${Math.round(el.scrollTop)}`)
+}, paneIndex)
+
 describe("Live drag with horizontal scroll and in a split view", () => {
+    let previousSize: { width: number, height: number } | undefined
+    let previousLiveDrag: boolean | undefined
+
     before(async () => {
         await waitForApp()
-        await browser.setWindowSize(1200, 800)
+        previousSize = await browser.getWindowSize()
+        await resizeWindow(1200, 800)
+        // The specs share the preferences: the drags below need the live drag on, whatever another spec left
+        previousLiveDrag = await setLiveDrag(true)
+    })
+
+    after(async () => {
+        if (previousLiveDrag !== undefined) await setLiveDrag(previousLiveDrag)
+        if (previousSize) await browser.setWindowSize(previousSize.width, previousSize.height)
     })
 
     it("builds two notes with wide groups", async () => {
@@ -205,7 +242,6 @@ describe("Live drag with horizontal scroll and in a split view", () => {
 
         it("a group dragged to the right edge: the autoscroll leaves no cut column and no flip, and the drop is where expected", async function () {
             if (process.platform === "linux") return this.skip()
-            await setLiveDrag(true)
             await byText("Scroll G1").waitForDisplayed()
             const start = await headerPoint("group", "Scroll G1")
             const area = await columns(null)
@@ -213,8 +249,10 @@ describe("Live drag with horizontal scroll and in a split view", () => {
             const end = { x: Math.round(area.areaRight - 24), y: start.y }
             let result!: Awaited<ReturnType<typeof sampleWhileAtEdge>>
             let landed!: Awaited<ReturnType<typeof sampleWhileAtEdge>>
+            const offsets = await offsetsOutside(null)
             await dragPoints(start, end, async () => {
                 result = await sampleWhileAtEdge("group")
+                expect(["a container outside the groups scrolled", await offsetsOutside(null)]).toEqual(["a container outside the groups scrolled", offsets])
                 landed = await settleAt("group", end, await cardPoint("group", "Scroll G4", 0.85, 0.02).then(p => ({ x: p.x, y: end.y })))
             })
             expect(result.clipped).toEqual([])
@@ -259,7 +297,7 @@ describe("Live drag with horizontal scroll and in a split view", () => {
 
     describe("split view", () => {
         it("opens note B on the right and note C on the left", async function () {
-            await browser.setWindowSize(1800, 900)
+            await resizeWindow(1800, 900)
             await treeRow(NOTE_C).click()
             await byLabel(await tr("notes.closeCurrent")).waitForDisplayed()
             await domClick(byLabel(await tr("notes.split.split")))
@@ -331,6 +369,31 @@ describe("Live drag with horizontal scroll and in a split view", () => {
             await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
             await browser.keys(["Control", "z"])
             await waitForSaved(() => savedTasks("Pane G2-S1"), ["Pane G2 task a", "Pane G2 task b", "Pane G2 task c"])
+        })
+
+        it("a task dragged to the edges of the left pane scrolls nothing outside its groups, the right pane included", async function () {
+            if (process.platform === "linux") return this.skip()
+            const start = await headerPoint("task", "Pane G2 task a")
+            const paneBox = await browser.execute(() => {
+                const r = document.querySelector('[data-pane="0"]')!.getBoundingClientRect()
+                return { right: Math.round(r.right), bottom: Math.round(Math.min(r.bottom, window.innerHeight)) }
+            })
+            const offsets = await offsetsOutside(0)
+            // Held in the band at the bottom right corner of the pane, where an ancestor that scrolls would move
+            const corner = { x: paneBox.right - 6, y: paneBox.bottom - 6 }
+            await dragPoints(start, corner, async () => {
+                for (let i = 0; i < 6; i++) {
+                    expect(["a container outside the groups of the pane scrolled", await offsetsOutside(0)]).toEqual(["a container outside the groups of the pane scrolled", offsets])
+                    await browser.pause(150)
+                }
+                // Back to where it started, so the drop changes nothing
+                const back = browser.action("pointer", { parameters: { pointerType: "mouse" } })
+                for (let i = 1; i <= 10; i++) back.move({ x: Math.round(corner.x + ((start.x - corner.x) * i) / 10), y: Math.round(corner.y + ((start.y - corner.y) * i) / 10), origin: "viewport", duration: 20 })
+                await back.perform(true)
+                await browser.pause(300)
+            })
+            await waitForSaved(() => savedTasks("Pane G2-S1"), ["Pane G2 task a", "Pane G2 task b", "Pane G2 task c"])
+            expect(["the other pane scrolled", await offsetsOutside(0)]).toEqual(["the other pane scrolled", offsets])
         })
 
         it("the same in the right pane leaves the left one alone", async function () {

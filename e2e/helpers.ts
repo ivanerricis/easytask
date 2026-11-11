@@ -495,14 +495,18 @@ export const settingsSwitch = async (labelKey: string) => {
 }
 
 /**
- * Sets the "Live drag" preference of Settings > Notes. The preference is saved: a spec that turns it off for the insertion lines
- * of the drag puts it back on when it is done (the specs share the data folder).
+ * Sets the "Live drag" preference of Settings > Notes, checks that the switch took it and returns the value it had before. The
+ * preference is saved (the specs share the data folder): a spec that changes it puts the returned value back when it is done.
  */
-export const setLiveDrag = async (on: boolean) => {
+export const setLiveDrag = async (on: boolean): Promise<boolean> => {
     await openSettingsOn("notes")
     const toggle = await settingsSwitch("settings.notes.liveDrag.label")
-    if (((await toggle.getAttribute("aria-checked")) === "true") !== on) await toggle.click()
+    const read = async () => (await toggle.getAttribute("aria-checked")) === "true"
+    const before = await read()
+    if (before !== on) await toggle.click()
+    await browser.waitUntil(async () => (await read()) === on, { timeoutMsg: `the live drag switch is ${!on}, expected ${on}` })
     await closeAllDialogs()
+    return before
 }
 
 /** Closes every open dialog with Escape. */
