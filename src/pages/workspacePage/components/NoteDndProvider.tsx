@@ -68,7 +68,7 @@ const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => g
  * a group (up and down, to reach a far task). Everything else (the pane, the page, the other pane of a split view) stays still: the
  * default of dnd-kit would scroll every scrollable ancestor. The band at the edge is 20% of the container on both axes.
  */
-export const NOTE_AUTO_SCROLL = {
+const NOTE_AUTO_SCROLL = {
     canScroll: (element: Element) => element.getAttribute("data-testid") === "group-scroll" || element.hasAttribute("data-group-list"),
     threshold: { x: 0.2, y: 0.2 },
 }
