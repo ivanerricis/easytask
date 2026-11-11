@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-11
+
 ### Added
 
 - Live drag of sections: while you drag a section the others step aside to open the room where it would land, in the same group or in another one, and the dragged section collapses. The insertion line of the sections is not shown during the drag.
@@ -22,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - Search: the current match now has a visible ring in every theme, and it also shows with the forced colors of Windows (high contrast mode).
+- Undo: pressing Ctrl+Z right after coloring several selected tasks (or folders and notes) could do nothing; the step to undo is now always ready.
+- Dragging a note or a folder in the sidebar, or a tab outside the bars of the split view, now shows the "not allowed" cursor over places where it cannot be dropped.
+- Dragging a tab to the right end of a single bar no longer makes a useless horizontal scrollbar appear.
+- Dragging an item of a note in a split view: only the row of the groups and the lists of the groups scroll by themselves near the edges, so the other pane and the page no longer scroll up and down.
+- The active tab of the right panel (Details, History) has one underline instead of two.
 
 ## [0.21.0] - 2026-11-08
 
@@ -536,7 +543,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/ivanerricis/easytask/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ivanerricis/easytask/compare/v0.18.0...v0.19.0
