@@ -63,6 +63,16 @@ const collisionDetection: CollisionDetection = ({ active, droppableContainers, d
  */
 const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => getClientRect(element, { ignoreTransform: true }), shiftOf) } }
 
+/**
+ * What scrolls by itself while a group, a section or a task is dragged near an edge: the row of the groups (sideways) and the list of
+ * a group (up and down, to reach a far task). Everything else (the pane, the page, the other pane of a split view) stays still: the
+ * default of dnd-kit would scroll every scrollable ancestor. The band at the edge is 20% of the container on both axes.
+ */
+const NOTE_AUTO_SCROLL = {
+    canScroll: (element: Element) => element.getAttribute("data-testid") === "group-scroll" || element.hasAttribute("data-group-list"),
+    threshold: { x: 0.2, y: 0.2 },
+}
+
 /** The edges of a droppable as dnd-kit measures them. */
 type Rect = { top: number, bottom: number, left: number, right: number }
 
@@ -372,6 +382,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
+                autoScroll={NOTE_AUTO_SCROLL}
                 measuring={liveDrag ? LIVE_MEASURING : undefined}
             >
                 {children}
