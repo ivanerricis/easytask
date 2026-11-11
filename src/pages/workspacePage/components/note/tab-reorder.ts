@@ -102,3 +102,12 @@ export function resolveTabDrop(
     const index = computeCrossPaneIndex(idsByPane[hover.pane], hover.overId, hover.zone)
     return { kind: "move", noteId, fromPane, toPane: hover.pane, index }
 }
+
+/** The move of a dragged tab, held between the left and right edges of its bar (`rect`: the tab at rest, measured without the move). */
+export const keepInBar = (transform: { x: number, y: number, scaleX: number, scaleY: number } | null, rect: { left: number, right: number } | null, bar: HTMLElement | null | undefined) => {
+    if (!transform || !rect || !bar) return transform
+    const box = bar.getBoundingClientRect()
+    const min = box.left - rect.left
+    const max = Math.max(box.right - rect.right, min)
+    return { ...transform, x: Math.min(Math.max(transform.x, min), max) }
+}

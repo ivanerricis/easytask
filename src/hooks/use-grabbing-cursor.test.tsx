@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
-import { GRAB_COVER_ATTR, useGrabbingCursor } from "./use-grabbing-cursor"
+import { GRAB_COVER_ATTR, setGrabCursorNotAllowed, useGrabbingCursor } from "./use-grabbing-cursor"
 
 const covers = () => [...document.body.querySelectorAll<HTMLElement>(`[${GRAB_COVER_ATTR}]`)]
 const cursor = () => covers()[0]?.style.cursor ?? ""
@@ -37,6 +37,22 @@ describe("useGrabbingCursor", () => {
 
     it("shows nothing special for an invalid target when nothing is dragged", () => {
         renderHook(() => useGrabbingCursor(false, true))
+        expect(covers()).toHaveLength(0)
+    })
+
+    it("switches the cursor of the cover with no render (the drags that keep their state in a ref or a store)", () => {
+        const { unmount } = renderHook(() => useGrabbingCursor(true))
+        const cover = covers()[0]
+        setGrabCursorNotAllowed(true)
+        expect(cursor()).toBe("not-allowed")
+        setGrabCursorNotAllowed(false)
+        expect(cursor()).toBe("grabbing")
+        expect(covers()).toEqual([cover])
+        unmount()
+    })
+
+    it("does nothing when no drag is in progress", () => {
+        expect(() => setGrabCursorNotAllowed(true)).not.toThrow()
         expect(covers()).toHaveLength(0)
     })
 })

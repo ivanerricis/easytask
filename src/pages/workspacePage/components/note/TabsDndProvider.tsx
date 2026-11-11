@@ -10,7 +10,7 @@ import type { PaneIndex } from "@/contexts/layout-reducer"
 import { useLayoutActions } from "@/contexts/use-layout"
 import { useTabs, useTabsActions } from "@/contexts/use-tabs"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
-import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { announce } from "../tasks/note-announcer-store"
 import {
     barDndId, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop,
@@ -19,6 +19,9 @@ import {
 import { TabsDndContext, type TabsDndContextType } from "./tabs-dnd-context-object"
 
 type Dragging = { pane: PaneIndex, noteId: number }
+
+/** Auto scroll of the drag of the tabs: just the tab bars (`role="tablist"`), and not up and down. */
+const AUTO_SCROLL = { canScroll: (element: Element) => element.getAttribute("role") === "tablist", threshold: { x: 0.2, y: 0 } }
 
 /**
  * First the bar under the pointer (both axes), then inside it the tab under the pointer's x (the first / last one past either end,
@@ -100,6 +103,8 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
 
     const handleDragMove = (event: DragMoveEvent) => {
         const { over, active, activatorEvent, delta } = event
+        // Outside every bar there is nothing to drop the tab on: the cursor says so (over its own tab it is a reorder that changes nothing)
+        setGrabCursorNotAllowed(!over)
         const origin = activatorEvent as { clientX?: number } | null
         if (!over || over.id === active.id || typeof origin?.clientX !== "number") return updateHover(null)
         const tab = parseId(over.id)
@@ -140,6 +145,9 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                 sensors={sensors}
                 accessibility={accessibility}
                 modifiers={split ? undefined : [restrictToHorizontalAxis]}
+                // Only the tab bars scroll while a tab is dragged (sideways, to reach the tabs out of sight): the dragged tab, or its overlay,
+                // goes over the pane under the bars and would make the panes and the page scroll up and down
+                autoScroll={AUTO_SCROLL}
                 collisionDetection={split ? collisionDetection : singleCollisionDetection}
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}

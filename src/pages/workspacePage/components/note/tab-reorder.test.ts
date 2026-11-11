@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-    barDndId, computeCrossPaneIndex, computeTabMove, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabDndId,
+    barDndId, computeCrossPaneIndex, computeTabMove, computeTabZone, keepInBar, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabDndId,
 } from "./tab-reorder"
 
 describe("computeTabZone", () => {
@@ -113,5 +113,29 @@ describe("resolveTabDrop", () => {
     })
     it("moves to the end of an empty pane", () => {
         expect(resolveTabDrop([[1], []], 0, 1, { pane: 1, overId: null, zone: "after" })).toEqual({ kind: "move", noteId: 1, fromPane: 0, toPane: 1, index: 0 })
+    })
+})
+
+describe("keepInBar", () => {
+    const bar = { getBoundingClientRect: () => ({ left: 100, right: 400 }) } as HTMLElement
+    const rect = { left: 150, right: 250 }
+    const move = (x: number) => ({ x, y: 0, scaleX: 1, scaleY: 1 })
+
+    it("leaves a move that stays inside the bar as it is", () => {
+        expect(keepInBar(move(60), rect, bar)).toEqual(move(60))
+    })
+
+    it("stops the tab at the right edge of the bar, so it does not widen the scrollable area", () => {
+        expect(keepInBar(move(900), rect, bar)?.x).toBe(150)
+    })
+
+    it("stops the tab at the left edge of the bar", () => {
+        expect(keepInBar(move(-900), rect, bar)?.x).toBe(-50)
+    })
+
+    it("does nothing without a move, a measure or a bar", () => {
+        expect(keepInBar(null, rect, bar)).toBeNull()
+        expect(keepInBar(move(900), null, bar)).toEqual(move(900))
+        expect(keepInBar(move(900), rect, null)).toEqual(move(900))
     })
 })
