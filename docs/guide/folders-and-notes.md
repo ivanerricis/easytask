@@ -80,7 +80,7 @@ Drag a row in the tree and drop it where you want:
 - On a note: the item goes before it (upper half) or after it (lower half).
 - On a folder: in the middle of the row, the item goes inside the folder; near the top or bottom edge, before or after it.
 
-While you drag, the other rows step aside to open the room where the item would land and the room it leaves closes, so you see the final order before you drop. A folder that is open moves with the rows inside it. Over the middle of a folder the rows stay still and the folder is highlighted. With **Tasks, sections, groups, notes and folders move aside while dragging** off in **Settings > Notes and sections**, a line shows where it lands instead, as it does when you drag several selected items or use the keyboard.
+While you drag, the other rows step aside to open the room where the item would land and the room it leaves closes, so you see the final order before you drop. A folder that is open moves with the rows inside it. Over the middle of a folder the rows stay still and the folder is highlighted. With **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections**, a line shows where it lands instead, as it does when you drag several selected items or use the keyboard.
 
 You can also drag with the keyboard: focus a row, press `Space`, move with the arrow keys, press `Space` again to drop, `Esc` to cancel. **Move to…** in the menu is another way that needs no dragging.
 
@@ -117,7 +117,7 @@ You can keep two notes side by side. Each area has its own tab bar and its own o
 
 - Click **Split into two areas** on the right of the path bar, or press `Ctrl+\` (`Cmd+\` on macOS). An empty area appears on the right. Click **Close the split** (or press the same shortcut) to go back to one area: this closes the tabs of the right area.
 - A note is open in one area at a time. If you open a note that is already open in the other area, EasyTask switches to it there.
-- To move a note, drag its tab to the other tab bar (or drop it in the empty bar). Without the mouse, use **Open on the right** / **Open on the left** in the menu of the note or of its tab, or press `Ctrl+Alt+→` (also `Ctrl+Alt+←`) to move the active note to the other area. **Open on the right** creates the split if there is none.
+- To move a note, drag its tab to the other tab bar (or drop it in the empty bar). While you drag, the other tabs step aside to open the room where it would land and the room it leaves closes; with **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections** a line shows where it lands instead. The same happens when you reorder the tabs of one bar. Without the mouse, use **Open on the right** / **Open on the left** in the menu of the note or of its tab, or press `Ctrl+Alt+→` (also `Ctrl+Alt+←`) to move the active note to the other area. **Open on the right** creates the split if there is none.
 - `Ctrl+Alt+\` moves the focus to the other area.
 - The area you clicked last is the focused one. The sidebar, the command menu, the details panel and the shortcuts (close the note, next or previous note, search in the note, new group, undo and redo) act on it.
 - Drag the divider between the areas to resize them. With the divider focused, the arrow keys change the size (`Shift` for bigger steps), and a double click brings it back to 50%. Each area is at least 320 pixels wide, and the sidebars close by themselves when there is not enough room.

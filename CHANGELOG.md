@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Live drag of sections: while you drag a section the others step aside to open the room where it would land, in the same group or in another one, and the dragged section collapses. The insertion line of the sections is not shown during the drag.
 - Live drag of groups: while you drag a group by its header the other groups step sideways to open the room where it would land, and the dragged group collapses. The vertical insertion line of the groups is not shown during the drag.
-- Live drag of the sidebar: while you drag a note or a folder (with its open subfolders and notes) the other rows step aside to open the room where it would land and close the one it leaves, instead of showing a line; dropping in the middle of a folder still highlights it, and the line comes back with the setting off and for a drag of several selected items or with the keyboard. The setting is now **Tasks, sections, groups, notes and folders move aside while dragging**: turn it off to get only the drop indicator.
+- Live drag of the sidebar: while you drag a note or a folder (with its open subfolders and notes) the other rows step aside to open the room where it would land and close the one it leaves, instead of showing a line; dropping in the middle of a folder still highlights it, and the line comes back with the setting off and for a drag of several selected items or with the keyboard. The setting is now **Tasks, sections, groups, notes, folders and tabs move aside while dragging**: turn it off to get only the drop indicator.
+- Live drag of the open tabs: while you drag a tab, in one bar or between the two bars of the split view, the other tabs step sideways to open the room where it would land and close the one it leaves, and the tab follows the pointer instead of showing a line. The line comes back with the setting off and over an empty bar.
 
 ### Changed
 
