@@ -3,7 +3,6 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { GroupHeader } from "./GroupHeader"
-import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 import { makeDefaultSection, makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { searchingStore } from "@/test/search-store"
 import { NoteSearchContext } from "../note-search-context"
@@ -45,30 +44,20 @@ beforeEach(() => {
 })
 
 describe("GroupHeader color", () => {
-    it("tints the header with the color of the group and drops the neutral background", () => {
+    it("leaves the color to the panel of the group: the header has no background of its own", () => {
         const { container } = render(<GroupHeader group={makeGroup({ name: "G", color: "#ff0000" })} />)
         const header = container.firstElementChild as HTMLElement
-        expect(header.style.backgroundColor).toBe("rgba(255, 0, 0, 0.4)")
+        expect(header.style.backgroundColor).toBe("")
         expect(header).not.toHaveClass("bg-background")
     })
 
-    it("scales the tint by the color intensity preference", () => {
-        const { container } = render(
-            <PreferencesContext.Provider value={{ colorIntensity: 1.5 } as PreferencesContextType}>
-                <GroupHeader group={makeGroup({ name: "G", color: "#ff0000" })} />
-            </PreferencesContext.Provider>,
-        )
-        expect((container.firstElementChild as HTMLElement).style.backgroundColor).toBe("rgba(255, 0, 0, 0.6)")
-    })
-
-    it("keeps the neutral background without a color", () => {
-        const { container } = render(<GroupHeader group={makeGroup({ name: "G", color: null })} />)
-        const header = container.firstElementChild as HTMLElement
-        expect(header.style.backgroundColor).toBe("")
-        expect(header).toHaveClass("bg-background")
+    it("draws the ring in the color of the group", () => {
+        const group = makeGroup({ name: "G", color: "#ff0000", sections: [makeSection({ tasks: [makeTask({ completed: true }), makeTask({ id: 2 })] })] })
+        render(<GroupHeader group={group} />)
+        const arc = screen.getByRole("progressbar").querySelectorAll("circle")[1]
+        expect(arc).toHaveAttribute("stroke", "#ff0000")
     })
 })
-
 describe("GroupHeader unnamed label and rename on click", () => {
     it("shows no text for an unnamed group by default", () => {
         render(<GroupHeader group={makeGroup({ name: null })} index={2} />)
@@ -217,19 +206,20 @@ describe("GroupHeader progress and collapse", () => {
         sections: [makeSection({ tasks: [makeTask({ completed: true }), makeTask({ id: 2 })] })],
     })
 
-    it("shows the progress bar with the percentage", () => {
+    it("shows the progress ring with the percentage", () => {
         render(<GroupHeader group={withTasks} />)
-        expect(screen.getByText("50 %")).toBeInTheDocument()
+        expect(screen.getByRole("progressbar", { name: "Avanzamento del gruppo" })).toHaveAttribute("aria-valuenow", "50")
+        expect(screen.getByText("50%")).toBeInTheDocument()
     })
 
     it("hides the bar when the preference is off or the group has no tasks", () => {
         prefs.showGroupProgressBar = false
         const { unmount } = render(<GroupHeader group={withTasks} />)
-        expect(screen.queryByText("50 %")).not.toBeInTheDocument()
+        expect(screen.queryByText("50%")).not.toBeInTheDocument()
         unmount()
         prefs.showGroupProgressBar = true
         render(<GroupHeader group={makeGroup()} />)
-        expect(screen.queryByText(/ %$/)).not.toBeInTheDocument()
+        expect(screen.queryByText(/%$/)).not.toBeInTheDocument()
     })
 
     it("toggles the collapse state from the chevron", async () => {
@@ -243,6 +233,24 @@ describe("GroupHeader progress and collapse", () => {
         isOpen = false
         render(<GroupHeader group={withTasks} />)
         expect(screen.getByLabelText("Espandi gruppo")).toBeInTheDocument()
+    })
+
+    it("closed, stacks the arrow, the ring, the name and the number of tasks of the strip", () => {
+        isOpen = false
+        render(<GroupHeader group={makeGroup({ name: "Lancio", sections: withTasks.sections })} />)
+        expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50")
+        expect(screen.getByText("Lancio")).toBeInTheDocument()
+        expect(screen.getByText("2 task")).toBeInTheDocument()
+    })
+
+    it("closed, an unnamed group shows no name unless the preference asks for the label", () => {
+        isOpen = false
+        const { unmount } = render(<GroupHeader group={makeGroup({ name: null })} index={2} />)
+        expect(screen.queryByText("Gruppo 3")).not.toBeInTheDocument()
+        unmount()
+        prefs.showUnnamedLabels = true
+        render(<GroupHeader group={makeGroup({ name: null })} index={2} />)
+        expect(screen.getByText("Gruppo 3")).toBeInTheDocument()
     })
 })
 
@@ -296,11 +304,12 @@ describe("GroupHeader task count with direct tasks", () => {
 describe("GroupHeader compact", () => {
     const group = () => makeGroup({ name: "G", sections: [makeSection({ tasks: [makeTask({ completed: true }), makeTask({ id: 2 })] })] })
 
-    it("shows the completion bar by default and hides it when compact", () => {
+    it("keeps the ring when compact and drops only the percentage", () => {
         const { rerender } = render(<GroupHeader group={group()} />)
-        expect(screen.getByRole("progressbar")).toBeInTheDocument()
+        expect(screen.getByText("50%")).toBeInTheDocument()
         rerender(<GroupHeader group={group()} compact />)
-        expect(screen.queryByRole("progressbar")).not.toBeInTheDocument()
+        expect(screen.getByRole("progressbar")).toBeInTheDocument()
+        expect(screen.queryByText("50%")).not.toBeInTheDocument()
     })
 })
 

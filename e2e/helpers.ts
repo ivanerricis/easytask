@@ -371,10 +371,11 @@ export const sql = async <T = unknown>(kind: "select" | "execute", query: string
 /**
  * The card of a group, found through the label of its header (its name, or "Gruppo N" when it has none).
  * The header button carries the name as its title and says "<Group name>: <label>, press Enter to rename" as its
- * accessible name (groups.renameAria), so it is matched by the title or by the label inside that sentence.
+ * accessible name (groups.renameAria), so it is matched by the title or by the label inside that sentence. A closed group is a
+ * strip whose name (written vertically) carries the same title.
  */
 export const groupCard = (label: string) =>
-    $(`//div[@data-group-card][.//button[@title=${xpathString(label)} or contains(@aria-label, ${xpathString(`: ${label},`)})]]`)
+    $(`//div[@data-group-card][.//*[(self::button or self::span) and @title=${xpathString(label)}] or .//button[contains(@aria-label, ${xpathString(`: ${label},`)})]]`)
 
 /**
  * Creates a section from the menu of a group (there is no section button in the group): right click on its header,

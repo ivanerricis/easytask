@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { MainContainer } from "./components/MainContainer"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { ErrorPage } from "@/components/pages/error-page"
-import { LoadingPage } from "@/components/pages/loading-page"
+import { WorkspaceSkeleton } from "./components/WorkspaceSkeleton"
 import { WorkSpaceLayout } from "./WorkSpacePageLayout"
 import { useWorkspaceData } from "@/contexts/workspace-data"
 import { useEffect, useRef, useState } from "react"
@@ -70,12 +70,12 @@ const WorkSpacePage = () => {
     }
 
     // No current workspace yet (restored from the URL) or its data is not loaded yet (opened from the home page or
-    // switched from the combobox): show the loading page instead of the (empty or previous) content, inside the layout
-    // so the title bar keeps working
+    // switched from the combobox): show the shape of the workspace instead of the (empty or previous) content, inside the
+    // layout so the title bar keeps working
     if (!currentWorkspace || loadedWorkspaceId !== currentWorkspace.id) {
         return (
             <WorkSpaceLayout>
-                <LoadingPage text={t("workspace.loading")} />
+                <WorkspaceSkeleton label={t("workspace.loading")} />
             </WorkSpaceLayout>
         )
     }

@@ -31,7 +31,8 @@ import { useSearchHighlight } from "../note-search-context"
 import { useIsTaskTabStop } from "./task-tab-stop"
 import { useTaskRowKeys } from "./use-task-row-keys"
 import { useTaskRowPointer } from "./use-task-row-pointer"
-import { TaskConnectors, TaskConnectorTick, TaskChildrenLine } from "./TaskConnectors"
+// A subtask shows only its short tick towards the checkbox: no vertical lines joining it to its parent
+import { TaskConnectorTick } from "./TaskConnectors"
 import { TaskRowText } from "./TaskRowText"
 import { TaskRowBadges } from "./TaskRowBadges"
 import { TaskRowToolbar } from "./TaskRowToolbar"
@@ -173,10 +174,10 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
     return (
         <div ref={setWrapRef} data-task-wrap={task.id} data-task-section={task.sectionID ?? undefined} className={cn(
             "relative flex flex-col items-center w-full border border-transparent transition-none",
-            isSubtask ? "group/subtask subtask" : "border-b-border",
+            // No line between the rows: the hover and the spacing tell them apart
+            isSubtask && "group/subtask subtask",
             isTextAreaOpen && (error ? "border border-destructive rounded-xs" : "border border-primary rounded-xs")
         )}>
-            {isSubtask && <TaskConnectors depth={depth} sizes={sizes} />}
             <ButtonMenuTask task={task} onAddSubtask={startAddSubtask} onRename={startEdit} onEditDescription={openDescription} subtasksOpen={subtasksOpen} onToggleSubtasks={toggleSubtasks}>
                 <div
                     ref={setRef}
@@ -195,7 +196,8 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                     aria-current={selected ? "true" : undefined}
                     data-multi-selected={multiSelected ? "true" : undefined}
                     className={cn(
-                        "peer/row relative flex flex-col items-center w-full touch-none cursor-grab active:cursor-grabbing focus-visible:outline-3 focus-visible:outline-offset-[-2px]",
+                        "peer/row relative flex flex-col items-center w-full rounded-xs touch-none cursor-grab active:cursor-grabbing focus-visible:outline-3 focus-visible:outline-offset-[-2px]",
+                        !selected && !multiSelected && "hover:bg-secondary",
                         // Selected: a 2px bar in the primary colour on the left and a tint stronger than the hover one
                         selected && "bg-accent shadow-[inset_2px_0_0_0_var(--primary)]",
                         isDragging && "opacity-40",
@@ -205,7 +207,6 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                     {/* With the live drag the insertion line of the task is hidden: the gap that opens is enough (Trello card 132 describes how it was, to restore it) */}
                     {!liveDrag && <DropLine zone={dropZone} outside />}
                     <SelectionMark selected={multiSelected} />
-                    {showChildren && <TaskChildrenLine isSubtask={isSubtask} sizes={sizes} />}
                     <div className="flex flex-col w-full">
                         {/* The color tints the whole row (light) besides the side bar (full color) */}
                         {task.color && colorAlpha.taskBackground && <div aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: hexToRgba(colorAlpha.task(), task.color) }}></div>}

@@ -8,10 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- New look of the notes: each group is a panel tinted with its color (gray without one) with a band at the top, and a closed group becomes a narrow strip with its name written vertically; sections are cards tinted with their color; the progress of groups and sections is a ring that fills up and shows a check at 100%; the rows of the tasks have no lines between them and subtasks are marked with a short dash; "New task" in a section and a "+" for a new section in the header of the group show up when you hover them. The look follows the theme, the high contrast ones included.
+- Toasts in the style of the app, with the type shown by a colored strip and icon, and the close button inside on the right.
+- While a workspace loads you see its shape (sidebar, tabs, note) instead of a spinner, and the loading screens no longer flash on a fast load.
 - While you drag a task, a section, a group, a note or folder of the sidebar, or a tab, the room that opens shows an outline of where it will land.
 
 ### Fixed
 
+- The line under the active tab of the right panel (Details, History) now lies on the border of the bar.
 - A quick click that slips a little (for example on the close button of a tab) could leave the window stuck with the drag cursor, ignoring every click; this could also happen in the sidebar and inside a note.
 
 ## [0.22.0] - 2026-11-11

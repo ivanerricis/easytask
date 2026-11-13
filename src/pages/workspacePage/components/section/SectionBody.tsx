@@ -14,7 +14,7 @@ export const SectionBody = memo(({ isOpen, section }: SectionBodyProps) => {
     return (
     <div className={`flex flex-col w-full bg-body-surface ${isOpen ? 'h-full' : 'hidden'}`}>
         <TaskList tasks={section.tasks} listKey={`s-${section.id}`} sectionId={section.id} clipped label={t("tasks.listOf", { name: section.title })} />
-        <AddTask sectionId={section.id} />
+        <AddTask sectionId={section.id} emptySection={section.tasks.length === 0} />
     </div>
     )
 })

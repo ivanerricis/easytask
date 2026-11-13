@@ -6,10 +6,14 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ### Aggiunto
 
+- Nuovo aspetto delle note: ogni gruppo è un pannello tinto del suo colore (grigio se non ne ha) con una banda in alto, e un gruppo chiuso diventa una striscia stretta con il nome in verticale; le sezioni sono carte tinte del loro colore; l'avanzamento di gruppi e sezioni è un cerchio che si riempie e a 100% mostra una spunta; le righe dei task non hanno più linee tra loro e i sottotask sono segnati da un trattino; "Nuovo task" in una sezione e il "+" per una nuova sezione nell'intestazione del gruppo compaiono al passaggio del mouse. L'aspetto segue il tema, anche quelli ad alto contrasto.
+- Toast nello stile dell'app, con il tipo indicato da una striscia e un'icona colorate e la X per chiudere all'interno, a destra.
+- Mentre un workspace si carica vedi la sua forma (barra laterale, schede, nota) invece di una rotella, e le schermate di caricamento non lampeggiano più quando il caricamento è veloce.
 - Mentre trascini un task, una sezione, un gruppo, una nota o cartella della barra laterale o una scheda, lo spazio che si apre mostra una sagoma di dove atterrerà.
 
 ### Corretto
 
+- La linea sotto la scheda attiva del pannello di destra (Dettagli, Cronologia) ora sta sul bordo della barra.
 - Un clic veloce con il mouse che si sposta di poco (per esempio sulla X di una scheda) poteva lasciare la finestra bloccata con il cursore di trascinamento, senza rispondere ai clic; poteva succedere anche nella barra laterale e dentro una nota.
 
 ## [0.22.0] - 2026-11-11

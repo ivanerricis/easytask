@@ -42,7 +42,8 @@ export const WorkSpaceLayout = ({ children }: WorkSpaceLayoutProps) => {
                     <div className="flex items-center gap-1">
                         <ButtonNavbar
                             onClick={handleGoHome}
-                            className="size-8 shrink-0 text-foreground rounded-xs"
+                            // Same height as the search beside it (h-7)
+                            className="size-7 shrink-0 text-foreground rounded-xs"
                             textTooltip={t("workspace.backHome")}
                             textTooltipShortcut={homeLabel}
                         >

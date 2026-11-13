@@ -24,6 +24,8 @@ type AddTaskProps = {
     onClose?: () => void
     /** The task goes directly in a group: the closed state is a dashed "New task" button instead of the "+" of a section. */
     inGroup?: boolean
+    /** The section has no task yet: its "New task" row is always shown instead of only on hover. */
+    emptySection?: boolean
 }
 
 /**
@@ -90,7 +92,7 @@ const focusIsFree = (form: HTMLElement | null) => {
     return !active || active === document.body || !!form?.contains(active)
 }
 
-const TopLevelAddTask = ({ sectionId, inGroup }: { sectionId: number | null, inGroup?: boolean }) => {
+const TopLevelAddTask = ({ sectionId, inGroup, emptySection }: { sectionId: number | null, inGroup?: boolean, emptySection?: boolean }) => {
     const { t } = useTranslation()
     const [isOpen, setOpen] = useState(false)
     const { createTask } = useWorkspaceActions()
@@ -168,9 +170,14 @@ const TopLevelAddTask = ({ sectionId, inGroup }: { sectionId: number | null, inG
                     onClick={handleOpen}
                     aria-label={t("tasks.add")}
                     title={t("tasks.add")}
-                    className="w-full h-9 rounded-none font-normal text-muted-foreground hover:text-foreground"
+                    // A quiet row that shows on the hover of its section (or with the focus); always there in an empty section
+                    className={cn(
+                        "w-full h-8 justify-start gap-1.5 px-2.5 rounded-xs font-normal text-xs text-muted-foreground hover:text-foreground",
+                        !emptySection && "opacity-0 group-hover/section:opacity-100 focus-visible:opacity-100",
+                    )}
                 >
-                    <Plus />
+                    <Plus className="size-3.5" />
+                    {t("tasks.add")}
                 </Button>
             )
         ) : (
@@ -193,7 +200,7 @@ const TopLevelAddTask = ({ sectionId, inGroup }: { sectionId: number | null, inG
     )
 }
 
-export const AddTask = ({ sectionId, parentTaskId, onClose, inGroup }: AddTaskProps) =>
+export const AddTask = ({ sectionId, parentTaskId, onClose, inGroup, emptySection }: AddTaskProps) =>
     parentTaskId !== undefined
         ? <SubtaskInput parentTaskId={parentTaskId} sectionId={sectionId} onClose={onClose} />
-        : <TopLevelAddTask sectionId={sectionId} inGroup={inGroup} />
+        : <TopLevelAddTask sectionId={sectionId} inGroup={inGroup} emptySection={emptySection} />
