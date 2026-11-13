@@ -4,6 +4,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Corretto
+
+- Un clic veloce con il mouse che si sposta di poco (per esempio sulla X di una scheda) poteva lasciare la finestra bloccata con il cursore di trascinamento, senza rispondere ai clic; poteva succedere anche nella barra laterale e dentro una nota.
+
 ## [0.22.0] - 2026-11-11
 
 ### Aggiunto

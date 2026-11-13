@@ -133,6 +133,24 @@ describe("Live drag of the tabs", () => {
         })
     })
 
+    describe("a drag that ends at once", () => {
+        it("pressing, moving and releasing in the same moment leaves no cover over the window", async () => {
+            // dnd-kit does not report the end of a drag that ends before its first render: the closed hand cover must go anyway
+            const start = await tabPoint(B, 0.5)
+            await browser.execute((x: number, y: number) => {
+                const target = document.elementFromPoint(x, y)!
+                const init = (cx: number, buttons: number) => ({ bubbles: true, cancelable: true, composed: true, clientX: cx, clientY: y, pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, buttons })
+                target.dispatchEvent(new PointerEvent("pointerdown", init(x, 1)))
+                document.dispatchEvent(new PointerEvent("pointermove", init(x + 10, 1)))
+                document.dispatchEvent(new PointerEvent("pointerup", init(x + 10, 0)))
+            }, start.x, start.y)
+            await browser.waitUntil(async () => browser.execute(() => document.querySelector("[data-drag-cursor]") === null), {
+                timeoutMsg: "the cover of the drag stayed over the window",
+            })
+            await waitForOrder(null, NOTES)
+        })
+    })
+
     describe("a bar that scrolls", () => {
         it("a tab dragged past the right edge: the autoscroll leaves no stuck tab and the drop is at the end", async function () {
             if (process.platform === "linux") return this.skip()

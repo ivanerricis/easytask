@@ -12,6 +12,7 @@ import { useTabs, useTabsActions } from "@/contexts/use-tabs"
 import { usePreference } from "@/contexts/use-preference"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { DragEndGuard } from "@/components/dnd-end-guard"
 import { announce } from "../tasks/note-announcer-store"
 import {
     barDndId, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabLivePending,
@@ -232,6 +233,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                 onDragCancel={handleDragCancel}
             >
                 {children}
+                <DragEndGuard dragging={dragging !== null} onLost={handleDragCancel} />
                 {/* The tab follows the pointer outside the bar (which scrolls and clips its tabs); with the live drag also with one bar: the tab stays in its place, hidden, and the others step aside */}
                 {(split || live) && <DragOverlay dropAnimation={null}>
                     {draggedNote && (

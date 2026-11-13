@@ -17,6 +17,7 @@ import { useActiveNote } from "@/contexts/use-active-note"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { hexToRgba } from "@/lib/utils"
 import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { DragEndGuard } from "@/components/dnd-end-guard"
 import {
     computeDropZone, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
     type DropZone, type NoteDragKind, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
@@ -387,6 +388,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             >
                 {children}
                 <DragCursor />
+                <DragEndGuard dragging={active !== null} onLost={handleDragCancel} />
                 {createPortal(<DragOverlay dropAnimation={null}>{preview && <div className="rotate-2">{preview}</div>}</DragOverlay>, document.body)}
             </DndContext>
         </NoteDndStoreContext.Provider>
