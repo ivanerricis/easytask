@@ -4,6 +4,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Mentre trascini un task, una sezione, un gruppo, una nota o cartella della barra laterale o una scheda, lo spazio che si apre mostra una sagoma di dove atterrerà.
+
 ### Corretto
 
 - Un clic veloce con il mouse che si sposta di poco (per esempio sulla X di una scheda) poteva lasciare la finestra bloccata con il cursore di trascinamento, senza rispondere ai clic; poteva succedere anche nella barra laterale e dentro una nota.

@@ -57,6 +57,12 @@ const waitForSaved = async (expected: string[]) =>
         timeoutMsg: `the saved order is not ${expected.join(" > ")}: ${JSON.stringify(await savedOrder())}`,
     })
 
+/** The skeletons drawn in the room that opens (see note-dnd-shift), with their place on screen. */
+const slots = async () => browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-live-slot]")).map(slot => {
+    const rect = slot.getBoundingClientRect()
+    return { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+}))
+
 const strayTransforms = async () =>
     browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-task-wrap]")).filter(wrap => wrap.style.transform !== "").length)
 
@@ -134,11 +140,18 @@ describe("Live drag of the tasks", () => {
             // ...and the one after the landing point stays, with the gap above it
             expect(Math.abs(quattro.top - before.quattro.top)).toBeLessThan(3)
             expect(quattro.top - tre.top).toBeGreaterThan(tre.height + room - 3)
+            // ...where the skeleton fills the room, as tall as the dragged task
+            const [slot, ...others] = await slots()
+            expect(others).toHaveLength(0)
+            expect(slot.top).toBeGreaterThan(tre.top + tre.height - 2)
+            expect(slot.top + slot.height).toBeLessThan(quattro.top + 2)
+            expect(Math.abs(slot.height - before.uno.height)).toBeLessThan(2)
         })
 
         const expected = [TASKS[1], TASKS[2], TASKS[0], TASKS[3]]
         await waitForSaved(expected)
         expect(await strayTransforms()).toBe(0)
+        expect(await slots()).toHaveLength(0)
         expect((await boxes()).map(item => item.text)).toEqual(expected)
 
         await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
@@ -160,6 +173,7 @@ describe("Live drag of the tasks", () => {
                 expect(item.transform).toBe("")
                 expect(Math.abs(item.top - before.find(old => old.id === item.id)!.top)).toBeLessThan(2)
             }
+            expect(await slots()).toHaveLength(0)
         })
 
         // The drop still works with the indicator only
@@ -262,6 +276,10 @@ describe("Live drag of the sections", () => {
             expect(three.transform).not.toBe("")
             expect(Math.abs(two.top - (before.two.top - room))).toBeLessThan(3)
             expect(Math.abs(three.top - (before.three.top - room))).toBeLessThan(3)
+            const found = await slots()
+            expect(found).toHaveLength(1)
+            expect(found[0].top).toBeGreaterThan(three.top + three.height - 2)
+            expect(Math.abs(found[0].height - before.one.height)).toBeLessThan(2)
         })
 
         await waitForSectionOrder(GROUP, [S_TWO, S_THREE, S_ONE])
@@ -284,6 +302,11 @@ describe("Live drag of the sections", () => {
             const other = await sectionBox(SECOND_GROUP, S_OTHER)
             expect(Math.abs(two.top - (before.two.top - room))).toBeLessThan(3)
             expect(Math.abs(other.top - (before.other.top + room))).toBeLessThan(3)
+            // The skeleton is in the group it joins, above the section it goes before
+            const found = await slots()
+            expect(found).toHaveLength(1)
+            expect(found[0].top + found[0].height).toBeLessThan(other.top + 2)
+            expect(Math.abs(found[0].height - before.one.height)).toBeLessThan(2)
         })
 
         await waitForSectionOrder(SECOND_GROUP, [S_ONE, S_OTHER])
@@ -406,6 +429,10 @@ describe("Live drag of the groups", () => {
             expect(Math.abs(two.left - (before.two.left - room))).toBeLessThan(3)
             expect(Math.abs(three.left - (before.three.left - room))).toBeLessThan(3)
             expect((await groupBoxes()).some(item => item.line)).toBe(false)
+            const found = await slots()
+            expect(found).toHaveLength(1)
+            expect(found[0].left).toBeGreaterThan(three.left + three.width - 2)
+            expect(Math.abs(found[0].width - before.one.width)).toBeLessThan(2)
         })
 
         await waitForGroupOrder([SECOND_GROUP, THIRD_GROUP, GROUP])

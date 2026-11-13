@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- While you drag a task, a section, a group, a note or folder of the sidebar, or a tab, the room that opens shows an outline of where it will land.
+
 ### Fixed
 
 - A quick click that slips a little (for example on the close button of a tab) could leave the window stuck with the drag cursor, ignoring every click; this could also happen in the sidebar and inside a note.

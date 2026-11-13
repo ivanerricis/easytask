@@ -96,6 +96,49 @@ const NONE: ReadonlyMap<string, number> = new Map()
  * @category Note DnD
  */
 export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pending: LivePending): ReadonlyMap<string, number> {
+    return livePlan(snapshot, dragged, pending)?.shifts ?? NONE
+}
+
+/**
+ * Where the room that opens for the dragged item is, in the layout at rest: `start` along the axis of the move (relative to the
+ * wrapper that holds the list, which may be shifted itself: a subtask list rides on its parent task) and `size`, the size of the
+ * dragged item (the room is its size plus the space between two rows). `parent` is the key of that wrapper (null: a top level list).
+ * Null when nothing opens (no move, an "inside" drop, or a list with no row to measure the place from).
+ * @category Note DnD
+ */
+export type LiveSlot = { list: string, parent: string | null, start: number, size: number }
+
+/** See {@link LiveSlot}. */
+export function computeLiveSlot(snapshot: LiveSnapshot, dragged: string, pending: LivePending): LiveSlot | null {
+    const plan = livePlan(snapshot, dragged, pending)
+    if (!plan || plan.shifts.size === 0) return null
+    const { source, room, firstAfter, last, displacementOf, items } = plan
+    const anchor = firstAfter ?? last
+    if (!anchor) return null
+    const parent = anchor.parent ? items.get(anchor.parent) ?? null : null
+    const frame = parent ? displacementOf(parent) : 0
+    // Before a row: the room ends where that row lands. At the end of the list: it starts one gap after where the last row lands
+    const start = firstAfter
+        ? firstAfter.top + displacementOf(firstAfter) - frame - room
+        : last!.top + last!.height + displacementOf(last!) - frame + (room - source.height)
+    return { list: pending.list, parent: parent?.key ?? null, start, size: source.height }
+}
+
+type LivePlan = {
+    shifts: ReadonlyMap<string, number>
+    items: Map<string, LiveItem>
+    source: LiveItem
+    /** The room the dragged item takes: its size plus the space up to the next row. */
+    room: number
+    /** The row the place comes before (none: the end of the list), and the last row of the list without the dragged one. */
+    firstAfter: LiveItem | undefined
+    last: LiveItem | undefined
+    /** How far a row moves in all (its parents included). */
+    displacementOf: (item: LiveItem) => number
+}
+
+function livePlan(snapshot: LiveSnapshot, dragged: string, pending: LivePending): LivePlan | null {
+    const NONE = null
     const { items, lists } = snapshot
     const atEnd = pending.over === null
     if (!atEnd && pending.zone !== "before" && pending.zone !== "after") return NONE
@@ -152,7 +195,7 @@ export function computeLiveShifts(snapshot: LiveSnapshot, dragged: string, pendi
             if (dy !== 0) shifts.set(key, dy)
         }
     }
-    return shifts
+    return { shifts, items, source, room: size, firstAfter, last, displacementOf }
 }
 
 /** Largest hysteresis (px) and its share of the row height: on a 34 px row the margin stays at ~1.4 px, so the preview follows the real zone. */

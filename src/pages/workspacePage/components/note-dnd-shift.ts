@@ -1,4 +1,4 @@
-import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNodeInfo, type LiveSnapshot } from "./note-dnd-live"
+import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNodeInfo, type LiveSlot, type LiveSnapshot } from "./note-dnd-live"
 
 /**
  * The visual side of the "live drag" of the tasks, the sections, the groups and the open tabs: a registry of the outer wrapper of every task, section, group and tab and the code that moves them with
@@ -97,6 +97,82 @@ const write = (animate: boolean) => {
         hidden.style.opacity = "0"
     }
     hiddenNode = hidden
+    writeSlot(animate)
+}
+
+/** Attribute of the skeleton drawn in the room that opens (tests, e2e). */
+export const LIVE_SLOT_ATTR = "data-live-slot"
+
+/** Where a list sits at rest (when the drag started): its container and the cross axis of its rows, to place the skeleton in it. */
+type RestList = { container: HTMLElement, start: number, cross: number, crossSize: number, scroll: number, crossScroll: number }
+let restLists = new Map<string, RestList>()
+let targetSlot: LiveSlot | null = null
+let slotNode: HTMLElement | null = null
+/** The container the skeleton is in, and the inline `position` it had before it was made the frame of the skeleton. */
+let slotHost: { container: HTMLElement, position: string } | null = null
+
+const releaseHost = () => {
+    if (!slotHost) return
+    slotHost.container.style.position = slotHost.position
+    slotHost = null
+}
+
+/**
+ * Draws the skeleton in the room of `targetSlot`, inside the container of its list (so it scrolls and is clipped with the list, and
+ * rides on the shift of a parent task), in content coordinates of the layout at rest. Removed when there is no room to show.
+ */
+function writeSlot(animate: boolean) {
+    const rest = targetSlot ? restLists.get(targetSlot.list) : undefined
+    if (!targetSlot || !rest || !rest.container.isConnected) {
+        slotNode?.remove()
+        slotNode = null
+        releaseHost()
+        return
+    }
+    const { container } = rest
+    if (slotHost?.container !== container) {
+        releaseHost()
+        slotNode?.remove()
+        slotNode = null
+        slotHost = { container, position: container.style.position }
+        if (getComputedStyle(container).position === "static") container.style.position = "relative"
+    }
+    const along = targetSlot.start - rest.start + rest.scroll
+    const across = rest.cross + rest.crossScroll
+    const box = axis === "x"
+        ? { left: along, top: across, width: targetSlot.size, height: rest.crossSize }
+        : { left: across, top: along, width: rest.crossSize, height: targetSlot.size }
+    const fresh = !slotNode
+    if (!slotNode) {
+        slotNode = document.createElement("div")
+        slotNode.setAttribute(LIVE_SLOT_ATTR, "")
+        slotNode.setAttribute("aria-hidden", "true")
+        slotNode.className = "live-drag-slot"
+        container.appendChild(slotNode)
+    }
+    const style = slotNode.style
+    // A new skeleton fades in where the room opens; one that is there glides to the next room with the rows
+    style.transition = animate && !fresh ? `left ${SHIFT_DURATION}ms ease-out, top ${SHIFT_DURATION}ms ease-out` : "none"
+    style.left = `${box.left}px`
+    style.top = `${box.top}px`
+    style.width = `${box.width}px`
+    style.height = `${box.height}px`
+}
+
+/** Measures where the lists of the wrappers are at rest (see `restLists`), on the axis the kind moves along. */
+function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis) {
+    const next = new Map<string, RestList>()
+    for (const [index, node] of sorted.entries()) {
+        const list = listOf[index]
+        if (next.has(list) || !node.parentElement) continue
+        const container = node.parentElement
+        const box = container.getBoundingClientRect()
+        const rect = node.getBoundingClientRect()
+        next.set(list, along === "x"
+            ? { container, start: box.left + container.clientLeft, cross: rect.top - box.top - container.clientTop, crossSize: rect.height, scroll: container.scrollLeft, crossScroll: container.scrollTop }
+            : { container, start: box.top + container.clientTop, cross: rect.left - box.left - container.clientLeft, crossSize: rect.width, scroll: container.scrollTop, crossScroll: container.scrollLeft })
+    }
+    restLists = next
 }
 
 const leaving = new Set<HTMLElement>()
@@ -114,10 +190,11 @@ function scheduleCleanup(node: HTMLElement) {
  * Moves the wrappers by `shifts` (key -> distance along `along`); the ones that are not in it go back. The write happens in the next
  * animation frame (a later call before that replaces this one). `hidden` is the wrapper to hide (the dragged one whose room is closed).
  */
-export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string | null = null, along: ShiftAxis = "y"): void {
+export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string | null = null, along: ShiftAxis = "y", slot: LiveSlot | null = null): void {
     target = shifts
     axis = along
     hiddenKey = hidden
+    targetSlot = slot
     if (frame) return
     frame = requestAnimationFrame(() => {
         frame = 0
@@ -133,6 +210,7 @@ export function clearShifts(animate: boolean): void {
     }
     target = new Map()
     hiddenKey = null
+    targetSlot = null
     write(animate && !reducedMotion())
 }
 
@@ -215,5 +293,6 @@ export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "t
             height: rect.height,
         }
     })
+    readRestLists(sorted, infos.map(info => info.list), kind === "tab" || kind === "group" ? "x" : "y")
     return buildLiveSnapshot(infos)
 }

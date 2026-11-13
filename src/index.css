@@ -272,6 +272,27 @@ html[data-font="opendyslexic"] { --app-font: "OpenDyslexic", ui-sans-serif, syst
 html[data-font]:not([data-font="system"]),
 html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-font); }
 
+/* The skeleton in the room that opens while an item is dragged live (note-dnd-shift): where the item would land. */
+.live-drag-slot {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 0;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 70%, transparent);
+  border-radius: var(--radius-sm, 4px);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  animation: live-drag-slot-in 150ms ease-out;
+}
+
+@keyframes live-drag-slot-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-drag-slot { animation: none; }
+}
+
 /* Windows forced colors (high contrast mode of the system): the browser drops the backgrounds, box-shadows and rings and
    uses the system palette, so the search marks, the focus and the borders have to be drawn with system colors. */
 @media (forced-colors: active) {
@@ -292,6 +313,11 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
     outline: 2px solid Highlight;
     outline-offset: 2px;
     box-shadow: none;
+  }
+
+  /* the skeleton of the live drag: its tint is dropped, the edge stays in a system color */
+  .live-drag-slot {
+    border-color: Highlight;
   }
 
   /* cards and fields that only had a shadow as their edge */

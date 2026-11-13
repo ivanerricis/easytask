@@ -1,4 +1,4 @@
-import { SHIFT_DURATION } from "../note-dnd-shift"
+import { LIVE_SLOT_ATTR, SHIFT_DURATION } from "../note-dnd-shift"
 import type { TreeShifts } from "./tree-dnd-live"
 
 /**
@@ -75,14 +75,16 @@ const write = (animate: boolean) => {
         else if (animate) setTimeout(() => { if (applied.size === 0) root.removeAttribute(SHIFTING_ATTR) }, SHIFT_DURATION + 50)
         else root.removeAttribute(SHIFTING_ATTR)
     }
+    writeSlot(animate)
 }
 
 /**
  * Moves the rows by `next` (null puts them back). The write happens in the next animation frame (a later call before that replaces
  * this one).
  */
-export function applyTreeShifts(next: TreeShifts | null): void {
+export function applyTreeShifts(next: TreeShifts | null, nextSlot: TreeSlot | null = null): void {
     shifts = next
+    slot = next ? nextSlot : null
     if (frame) return
     frame = requestAnimationFrame(() => {
         frame = 0
@@ -97,7 +99,76 @@ export function clearTreeShifts(animate: boolean): void {
         frame = 0
     }
     shifts = null
+    slot = null
     write(animate && !reducedMotion())
+}
+
+/**
+ * The room that opens, in rows of the flat list: `index` of its first row, `count` of rows, `depth` of the place (its indent).
+ * @category Tree DnD
+ */
+export type TreeSlot = { index: number, count: number, depth: number }
+
+let slot: TreeSlot | null = null
+/** Where the rows are at rest, measured when the drag starts (see readTreeRest). */
+let rest: { root: HTMLElement, originY: number, rowSize: number, gap: number, indentPx: number } | null = null
+let slotNode: HTMLElement | null = null
+let slotHost: { root: HTMLElement, position: string } | null = null
+
+/**
+ * Measures the layout at rest, before anything moves: the top of the first row of the flat list inside the tree (from any mounted row,
+ * the rows have a fixed size), so the skeleton can be placed by row index even for rows that are not mounted.
+ */
+export function readTreeRest(indexOf: (key: string) => number | undefined, rowSize: number, gap: number, indentPx: number): void {
+    rest = null
+    for (const [key, node] of nodes) {
+        const index = indexOf(key)
+        const root = node.closest<HTMLElement>("[role=tree]")
+        if (index === undefined || !root || !node.isConnected) continue
+        const box = root.getBoundingClientRect()
+        const originY = node.getBoundingClientRect().top - index * rowSize - box.top - root.clientTop + root.scrollTop
+        rest = { root, originY, rowSize, gap, indentPx }
+        return
+    }
+}
+
+const releaseHost = () => {
+    if (!slotHost) return
+    slotHost.root.style.position = slotHost.position
+    slotHost = null
+}
+
+/** Draws the skeleton in the room of `slot` (see the one of the note, LIVE_SLOT_ATTR), inside the tree, or removes it. */
+function writeSlot(animate: boolean) {
+    if (!slot || !rest || !rest.root.isConnected) {
+        slotNode?.remove()
+        slotNode = null
+        releaseHost()
+        return
+    }
+    const { root } = rest
+    if (slotHost?.root !== root) {
+        releaseHost()
+        slotNode?.remove()
+        slotNode = null
+        slotHost = { root, position: root.style.position }
+        if (getComputedStyle(root).position === "static") root.style.position = "relative"
+    }
+    const fresh = !slotNode
+    if (!slotNode) {
+        slotNode = document.createElement("div")
+        slotNode.setAttribute(LIVE_SLOT_ATTR, "")
+        slotNode.setAttribute("aria-hidden", "true")
+        slotNode.className = "live-drag-slot"
+        root.appendChild(slotNode)
+    }
+    const left = slot.depth * rest.indentPx
+    const style = slotNode.style
+    style.transition = animate && !fresh ? `top ${SHIFT_DURATION}ms ease-out, left ${SHIFT_DURATION}ms ease-out, height ${SHIFT_DURATION}ms ease-out` : "none"
+    style.top = `${rest.originY + slot.index * rest.rowSize}px`
+    style.left = `${left}px`
+    style.width = `calc(100% - ${left}px)`
+    style.height = `${slot.count * rest.rowSize - rest.gap}px`
 }
 
 /** Whether something is moved (or about to be). */

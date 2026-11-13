@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildLiveSnapshot, computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, tabListKey, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
+import { buildLiveSnapshot, computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, tabListKey, taskListKey, type LiveNodeInfo, type LivePending } from "./note-dnd-live"
 
 /**
  * A tiny layout engine: a list is an array of rows, a row `[key, height, children?]`. Every row is a wrapper that is as tall as its
@@ -452,5 +452,57 @@ describe("computeLiveShifts: tabs (horizontal axis, one list per bar)", () => {
         expect(shiftsOf(nodes, "b", { over: "a", zone: "after", list: bar0 })).toEqual({})
         expect(shiftsOf(nodes, "b", { over: "c", zone: "before", list: bar0 })).toEqual({})
         expect(shiftsOf(nodes, "b", { over: "b", zone: "before", list: bar0 })).toEqual({})
+    })
+})
+
+describe("computeLiveSlot", () => {
+    const slotOf = (nodes: LiveNodeInfo[], dragged: string, pending: LivePending) => computeLiveSlot(buildLiveSnapshot(nodes), dragged, pending)
+    const two = () => layout([{ list: "s-1", top: 0, rows: rows("a", 4) }, { list: "s-2", top: 100, rows: rows("b", 2) }])
+
+    it("same list, moving down: the room opens right before the row the place comes before", () => {
+        expect(slotOf(two(), "a0", { over: "a2", zone: "after", list: "s-1" })).toEqual({ list: "s-1", parent: null, start: 20, size: 10 })
+    })
+
+    it("same list, moving up: the room opens where that row was", () => {
+        expect(slotOf(two(), "a3", { over: "a1", zone: "before", list: "s-1" })).toEqual({ list: "s-1", parent: null, start: 10, size: 10 })
+    })
+
+    it("another list: the room opens before the row it is dropped before", () => {
+        expect(slotOf(two(), "a1", { over: "b1", zone: "before", list: "s-2" })).toEqual({ list: "s-2", parent: null, start: 110, size: 10 })
+    })
+
+    it("the end of a list: the room opens after its last row", () => {
+        expect(slotOf(two(), "a1", { over: null, zone: null, list: "s-2" })).toEqual({ list: "s-2", parent: null, start: 120, size: 10 })
+    })
+
+    it("keeps the space between the rows: the room is one gap after the last row, as tall as the dragged one", () => {
+        const spaced = (list: string, prefix: string, top: number): LiveNodeInfo[] =>
+            [0, 1].map(i => ({ key: `${prefix}${i}`, list, parent: null, top: top + i * 12, height: 10 }))
+        const nodes = [...spaced("s-1", "a", 0), ...spaced("s-2", "b", 100)]
+        expect(slotOf(nodes, "a0", { over: null, zone: null, list: "s-2" })).toEqual({ list: "s-2", parent: null, start: 124, size: 10 })
+        expect(slotOf(nodes, "a0", { over: "b1", zone: "before", list: "s-2" })).toEqual({ list: "s-2", parent: null, start: 112, size: 10 })
+    })
+
+    it("a subtask list: the place is given in the frame of the parent task", () => {
+        const nodes = layout([
+            { list: "s-0", top: 0, rows: rows("x", 2) },
+            { list: "s-1", top: 100, rows: [["p", 10, [["c0", 10], ["c1", 10]]], ["q", 10]] },
+        ])
+        expect(slotOf(nodes, "x0", { over: "c1", zone: "before", list: "t-p" })).toEqual({ list: "t-p", parent: "p", start: 120, size: 10 })
+    })
+
+    it("nothing opens: an inside drop, no move, or a list with no row", () => {
+        expect(slotOf(two(), "a1", { over: "b0", zone: "inside", list: "t-b0" })).toBeNull()
+        expect(slotOf(two(), "a1", { over: "a1", zone: "before", list: "s-1" })).toBeNull()
+        expect(slotOf(two(), "a1", { over: null, zone: null, list: "s-9" })).toBeNull()
+    })
+
+    it("tabs: the same maths along the horizontal axis", () => {
+        const bar = (pane: number, names: string[], widths: number[]): LiveNodeInfo[] => {
+            let left = 0
+            return names.map((key, i) => { const node = { key, list: tabListKey(pane), parent: null, top: left, height: widths[i] }; left += widths[i]; return node })
+        }
+        const nodes = bar(0, ["t0", "t1", "t2"], [100, 120, 80])
+        expect(slotOf(nodes, "t0", { over: "t2", zone: "after", list: tabListKey(0) })).toEqual({ list: tabListKey(0), parent: null, start: 200, size: 100 })
     })
 })

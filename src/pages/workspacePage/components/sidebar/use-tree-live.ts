@@ -8,7 +8,7 @@ import { useItemSize, TREE_ROW_GAP } from "./item-size"
 import {
     computeTreeShifts, indexRows, insertionIndex, isShiftingZone, rowsWithoutSource, sourceRange, toLiveRows, type LiveTreeRow,
 } from "./tree-dnd-live"
-import { applyTreeShifts, clearTreeShifts, hasTreeShifts, treeShiftOf } from "./tree-live-shift"
+import { applyTreeShifts, clearTreeShifts, hasTreeShifts, readTreeRest, treeShiftOf } from "./tree-live-shift"
 import { treeRowKey } from "./tree-row"
 
 /** Longest wait for the optimistic update of a drop before the rows are put back anyway. */
@@ -52,7 +52,10 @@ export const useTreeLive = (rows: FlatRow[], tree: object) => {
         const range = target ? sourceRange(live.rows, live.sourceKey) : null
         const at = target && range ? insertionIndex(rowsWithoutSource(live.rows, range), live.source.type, target) : null
         const shifts = at === null ? null : computeTreeShifts(live.rows, live.index, live.sourceKey, at, rowSize)
-        applyTreeShifts(shifts)
+        // The skeleton fills the room: as many rows as the dragged subtree, indented like a child of the folder it goes to
+        const parent = target?.folderId == null ? undefined : live.rows.find(row => row.kind === "folder" && row.id === target.folderId)
+        const slot = shifts && range && at !== null ? { index: at, count: range.end - range.start + 1, depth: parent ? parent.depth + 1 : 0 } : null
+        applyTreeShifts(shifts, slot)
         return shifts !== null
     }, [rowSize])
 
@@ -69,6 +72,8 @@ export const useTreeLive = (rows: FlatRow[], tree: object) => {
         lastRef.current = null
         // A keyboard drag has its own announcements and a drag of the selection moves rows from many places: both keep the indicator
         liveRef.current = enabled && !keyboard && !selection ? build(source, rowsRef.current) : null
+        const live = liveRef.current
+        if (live) readTreeRest(key => live.index.get(key), rowSize, TREE_ROW_GAP, size.indentPx)
         return liveRef.current !== null
     }
 

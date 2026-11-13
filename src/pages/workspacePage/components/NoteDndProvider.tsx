@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
 import { getGroupLabel } from "./groups/group-label"
@@ -189,7 +189,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (!live) return
         liveShownRef.current = shown ? { key: shown.key, tree: shown.tree, place, rect: shown.rect ?? null } : null
         const shifts = place ? computeLiveShifts(live.snapshot, live.dragged, place) : null
-        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis)
+        const slot = place && shifts && shifts.size > 0 ? computeLiveSlot(live.snapshot, live.dragged, place) : null
+        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis, slot)
     }
 
     const handleDragStart = (event: DragStartEvent) => {

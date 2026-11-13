@@ -47,6 +47,8 @@ const barState = (paneIndex: 0 | 1 | null) => browser.execute((index: number | n
         lines: bar.querySelectorAll(".bg-primary.w-0\\.5").length,
         scrollLeft: bar.scrollLeft, scrollWidth: bar.scrollWidth, clientWidth: bar.clientWidth, right: bar.getBoundingClientRect().right,
         overlay: document.querySelector('[data-testid="tab-drag-overlay"]') !== null,
+        slots: bar.querySelectorAll("[data-live-slot]").length,
+        slotWidth: Math.round(bar.querySelector<HTMLElement>("[data-live-slot]")?.getBoundingClientRect().width ?? 0),
     }
 }, paneIndex)
 
@@ -93,15 +95,19 @@ describe("Live drag of the tabs", () => {
             await setLiveDrag(true)
             const start = await tabPoint(A, 0.5)
             const end = await tabPoint(C, 0.85)
+            const draggedWidth = (await tabPoint(A, 1)).x - (await tabPoint(A, 0)).x
             await dragPoints(start, { x: end.x, y: start.y }, async () => {
                 const state = await barState(null)
                 expect(state.moved).toBeGreaterThan(0)
                 expect(state.hidden).toBe(1)
                 expect(state.lines).toBe(0)
                 expect(state.overlay).toBe(true)
+                // The skeleton fills the room that opened, as wide as the dragged tab
+                expect(state.slots).toBe(1)
+                expect(Math.abs(state.slotWidth - draggedWidth)).toBeLessThanOrEqual(1)
             })
             await waitForOrder(null, movedAfter(A, C))
-            expect(await barState(null)).toMatchObject({ moved: 0, hidden: 0, overlay: false })
+            expect(await barState(null)).toMatchObject({ moved: 0, hidden: 0, overlay: false, slots: 0 })
         })
 
         it("dragging it back to the start restores the order", async function () {
@@ -123,6 +129,7 @@ describe("Live drag of the tabs", () => {
                 expect(state.moved).toBeLessThanOrEqual(1)
                 expect(state.hidden).toBe(0)
                 expect(state.lines).toBe(1)
+                expect(state.slots).toBe(0)
             })
             await waitForOrder(null, movedAfter(A, C))
             await setLiveDrag(true)
@@ -210,6 +217,9 @@ describe("Live drag of the tabs", () => {
                 expect(left.moved).toBeGreaterThan(0)
                 expect(left.hidden).toBe(1)
                 expect(right.lines + left.lines).toBe(0)
+                // The skeleton is in the bar it goes to, not in the one it leaves
+                expect(right.slots).toBe(1)
+                expect(left.slots).toBe(0)
             })
             await waitForOrder(1, [C, E])
             await waitForOrder(0, without(C, E))

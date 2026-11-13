@@ -42,8 +42,15 @@ const row = async (label: string) => {
 /** Labels top to bottom as the user sees them (a collapsed, invisible row is left out). */
 const visibleLabels = async () => (await rows()).filter(item => item.opacity !== "0").map(item => item.label)
 
+/** The skeletons drawn in the room that opens, with their place on screen. */
+const slots = async () => browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-live-slot]")).map(slot => {
+    const rect = slot.getBoundingClientRect()
+    return { top: rect.top, height: rect.height }
+}))
+
 const strayTransforms = async () =>
-    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[role=treeitem]")).filter(item => item.style.transform !== "" || item.style.opacity !== "").length)
+    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[role=treeitem]")).filter(item => item.style.transform !== "" || item.style.opacity !== "").length
+        + document.querySelectorAll("[data-live-slot]").length)
 
 /** Where each note is saved: its folder name (null at the root) and position, from the database. */
 const savedNotes = async () =>
@@ -116,6 +123,11 @@ describe("Live drag of the sidebar", () => {
             expect(Math.abs(two.top - (before.two.top - room))).toBeLessThan(3)
             expect(Math.abs(three.top - (before.three.top - room))).toBeLessThan(3)
             expect((await rows()).some(item => item.line || item.ring)).toBe(false)
+            // The skeleton fills the room after the third note, as tall as a row
+            const found = await slots()
+            expect(found).toHaveLength(1)
+            expect(Math.abs(found[0].top - (three.top + room))).toBeLessThan(3)
+            expect(Math.abs(found[0].height - three.height)).toBeLessThan(2)
         })
 
         await browser.waitUntil(async () => (await savedNotes()).map(item => item.name).join() === [NOTES[1], NOTES[2], NOTES[0]].join(), {
@@ -133,6 +145,10 @@ describe("Live drag of the sidebar", () => {
             expect((await row(NOTES[0])).opacity).toBe("0")
             expect((await row(NOTES[1])).top).toBeGreaterThan(before.two.top + 3)
             expect((await row(NOTES[2])).top).toBeGreaterThan(before.three.top + 3)
+            // The room opens where the second note was
+            const found = await slots()
+            expect(found).toHaveLength(1)
+            expect(Math.abs(found[0].top - before.two.top)).toBeLessThan(3)
         })
 
         await browser.waitUntil(async () => (await savedNotes()).map(item => item.name).join() === [NOTES[0], NOTES[1], NOTES[2]].join(), {
@@ -148,6 +164,7 @@ describe("Live drag of the sidebar", () => {
         await drag(NOTES[2], FOLDER_B, 0.5, async () => {
             const during = await rows()
             expect((await row(FOLDER_B)).ring).toBe(true)
+            expect(await slots()).toHaveLength(0)
             for (const item of during) {
                 expect(item.transform).toBe("")
                 expect(Math.abs(item.top - before.find(old => old.label === item.label)!.top)).toBeLessThan(2)
@@ -172,6 +189,7 @@ describe("Live drag of the sidebar", () => {
                     expect(Math.abs(item.top - before.find(old => old.label === item.label)!.top)).toBeLessThan(2)
                 }
                 expect(during.some(item => item.line)).toBe(true)
+                expect(await slots()).toHaveLength(0)
             })
             await browser.waitUntil(async () => (await savedNotes()).filter(item => item.folder === null).map(item => item.name).join() === [NOTES[1], NOTES[0]].join(), {
                 timeoutMsg: `the drop with the line did not save the order: ${JSON.stringify(await savedNotes())}`,
