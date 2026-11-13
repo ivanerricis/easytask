@@ -6,12 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-11-13
+
 ### Added
+
+- While you drag a task, a section, a group, a note or folder of the sidebar, or a tab, the room that opens shows an outline of where it will land.
+
+### Changed
 
 - New look of the notes: each group is a panel tinted with its color (gray without one) with a band at the top, and a closed group becomes a narrow strip with its name written vertically; sections are cards tinted with their color; the progress of groups and sections is a ring that fills up and shows a check at 100%; the rows of the tasks have no lines between them and subtasks are marked with a short dash; "New task" in a section and a "+" for a new section in the header of the group show up when you hover them. The look follows the theme, the high contrast ones included.
 - Toasts in the style of the app, with the type shown by a colored strip and icon, and the close button inside on the right.
 - While a workspace loads you see its shape (sidebar, tabs, note) instead of a spinner, and the loading screens no longer flash on a fast load.
-- While you drag a task, a section, a group, a note or folder of the sidebar, or a tab, the room that opens shows an outline of where it will land.
+- The search in the title bar and the button to go back home are a little lower.
 
 ### Fixed
 
@@ -555,7 +561,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.22.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.23.0...HEAD
+[0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/ivanerricis/easytask/compare/v0.19.0...v0.20.0
