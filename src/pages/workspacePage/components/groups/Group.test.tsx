@@ -109,6 +109,50 @@ describe("Group when collapsed", () => {
     })
 })
 
+describe("Group when collapsed with the horizontal layout", () => {
+    const horizontal = (children: React.ReactNode) => (
+        <PreferencesContext.Provider value={{ collapsedGroupLayout: "horizontal" } as PreferencesContextType}>{children}</PreferencesContext.Provider>
+    )
+
+    it("stays a bar: no strip, no content, the resize handle stays", () => {
+        groupOpen.value = false
+        render(horizontal(<Group group={makeGroup({ id: 111, sections: [makeSection({ id: 1 })] })} />))
+        expect(root()).not.toHaveClass("w-11")
+        expect(root()).toHaveClass("min-w-[250px]")
+        expect(root()).toHaveAttribute("data-collapsed-layout", "horizontal")
+        expect(screen.queryByText("section")).not.toBeInTheDocument()
+        expect(screen.getByRole("separator")).toBeInTheDocument()
+    })
+
+    it("keeps the explicit width while closed", () => {
+        groupOpen.value = false
+        render(horizontal(<Group group={makeGroup({ id: 112, width: 400 })} />))
+        expect(root().style.width).toBe("400px")
+    })
+
+    it("keeps the width it had while open (the content-driven one) when closed", () => {
+        width = 333
+        const group = makeGroup({ id: 113, width: null })
+        const { rerender } = render(horizontal(<Group group={group} />))
+        groupOpen.value = false
+        rerender(horizontal(<Group group={{ ...group }} />))
+        expect(root().style.minWidth).toBe("333px")
+        width = 0
+    })
+
+    it("does not record a width while closed", () => {
+        width = 280
+        const group = makeGroup({ id: 114, width: null })
+        const { rerender } = render(horizontal(<Group group={group} />))
+        groupOpen.value = false
+        width = 90
+        rerender(horizontal(<Group group={{ ...group }} />))
+        FakeResizeObserver.instances.forEach(observer => observer.fire())
+        expect(root().style.minWidth).toBe("280px")
+        width = 0
+    })
+})
+
 describe("Group scrolling area", () => {
     it("is wider on the left and ends at the edge of the group, so its scrollbar is entirely under the header", () => {
         render(<Group group={makeGroup({ id: 301, sections: [makeSection({ id: 1 })] })} />)

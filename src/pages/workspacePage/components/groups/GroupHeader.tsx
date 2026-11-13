@@ -56,6 +56,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     const showAudioFileCount = usePreference(p => p.showAudioFileCount)
     const showGroupProgressBar = usePreference(p => p.showGroupProgressBar)
     const showUnnamedLabels = usePreference(p => p.showUnnamedLabels)
+    const collapsedLayout = usePreference(p => p.collapsedGroupLayout) ?? "vertical"
     const renameOnClick = usePreference(p => p.renameOnClick) ?? true
     const search = useSearchHighlight("group", group.id)
     const [isOpen, toggleOpen] = useGroupOpen(group.id)
@@ -82,8 +83,9 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
         ? <ProgressRing value={progress.percent} size={20} color={group.color ?? undefined} aria-label={t("groups.progress")} />
         : null
 
-    // Closed: the group is a narrow strip (see Group), its header stacked: arrow, ring, name and number of tasks
-    if (!isOpen) return (
+    // Closed (vertical layout): the group is a narrow strip (see Group), its header stacked: arrow, ring, name and number of tasks.
+    // With the horizontal layout the closed group keeps the one-row header below (arrow turned, same counters).
+    if (!isOpen && collapsedLayout === "vertical") return (
         <ButtonMenuGroup group={group} onRename={startEditing} onAddSection={onAddSection}>
             <div
                 className={`group flex flex-col items-center gap-3 py-0.5 w-full ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}

@@ -5,6 +5,7 @@ import { SettingsPanel, SettingsSubsection, SettingsSwitchRow } from "./Settings
 import { StartupWorkspaceSetting } from "./StartupWorkspaceSetting"
 
 const TASK_DENSITY_OPTIONS = ["compact", "normal", "large"] as const
+const COLLAPSED_GROUP_LAYOUT_OPTIONS = ["vertical", "horizontal"] as const
 const NEW_TASK_POSITION_OPTIONS = ["bottom", "top"] as const
 
 export const NotesSettings = () => {
@@ -23,6 +24,7 @@ export const NotesSettings = () => {
         keepAddingTasks, setKeepAddingTasks,
         showTaskInsertLine, setShowTaskInsertLine,
         liveDrag, setLiveDrag,
+        collapsedGroupLayout, setCollapsedGroupLayout,
         taskDensity, setTaskDensity,
         newTaskPosition, setNewTaskPosition,
         spellcheck, setSpellcheck,
@@ -50,6 +52,13 @@ export const NotesSettings = () => {
                 <SettingsSwitchRow label={t("settings.notes.taskBackground.label")} description={t("settings.notes.taskBackground.description")} checked={taskBackground} onCheckedChange={setTaskBackground} />
                 <SettingsSwitchRow label={t("settings.notes.hideCompleted.label")} description={t("settings.notes.hideCompleted.description")} checked={hideCompletedTasks} onCheckedChange={setHideCompletedTasks} />
                 <SettingsSwitchRow label={t("settings.notes.completedLast.label")} description={t("settings.notes.completedLast.description")} checked={completedTasksLast} onCheckedChange={setCompletedTasksLast} />
+                <SegmentedSetting
+                    label={t("settings.notes.collapsedGroupLayout.label")}
+                    description={t("settings.notes.collapsedGroupLayout.description")}
+                    value={collapsedGroupLayout}
+                    options={COLLAPSED_GROUP_LAYOUT_OPTIONS.map(value => ({ value, label: t(`settings.notes.collapsedGroupLayout.${value}`) }))}
+                    onChange={setCollapsedGroupLayout}
+                />
                 <SegmentedSetting
                     label={t("settings.notes.taskDensity.label")}
                     description={t("settings.notes.taskDensity.description")}

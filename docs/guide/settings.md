@@ -48,6 +48,7 @@ The theme gallery shows a preview of each theme; move between them with the arro
 | Colored task background | On / Off | On |
 | Hide completed tasks | On / Off | Off |
 | Completed tasks at the bottom | On / Off | Off |
+| Collapsed groups (a narrow vertical strip, or a horizontal bar that keeps the width of the open group) | Vertical, Horizontal | Vertical |
 | Task density | Compact, Normal, Roomy | Normal |
 | **Behavior**: Rename by clicking the name | On / Off | On |
 | Keep adding tasks (the field stays open after creating a task) | On / Off | On |
