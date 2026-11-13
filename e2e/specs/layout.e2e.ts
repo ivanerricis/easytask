@@ -199,25 +199,27 @@ describe("Layout and appearance", () => {
         })
     })
 
-    it("keeps the width of a group when it is collapsed and when it is opened again", async () => {
+    it("becomes a narrow strip when collapsed and gets its width back at once when opened again", async () => {
         const collapse = await tr("groups.collapse")
         const expand = await tr("groups.expand")
-        // Width of the group (the ancestor of its header with the group's minimum width) and a click on a header button
+        // Width of the group (the card that holds its header) and a click on a header button
         const measure = (label: string) => browser.execute((aria: string) => {
             const button = document.querySelector(`button[aria-label="${aria}"]`)!
-            return button.closest<HTMLElement>("div.h-full.relative")!.getBoundingClientRect().width
+            return button.closest<HTMLElement>("[data-group-card]")!.getBoundingClientRect().width
         }, label)
 
         const before = await measure(collapse)
         await domClick(byLabel(collapse))
         await byLabel(expand).waitForDisplayed()
         const collapsed = await measure(expand)
-        expect(Math.abs(collapsed - before)).toBeLessThan(1)
+        // Closed, the group is a strip with its arrow, ring and name written vertically
+        expect(collapsed).toBeLessThan(60)
 
-        // Click and record the width of every frame for ~500 ms in the page
+        // Click and record the width of every frame for ~500 ms in the page. The open width comes back right away: the group can
+        // settle by a few px in the first frame or two (its content sizes it again), never wider than before, then it stays put
         const widths = await browser.executeAsync((aria: string, done: (value: number[]) => void) => {
             const button = document.querySelector<HTMLElement>(`button[aria-label="${aria}"]`)!
-            const node = button.closest<HTMLElement>("div.h-full.relative")!
+            const node = button.closest<HTMLElement>("[data-group-card]")!
             const samples: number[] = []
             const start = performance.now()
             const frame = () => {
@@ -229,8 +231,11 @@ describe("Layout and appearance", () => {
             requestAnimationFrame(frame)
         }, expand)
         expect(widths.length).toBeGreaterThan(3)
-        const worst = Math.max(...widths.map(width => Math.abs(width - before)))
-        expect(worst).toBeLessThan(1)
+        for (const width of widths) {
+            expect(width).toBeLessThan(before + 1)
+            expect(width).toBeGreaterThan(before - 8)
+        }
+        for (const width of widths.slice(Math.floor(widths.length / 2))) expect(Math.abs(width - before)).toBeLessThan(1)
         await byLabel(collapse).waitForDisplayed()
     })
 
