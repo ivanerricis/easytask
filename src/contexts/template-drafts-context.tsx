@@ -84,10 +84,13 @@ export function TemplateDraftsProvider({ workspaceId, drafts, setDrafts, whenIdl
         removeDraft(noteId)
     }).catch(error => reportError(error, i18n.t("templateEditor.saveError"))), [enqueue, saver, removeDraft])
 
-    // The changes of an open draft are saved after a quiet time
-    useEffect(() => subscribeNoteChanges(noteId => {
-        if (tracked.current.has(noteId)) saver.notify(noteId)
+    // The changes of an open draft are saved after a quiet time (loading it from the database is not a change)
+    useEffect(() => subscribeNoteChanges((noteId, source) => {
+        if (source === "edit" && tracked.current.has(noteId)) saver.notify(noteId)
     }), [subscribeNoteChanges, saver])
+
+    // Pending saves must not outlive the provider
+    useEffect(() => () => saver.dispose(), [saver])
 
     // The closing of a tab of a draft (any way: its button, Ctrl+W, close all, template deleted, another workspace)
     useEffect(() => {

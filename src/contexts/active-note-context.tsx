@@ -17,14 +17,17 @@ import { createNoteOptimisticActions, type NoteOptimisticActions, type Rollback 
  * and the entries of closed tabs can be evicted without going through React state.
  * @category ActiveNote Context
  */
+/** Where a replaced cache entry comes from: a `load` (the data read from the database) or an `edit` (optimistic update, undo). */
+type NoteChangeSource = "load" | "edit"
+
 type NoteCache = {
     get: (noteId: number) => NoteDataTree | undefined
-    set: (noteId: number, tree: NoteDataTree) => void
+    set: (noteId: number, tree: NoteDataTree, source?: NoteChangeSource) => void
     /** Evicts the entries of the notes that are not in `keep`. */
     retain: (keep: readonly number[]) => void
     subscribe: (listener: () => void) => () => void
     /** Listens to the notes whose entry is replaced (see `ActiveNoteActionsType.subscribeNoteChanges`). */
-    subscribeChanges: (listener: (noteId: number) => void) => () => void
+    subscribeChanges: (listener: (noteId: number, source: NoteChangeSource) => void) => () => void
 }
 
 /**
@@ -35,14 +38,14 @@ type NoteCache = {
 function createNoteCache(): NoteCache {
     const entries = new Map<number, NoteDataTree>()
     const { subscribe, emit } = createEmitter()
-    const changeListeners = new Set<(noteId: number) => void>()
+    const changeListeners = new Set<(noteId: number, source: NoteChangeSource) => void>()
 
     return {
         get: noteId => entries.get(noteId),
-        set: (noteId, tree) => {
+        set: (noteId, tree, source = "edit") => {
             entries.set(noteId, tree)
             emit()
-            changeListeners.forEach(listener => listener(noteId))
+            changeListeners.forEach(listener => listener(noteId, source))
         },
         retain: keep => {
             const keepSet = new Set(keep)
@@ -114,7 +117,7 @@ export function ActiveNoteProvider({ children }: { children: React.ReactNode }) 
         const tree = await fetchNoteTree(noteId)
         // Superseded by a newer request/optimistic update, or the tab has been closed meanwhile
         if (requestSeq.current.get(noteId) !== seq || !openIdsRef.current.includes(noteId)) return
-        cache.set(noteId, tree)
+        cache.set(noteId, tree, "load")
     }, [cache, nextSeq])
 
     useEffect(() => {

@@ -70,6 +70,8 @@ function setup(initial: TemplateDraft[] = []) {
 
 describe("TemplateDraftsProvider", () => {
     beforeEach(() => {
+        // Fake (advancing) timers: the autosave timers of a test never fire in the middle of another
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true })
         vi.resetAllMocks()
         vi.spyOn(console, "error").mockImplementation(() => {})
         dbDrafts = []
@@ -89,7 +91,10 @@ describe("TemplateDraftsProvider", () => {
         vi.mocked(deleteDBTemplateDraft).mockImplementation(async noteId => { dbDrafts = dbDrafts.filter(candidate => candidate.noteId !== noteId) })
     })
 
-    afterEach(() => { vi.useRealTimers() })
+    afterEach(() => {
+        vi.clearAllTimers()
+        vi.useRealTimers()
+    })
 
     it("opens the editor of a template in a tab, reusing the draft that exists", async () => {
         const latest = setup()
@@ -209,14 +214,13 @@ describe("TemplateDraftsProvider", () => {
 
     describe("autosave", () => {
         it("saves the draft after a change, once, and flushTemplate saves at once", async () => {
-            // Fake timers from the start (they advance with the clock too, for waitFor): no real timer is left to fire in the middle
-            vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true })
             const latest = setup()
             await waitFor(() => expect(latest.current.restored).toBe(true))
             await act(async () => { await latest.current.openTemplateEditor({ id: 3, name: "Template 3" }) })
             await waitFor(() => expect(latest.current.getNoteTree()).not.toBeNull())
-            // Loading the note is a change too: its check (nothing to write) runs now, before the test starts counting
+            // Loading the note is not a change: nothing is scheduled by it
             await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+            expect(saveDBTemplateDraft).not.toHaveBeenCalled()
             vi.mocked(saveDBTemplateDraft).mockClear()
 
             act(() => { latest.current.patchGroup(500, { name: "Cambiato" }) })
