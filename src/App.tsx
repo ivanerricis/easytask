@@ -79,7 +79,7 @@ function App() {
             </ImportNamesProvider>
             </AutomationsProvider>
             </UndoProvider>
-            <Toaster richColors closeButton position='top-center' toastOptions={{ closeButtonAriaLabel: t('common.close') }} />
+            <Toaster closeButton position='top-center' toastOptions={{ closeButtonAriaLabel: t('common.close') }} />
             <DialogShortcuts />
             <DialogUpdate />
             <TextContextMenu />

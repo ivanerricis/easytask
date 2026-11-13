@@ -10,6 +10,7 @@ import { useSelectionStore } from "./selection-context"
 import { type VirtualTreeHandle } from "./VirtualTree"
 import { TreeBackgroundMenu } from "./TreeBackgroundMenu"
 import { useTreeDnd } from "./use-tree-dnd"
+import { DragEndGuard } from "@/components/dnd-end-guard"
 import { useTreeKeyboard } from "./use-tree-keyboard"
 import { useTreeReveal } from "./use-tree-reveal"
 import { ActiveAncestorsProvider } from "./active-ancestors"
@@ -70,6 +71,7 @@ export const FileTree = ({ collapsedIds, onToggleFolder, onExpandFolder, onToggl
         <TreeHoverStoreContext.Provider value={hoverStore}>
         <TreeTabStopContext.Provider value={tabStopStore}>
         <DndContext {...dndProps} autoScroll>
+            <DragEndGuard dragging={activeRef !== null} onLost={dndProps.onDragCancel} />
             <TreeBackgroundMenu allCollapsed={allCollapsed} onToggleAll={onToggleAll} hasFolders={tree.rootFolders.length > 0}>
             <RootDropArea rootRef={rootElRef} treeLabel={isEmpty ? undefined : t("sidebar.treeLabel")} onFocus={handleTreeFocus} onKeyDown={handleTreeKeyDown}>
                 {isEmpty ? (

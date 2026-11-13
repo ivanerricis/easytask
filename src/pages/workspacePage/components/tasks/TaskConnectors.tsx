@@ -23,9 +23,12 @@ export function TaskConnectors({ depth, sizes }: { depth: number, sizes: Sizes }
     </>
 }
 
-/** The horizontal end of the connector of a subtask, towards its checkbox. */
-export function TaskConnectorTick({ depth, sizes }: { depth: number, sizes: Sizes }) {
-    return <span aria-hidden className={cn("pointer-events-none absolute h-px bg-muted-foreground/45", sizes.tickTop, lineLeft(depth), depth > 1 ? "w-[13px]" : "w-[14px]")} />
+/**
+ * The mark of a subtask: a short dash at the middle of its checkbox, a little before it (8px of space), in the muted text
+ * color. It is the only connector of a subtask: no vertical lines join it to its parent.
+ */
+export function TaskConnectorTick({ sizes }: { depth: number, sizes: Sizes }) {
+    return <span aria-hidden data-testid="subtask-tick" className={cn("pointer-events-none absolute left-[2px] h-px w-2.5 bg-muted-foreground", sizes.tickTop)} />
 }
 
 /**

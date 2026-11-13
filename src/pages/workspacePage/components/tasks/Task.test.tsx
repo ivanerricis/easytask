@@ -397,26 +397,17 @@ describe("Task subtasks", () => {
         expect(patchTask).toHaveBeenCalledWith(10, { collapsed: false })
     })
 
-    it("draws the tree connectors only for subtasks", () => {
+    it("marks only the subtasks, with a short dash and no vertical lines", () => {
         const { container } = renderTasks(<>
-            <Task task={makeTask({ id: 10, text: "Primo" })} />
+            <Task task={makeTask({ id: 10, text: "Primo", subtasks: [makeTask({ id: 12, text: "Figlio" })] })} />
             <Task task={makeTask({ id: 11, text: "Sotto" })} depth={1} />
         </>)
-        const subtaskBlocks = container.querySelectorAll('[class~="group/subtask"]')
-        expect(subtaskBlocks).toHaveLength(1)
-        const spans = subtaskBlocks[0].querySelectorAll(":scope > span[aria-hidden]")
-        expect(spans).toHaveLength(3)
-        // The horizontal tick is always visible: there is no drag handle to make room for
-        expect(spans[2].className).not.toContain("opacity-0")
-    })
-
-    it("hides the line of the last subtask only on its own level, not on the levels below it", () => {
-        const { container } = renderTasks(<Task task={makeTask({ id: 11, text: "Sotto" })} depth={1} />)
-        const [through, elbow] = container.querySelectorAll('[class~="group/subtask"] > span[aria-hidden]')
-        // A "group-last" variant also matches the descendants of a last subtask: the lines of a deeper level would disappear
-        for (const span of [through, elbow]) expect(span.className).not.toContain("group-last")
-        expect(through.className).toContain("[.subtask:last-child>&]:hidden")
-        expect(elbow.className).toContain("[.subtask:last-child>&]:bg-muted-foreground/45")
+        // One dash per subtask (the one of the list and the one rendered by its parent), none for the task
+        expect(screen.getAllByTestId("subtask-tick")).toHaveLength(2)
+        // No line through the subtasks nor down from the parent
+        expect(container.querySelector("span.w-px")).toBeNull()
+        // Always visible: there is no drag handle to make room for
+        expect(screen.getAllByTestId("subtask-tick")[0].className).not.toContain("opacity-0")
     })
 })
 

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Group } from "./Group"
 import { makeDefaultSection, makeGroup, makeSection } from "@/test/ui-fixtures"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 
 const groupOpen = { value: true }
 const toggleOpen = vi.fn()
@@ -64,57 +65,49 @@ afterEach(() => {
 /** The root element of the group (the one that gets the minimum width). */
 const root = () => screen.getByText("header").parentElement as HTMLElement
 
-describe("Group width when collapsed", () => {
-    it("keeps the width it had while open", () => {
-        width = 311.4
-        const group = makeGroup({ id: 101 })
-        const { rerender } = render(<Group group={group} />)
-        expect(root().style.minWidth).toBe("")
-
-        groupOpen.value = false
-        // A new object: Group is memoized, and the mocked open state changes outside of it
-        rerender(<Group group={{ ...group }} />)
-
-        expect(screen.queryByText("section")).not.toBeInTheDocument()
-        expect(root().style.minWidth).toBe("311.4px")
+describe("Group panel", () => {
+    it("is a light tint of the color of the group, with the color as the band at the top", () => {
+        render(<Group group={makeGroup({ id: 101, color: "#ff0000" })} />)
+        expect(root().style.backgroundColor).toBe("rgba(255, 0, 0, 0.16)")
+        expect(root().style.borderTopColor).toBe("rgb(255, 0, 0)")
+        expect(root()).not.toHaveClass("bg-secondary")
     })
 
-    it("follows the width of the open group when its content changes", () => {
-        width = 300
-        const group = makeGroup({ id: 102 })
-        const { rerender } = render(<Group group={group} />)
-
-        width = 340
-        FakeResizeObserver.instances.at(-1)?.fire()
-        groupOpen.value = false
-        rerender(<Group group={{ ...group }} />)
-
-        expect(root().style.minWidth).toBe("340px")
+    it("scales the tint by the color intensity preference", () => {
+        render(
+            <PreferencesContext.Provider value={{ colorIntensity: 1.5 } as PreferencesContextType}>
+                <Group group={makeGroup({ id: 102, color: "#ff0000" })} />
+            </PreferencesContext.Provider>,
+        )
+        expect(root().style.backgroundColor).toBe("rgba(255, 0, 0, 0.24)")
     })
 
-    it("stops observing as soon as the group is collapsed, so the shrunk width is never recorded", () => {
-        width = 320
-        const group = makeGroup({ id: 103 })
-        const { rerender } = render(<Group group={group} />)
-        const observer = FakeResizeObserver.instances.at(-1)
-
-        groupOpen.value = false
-        width = 120 // what the collapsed group would measure
-        rerender(<Group group={{ ...group }} />)
-
-        expect(observer?.disconnected).toBe(true)
-        expect(root().style.minWidth).toBe("320px")
-    })
-
-    it("sets no explicit width on a group that has never been open", () => {
-        groupOpen.value = false
-        width = 120
-        render(<Group group={makeGroup({ id: 104 })} />)
-        expect(root().style.minWidth).toBe("")
-        expect(FakeResizeObserver.instances).toHaveLength(0)
+    it("is gray without a color", () => {
+        render(<Group group={makeGroup({ id: 103, color: null })} />)
+        expect(root().style.backgroundColor).toBe("")
+        expect(root()).toHaveClass("bg-secondary")
     })
 })
 
+describe("Group when collapsed", () => {
+    it("is a narrow strip without its content and without the resize handle", () => {
+        groupOpen.value = false
+        render(<Group group={makeGroup({ id: 104, sections: [makeSection({ id: 1 })] })} />)
+        expect(root()).toHaveClass("w-11")
+        expect(screen.queryByText("section")).not.toBeInTheDocument()
+        expect(screen.queryByRole("separator")).not.toBeInTheDocument()
+    })
+
+    it("drops the explicit width while closed and gets it back on opening", () => {
+        groupOpen.value = false
+        const group = makeGroup({ id: 105, width: 400 })
+        const { rerender } = render(<Group group={group} />)
+        expect(root().style.width).toBe("")
+        groupOpen.value = true
+        rerender(<Group group={{ ...group }} />)
+        expect(root().style.width).toBe("400px")
+    })
+})
 
 describe("Group scrolling area", () => {
     it("is wider on the left and ends at the edge of the group, so its scrollbar is entirely under the header", () => {
@@ -151,12 +144,6 @@ describe("Group explicit width", () => {
         expect(root()).toHaveClass("max-w-[32rem]")
     })
 
-    it("keeps the explicit width when the group is collapsed", () => {
-        groupOpen.value = false
-        render(<Group group={makeGroup({ id: 203, width: 400 })} />)
-        expect(root().style.width).toBe("400px")
-        expect(root().style.minWidth).toBe("")
-    })
 
     it("follows the drag live and saves the width once, on mouse up", async () => {
         render(<Group group={makeGroup({ id: 204 })} />)

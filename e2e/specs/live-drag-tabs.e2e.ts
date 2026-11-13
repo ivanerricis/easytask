@@ -47,6 +47,8 @@ const barState = (paneIndex: 0 | 1 | null) => browser.execute((index: number | n
         lines: bar.querySelectorAll(".bg-primary.w-0\\.5").length,
         scrollLeft: bar.scrollLeft, scrollWidth: bar.scrollWidth, clientWidth: bar.clientWidth, right: bar.getBoundingClientRect().right,
         overlay: document.querySelector('[data-testid="tab-drag-overlay"]') !== null,
+        slots: bar.querySelectorAll("[data-live-slot]").length,
+        slotWidth: Math.round(bar.querySelector<HTMLElement>("[data-live-slot]")?.getBoundingClientRect().width ?? 0),
     }
 }, paneIndex)
 
@@ -93,15 +95,19 @@ describe("Live drag of the tabs", () => {
             await setLiveDrag(true)
             const start = await tabPoint(A, 0.5)
             const end = await tabPoint(C, 0.85)
+            const draggedWidth = (await tabPoint(A, 1)).x - (await tabPoint(A, 0)).x
             await dragPoints(start, { x: end.x, y: start.y }, async () => {
                 const state = await barState(null)
                 expect(state.moved).toBeGreaterThan(0)
                 expect(state.hidden).toBe(1)
                 expect(state.lines).toBe(0)
                 expect(state.overlay).toBe(true)
+                // The skeleton fills the room that opened, as wide as the dragged tab
+                expect(state.slots).toBe(1)
+                expect(Math.abs(state.slotWidth - draggedWidth)).toBeLessThanOrEqual(1)
             })
             await waitForOrder(null, movedAfter(A, C))
-            expect(await barState(null)).toMatchObject({ moved: 0, hidden: 0, overlay: false })
+            expect(await barState(null)).toMatchObject({ moved: 0, hidden: 0, overlay: false, slots: 0 })
         })
 
         it("dragging it back to the start restores the order", async function () {
@@ -123,12 +129,31 @@ describe("Live drag of the tabs", () => {
                 expect(state.moved).toBeLessThanOrEqual(1)
                 expect(state.hidden).toBe(0)
                 expect(state.lines).toBe(1)
+                expect(state.slots).toBe(0)
             })
             await waitForOrder(null, movedAfter(A, C))
             await setLiveDrag(true)
             const back = await tabPoint(A, 0.5)
             const first = await tabPoint(B, 0.15)
             await dragPoints(back, { x: first.x, y: back.y }, async () => { /* just drop */ })
+            await waitForOrder(null, NOTES)
+        })
+    })
+
+    describe("a drag that ends at once", () => {
+        it("pressing, moving and releasing in the same moment leaves no cover over the window", async () => {
+            // dnd-kit does not report the end of a drag that ends before its first render: the closed hand cover must go anyway
+            const start = await tabPoint(B, 0.5)
+            await browser.execute((x: number, y: number) => {
+                const target = document.elementFromPoint(x, y)!
+                const init = (cx: number, buttons: number) => ({ bubbles: true, cancelable: true, composed: true, clientX: cx, clientY: y, pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, buttons })
+                target.dispatchEvent(new PointerEvent("pointerdown", init(x, 1)))
+                document.dispatchEvent(new PointerEvent("pointermove", init(x + 10, 1)))
+                document.dispatchEvent(new PointerEvent("pointerup", init(x + 10, 0)))
+            }, start.x, start.y)
+            await browser.waitUntil(async () => browser.execute(() => document.querySelector("[data-drag-cursor]") === null), {
+                timeoutMsg: "the cover of the drag stayed over the window",
+            })
             await waitForOrder(null, NOTES)
         })
     })
@@ -192,6 +217,9 @@ describe("Live drag of the tabs", () => {
                 expect(left.moved).toBeGreaterThan(0)
                 expect(left.hidden).toBe(1)
                 expect(right.lines + left.lines).toBe(0)
+                // The skeleton is in the bar it goes to, not in the one it leaves
+                expect(right.slots).toBe(1)
+                expect(left.slots).toBe(0)
             })
             await waitForOrder(1, [C, E])
             await waitForOrder(0, without(C, E))

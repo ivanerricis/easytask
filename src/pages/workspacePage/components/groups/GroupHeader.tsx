@@ -2,9 +2,8 @@ import { MAX_NAME_LENGTH } from "@/lib/names"
 import { memo, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { usePreference } from "@/contexts/use-preference"
-import { useColorAlpha } from "@/contexts/use-color-alpha"
-import { ChevronDown, FileAudio, LayoutList, SquareCheckBig, type LucideIcon } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
+import { ChevronDown, FileAudio, LayoutList, Plus, SquareCheckBig, type LucideIcon } from "lucide-react"
+import { ProgressRing } from "@/components/ui/progress-ring"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TooltipCustom } from "@/components/tooltip-custom"
@@ -20,7 +19,7 @@ import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import { withRollback } from "@/contexts/with-rollback"
 import { useInlineEdit } from "@/hooks/use-inline-edit"
 import { InlineErrorTooltip } from "@/components/inline-error-tooltip"
-import { getErrorMessage, hexToRgba } from "@/lib/utils"
+import { getErrorMessage } from "@/lib/utils"
 import { getGroupLabel } from "./group-label"
 import { taskSections } from "@/lib/group-sections"
 import { Highlight } from "@/components/highlight"
@@ -58,7 +57,6 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     const showGroupProgressBar = usePreference(p => p.showGroupProgressBar)
     const showUnnamedLabels = usePreference(p => p.showUnnamedLabels)
     const renameOnClick = usePreference(p => p.renameOnClick) ?? true
-    const colorAlpha = useColorAlpha()
     const search = useSearchHighlight("group", group.id)
     const [isOpen, toggleOpen] = useGroupOpen(group.id)
     const progress = useMemo(() => getGroupProgress(group), [group])
@@ -80,12 +78,43 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
         },
     })
 
+    const ring = showGroupProgressBar && progress.total > 0
+        ? <ProgressRing value={progress.percent} size={20} color={group.color ?? undefined} aria-label={t("groups.progress")} />
+        : null
+
+    // Closed: the group is a narrow strip (see Group), its header stacked: arrow, ring, name and number of tasks
+    if (!isOpen) return (
+        <ButtonMenuGroup group={group} onRename={startEditing} onAddSection={onAddSection}>
+            <div
+                className={`group flex flex-col items-center gap-3 py-0.5 w-full ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
+                {...dragProps}>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleOpen}
+                    aria-label={t("groups.expand")}
+                    aria-expanded={false}
+                    className="size-6 shrink-0">
+                    <ChevronDown className="-rotate-90" />
+                </Button>
+                {ring}
+                {/* Same rule as the open header: an unnamed group shows no text unless the preference asks for "Gruppo N" */}
+                {(name || showUnnamedLabels) && <span title={name || label} className={`max-h-80 truncate text-sm font-semibold [writing-mode:vertical-rl] ${!name ? "text-muted-foreground" : ""}`}>
+                    {name || label}
+                </span>}
+                {showTaskCount && <span className="text-xs text-muted-foreground tabular-nums [writing-mode:vertical-rl]">
+                    {t("common.counts.task", { count: taskCount })}
+                </span>}
+            </div>
+        </ButtonMenuGroup>
+    )
+
     return (
         <ButtonMenuGroup group={group} onRename={startEditing} onAddSection={onAddSection}>
             <div
-                // Everything stays on one row: the name is truncated (full name in the tooltip) and the progress bar shrinks
-                className={`group flex items-center gap-1 border px-1.5 py-1 w-full rounded-xs ${group.color ? "" : "bg-background hover:bg-secondary"} ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
-                style={group.color ? { backgroundColor: hexToRgba(colorAlpha.header(), group.color) } : undefined}
+                // Everything stays on one row: the name is truncated (full name in the tooltip). The color of the group is its panel (see Group)
+                className={`group flex items-center gap-1 px-0.5 py-0.5 w-full rounded-xs ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
                 {...dragProps}>
                 <Button
                     type="button"
@@ -121,18 +150,31 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                     />
                 </InlineErrorTooltip>}
                 {/* ml-auto: when the group is wider than the name needs, the bar, the counters and the menu stay on the right edge */}
-                <div className="flex items-center gap-1 shrink-0 ml-auto">
-                    {showGroupProgressBar && !compact && progress.total > 0 && <div className="flex items-center gap-2 shrink-0 mr-1">
-                        <Progress className="w-20" value={progress.percent} aria-label={t("groups.progress")} />
-                        <span className="text-xs shrink-0 tabular-nums">
-                            {Math.round(progress.percent)} %
-                        </span>
-                    </div>}
-                    <div className="flex shrink-0 gap-2">
+                <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                    <div className="flex shrink-0 gap-2 text-muted-foreground">
                         {showSectionCount && <CountBadge icon={LayoutList} count={group.sections.length} label={t("common.counts.section", { count: group.sections.length })} />}
                         {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={t("common.counts.task", { count: taskCount })} />}
                         {showAudioFileCount && audioCount > 0 && <CountBadge icon={FileAudio} count={audioCount} label={t("groups.audioCount", { count: audioCount })} />}
                     </div>
+                    {ring && <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                        {ring}
+                        {/* A narrow group keeps the ring and drops the number, so the name keeps its space */}
+                        {!compact && <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
+                            {Math.round(progress.percent)}%
+                        </span>}
+                    </div>}
+                    {onAddSection && <TooltipCustom text={t("sections.new")}>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={onAddSection}
+                            onPointerDown={e => e.stopPropagation()}
+                            aria-label={t("sections.new")}
+                            className="size-6 shrink-0 text-muted-foreground hover:text-foreground">
+                            <Plus />
+                        </Button>
+                    </TooltipCustom>}
                     {/* flex + leading-none: in a block wrapper the line height leaves a gap under the button, which then sits off-center */}
                     <div className="flex items-center leading-none shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
                         <ItemMenuButton name={label} />

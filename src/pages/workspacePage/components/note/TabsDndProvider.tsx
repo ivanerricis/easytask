@@ -12,12 +12,13 @@ import { useTabs, useTabsActions } from "@/contexts/use-tabs"
 import { usePreference } from "@/contexts/use-preference"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { DragEndGuard } from "@/components/dnd-end-guard"
 import { announce } from "../tasks/note-announcer-store"
 import {
     barDndId, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabLivePending,
     type TabHover,
 } from "./tab-reorder"
-import { computeLiveShifts, holdHalfZoneX, makeShiftFreeMeasure, type LiveSnapshot } from "../note-dnd-live"
+import { computeLiveShifts, computeLiveSlot, holdHalfZoneX, makeShiftFreeMeasure, type LiveSnapshot } from "../note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf, tabNodeKey } from "../note-dnd-shift"
 import { TabsDndContext, type TabsDndContextType } from "./tabs-dnd-context-object"
 
@@ -144,7 +145,8 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
         shownRef.current = key
         const place = tabLivePending(next)
         const shifts = place ? computeLiveShifts(state.snapshot, state.dragged, place) : null
-        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? state.dragged : null, "x")
+        const slot = place && shifts && shifts.size > 0 ? computeLiveSlot(state.snapshot, state.dragged, place) : null
+        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? state.dragged : null, "x", slot)
     }
 
     const show = (next: TabHover | null) => {
@@ -232,6 +234,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                 onDragCancel={handleDragCancel}
             >
                 {children}
+                <DragEndGuard dragging={dragging !== null} onLost={handleDragCancel} />
                 {/* The tab follows the pointer outside the bar (which scrolls and clips its tabs); with the live drag also with one bar: the tab stays in its place, hidden, and the others step aside */}
                 {(split || live) && <DragOverlay dropAnimation={null}>
                     {draggedNote && (

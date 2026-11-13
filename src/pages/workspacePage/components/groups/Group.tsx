@@ -1,9 +1,10 @@
 import type { Group as GroupType } from "@/types/types"
-import { Fragment, memo, useCallback, useLayoutEffect, useRef, useState } from "react"
+import { Fragment, memo, useCallback, useRef, useState, type CSSProperties } from "react"
+import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { Section } from "../section/Section"
 import { AddSection } from "../section/AddSection"
 import { GroupHeader } from "./GroupHeader"
-import { cn, getErrorMessage } from "@/lib/utils"
+import { cn, getErrorMessage, hexToRgba } from "@/lib/utils"
 import { useTranslation } from "react-i18next"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
@@ -27,12 +28,6 @@ type GroupProps = {
     /** Number of audio files of the group, shown in the header. */
     audioCount?: number
 }
-
-/**
- * Last width of each group while it was open. A group is as wide as its widest section (or its header), so it would
- * shrink to the header as soon as it is collapsed: the collapsed group keeps this width instead.
- */
-const openWidths = new Map<number, number>()
 
 export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => {
     // The empty area of a group (and its header) accepts a dragged section: it is appended to the group
@@ -78,34 +73,28 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
         setAddingSection(true)
     }, [isOpen, toggleOpen])
 
-    // While open, follow the width of the group (its content can grow or shrink); the cleanup runs before the
-    // sections are removed from the DOM, so the width of the collapsed group is never recorded
-    useLayoutEffect(() => {
-        const node = nodeRef.current
-        if (!node || !isOpen) return
-        const record = () => {
-            const measured = node.getBoundingClientRect().width
-            // An element that is not laid out (width 0) says nothing
-            if (measured <= 0) return
-            openWidths.set(group.id, measured)
-        }
-        record()
-        const observer = new ResizeObserver(record)
-        observer.observe(node)
-        return () => observer.disconnect()
-    }, [isOpen, group.id])
+    const colorAlpha = useColorAlpha()
+
+    // The group is a panel: a light tint of its color (gray without one) with the color as a band at the top
+    const panel: CSSProperties = group.color
+        ? { backgroundColor: hexToRgba(colorAlpha.panel(), group.color), borderTopColor: group.color }
+        : {}
 
     return (
         <div
             ref={setRef}
             data-group-card
-            // An explicit width (also while collapsed) replaces the content-driven one
-            style={width !== null ? { width } : isOpen ? undefined : { minWidth: openWidths.get(group.id) }}
+            data-collapsed={isOpen ? undefined : ""}
+            // An explicit width replaces the content-driven one while open; closed, the group is a narrow strip (its width comes back on opening)
+            style={{ ...panel, ...(isOpen && width !== null ? { width } : {}) }}
             className={cn(
-                // Same minimum width as a section: an empty group would otherwise shrink to "Nuova sezione" and clip its header.
-                // Readable column: at most 32rem, so long task texts and audio names wrap or truncate instead of widening it
-                "relative flex flex-col gap-1 h-full min-w-[250px] rounded-xs",
-                width === null && "max-w-[32rem]",
+                // As tall as its content, at most the height of the note (then its list scrolls)
+                "relative flex flex-col max-h-full rounded-xs border border-t-4",
+                !group.color && "bg-secondary",
+                // Open: same minimum width as a section, at most 32rem so long task texts and audio names wrap or truncate.
+                // Closed: a strip with the arrow, the ring and the name written vertically
+                isOpen ? "gap-2 p-2 min-w-[250px]" : "w-11 items-center py-2",
+                isOpen && width === null && "max-w-[32rem]",
                 isDragging && "opacity-40",
                 !draggingGroup && zone && "ring-2 ring-primary",
             )}
@@ -129,7 +118,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
                     at the edge of the group, so its scrollbar sits entirely under the header (the resize handle is outside the group,
                     in the gap, and does not cover it); the 2px of padding keep the drop ring of an item from being cut. The tasks get
                     narrower only while the scrollbar is there. */}
-                <div data-group-list className="flex flex-col gap-1 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
+                <div data-group-list className="flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
                     {group.sections.map((section, position) => (
                         <Fragment key={section.id}>
                             {position === directIndex && <GroupTasks group={group} />}
@@ -140,7 +129,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
                     <AddSection inGroup groupId={group.id} open={addingSection} onClose={closeSectionForm} />
                 </div>
             </>}
-            <GroupResizeHandle getWidth={getWidth} width={width} onResize={setLiveWidth} onCommit={commitWidth} />
+            {isOpen && <GroupResizeHandle getWidth={getWidth} width={width} onResize={setLiveWidth} onCommit={commitWidth} />}
         </div>
     )
 })

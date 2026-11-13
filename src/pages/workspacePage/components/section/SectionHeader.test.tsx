@@ -74,14 +74,21 @@ describe("SectionHeader keyboard", () => {
         expect(screen.getByRole("button", { name: "Titolo sezione: Titolo, premi Invio per rinominare" })).toBeInTheDocument()
     })
 
-    it("shows the progress bar only when the section has tasks", () => {
+    it("shows the progress ring only when the section has tasks", () => {
         const { rerender } = render(<SectionHeader isOpen onOpenChange={vi.fn()} section={makeSection({ tasks: [] })} />)
         expect(screen.queryByRole("progressbar")).toBeNull()
-        expect(screen.queryByText("100 %")).toBeNull()
+        expect(screen.queryByText("100%")).toBeNull()
 
         rerender(<SectionHeader isOpen onOpenChange={vi.fn()} section={makeSection({ tasks: [makeTask()] })} />)
-        expect(screen.getByRole("progressbar")).toBeInTheDocument()
-        expect(screen.getByText("0 %")).toBeInTheDocument()
+        expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0")
+        expect(screen.getByText("0%")).toBeInTheDocument()
+    })
+
+    it("closed, says how many tasks the section holds", () => {
+        const { rerender } = render(<SectionHeader isOpen onOpenChange={vi.fn()} section={makeSection({ tasks: [makeTask(), makeTask({ id: 2 })] })} />)
+        expect(screen.queryByText("2 task")).toBeNull()
+        rerender(<SectionHeader isOpen={false} onOpenChange={vi.fn()} section={makeSection({ tasks: [makeTask(), makeTask({ id: 2 })] })} />)
+        expect(screen.getByText("2 task")).toBeInTheDocument()
     })
 
     it("shows no text for an untitled section by default and the fallback label when the preference is on", () => {

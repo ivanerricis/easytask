@@ -2,7 +2,8 @@ import { SectionHeader } from "./SectionHeader"
 import { SectionBody } from "./SectionBody"
 import { memo, useCallback } from "react"
 import type { Section as SectionType } from "@/types/types"
-import { cn } from "@/lib/utils"
+import { cn, hexToRgba } from "@/lib/utils"
+import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { useNoteDndSelector, useNoteDrag, useNoteDrop } from "../note-dnd-state"
 import { useSectionOpen } from "@/contexts/use-tabs"
 import { DropLine } from "../sidebar/DropLine"
@@ -28,6 +29,7 @@ export const Section = memo(({ section }: SectionProps) => {
         registerShiftNode(sectionNodeKey(sectionId), node)
     }, [setDropRef, setDragRef, sectionId])
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
+    const colorAlpha = useColorAlpha()
 
     const draggingSection = active?.kind === "section"
     // A dragged task: the whole card is outlined when it is the destination, wherever the pointer is inside it
@@ -41,10 +43,17 @@ export const Section = memo(({ section }: SectionProps) => {
             data-section-group={section.groupID}
             className={cn(
                 // As wide as its group (the group caps the column width)
-                "relative w-full min-w-[250px] border bg-accent rounded-xs flex flex-col p-1",
+                // A card on the panel of its group; its color is the band at the top
+                "group/section relative w-full min-w-[232px] border bg-background rounded-xs flex flex-col px-1 py-1",
                 isDragging && "opacity-40",
                 !draggingSection && (zone || taskDestination) && "border-primary ring-2 ring-primary",
             )}
+            // Colored like a group: a light tint over the card (it stays opaque on the panel of its group) and the band at the top
+            style={section.color ? {
+                borderTopWidth: 3,
+                borderTopColor: section.color,
+                backgroundImage: `linear-gradient(${hexToRgba(colorAlpha.panel(), section.color)}, ${hexToRgba(colorAlpha.panel(), section.color)})`,
+            } : undefined}
         >
             {draggingSection && !liveDrag && <DropLine zone={zone} className={zone === "before" ? "-top-[3px]" : "-bottom-[3px]"} />}
             <SectionHeader

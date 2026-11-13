@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
 import { getGroupLabel } from "./groups/group-label"
@@ -17,6 +17,7 @@ import { useActiveNote } from "@/contexts/use-active-note"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { hexToRgba } from "@/lib/utils"
 import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
+import { DragEndGuard } from "@/components/dnd-end-guard"
 import {
     computeDropZone, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
     type DropZone, type NoteDragKind, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
@@ -188,7 +189,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (!live) return
         liveShownRef.current = shown ? { key: shown.key, tree: shown.tree, place, rect: shown.rect ?? null } : null
         const shifts = place ? computeLiveShifts(live.snapshot, live.dragged, place) : null
-        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis)
+        const slot = place && shifts && shifts.size > 0 ? computeLiveSlot(live.snapshot, live.dragged, place) : null
+        applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis, slot)
     }
 
     const handleDragStart = (event: DragStartEvent) => {
@@ -387,6 +389,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             >
                 {children}
                 <DragCursor />
+                <DragEndGuard dragging={active !== null} onLost={handleDragCancel} />
                 {createPortal(<DragOverlay dropAnimation={null}>{preview && <div className="rotate-2">{preview}</div>}</DragOverlay>, document.body)}
             </DndContext>
         </NoteDndStoreContext.Provider>

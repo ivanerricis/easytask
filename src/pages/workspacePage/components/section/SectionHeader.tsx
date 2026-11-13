@@ -1,11 +1,10 @@
 import { MAX_NAME_LENGTH } from "@/lib/names"
 import { memo, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Progress } from "@/components/ui/progress"
+import { ProgressRing } from "@/components/ui/progress-ring"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useColorAlpha } from "@/contexts/use-color-alpha"
-import { getErrorMessage, hexToRgba } from "@/lib/utils"
+import { getErrorMessage } from "@/lib/utils"
 import type { Section as SectionType } from "@/types/types"
 import { ChevronDown } from "lucide-react"
 import { ButtonMenuSection } from "./ButtonMenuSection"
@@ -39,7 +38,6 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
     const showProgressBar = usePreference(p => p.showProgressBar)
     const showUnnamedLabels = usePreference(p => p.showUnnamedLabels)
     const renameOnClick = usePreference(p => p.renameOnClick) ?? true
-    const colorAlpha = useColorAlpha()
     const search = useSearchHighlight("section", section.id)
     // An empty text removes the title (a section can have none)
     const { editing: isTextAreaOpen, error, start: startEdit, inputProps } = useInlineEdit({
@@ -64,8 +62,8 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
 
             <ButtonMenuSection section={section} onRename={startEdit}>
                 <div
-                    className={`group flex items-center gap-1 border w-full px-1.5 py-1 whitespace-nowrap rounded-xs ${section.color ? "" : "bg-background"} ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
-                    style={section.color ? { backgroundColor: hexToRgba(colorAlpha.header(), section.color) } : undefined}
+                    // The color of the section is the band at the top of its card (see Section): the header stays plain
+                    className={`group flex items-center gap-1 w-full px-1.5 py-1 whitespace-nowrap rounded-xs ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
                     {...dragProps}
                 >
                     {/* Without tasks there is nothing to collapse, but the arrow's space stays so the title does not move */}
@@ -105,10 +103,13 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                                 className="h-6 min-w-0 flex-1 px-1 py-0 ml-1 text-sm md:text-sm border-primary"
                             />
                         </InlineErrorTooltip>}
-                        {showProgressBar && section.tasks.length > 0 && <div className="flex items-center gap-2 shrink-0">
-                            <Progress className="w-20" value={completionPercentage} aria-label={t("sections.progress")} />
-                            <span className="text-xs tabular-nums">
-                                {Math.round(completionPercentage)} %
+                        {!isOpen && section.tasks.length > 0 && <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                            {t("common.counts.task", { count: section.tasks.length })}
+                        </span>}
+                        {showProgressBar && section.tasks.length > 0 && <div className="flex items-center gap-1.5 shrink-0">
+                            <ProgressRing value={completionPercentage} aria-label={t("sections.progress")} />
+                            <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
+                                {Math.round(completionPercentage)}%
                             </span>
                         </div>}
                         <div className="flex items-center leading-none shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">

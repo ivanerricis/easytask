@@ -8,8 +8,7 @@ description: Align the Trello board of EasyTask with finished work - comment wit
 The user writes in Italian: answer and write the cards in Italian. Board: **EasyTask**. Load the Trello tools first (`ToolSearch` with `select:mcp__Trello__trelloSearch,mcp__Trello__trelloReadCard,mcp__Trello__trelloReadList,mcp__Trello__trelloWriteCard`; add `trelloWriteChecklist` to tick items). Card ids are ARIs: get them from a search or a read, never from the URL. `trelloReadCard` with `action: "get"` takes `cardIdOrUrl` (not `cardId`); the write tools take `cardId`.
 
 ## Lists
-- **To do**: decided work, not started.
-- **Idee / rimandate**: ideas and postponed work (the cards of a feature wait here until it ships).
+- **To do**: work to do, ideas and postponed work included (the cards of a feature wait here until it ships). The list "Idee / rimandate" was archived on 2026-11-13 by the user: its cards moved here.
 - **Bugs**: open bugs.
 - **Done**: finished features and work.
 - **Fixed bugs**: bugs that were fixed and released.
@@ -32,5 +31,5 @@ Read the lists with `trelloReadList` (`list_by_board`) if a name looks different
 
 ## Record a new bug or idea
 - Bug: create the card in **Bugs**. Title = the symptom in the user's words. Description: where it was found (date, version, OS), the steps or the failing test, what it should do, whether it also happens on `master`, and what to check first.
-- Idea or postponed work: **Idee / rimandate**, with the reason it was postponed and a rough estimate if known.
+- Idea or postponed work: **To do**, at the bottom, with the reason it was postponed (and the release it is meant for, if the user said so) and a rough estimate if known.
 - Link related cards by number in the description (for example "vedi card 119").

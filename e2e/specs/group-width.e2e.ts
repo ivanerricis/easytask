@@ -5,8 +5,8 @@ import {
 } from "../helpers"
 
 /**
- * Width of a group: changed from the handle on its right edge, kept after an app restart, the completion bar hidden
- * when the group is narrow, double click to go back to the automatic width.
+ * Width of a group: changed from the handle on its right edge, kept after an app restart, the percentage next to the ring hidden
+ * when the group is narrow (the ring stays), double click to go back to the automatic width. Closed, the group is a strip.
  */
 const WORKSPACE = "Width Workspace"
 const NOTE = "Width Note"
@@ -20,8 +20,15 @@ const savedWidth = async (): Promise<number | null> => {
     return rows[0]?.width ?? null
 }
 
-/** The completion bar of the group (the details panel on the right has one with the same label, so look inside the card). */
-const groupBar = async () => groupCard(GROUP).$(`[aria-label="${await tr("groups.progress")}"]`)
+/** The progress ring of the group (the details panel on the right has one with the same label, so look inside the card). */
+const groupRing = async () => groupCard(GROUP).$(`[aria-label="${await tr("groups.progress")}"]`)
+/** The percentage next to the ring, dropped when the group is narrow. */
+const groupPercent = async () => groupCard(GROUP).$(`.//*[@aria-label="${await tr("groups.progress")}"]/following-sibling::span[contains(., "%")]`)
+/** Rendered width of the card of the group, open or closed. */
+const cardWidth = async (): Promise<number> => {
+    const card = (await groupCard(GROUP).getElement()) as unknown as HTMLElement
+    return browser.execute((el: HTMLElement) => el.getBoundingClientRect().width, card)
+}
 /** Rendered width of the group: the handle is the last child of its root element. */
 const renderedWidth = async (): Promise<number> => {
     const handle = await byLabel(await tr("groups.width.handle"))
@@ -58,9 +65,10 @@ describe("Group width", () => {
         await browser.waitUntil(async () => (await sql<unknown[]>("select", "SELECT id FROM task WHERE text = ?", [TASK])).length > 0, { timeoutMsg: "task not created" })
     })
 
-    it("starts with the automatic width and the completion bar", async () => {
+    it("starts with the automatic width, the ring and its percentage", async () => {
         expect(await savedWidth()).toBeNull()
-        await (await groupBar()).waitForDisplayed({ timeoutMsg: "the completion bar is not shown" })
+        await (await groupRing()).waitForDisplayed({ timeoutMsg: "the progress ring is not shown" })
+        await (await groupPercent()).waitForDisplayed({ timeoutMsg: "the percentage is not shown" })
     })
 
     it("has the same horizontal scrollbar as the rest of the app (9px, no style of its own)", async () => {
@@ -71,12 +79,13 @@ describe("Group width", () => {
         expect(height).toBe("9px")
     })
 
-    it("resizes by dragging the handle, hides the completion bar when narrow and saves the width", async () => {
+    it("resizes by dragging the handle, drops the percentage when narrow and saves the width", async () => {
         const before = await renderedWidth()
         // Narrower than the automatic width: under the threshold of the completion bar (320), which then goes away
         await narrowWithKeyboard()
         await browser.waitUntil(async () => (await renderedWidth()) < Math.min(before, 320), { timeoutMsg: "the group did not follow the handle" })
-        await (await groupBar()).waitForDisplayed({ reverse: true, timeoutMsg: "the completion bar is still shown in a narrow group" })
+        await (await groupPercent()).waitForDisplayed({ reverse: true, timeoutMsg: "the percentage is still shown in a narrow group" })
+        expect(await (await groupRing()).isDisplayed()).toBe(true)
         await browser.waitUntil(
             async () => {
                 const saved = await savedWidth()
@@ -98,22 +107,23 @@ describe("Group width", () => {
         }
         await byText(GROUP).waitForDisplayed({ timeoutMsg: "the group was lost" })
         await browser.waitUntil(async () => Math.abs((await renderedWidth()) - saved!) < 1.5, { timeoutMsg: "the width was not restored" })
-        expect(await (await groupBar()).isExisting()).toBe(false)
+        expect(await (await groupPercent()).isExisting()).toBe(false)
     })
 
-    it("keeps the width when the group is collapsed", async () => {
+    it("becomes a narrow strip when collapsed and gets its width back when opened", async () => {
         const before = await renderedWidth()
         await domClick(byLabel(await tr("groups.collapse")))
         await byLabel(await tr("groups.expand")).waitForDisplayed()
-        expect(Math.abs((await renderedWidth()) - before)).toBeLessThan(1.5)
+        await browser.waitUntil(async () => (await cardWidth()) < 60, { timeoutMsg: "the closed group is not a strip" })
         await domClick(byLabel(await tr("groups.expand")))
         await byLabel(await tr("groups.collapse")).waitForDisplayed()
+        await browser.waitUntil(async () => Math.abs((await renderedWidth()) - before) < 1.5, { timeoutMsg: "the width did not come back" })
     })
 
     it("goes back to the automatic width on double click", async () => {
         const handle = byLabel(await tr("groups.width.handle"))
         await handle.doubleClick()
         await browser.waitUntil(async () => (await savedWidth()) === null, { timeoutMsg: "the width was not cleared" })
-        await (await groupBar()).waitForDisplayed({ timeoutMsg: "the completion bar did not come back" })
+        await (await groupPercent()).waitForDisplayed({ timeoutMsg: "the percentage did not come back" })
     })
 })

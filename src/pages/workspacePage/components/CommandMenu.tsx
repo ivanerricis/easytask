@@ -77,7 +77,7 @@ export function CommandMenu() {
                     aria-haspopup="dialog"
                     aria-expanded={open}
                     onClick={() => { setOpen(prev => !prev) }}
-                    className="app-no-drag h-8 w-full justify-start gap-2 rounded-xs px-2 text-xs font-normal text-muted-foreground">
+                    className="app-no-drag h-7 w-full justify-start gap-2 rounded-xs px-2 py-0 text-xs font-normal text-muted-foreground">
                     <SearchIcon className="size-4 shrink-0" />
                     <span className="min-w-0 flex-1 truncate text-left">{t("notes.search.short")}</span>
                     {searchKeys.length > 0 && <KbdKeys keys={searchKeys} className="shrink-0" />}
