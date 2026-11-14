@@ -7,13 +7,12 @@ Inside a workspace, the left sidebar shows a tree of folders and notes. Folders 
 
 ## The sidebar
 
-The top of the sidebar has buttons, in three groups:
+The top of the sidebar has a row of buttons:
 
 | Button                                   | What it does                                                    |
 | ---------------------------------------- | --------------------------------------------------------------- |
 | **New folder**, **New note**, **New note from template** | Create items. See below.                        |
 | **Import a note or folder**              | Imports a `.easytask.json` file of a note or folder.            |
-| Add audio files                          | Adds audio files to the first group of the open note. See [Audio files](./audio). |
 | **Collapse all folders** / **Expand all folders** | Closes or opens every folder at once.                  |
 | **Close all notes**                      | Closes every open tab.                                          |
 

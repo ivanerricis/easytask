@@ -2,7 +2,6 @@ import i18n from "@/i18n"
 import { useCallback, useEffect, useState } from "react"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { useWorkspaceData } from "@/contexts/workspace-data"
-import { Separator } from "@/components/ui/separator"
 import { DialogSettings } from "@/components/dialogs/dialog-settings"
 import { reportError } from "@/lib/report-error"
 import { SideBar } from "./SideBar"
@@ -22,7 +21,6 @@ import { ButtonImportItems } from "./ButtonImportItems"
 import { ComboboxWorkspace } from "../combobox-workspace"
 import { ButtonCloseNotes } from "../ButtonCloseNotes"
 import { ButtonCollapseItems } from "./ButtonCollapseItems"
-import { ButtonUpload } from "./ButtonUpload"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useWorkspaceTransfer } from "@/hooks/use-workspace-transfer"
 import { useShortcut } from "@/hooks/use-shortcut"
@@ -108,20 +106,13 @@ export const SideBarLeft = () => {
                     bottomContainer={<DialogSettings className="relative top-0 left-0" />}
                 >
                     <SideBarContainer
-                        // Three groups told apart by a divider: create, bring in files, change the view
+                        // One row of buttons: create, import, change the view
                         header={<SideBarHeader className="border-b">
                             <div className="flex items-center gap-0.5">
                                 <DialogAddFolder />
                                 <DialogAddNote />
                                 <ButtonNoteFromTemplate />
-                            </div>
-                            <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 bg-foreground/30" />
-                            <div className="flex items-center gap-0.5">
                                 <ButtonImportItems />
-                                <ButtonUpload />
-                            </div>
-                            <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 bg-foreground/30" />
-                            <div className="flex items-center gap-0.5">
                                 <ButtonCollapseItems allCollapsed={allCollapsed} onToggle={toggleAll} disabled={folders.length === 0} />
                                 <ButtonCloseNotes />
                             </div>

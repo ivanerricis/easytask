@@ -121,7 +121,6 @@ export const sidebar: Translation["sidebar"] = {
     trashBadge_other: "{{count}} items in the trash",
     archiveBadge_one: "{{count}} item in the archive",
     archiveBadge_other: "{{count}} items in the archive",
-    addAudioFirstGroup: "Add audio files to the first group of the note",
     expandAll: "Expand all folders",
     collapseAll: "Collapse all folders",
     info: {
