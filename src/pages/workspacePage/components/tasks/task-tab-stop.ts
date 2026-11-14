@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext, useState, type ReactNode } from "react"
+import { createContext, createElement, useContext, useMemo, useState, type ReactNode } from "react"
 import { createExternalStore, useStoreSelector, type ExternalStore } from "@/lib/external-store"
 
 /**
@@ -17,7 +17,9 @@ const TaskTabStopContext = createContext<TaskTabStopValue | null>(null)
 /** One per list: owns the store of its tab stop. */
 export function TaskTabStopProvider({ listKey, children }: { listKey: string, children: ReactNode }) {
     const [store] = useState(createTaskTabStopStore)
-    return createElement(TaskTabStopContext.Provider, { value: { listKey, store } }, children)
+    // A stable value: a new object per render would re-render every row of the list whenever the list does (a drop re-renders the two lists it touches)
+    const value = useMemo(() => ({ listKey, store }), [listKey, store])
+    return createElement(TaskTabStopContext.Provider, { value }, children)
 }
 
 /** The store of the enclosing list (null outside a provider), to move the tab stop when a row takes the focus. */

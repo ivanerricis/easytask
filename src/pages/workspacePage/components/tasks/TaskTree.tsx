@@ -17,7 +17,7 @@ const focusIsLost = () => {
 /** Gives the focus to a row if the focus is lost, now and once more after the menu or dialog that held it has closed. */
 function focusIfLost(tree: HTMLElement, id: number) {
     const run = () => {
-        if (focusIsLost()) tree.querySelector<HTMLElement>(`[data-task-id="${id}"]`)?.focus()
+        if (focusIsLost()) tree.querySelector<HTMLElement>(`[data-task-id="${id}"]`)?.focus({ preventScroll: true })
     }
     run()
     requestAnimationFrame(run)
