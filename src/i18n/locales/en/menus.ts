@@ -5,6 +5,7 @@ export const window: Translation["window"] = {
     maximize: "Maximize",
     restore: "Restore",
     close: "Close the window",
+    shortcuts: "Keyboard shortcuts",
 }
 
 export const appMenu: Translation["appMenu"] = {

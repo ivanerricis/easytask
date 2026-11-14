@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest"
 import {
-    SHORTCUTS, SHORTCUT_CATEGORIES, bindingEquals, categoryLabel, keyLabel, bindingFromEvent, findConflicts, findConflictsFor, formatBinding, getDefaultBindings, isValidBinding, matchBinding,
+    SHORTCUTS, SHORTCUT_CATEGORIES, type Binding, bindingEquals, categoryLabel, keyLabel, bindingFromEvent, findConflictsFor, formatBinding, getDefaultBindings, isValidBinding, matchBinding,
 } from "./shortcuts"
 
 const key = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init)
+
+/** Every pair of ids sharing a binding within overlapping scopes (a test helper: the app only checks one binding at a time). */
+const findConflicts = (bindings: Record<string, Binding>): [string, string][] => {
+    const ids = Object.keys(bindings)
+    return ids.flatMap((id, i) => findConflictsFor(id, bindings[id], bindings).filter(other => ids.indexOf(other) > i).map((other): [string, string] => [id, other]))
+}
 
 describe("matchBinding", () => {
     it("matches ctrl or meta, case-insensitively", () => {

@@ -8,7 +8,7 @@ import { useTemplateDraftActions } from "@/contexts/use-template-drafts"
 import { reportError } from "@/lib/report-error"
 import { exportItemToFile, exportItemsToFile, exportWorkspaceToFile, importItemsFromFile, importWorkspaceFromFile, type ExportResult } from "@/lib/workspace-transfer"
 import { getErrorMessage } from "@/lib/utils"
-import { useImportNames } from "@/contexts/import-names-context"
+import { useImportNames } from "@/contexts/import-names-context-object"
 import { useAskIncludeFiles } from "@/contexts/export-files-context"
 import { createProgressToast } from "@/lib/progress-toast"
 

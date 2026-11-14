@@ -3,6 +3,8 @@ import type { Workspace } from '@/types/types'
 import { getDBWorkspaces, createDBWorkspace } from '@/db/queries/workspace'
 import { getDBTrashedWorkspaces, purgeDBItem, restoreDBItem } from '@/db/queries/trash'
 import { getErrorMessage } from '@/lib/utils'
+import { deleteWorkspaceTabs } from '@/lib/store/tabs'
+import { reportError } from '@/lib/report-error'
 import { usePendingCounter } from './use-pending-counter'
 import { WorkspaceContext } from './workspace-context-object'
 
@@ -66,6 +68,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
      */
     const purgeWorkspace = useCallback((id: number) => withLoading(async () => {
         await purgeDBItem('workspace', id)
+        // The saved tabs of the workspace are of no use any more (a failure here leaves a few bytes, not worth failing the purge)
+        try { await deleteWorkspaceTabs(id) } catch (error) { reportError(error) }
         setWorkspaces((await getDBWorkspaces()) ?? [])
     }), [withLoading])
 

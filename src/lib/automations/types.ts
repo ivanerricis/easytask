@@ -75,7 +75,6 @@ export type AutomationEvent =
 
 export const TRIGGER_TYPES: readonly AutomationTriggerType[] = ["task.completed", "task.reopened", "task.created", "task.movedInto", "subtasks.completed", "group.completed",
     "section.noOpenTasks", "section.hasOpenTasks", "group.noOpenTasks", "group.hasOpenTasks"]
-export const ACTION_TYPES: readonly AutomationActionType[] = ["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks", "moveGroup", "archiveGroup"]
 
 /**
  * What a rule acts on: the task of a `task.*` / `subtasks.completed` trigger, the group of the group triggers, the

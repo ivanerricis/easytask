@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { store } from "./initStore"
-import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getRightPanelTab, getSidebarRightWidth, getPrimaryColor, getAccentOverride, saveAccentOverride, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition } from "./preferences"
+import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getAccentOverride, saveAccentOverride, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition } from "./preferences"
 
 vi.mock("./initStore", () => ({
     store: { get: vi.fn(), set: vi.fn(), save: vi.fn(), delete: vi.fn() },
@@ -211,14 +211,14 @@ describe("right sidebar width and tab preferences", () => {
 
     it("defaults the width to 260 when nothing valid is stored", async () => {
         vi.mocked(store.get).mockResolvedValue(undefined)
-        expect(await getSidebarRightWidth()).toBe(260)
+        expect(await getPref("sidebarRightWidth")).toBe(260)
         vi.mocked(store.get).mockResolvedValue("wide")
-        expect(await getSidebarRightWidth()).toBe(260)
+        expect(await getPref("sidebarRightWidth")).toBe(260)
     })
 
     it.each([[320, 320], [10, 224], [9999, 480]])("clamps the stored width %d to %d", async (stored, expected) => {
         vi.mocked(store.get).mockResolvedValue(stored)
-        expect(await getSidebarRightWidth()).toBe(expected)
+        expect(await getPref("sidebarRightWidth")).toBe(expected)
         expect(store.get).toHaveBeenCalledWith("sidebarRightWidth")
     })
 
@@ -231,7 +231,7 @@ describe("right sidebar width and tab preferences", () => {
 
     it.each([[undefined, "details"], ["bogus", "details"], ["details", "details"], ["history", "history"]])("reads the tab %s as %s", async (stored, expected) => {
         vi.mocked(store.get).mockResolvedValue(stored)
-        expect(await getRightPanelTab()).toBe(expected)
+        expect(await getPref("rightPanelTab")).toBe(expected)
         expect(store.get).toHaveBeenCalledWith("rightPanelTab")
     })
 
@@ -343,12 +343,12 @@ describe("primary color preference validation", () => {
 
     it.each(["#fff", "#FFB375", "#a1b2c3"])("keeps the valid hex %s", async (hex) => {
         vi.mocked(store.get).mockResolvedValue({ hex })
-        expect(await getPrimaryColor()).toBe(hex)
+        expect((await getPref("primaryColor")).hex).toBe(hex)
     })
 
     it.each([undefined, null, {}, { hex: 3 }, { hex: "red" }, { hex: "#12" }, { hex: "#12345g" }, { hex: "url(x)" }, "#fff"])("falls back to the default for %j", async (stored) => {
         vi.mocked(store.get).mockResolvedValue(stored)
-        expect(await getPrimaryColor()).toBe("#c2410c")
+        expect((await getPref("primaryColor")).hex).toBe("#c2410c")
     })
 })
 

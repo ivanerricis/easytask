@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-    ACTION_TYPES, ACTIONS_BY_SUBJECT, actionsForTrigger, isAutomationAction, isAutomationTrigger, isGroupTrigger, isStateTrigger, isValidRule, referencedGroups, referencedSections, TRIGGER_TYPES, triggerSubject,
+    ACTIONS_BY_SUBJECT, actionsForTrigger, isAutomationAction, isAutomationTrigger, isGroupTrigger, isStateTrigger, isValidRule, referencedGroups, referencedSections, TRIGGER_TYPES, triggerSubject,
 } from "./types"
 
 describe("isAutomationTrigger", () => {
@@ -113,7 +113,7 @@ describe("subjects", () => {
 
     it("every action type belongs to a subject", () => {
         const listed = [...ACTIONS_BY_SUBJECT.task, ...ACTIONS_BY_SUBJECT.group]
-        for (const type of ACTION_TYPES) expect(listed).toContain(type)
+        expect(new Set(listed)).toEqual(new Set(["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks", "moveGroup", "archiveGroup"]))
         expect(ACTIONS_BY_SUBJECT.task).toEqual(["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks"])
         expect(ACTIONS_BY_SUBJECT.group).toEqual(["setColor", "moveGroup", "archiveGroup"])
         expect(ACTIONS_BY_SUBJECT.section).toEqual(["setColor"])

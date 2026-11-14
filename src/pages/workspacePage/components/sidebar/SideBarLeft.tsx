@@ -103,7 +103,7 @@ export const SideBarLeft = () => {
                     width={sidebarLeftWidth}
                     onWidthChange={setSidebarLeftWidth}
                     overlay={compact}
-                    bottomContainer={<DialogSettings className="relative top-0 left-0" />}
+                    bottomContainer={<DialogSettings />}
                 >
                     <SideBarContainer
                         // One row of buttons: create, import, change the view

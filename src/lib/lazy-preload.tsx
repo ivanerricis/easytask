@@ -47,3 +47,11 @@ export function preloadWhenIdle(...components: { preload: () => Promise<unknown>
     if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(run)
     else setTimeout(run, IDLE_FALLBACK_MS)
 }
+
+/**
+ * `lazyWithPreload` for a module that exports the component by name: `lazyNamed(() => import("./dialog"), "Dialog")`.
+ * @category Utils
+ */
+export function lazyNamed<M extends Record<K, ComponentType<never>>, K extends keyof M>(load: () => Promise<M>, name: K): PreloadableComponent<M[K]> {
+    return lazyWithPreload(() => load().then(module => ({ default: module[name] })))
+}

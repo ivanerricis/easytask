@@ -5,6 +5,7 @@ import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
 import { automationSchema } from "./schema/automation";
+import { TransactionError, runTransactionOn } from "./transaction-core";
 
 /**
  * Ordered list of migrations, applied once each and tracked with PRAGMA user_version.
@@ -97,21 +98,68 @@ export async function initDB(db: Database, options: InitDbOptions = {}) {
     if (current > 0 && current < migrations.length)
         await options.beforeMigrate?.(db, current, migrations.length);
 
-    for (let version = current; version < migrations.length; version++) {
-        for (const query of migrations[version]) {
-            try {
-                await db.execute(query);
-            } catch (err: unknown) {
-                // ALTER TABLE ADD/DROP COLUMN have no IF [NOT] EXISTS: a run interrupted before the version bump is retried safely
-                if (/^\s*ALTER TABLE/i.test(query) && /duplicate column name|no such column/i.test(String((err as { message?: unknown })?.message ?? err)))
-                    continue
-                console.error(`Migration v${version + 1} failed on query: ${query}`, err);
-                // A migration that is a script with its own transaction (see makeSectionTitleOptional) leaves it open when it fails
-                await db.execute("ROLLBACK").catch(() => undefined);
-                await db.execute("PRAGMA foreign_keys = ON").catch(() => undefined);
-                throw err;
-            }
+    for (let version = current; version < migrations.length; version++)
+        await applyMigration(db, version);
+}
+
+const OWN_TRANSACTION = /\bBEGIN\s+IMMEDIATE\b/i
+const ALTER_RETRYABLE = /duplicate column name|no such column/i
+
+const errorText = (err: unknown) => String((err as { message?: unknown })?.message ?? err)
+
+/**
+ * Applies the migration `version` (0-based) and moves user_version to version + 1, so a crash can never leave it half applied:
+ * - a plain migration runs together with its `PRAGMA user_version` in ONE transaction (the `db_transaction` command);
+ * - a migration that is a script with its own `BEGIN IMMEDIATE ... COMMIT` (and PRAGMA foreign_keys, a no-op inside a
+ *   transaction) cannot be nested in another one: the version bump is written inside that script, right before its COMMIT.
+ *   The statements before that script (the ALTER TABLE ADD COLUMN of a migration) are idempotent and run one by one first;
+ * - a migration whose ALTER TABLE finds the column already added (or dropped) by an older, non atomic run is applied
+ *   statement by statement, skipping that error, and bumped at the end.
+ */
+async function applyMigration(db: Database, version: number): Promise<void> {
+    const queries = migrations[version];
+    const next = version + 1;
+    const bump = `PRAGMA user_version = ${next}`;
+
+    if (queries.some(query => OWN_TRANSACTION.test(query))) {
+        const withBump = queries.map(query => {
+            if (!OWN_TRANSACTION.test(query)) return query;
+            const commit = query.lastIndexOf("COMMIT;");
+            if (commit < 0) throw new Error(`Migration v${next} has its own transaction without a COMMIT`);
+            return `${query.slice(0, commit)}${bump};\n    ${query.slice(commit)}`;
+        });
+        await runStepByStep(db, version, withBump);
+        return;
+    }
+
+    try {
+        await runTransactionOn(db, [...queries, bump].map(sql => ({ sql, params: [] })));
+        return;
+    } catch (err: unknown) {
+        const retryable = err instanceof TransactionError && ALTER_RETRYABLE.test(err.message) && queries.some(query => /^\s*ALTER TABLE/i.test(query));
+        if (!retryable) {
+            console.error(`Migration v${next} failed`, err);
+            throw err;
         }
-        await db.execute(`PRAGMA user_version = ${version + 1}`);
+    }
+    await runStepByStep(db, version, queries);
+    await db.execute(bump);
+}
+
+/** Runs the queries one by one (outside a transaction), skipping an ALTER TABLE that was already applied. */
+async function runStepByStep(db: Database, version: number, queries: string[]): Promise<void> {
+    for (const query of queries) {
+        try {
+            await db.execute(query);
+        } catch (err: unknown) {
+            // ALTER TABLE ADD/DROP COLUMN have no IF [NOT] EXISTS: a run interrupted before the version bump is retried safely
+            if (/^\s*ALTER TABLE/i.test(query) && ALTER_RETRYABLE.test(errorText(err)))
+                continue
+            console.error(`Migration v${version + 1} failed on query: ${query}`, err);
+            // A migration that is a script with its own transaction (see makeSectionTitleOptional) leaves it open when it fails
+            await db.execute("ROLLBACK").catch(() => undefined);
+            await db.execute("PRAGMA foreign_keys = ON").catch(() => undefined);
+            throw err;
+        }
     }
 }

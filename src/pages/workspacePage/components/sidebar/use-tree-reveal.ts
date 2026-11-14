@@ -1,7 +1,7 @@
 import { useEffect, type RefObject } from "react"
 import { findTreeItem, type TreeData } from "./tree-dnd"
 import { parseSelectionKey } from "./selection"
-import { useSelectionStore } from "./selection-context"
+import { useSelectionStore } from "./selection-context-object"
 import { whenRowMounted } from "./row-mounted"
 import type { FlatRow } from "./flat-tree"
 import type { VirtualTreeHandle } from "./VirtualTree"

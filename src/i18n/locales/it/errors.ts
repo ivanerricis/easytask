@@ -156,6 +156,13 @@ export const errors = {
     db: {
         legacy: "Database di una versione precedente non compatibile: elimina il file Documents/EasyTask/easytask.db e riavvia l'app.",
         newer: "Database creato da una versione più recente dell'app: aggiorna EasyTask oppure elimina il file Documents/EasyTask/easytask.db.",
+        backupFailed: {
+            title: "Impossibile creare la copia di sicurezza del database",
+            description: "EasyTask non riesce a fare una copia di sicurezza dei tuoi dati prima di aggiornare il database: {{message}}\n\nSe continui e l'aggiornamento va storto, potresti perdere dei dati.",
+            continue: "Continua comunque",
+            exit: "Esci",
+        },
+        migrationCancelled: "Avvio annullato: il database non è stato aggiornato.",
     },
     refreshTree: "Impossibile aggiornare l'elenco di cartelle e note. Riprova.",
     moveGroup: "Impossibile spostare il gruppo. Riprova.",

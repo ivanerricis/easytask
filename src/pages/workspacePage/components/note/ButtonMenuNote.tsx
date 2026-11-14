@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { lazyWithPreload, preloadWhenIdle } from "@/lib/lazy-preload"
+import { lazyNamed, preloadWhenIdle } from "@/lib/lazy-preload"
 import { useContext, useState, type ReactElement } from "react"
 import type { Note } from "@/types/types"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
@@ -17,7 +17,7 @@ import { ColorSubmenu } from "../ColorSubmenu"
 import { MoveToSubmenu } from "../MoveToSubmenu"
 import { MenuGroup } from "@/components/menu-kind"
 import { ItemMenu } from "@/components/item-menu"
-import { useIsInMultiSelection } from "../sidebar/selection-context"
+import { useIsInMultiSelection } from "../sidebar/selection-context-object"
 import { SelectionMenuItems } from "../sidebar/SelectionMenu"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
 import { useRenameAfterClose } from "@/hooks/use-rename-after-close"
@@ -27,8 +27,8 @@ import { reportError } from "@/lib/report-error"
 import { toast } from "sonner"
 import { useItemTransfer } from "@/hooks/use-workspace-transfer"
 
-const DialogAutomations = lazyWithPreload(() => import("@/components/dialogs/dialog-automations").then(m => ({ default: m.DialogAutomations })))
-const DialogCreateTemplate = lazyWithPreload(() => import("@/components/dialogs/dialog-create-template").then(m => ({ default: m.DialogCreateTemplate })))
+const DialogAutomations = lazyNamed(() => import("@/components/dialogs/dialog-automations"), "DialogAutomations")
+const DialogCreateTemplate = lazyNamed(() => import("@/components/dialogs/dialog-create-template"), "DialogCreateTemplate")
 preloadWhenIdle(DialogAutomations, DialogCreateTemplate)
 
 /**

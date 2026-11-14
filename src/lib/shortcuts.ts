@@ -142,17 +142,6 @@ export const findConflictsFor = (id: string, binding: Binding, bindings: Record<
         .map(([otherId]) => otherId)
 }
 
-/** Every pair of ids sharing a binding within overlapping scopes. */
-export const findConflicts = (bindings: Record<string, Binding>): [string, string][] => {
-    const ids = Object.keys(bindings)
-    const pairs: [string, string][] = []
-    ids.forEach((id, i) => {
-        ids.slice(i + 1).forEach(other => {
-            if (scopesOverlap(getShortcut(id).scope, getShortcut(other).scope) && bindingEquals(bindings[id], bindings[other])) pairs.push([id, other])
-        })
-    })
-    return pairs
-}
 
 /** A recordable binding needs Ctrl or Alt, except for function keys. */
 export const isValidBinding = (binding: Binding): boolean =>

@@ -51,3 +51,13 @@ export const saveWorkspaceTabs = async (workspaceId: number, layout: LayoutState
     })
     await saveStoreSoon()
 }
+
+/**
+ * Forgets the open note tabs of a workspace that was permanently deleted.
+ * @param workspaceId The ID of the workspace.
+ * @category Store
+ */
+export const deleteWorkspaceTabs = async (workspaceId: number): Promise<void> => {
+    await store.delete(tabsKey(workspaceId))
+    await saveStoreSoon()
+}

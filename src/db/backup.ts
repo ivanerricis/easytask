@@ -145,7 +145,12 @@ export async function createBackup(kind: BackupKind = "manual", database?: Datab
         const previous = (await listBackups()).filter(backup => backup.preRestore && backup.name !== name)
         for (const backup of previous) await remove(backup.path)
     } else {
-        await rotateBackups(await getBackupKeep())
+        // The backup is already written: a failure while deleting the old ones must not make it fail
+        try {
+            await rotateBackups(await getBackupKeep())
+        } catch (error) {
+            reportError(error)
+        }
     }
     const size = await stat(path).then(info => info.size, () => 0)
     return { name, path, size, date, preRestore }
@@ -247,10 +252,14 @@ function isBackupDue(frequency: BackupFrequency, backups: readonly BackupInfo[],
 /**
  * Backup at startup: skipped when disabled or when a regular backup is recent enough for the chosen frequency
  * (see {@link isBackupDue}). Best effort: a failure is only logged, never shown or thrown.
+ * Never runs two at once: a call made while another one is still checking or writing returns false (the scheduler in
+ * src/lib/auto-backup-schedule.ts calls it again later).
  * @returns True when a backup was created.
  * @category Database
  */
 export async function runAutoBackup(): Promise<boolean> {
+    if (autoBackupRunning) return false
+    autoBackupRunning = true
     try {
         if (!(await getAutoBackup())) return false
         if (!isBackupDue(await getBackupFrequency(), await listBackups())) return false
@@ -259,8 +268,12 @@ export async function runAutoBackup(): Promise<boolean> {
     } catch (error) {
         reportError(error)
         return false
+    } finally {
+        autoBackupRunning = false
     }
 }
+
+let autoBackupRunning = false
 
 function assertBackupName(name: string): void {
     if (!parseBackupName(name)) throw createError("BACKUP_INVALID_NAME", i18n.t("errors.backup.invalidName"))
