@@ -12,6 +12,8 @@ let sqlite: DatabaseSync
 let failOn: string | null = null
 // Answer of the Rust audio_file_exists command (used by the default existence check)
 let audioFileExists: (path: string) => boolean = () => true
+// Answer of the Rust files_exist command (images and videos)
+let mediaFileExists: (path: string) => boolean = () => true
 
 vi.mock("../dbManager", async () => {
     const { createSqliteDb } = await import("@/test/db-mock")
@@ -23,8 +25,11 @@ vi.mock("@tauri-apps/api/core", async () => {
     const { createSqliteInvoke } = await import("@/test/db-mock")
     const sqliteInvoke = createSqliteInvoke(() => sqlite, { shouldFail: sql => failOn !== null && sql.includes(failOn) })
     return {
-        invoke: vi.fn(async (command: string, args?: { path?: string, statements?: never }) =>
-            command === "audio_file_exists" ? audioFileExists(args?.path ?? "") : sqliteInvoke(command, args)),
+        invoke: vi.fn(async (command: string, args?: { path?: string, paths?: string[], statements?: never }) => {
+            if (command === "audio_file_exists") return audioFileExists(args?.path ?? "")
+            if (command === "files_exist") return (args?.paths ?? []).map(mediaFileExists)
+            return sqliteInvoke(command, args)
+        }),
     }
 })
 
@@ -46,6 +51,7 @@ async function thrown(p: Promise<unknown>): Promise<unknown> {
 beforeEach(() => {
     failOn = null
     audioFileExists = () => true
+    mediaFileExists = () => true
     sqlite = new DatabaseSync(":memory:")
     sqlite.exec("PRAGMA foreign_keys=ON")
     for (const sql of latestSchema) sqlite.exec(sql)
@@ -83,6 +89,7 @@ beforeEach(() => {
         UPDATE section_group SET deleted_at = datetime('now') WHERE id = 3;
 
         INSERT INTO audio_file (name, path, section_groupID) VALUES ('song.mp3', '/x/song.mp3', 1);
+        INSERT INTO media_file (name, path, section_groupID) VALUES ('pic.png', '/x/pic.png', 1);
     `)
 })
 
@@ -102,7 +109,7 @@ describe("buildDBWorkspaceExport", () => {
             INSERT INTO note_template (workspaceID, name, content, deleted_at) VALUES (1, 'T2', '{"version":1,"groups":[]}', datetime('now'));
         `)
         const data = await exportOf()
-        expect(data).toMatchObject({ format: "easytask-workspace", version: 2, workspace: { name: "WS", color: null } })
+        expect(data).toMatchObject({ format: "easytask-workspace", version: 3, workspace: { name: "WS", color: null } })
         expect(data.folders.map(f => f.name)).toEqual(["Cartella"])
         expect(data.folders[0].parentRef).toBeNull()
         expect(data.notes.map(n => n.name).sort()).toEqual(["Nella cartella", "Sorgente"])
@@ -110,6 +117,7 @@ describe("buildDBWorkspaceExport", () => {
         expect(source.folderRef).toBeNull()
         expect(source.content.groups.map(g => g.name)).toEqual(["Sprint", null])
         expect(source.audio).toEqual([{ groupIndex: 0, name: "song.mp3", path: "/x/song.mp3", position: 0 }])
+        expect(source.media).toEqual([{ groupIndex: 0, name: "pic.png", path: "/x/pic.png", position: 0 }])
         expect(data.notes.find(n => n.name === "Nella cartella")!.folderRef).toBe(data.folders[0].ref)
         expect(data.templates.map(t => t.name)).toEqual(["T"])
     })
@@ -164,10 +172,10 @@ describe("validateWorkspaceExport", () => {
         const good = JSON.parse(JSON.stringify(await exportOf()))
         expect(() => validateWorkspaceExport(null)).toThrow(expect.objectContaining({ message: "Il file non è un export di EasyTask." }))
         expect(() => validateWorkspaceExport({ format: "x" })).toThrow(expect.objectContaining({ message: "Il file non è un export di EasyTask." }))
-        // Only the current version (2) is accepted: files of the version without direct tasks are not
-        expect(good.version).toBe(2)
-        expect(() => validateWorkspaceExport({ ...good, version: 1 })).toThrow(expect.objectContaining({ code: "TRANSFER_UNSUPPORTED_VERSION" }))
-        expect(() => validateWorkspaceExport({ ...good, version: 3 })).toThrow(expect.objectContaining({ code: "TRANSFER_UNSUPPORTED_VERSION" }))
+        // Only the current version (3) is accepted: files of the older versions are not
+        expect(good.version).toBe(3)
+        expect(() => validateWorkspaceExport({ ...good, version: 2 })).toThrow(expect.objectContaining({ code: "TRANSFER_UNSUPPORTED_VERSION" }))
+        expect(() => validateWorkspaceExport({ ...good, version: 4 })).toThrow(expect.objectContaining({ code: "TRANSFER_UNSUPPORTED_VERSION" }))
         expect(() => validateWorkspaceExport({ ...good, folders: {} })).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
         expect(() => validateWorkspaceExport({ ...good, workspace: { name: "" } })).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
         const badRef = { ...good, notes: [{ ...good.notes[0], folderRef: "nope" }] }
@@ -176,6 +184,42 @@ describe("validateWorkspaceExport", () => {
         expect(() => validateWorkspaceExport(badAudio)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
         const badContent = { ...good, notes: [{ ...good.notes[0], content: { version: 1 } }] }
         expect(() => validateWorkspaceExport(badContent)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+    })
+})
+
+describe("media in the export file", () => {
+    it("validates the media entries and the optional archive entry name", async () => {
+        const good = JSON.parse(JSON.stringify(await exportOf()))
+        const withMedia = (media: unknown) => ({ ...good, notes: [{ ...good.notes[0], media }, ...good.notes.slice(1)] })
+        const entry = { groupIndex: 0, name: "a.png", path: "/a.png", position: 0 }
+        expect(() => validateWorkspaceExport(withMedia([{ ...entry, file: "files/0_a.png" }]))).not.toThrow()
+        expect(() => validateWorkspaceExport(withMedia([entry]))).not.toThrow()
+        for (const bad of [{ ...entry, groupIndex: 9 }, { ...entry, name: "" }, { ...entry, path: 3 }, { ...entry, file: "" }, { ...entry, file: 4 }, "x"])
+            expect(() => validateWorkspaceExport(withMedia([bad]))).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+        // A note without the media list is a version 2 shape: not accepted
+        const noMedia = { ...good.notes[0] }
+        delete noMedia.media
+        expect(() => validateWorkspaceExport({ ...good, notes: [noMedia] })).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+    })
+
+    it("leaves out the media of a deleted group and of a deleted row", async () => {
+        sqlite.exec(`
+            INSERT INTO media_file (name, path, section_groupID) VALUES ('in-deleted-group.png', '/x/g.png', 3);
+            INSERT INTO media_file (name, path, section_groupID, deleted_at) VALUES ('deleted.png', '/x/d.png', 1, datetime('now'));
+            INSERT INTO media_file (name, path, section_groupID, position) VALUES ('second.mp4', '/x/s.mp4', 2, 0);
+        `)
+        const data = await exportOf()
+        const source = data.notes.find(n => n.name === "Sorgente")!
+        expect(source.media.map(m => [m.groupIndex, m.name])).toEqual([[0, "pic.png"], [1, "second.mp4"]])
+        expect(data.notes.find(n => n.name === "Nella cartella")!.media).toEqual([])
+    })
+
+    it("exports the media of a single note and imports them back as an items file", async () => {
+        const data = await buildDBItemExport("note", 1)
+        expect(data.notes[0].media).toEqual([{ groupIndex: 0, name: "pic.png", path: "/x/pic.png", position: 0 }])
+        const result = await importDBItems(validateWorkspaceExport(JSON.parse(JSON.stringify(data))), 2, null)
+        expect(result.skippedFiles).toBe(0)
+        expect(rows(`SELECT m.name FROM media_file m JOIN section_group g ON g.id = m.section_groupID JOIN note n ON n.id = g.noteID WHERE n.workspaceID = 2`)).toEqual([{ name: "pic.png" }])
     })
 })
 
@@ -212,9 +256,9 @@ describe("direct tasks and width of a group in the export", () => {
 
     it("fixes the blank texts and colors of the direct tasks", () => {
         const base = {
-            format: "easytask-workspace", version: 2, workspace: { name: "W", color: null }, folders: [], templates: [],
+            format: "easytask-workspace", version: 3, workspace: { name: "W", color: null }, folders: [], templates: [],
             notes: [{
-                ref: "n1", folderRef: null, name: "N", color: null, position: 0, audio: [],
+                ref: "n1", folderRef: null, name: "N", color: null, position: 0, audio: [], media: [],
                 content: { version: 1, groups: [{ name: null, position: 0, sections: [], tasks: [
                     { text: "  ", description: null, completed: false, priority: false, color: "", position: 0, subtasks: [] },
                 ] }] },
@@ -269,14 +313,14 @@ describe("importDBWorkspace", () => {
         const second = await importDBWorkspace(data)
         expect(rows(`SELECT name FROM workspace WHERE id IN (${first.workspaceId}, ${second.workspaceId}) ORDER BY id`))
             .toEqual([{ name: "WS (importato)" }, { name: "WS (importato 2)" }])
-        expect(first.skippedAudio).toBe(0)
+        expect(first.skippedFiles).toBe(0)
 
         const again = await buildDBWorkspaceExport(first.workspaceId)
         const strip = (d: typeof data) => ({
             folders: d.folders.map(f => ({ name: f.name, parent: d.folders.find(p => p.ref === f.parentRef)?.name ?? null, position: f.position })),
             notes: d.notes.map(n => ({
                 name: n.name, folder: d.folders.find(f => f.ref === n.folderRef)?.name ?? null,
-                color: n.color, position: n.position, content: n.content, audio: n.audio,
+                color: n.color, position: n.position, content: n.content, audio: n.audio, media: n.media,
             })).sort((a, b) => a.name.localeCompare(b.name)),
             templates: d.templates,
         })
@@ -288,17 +332,74 @@ describe("importDBWorkspace", () => {
         const data = await exportOf()
         const note = data.notes.find(n => n.name === "Sorgente")!
         note.audio.push({ groupIndex: 0, name: "b.mp3", path: "/x/b.mp3", position: 1 }, { groupIndex: 1, name: "c.mp3", path: "/x/c.mp3", position: 0 })
-        const { workspaceId, skippedAudio } = await importDBWorkspace(data, {
+        const { workspaceId, skippedFiles } = await importDBWorkspace(data, {
             audioExists: async path => {
                 if (path.endsWith("b.mp3")) return false
                 if (path.endsWith("c.mp3")) throw new Error("denied")
                 return true
             },
         })
-        expect(skippedAudio).toBe(2)
+        expect(skippedFiles).toBe(2)
         const files = rows(`SELECT a.name FROM audio_file a JOIN section_group g ON g.id = a.section_groupID
             JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId}`)
         expect(files).toEqual([{ name: "song.mp3" }])
+    })
+
+    it("skips images and videos that do not exist, have another extension or repeat a name in the group", async () => {
+        const data = await exportOf()
+        const note = data.notes.find(n => n.name === "Sorgente")!
+        note.media.push(
+            { groupIndex: 0, name: "gone.png", path: "/x/gone.png", position: 1 },
+            { groupIndex: 0, name: "clip.mp4", path: "/x/clip.mp4", position: 2 },
+            { groupIndex: 0, name: "notes.txt", path: "/x/notes.txt", position: 3 },
+            { groupIndex: 0, name: "PIC.png", path: "/x/other.png", position: 4 },
+            { groupIndex: 1, name: "boom.png", path: "/x/boom.png", position: 0 },
+        )
+        mediaFileExists = path => !path.endsWith("gone.png")
+        const checked: string[] = []
+        const { workspaceId, skippedFiles } = await importDBWorkspace(data, {
+            mediaExists: async path => {
+                checked.push(path)
+                if (path.endsWith("boom.png")) throw new Error("denied")
+                return mediaFileExists(path)
+            },
+        })
+        // gone.png (missing), notes.txt (extension), PIC.png (name clash), boom.png (check failed)
+        expect(skippedFiles).toBe(4)
+        expect(checked).not.toContain("/x/notes.txt")
+        const files = rows(`SELECT m.name, m.path FROM media_file m JOIN section_group g ON g.id = m.section_groupID
+            JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId} ORDER BY m.position`)
+        expect(files).toEqual([{ name: "pic.png", path: "/x/pic.png" }, { name: "clip.mp4", path: "/x/clip.mp4" }])
+    })
+
+    it("checks the media of a plain file with the Rust files_exist command by default", async () => {
+        const data = await exportOf()
+        mediaFileExists = () => false
+        const { skippedFiles, workspaceId } = await importDBWorkspace(data)
+        expect(skippedFiles).toBe(1)
+        expect(rows(`SELECT COUNT(*) AS n FROM media_file m JOIN section_group g ON g.id = m.section_groupID JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId}`)).toEqual([{ n: 0 }])
+    })
+
+    it("points the rows of a zip import to the extracted copies and skips the files the archive lacks", async () => {
+        const data = await exportOf()
+        const note = data.notes.find(n => n.name === "Sorgente")!
+        note.audio[0].file = "files/0_song.mp3"
+        note.media[0].file = "files/1_pic.png"
+        note.media.push({ groupIndex: 0, name: "lost.png", path: "/x/lost.png", position: 1, file: "files/2_lost.png" })
+        note.media.push({ groupIndex: 0, name: "proto.png", path: "/x/proto.png", position: 2, file: "__proto__" })
+        const seen: string[] = []
+        const { workspaceId, skippedFiles } = await importDBWorkspace(data, {
+            extractedFiles: { "files/0_song.mp3": "C:\\data\\media\\song.mp3", "files/1_pic.png": "C:\\data\\media\\pic.png" },
+            audioExists: async path => { seen.push(path); return true },
+            mediaExists: async path => { seen.push(path); return true },
+        })
+        expect(skippedFiles).toBe(2)
+        // The original paths are never looked at: only the extracted copies
+        expect(seen.sort()).toEqual(["C:\\data\\media\\pic.png", "C:\\data\\media\\song.mp3"])
+        const audio = rows(`SELECT a.path FROM audio_file a JOIN section_group g ON g.id = a.section_groupID JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId}`)
+        const media = rows(`SELECT m.path FROM media_file m JOIN section_group g ON g.id = m.section_groupID JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId}`)
+        expect(audio).toEqual([{ path: "C:\\data\\media\\song.mp3" }])
+        expect(media).toEqual([{ path: "C:\\data\\media\\pic.png" }])
     })
 
     it("checks each distinct audio path once, at most 20 at a time", async () => {
@@ -307,7 +408,7 @@ describe("importDBWorkspace", () => {
         note.audio = Array.from({ length: 45 }, (_, i) => ({ groupIndex: 0, name: `t${i}.mp3`, path: `/x/${i % 30}.mp3`, position: i }))
         let running = 0, peak = 0
         const calls: string[] = []
-        const { skippedAudio } = await importDBWorkspace(data, {
+        const { skippedFiles } = await importDBWorkspace(data, {
             audioExists: async path => {
                 calls.push(path)
                 running += 1; peak = Math.max(peak, running)
@@ -316,7 +417,7 @@ describe("importDBWorkspace", () => {
                 return true
             },
         })
-        expect(skippedAudio).toBe(0)
+        expect(skippedFiles).toBe(0)
         expect(new Set(calls).size).toBe(30)
         expect(calls).toHaveLength(30)
         expect(peak).toBeGreaterThan(1)
@@ -448,8 +549,8 @@ describe("import hardening", () => {
             { groupIndex: 0, name: "gone.mp3", path: "/x/gone.mp3", position: 2 },
             { groupIndex: 0, name: "UP.MP3", path: "/x/UP.MP3", position: 3 })
         audioFileExists = path => !path.endsWith("gone.mp3")
-        const { workspaceId, skippedAudio } = await importDBWorkspace(validateWorkspaceExport(data))
-        expect(skippedAudio).toBe(2)
+        const { workspaceId, skippedFiles } = await importDBWorkspace(validateWorkspaceExport(data))
+        expect(skippedFiles).toBe(2)
         const files = rows(`SELECT a.name FROM audio_file a JOIN section_group g ON g.id = a.section_groupID
             JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId} ORDER BY a.position`)
         expect(files).toEqual([{ name: "song.mp3" }, { name: "UP.MP3" }])
@@ -458,7 +559,7 @@ describe("import hardening", () => {
     it("treats an error of audio_file_exists as present", async () => {
         const data = await clone()
         audioFileExists = () => { throw new Error("denied") }
-        expect((await importDBWorkspace(validateWorkspaceExport(data))).skippedAudio).toBe(0)
+        expect((await importDBWorkspace(validateWorkspaceExport(data))).skippedFiles).toBe(0)
     })
 
     it("rejects files with more than the maximum number of items", async () => {
@@ -486,7 +587,7 @@ describe("items export and import", () => {
 
     it("exports a note as an items file with the note at the top", async () => {
         const data = await json("note", 1)
-        expect(data).toMatchObject({ format: "easytask-workspace", version: 2, scope: "items", workspace: { name: "Sorgente", color: "#ff0000" }, folders: [], templates: [] })
+        expect(data).toMatchObject({ format: "easytask-workspace", version: 3, scope: "items", workspace: { name: "Sorgente", color: "#ff0000" }, folders: [], templates: [] })
         expect(data.notes).toHaveLength(1)
         expect(data.notes[0]).toMatchObject({ name: "Sorgente", folderRef: null })
         expect(data.notes[0].content.groups.map((g: { name: string | null }) => g.name)).toEqual(["Sprint", null])
@@ -540,7 +641,7 @@ describe("items export and import", () => {
     it("imports a note at the root with a free name, appended after the siblings", async () => {
         const data = validateWorkspaceExport(await json("note", 1))
         const result = await importDBItems(data, 1, null)
-        expect(result.skippedAudio).toBe(0)
+        expect(result.skippedFiles).toBe(0)
         expect(result.items).toHaveLength(1)
         expect(result.items[0]).toMatchObject({ type: "note", name: "Sorgente (2)" })
         const created = rows(`SELECT * FROM note WHERE id = ${result.items[0].id}`)[0]
@@ -596,8 +697,8 @@ describe("items export and import", () => {
 
     it("skips missing audio and reports it", async () => {
         const data = validateWorkspaceExport(await json("note", 1))
-        const { skippedAudio, items } = await importDBItems(data, 1, null, { audioExists: async () => false })
-        expect(skippedAudio).toBe(1)
+        const { skippedFiles, items } = await importDBItems(data, 1, null, { audioExists: async () => false })
+        expect(skippedFiles).toBe(1)
         expect(rows(`SELECT COUNT(*) AS c FROM audio_file a JOIN section_group g ON g.id = a.section_groupID WHERE g.noteID = ${items[0].id}`)[0].c).toBe(0)
     })
 

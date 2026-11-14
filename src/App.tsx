@@ -5,6 +5,7 @@ import { WorkspaceDataProvider } from './contexts/workspace-data'
 import { UndoProvider } from './contexts/undo'
 import { AutomationsProvider } from './contexts/automations-context'
 import { ImportNamesProvider } from './contexts/import-names-context'
+import { ExportFilesProvider } from './contexts/export-files-context'
 import { PreferencesProvider } from './contexts/preferences-context'
 import { ThemeProvider } from './components/theme-provider'
 import { TooltipProvider } from './components/ui/tooltip'
@@ -62,6 +63,7 @@ function App() {
             <AutomationsProvider>
             {/* No transitions: a route that is not ready yet shows its loading page at once, instead of the old page frozen until the new one is ready */}
             <ImportNamesProvider>
+            <ExportFilesProvider>
             <HashRouter useTransitions={false}>
               <Routes>
                 <Route path='/' element={
@@ -76,6 +78,7 @@ function App() {
                 } />
               </Routes>
             </HashRouter>
+            </ExportFilesProvider>
             </ImportNamesProvider>
             </AutomationsProvider>
             </UndoProvider>

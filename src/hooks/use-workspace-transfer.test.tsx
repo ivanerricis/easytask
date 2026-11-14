@@ -26,8 +26,8 @@ import { useWorkspaceTransfer } from "./use-workspace-transfer"
 
 beforeEach(() => {
     vi.clearAllMocks()
-    exportWorkspaceToFile.mockResolvedValue(true)
-    importWorkspaceFromFile.mockResolvedValue({ workspaceId: 4, skippedAudio: 0 })
+    exportWorkspaceToFile.mockResolvedValue({ missingFiles: 0 })
+    importWorkspaceFromFile.mockResolvedValue({ workspaceId: 4, skippedFiles: 0 })
     getWorkspaces.mockResolvedValue(undefined)
     flushAll.mockResolvedValue(undefined)
 })
@@ -37,14 +37,14 @@ describe("useWorkspaceTransfer", () => {
         const { result } = renderHook(() => useWorkspaceTransfer())
         await act(() => result.current.exportWorkspace({ id: 3, name: "Casa" }))
         expect(flushAll).toHaveBeenCalledTimes(1)
-        expect(exportWorkspaceToFile).toHaveBeenCalledWith({ id: 3, name: "Casa" })
+        expect(exportWorkspaceToFile).toHaveBeenCalledWith({ id: 3, name: "Casa" }, expect.objectContaining({ onProgress: expect.any(Function) }))
         expect(flushAll.mock.invocationCallOrder[0]).toBeLessThan(exportWorkspaceToFile.mock.invocationCallOrder[0])
         expect(toast.success).toHaveBeenCalledWith("Workspace esportato")
         expect(result.current.isBusy).toBe(false)
     })
 
     it("stays silent when the export dialog is cancelled", async () => {
-        exportWorkspaceToFile.mockResolvedValue(false)
+        exportWorkspaceToFile.mockResolvedValue(null)
         const { result } = renderHook(() => useWorkspaceTransfer())
         await act(() => result.current.exportWorkspace({ id: 3, name: "Casa" }))
         expect(toast.success).not.toHaveBeenCalled()
@@ -72,16 +72,16 @@ describe("useWorkspaceTransfer", () => {
         const { result } = renderHook(() => useWorkspaceTransfer())
         await act(() => result.current.importWorkspace())
         // Outside the ImportNamesProvider no dialog is shown: the proposed name is used
-        expect(importWorkspaceFromFile).toHaveBeenCalledWith(undefined)
+        expect(importWorkspaceFromFile).toHaveBeenCalledWith(undefined, expect.any(Function))
         expect(getWorkspaces).toHaveBeenCalledTimes(1)
         expect(toast.success).toHaveBeenCalledWith("Workspace importato")
     })
 
-    it("reports skipped audio files", async () => {
-        importWorkspaceFromFile.mockResolvedValue({ workspaceId: 4, skippedAudio: 3 })
+    it("reports skipped files", async () => {
+        importWorkspaceFromFile.mockResolvedValue({ workspaceId: 4, skippedFiles: 3 })
         const { result } = renderHook(() => useWorkspaceTransfer())
         await act(() => result.current.importWorkspace())
-        expect(toast.success).toHaveBeenCalledWith("Workspace importato · 3 audio saltati")
+        expect(toast.success).toHaveBeenCalledWith("Workspace importato · 3 file saltati")
     })
 
     it("does nothing when the import dialog is cancelled", async () => {

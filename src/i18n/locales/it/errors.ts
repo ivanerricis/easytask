@@ -98,6 +98,7 @@ export const errors = {
     },
     transfer: {
         invalidFile: "Il file non è un export di EasyTask.",
+        invalidZip: "Il file non è uno zip di EasyTask valido: è danneggiato o non sicuro.",
         malformed: "Il file di export è danneggiato o incompleto.",
         workspaceMissing: "Il workspace non esiste più.",
         unsupportedVersion: "La versione del file di export non è supportata.",

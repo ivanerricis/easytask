@@ -100,6 +100,7 @@ export const errors: Translation["errors"] = {
     },
     transfer: {
         invalidFile: "The file is not an EasyTask export.",
+        invalidZip: "The file is not a valid EasyTask zip: it is damaged or unsafe.",
         malformed: "The export file is damaged or incomplete.",
         workspaceMissing: "The workspace no longer exists.",
         unsupportedVersion: "The export file version is not supported.",

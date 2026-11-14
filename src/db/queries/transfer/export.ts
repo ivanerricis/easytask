@@ -9,32 +9,45 @@ import { buildNotesContent, parseTemplateContent } from "../template"
 import { getDBAutomationsByNote, toPortableAutomations } from "../automation"
 import { chunked, placeholders } from "../sql"
 
-type AudioRow = { section_groupID: number, name: string, path: string, position: number }
+type LinkedFileRow = { section_groupID: number, name: string, path: string, position: number }
+
+/** The linked files (audio or media rows) of the given notes, by note ID: not deleted, in a group that is not deleted. */
+async function loadLinkedFiles(db: Database, table: "audio_file" | "media_file", noteIds: number[]): Promise<Map<number, LinkedFileRow[]>> {
+    const byNote = new Map<number, LinkedFileRow[]>()
+    // The chunks are independent reads (each note is in one chunk only): run them together, merge in chunk order
+    const chunks = await Promise.all(chunked(noteIds).map(ids => db.select<(LinkedFileRow & { noteID: number })[]>(
+        `SELECT a.section_groupID, a.name, a.path, a.position, g.noteID FROM ${table} a
+         INNER JOIN section_group g ON g.id = a.section_groupID
+         WHERE g.noteID IN (${placeholders(ids.length)}) AND g.deleted_at IS NULL AND a.deleted_at IS NULL
+         ORDER BY a.position, a.id`, ids)))
+    for (const rows of chunks) {
+        for (const row of rows) {
+            const list = byNote.get(row.noteID)
+            if (list) list.push(row)
+            else byNote.set(row.noteID, [row])
+        }
+    }
+    return byNote
+}
+
+/** The rows of a note as export entries (a row of a group that is not in the content is left out). */
+const toExportFiles = (rows: LinkedFileRow[] | undefined, groupIndex: Map<number, number>): ExportAudio[] =>
+    (rows ?? []).flatMap((file): ExportAudio[] => {
+        const index = groupIndex.get(file.section_groupID)
+        return index === undefined ? [] : [{ groupIndex: index, name: file.name, path: file.path, position: file.position }]
+    })
 
 type ExportEntry ={ note: Note & { color: string | null }, folderRef: string | null }
 
 /**
- * Exports notes (content and audio paths), in the given order; `folderRef` is where each note sits inside the file.
+ * Exports notes (content, audio and media paths), in the given order; `folderRef` is where each note sits inside the file.
  * The rows of all the notes are loaded in bulk (a few selects for the whole list), not note by note.
  */
 async function buildNotesExport(db: Database, entries: ExportEntry[]): Promise<ExportNote[]> {
     const noteIds = entries.map(({ note }) => note.id)
     const [contents, rules] = await Promise.all([buildNotesContent(noteIds, true), getDBAutomationsByNote(noteIds)])
 
-    const audioByNote = new Map<number, AudioRow[]>()
-    // The chunks are independent reads (each note is in one chunk only): run them together, merge in chunk order
-    const audioChunks = await Promise.all(chunked(noteIds).map(ids => db.select<(AudioRow & { noteID: number })[]>(
-        `SELECT a.section_groupID, a.name, a.path, a.position, g.noteID FROM audio_file a
-         INNER JOIN section_group g ON g.id = a.section_groupID
-         WHERE g.noteID IN (${placeholders(ids.length)}) AND g.deleted_at IS NULL AND a.deleted_at IS NULL
-         ORDER BY a.position, a.id`, ids)))
-    for (const rows of audioChunks) {
-        for (const row of rows) {
-            const list = audioByNote.get(row.noteID)
-            if (list) list.push(row)
-            else audioByNote.set(row.noteID, [row])
-        }
-    }
+    const [audioByNote, mediaByNote] = await Promise.all([loadLinkedFiles(db, "audio_file", noteIds), loadLinkedFiles(db, "media_file", noteIds)])
 
     return entries.map(({ note, folderRef }): ExportNote => {
         const { content, sectionIds, groupIds, defaultSectionIds } = contents.get(note.id)!
@@ -51,10 +64,8 @@ async function buildNotesExport(db: Database, entries: ExportEntry[]): Promise<E
             position: note.position,
             content,
             ...(automations.length > 0 ? { automations } : {}),
-            audio: (audioByNote.get(note.id) ?? []).flatMap((file): ExportAudio[] => {
-                const index = groupIndex.get(file.section_groupID)
-                return index === undefined ? [] : [{ groupIndex: index, name: file.name, path: file.path, position: file.position }]
-            }),
+            audio: toExportFiles(audioByNote.get(note.id), groupIndex),
+            media: toExportFiles(mediaByNote.get(note.id), groupIndex),
         }
     })
 }
