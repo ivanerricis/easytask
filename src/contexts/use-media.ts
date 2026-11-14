@@ -1,8 +1,10 @@
 import i18n from "@/i18n"
 import { useContext, useEffect, useState } from "react"
+import { toast } from "sonner"
 import { convertFileSrc, invoke } from "@tauri-apps/api/core"
 import type { MediaFile } from "@/types/types"
 import { getDBGroupMediaFiles, getDBNoteMediaCounts } from "@/db/queries/media"
+import { getErrorMessage } from "@/lib/utils"
 import { reportError } from "@/lib/report-error"
 import { createRequiredContextHook } from "@/lib/required-context"
 import { AudioFilesContext } from "./audio-context-object"
@@ -59,6 +61,35 @@ export function useNoteMediaCounts(noteId: number | null, enabled = true): Recor
     }, [noteId, enabled, version])
 
     return enabled && loaded?.noteId === noteId ? loaded.counts : EMPTY_COUNTS
+}
+
+/**
+ * Opens an image or a video with the default app of the system (for the formats the webview cannot show). The Rust command
+ * only opens existing files with an image or video extension; a failure is told with a toast.
+ * @param path Absolute path of the file.
+ * @category Audio Context
+ */
+export async function openWithDefaultApp(path: string) {
+    try {
+        await invoke("open_media_file", { path })
+    } catch (error) {
+        toast.error(i18n.t("media.openError", { message: getErrorMessage(error) }))
+    }
+}
+
+/**
+ * Tells whether a file is still at its path. Used when an image or video fails to load, to tell a file that is gone
+ * (missing) from one the webview cannot decode (unsupported format). A failed check counts as "still there".
+ * @param path Absolute path of the file.
+ * @category Audio Context
+ */
+export async function fileStillExists(path: string): Promise<boolean> {
+    try {
+        const results = await invoke<boolean[]>("files_exist", { paths: [path] })
+        return results?.[0] !== false
+    } catch {
+        return true
+    }
 }
 
 const NONE = new Set<string>()

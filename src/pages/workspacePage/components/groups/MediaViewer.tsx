@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { useState, type KeyboardEvent, type PointerEvent, type SyntheticEvent, type WheelEvent } from "react"
-import { ChevronLeft, ChevronRight, FileWarning } from "lucide-react"
+import { ChevronLeft, ChevronRight, ExternalLink, FileWarning } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { fileStillExists, openWithDefaultApp } from "@/contexts/use-media"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { getMediaKind } from "@/db/queries/media"
 import type { MediaFile } from "@/types/types"
@@ -84,8 +85,10 @@ type MediaViewerProps = {
  */
 export const MediaViewer = ({ files, sources, index, onIndexChange, onClose }: MediaViewerProps) => {
     const { t } = useTranslation()
-    // The files that failed to load, by path: shown as a message instead of a broken image
-    const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set())
+    // The files that failed to load, by path: "unsupported" (there, but the webview cannot decode it) or "gone" (not there any more)
+    const [failed, setFailed] = useState<Readonly<Record<string, "unsupported" | "gone">>>({})
+    const fail = (path: string) => void fileStillExists(path).then(exists =>
+        setFailed(previous => ({ ...previous, [path]: exists ? "unsupported" : "gone" })))
     const file = index === null ? undefined : files[index]
     // The last shown file stays while the dialog fades out
     const [last, setLast] = useState<{ file: MediaFile, index: number } | null>(null)
@@ -133,21 +136,23 @@ export const MediaViewer = ({ files, sources, index, onIndexChange, onClose }: M
                 <div className="relative min-h-0 px-16 pb-4">
                     {!src
                         ? <Notice text={t("media.viewer.missing")} />
-                        : failed.has(shown.path)
-                            ? <Notice text={t("media.viewer.loadError")} />
+                        : failed[shown.path] === "gone"
+                            ? <Notice text={t("media.viewer.missing")} />
+                        : failed[shown.path] === "unsupported"
+                            ? <Notice title={t("media.unsupported")} text={t("media.viewer.loadError")} action={{ label: t("media.openWithDefault"), onClick: () => void openWithDefaultApp(shown.path) }} />
                             : kind === "video"
                                 ? <video
                                     key={shown.id}
                                     src={src}
                                     controls
-                                    onError={() => setFailed(previous => new Set(previous).add(shown.path))}
+                                    onError={() => fail(shown.path)}
                                     className="size-full object-contain"
                                 />
                                 : <ViewerImage
                                     key={shown.id}
                                     file={shown}
                                     src={src}
-                                    onError={() => setFailed(previous => new Set(previous).add(shown.path))}
+                                    onError={() => fail(shown.path)}
                                 />}
                     <Button
                         type="button"
@@ -177,9 +182,14 @@ export const MediaViewer = ({ files, sources, index, onIndexChange, onClose }: M
     )
 }
 
-const Notice = ({ text }: { text: string }) => (
-    <div role="status" className="flex size-full flex-col items-center justify-center gap-2 text-sm text-white/80">
+const Notice = ({ title, text, action }: { title?: string, text: string, action?: { label: string, onClick: () => void } }) => (
+    <div role="status" className="flex size-full flex-col items-center justify-center gap-2 text-center text-sm text-white/80">
         <FileWarning className="size-8" aria-hidden />
-        <p>{text}</p>
+        {title && <p className="text-base font-semibold text-white">{title}</p>}
+        <p className="max-w-md">{text}</p>
+        {action && <Button type="button" variant="secondary" onClick={action.onClick}>
+            <ExternalLink />
+            {action.label}
+        </Button>}
     </div>
 )

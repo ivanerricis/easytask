@@ -323,16 +323,75 @@ describe("images and videos of a group", () => {
         expect(image.style.transform).toContain("translate(40px, 20px)")
     })
 
-    it("an image or video that cannot be decoded shows a message instead of a broken file", async () => {
+    it("an image or video the webview cannot decode says the format is not supported and offers the default app", async () => {
         const user = userEvent.setup()
         renderGroup()
         await user.click(await screen.findByRole("button", { name: "Apri a.jpg" }))
         const dialog = await screen.findByRole("dialog", { name: "Visualizzatore" })
         fireEvent.error(within(dialog).getByRole("img", { name: "a.jpg" }))
-        expect(await within(dialog).findByRole("status")).toHaveTextContent("Impossibile mostrare il file")
+        expect(await within(dialog).findByRole("status")).toHaveTextContent("Formato non riproducibile")
+        await user.click(within(dialog).getByRole("button", { name: "Apri con l'app predefinita" }))
+        expect(invoke).toHaveBeenCalledWith("open_media_file", { path: "C:\\Pics\\a.jpg" })
         await user.keyboard("{ArrowRight}{ArrowRight}")
         fireEvent.error(dialog.querySelector("video")!)
-        expect(await within(dialog).findByRole("status")).toHaveTextContent("Impossibile mostrare il file")
+        expect(await within(dialog).findByRole("status")).toHaveTextContent("Formato non riproducibile")
+        await user.click(within(dialog).getByRole("button", { name: "Apri con l'app predefinita" }))
+        expect(invoke).toHaveBeenCalledWith("open_media_file", { path: "C:\\Pics\\clip.mp4" })
+    })
+
+    it("a file that fails to load because it is gone says not found, not unsupported", async () => {
+        const user = userEvent.setup()
+        renderGroup()
+        await user.click(await screen.findByRole("button", { name: "Apri a.jpg" }))
+        const dialog = await screen.findByRole("dialog", { name: "Visualizzatore" })
+        existing = () => false
+        fireEvent.error(within(dialog).getByRole("img", { name: "a.jpg" }))
+        expect(await within(dialog).findByRole("status")).toHaveTextContent("File non trovato")
+        expect(within(dialog).queryByRole("button", { name: "Apri con l'app predefinita" })).toBeNull()
+    })
+
+    it("the thumbnail of a file that cannot be decoded shows the state and the row gets the button to open it with the default app", async () => {
+        const user = userEvent.setup()
+        renderGroup()
+        const list = await screen.findByRole("list", { name: "Immagini e video" })
+        await waitFor(() => expect(list.querySelectorAll("img")).toHaveLength(2))
+        expect(list.querySelector("img")).toHaveAttribute("decoding", "async")
+        expect(list.querySelector("img")).toHaveAttribute("loading", "lazy")
+        expect(screen.queryByRole("button", { name: "Apri con l'app predefinita" })).toBeNull()
+
+        fireEvent.error(list.querySelector("video")!)
+        const row = (await screen.findAllByRole("listitem"))[2]
+        expect(await within(row).findByRole("img", { name: "Formato non riproducibile" })).toBeInTheDocument()
+        await user.click(within(row).getByRole("button", { name: "Apri con l'app predefinita" }))
+        expect(invoke).toHaveBeenCalledWith("open_media_file", { path: "C:\\Pics\\clip.mp4" })
+        // The other rows are untouched
+        expect(within((await screen.findAllByRole("listitem"))[0]).queryByRole("button", { name: "Apri con l'app predefinita" })).toBeNull()
+    })
+
+    it("an image that fails to load because it is gone gets no unsupported state in its thumbnail", async () => {
+        renderGroup()
+        const list = await screen.findByRole("list", { name: "Immagini e video" })
+        await waitFor(() => expect(list.querySelectorAll("img")).toHaveLength(2))
+        existing = () => false
+        fireEvent.error(list.querySelector("img")!)
+        await waitFor(() => expect(invoke).toHaveBeenCalledWith("files_exist", { paths: ["C:\\Pics\\a.jpg"] }))
+        expect(screen.queryByRole("img", { name: "Formato non riproducibile" })).toBeNull()
+    })
+
+    it("a failing default app is reported with a toast", async () => {
+        const user = userEvent.setup()
+        renderGroup()
+        await user.click(await screen.findByRole("button", { name: "Apri a.jpg" }))
+        const dialog = await screen.findByRole("dialog", { name: "Visualizzatore" })
+        fireEvent.error(within(dialog).getByRole("img", { name: "a.jpg" }))
+        const invokeMock = vi.mocked(invoke)
+        const previous = invokeMock.getMockImplementation()!
+        invokeMock.mockImplementation(async (command, args) => {
+            if (command === "open_media_file") throw "no app"
+            return previous(command, args)
+        })
+        await user.click(await within(dialog).findByRole("button", { name: "Apri con l'app predefinita" }))
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("no app")))
     })
 
     it("the viewer says so when it moves to a file that is gone (it has no URL)", async () => {

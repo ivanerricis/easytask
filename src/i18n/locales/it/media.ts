@@ -6,6 +6,9 @@ export const media = {
     added_other: "{{count}} file multimediali aggiunti",
     addError: "Impossibile aggiungere le immagini o i video: {{message}}",
     open: "Apri {{name}}",
+    unsupported: "Formato non riproducibile",
+    openWithDefault: "Apri con l'app predefinita",
+    openError: "Impossibile aprire il file con l'app predefinita: {{message}}",
     missing: {
         description: "Il file non si trova più nel percorso salvato: potrebbe essere stato spostato o eliminato. Puoi indicare il nuovo percorso oppure eliminare il riferimento.",
     },
@@ -16,7 +19,7 @@ export const media = {
         next: "Successivo",
         position: "{{current}} / {{total}}",
         missing: "File non trovato: aggiorna il percorso dal menu del file.",
-        loadError: "Impossibile mostrare il file (formato non supportato o file non leggibile).",
+        loadError: "Questo formato non può essere mostrato qui (per esempio manca il codec). Puoi aprire il file con l'app predefinita del sistema.",
         zoomHint: "Rotella per ingrandire, doppio clic per riportare alla dimensione originale",
     },
 }

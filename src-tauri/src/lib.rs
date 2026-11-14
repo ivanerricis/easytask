@@ -305,6 +305,24 @@ async fn allow_media_file(app: tauri::AppHandle, path: String) -> Result<(), Str
     .map_err(|error| error.to_string())?
 }
 
+/// Opens an image or a video with the default app of the system (for the formats the webview cannot play).
+/// Only existing files with an image or video extension are opened, so the command cannot launch anything else.
+#[tauri::command]
+async fn open_media_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        use tauri_plugin_opener::OpenerExt;
+
+        if !is_media_file(&path) {
+            return Err("media file not found".to_string());
+        }
+        app.opener()
+            .open_path(path, None::<&str>)
+            .map_err(|error| error.to_string())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 /// Tells, for each path and in the same order, whether the file linked to a group (audio, image or video) still exists.
 /// One call checks a whole list, so the missing markers need no command per file. Like `audio_file_exists` only files with
 /// an audio, image or video extension are considered, so the command cannot be used to probe other paths.
@@ -773,6 +791,7 @@ pub fn run() {
             audio_file_exists,
             allow_audio_file,
             allow_media_file,
+            open_media_file,
             files_exist,
             audio_metadata,
             db_transaction,
