@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { lazyWithPreload, preloadWhenIdle } from "@/lib/lazy-preload"
+import { lazyNamed, preloadWhenIdle } from "@/lib/lazy-preload"
 import { OPEN_SETTINGS_EVENT } from "@/lib/updater"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,7 @@ import { Settings } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { LazyMount } from "@/components/lazy-mount"
 
-const DialogSettingsContent = lazyWithPreload(() => import("./dialog-settings-content").then(m => ({ default: m.DialogSettingsContent })))
+const DialogSettingsContent = lazyNamed(() => import("./dialog-settings-content"), "DialogSettingsContent")
 preloadWhenIdle(DialogSettingsContent)
 
 type DialogSettingsProps = {
