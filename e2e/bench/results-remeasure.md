@@ -35,4 +35,5 @@ within +-5% in either direction.
 ## Verified separately
 
 vitest (hit zones after a resize, snapshot without the applied shifts, a row gliding back, the provider re-syncing the rows) and the
-e2e specs live-drag, drop-feedback and free-order pass on the new build (see the PR description).
+e2e specs live-drag (11), drop-feedback (8) and free-order (9) pass on the new build. live-drag-scroll could not run on this machine: its
+setup fails on the baseline build too ("the window did not reach 1200x800: inner size 0x0").
