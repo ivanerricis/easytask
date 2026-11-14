@@ -22,7 +22,6 @@ import { ButtonImportItems } from "./ButtonImportItems"
 import { ComboboxWorkspace } from "../combobox-workspace"
 import { ButtonCloseNotes } from "../ButtonCloseNotes"
 import { ButtonCollapseItems } from "./ButtonCollapseItems"
-import { ButtonUpload } from "./ButtonUpload"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useWorkspaceTransfer } from "@/hooks/use-workspace-transfer"
 import { useShortcut } from "@/hooks/use-shortcut"
@@ -118,7 +117,6 @@ export const SideBarLeft = () => {
                             <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 bg-foreground/30" />
                             <div className="flex items-center gap-0.5">
                                 <ButtonImportItems />
-                                <ButtonUpload />
                             </div>
                             <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 bg-foreground/30" />
                             <div className="flex items-center gap-0.5">

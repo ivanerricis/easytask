@@ -13,7 +13,6 @@ In cima alla barra laterale ci sono dei pulsanti, in tre gruppi:
 | ----------------------------------------- | --------------------------------------------------------------- |
 | **Nuova cartella**, **Nuova nota**, **Nuova nota da template** | Creano elementi. Vedi sotto.               |
 | **Importa una nota o una cartella**       | Importa un file `.easytask.json` di una nota o di una cartella. |
-| Aggiungi file audio                       | Aggiunge file audio al primo gruppo della nota aperta. Vedi [File audio](./audio). |
 | **Comprimi tutte le cartelle** / **Espandi tutte le cartelle** | Chiude o apre tutte le cartelle in un colpo. |
 | **Chiudi tutte le note**                  | Chiude tutti i tab aperti.                                  |
 

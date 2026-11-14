@@ -119,7 +119,6 @@ export const sidebar = {
     trashBadge_other: "{{count}} elementi nel cestino",
     archiveBadge_one: "{{count}} elemento nell'archivio",
     archiveBadge_other: "{{count}} elementi nell'archivio",
-    addAudioFirstGroup: "Aggiungi file audio al primo gruppo della nota",
     expandAll: "Espandi tutte le cartelle",
     collapseAll: "Comprimi tutte le cartelle",
     info: {
