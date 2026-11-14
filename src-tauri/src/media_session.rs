@@ -1,6 +1,6 @@
 //! The media session of the system (Windows): the volume flyout, the lock screen and the media keys show the track of
 //! the audio player and drive it. WebView2 has its own one, but it belongs to msedgewebview2.exe, which Windows shows as
-//! "Unknown app": it is turned off (see the browser args in lib.rs) and this one is published for the window of the
+//! "Unknown app": it is turned off (see the browser args in window.rs) and this one is published for the window of the
 //! app, so Windows shows the name and the icon of EasyTask. The page calls the commands below and listens to
 //! `MEDIA_ACTION_EVENT`; on the other systems the commands do nothing and the page keeps `navigator.mediaSession`.
 
