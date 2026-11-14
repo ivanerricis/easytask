@@ -3,6 +3,7 @@ export const window = {
     maximize: "Ingrandisci",
     restore: "Ripristina",
     close: "Chiudi la finestra",
+    shortcuts: "Scorciatoie da tastiera",
 }
 
 export const appMenu = {
