@@ -4,6 +4,31 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-14
+
+### Aggiunto
+
+- Tag sui task: dai a un task uno o più tag colorati dal suo menu, dal menu della selezione multipla o dal pannello dei dettagli; i tag sono per workspace, si possono rinominare, ricolorare ed eliminare, seguono annulla e ripeti, viaggiano con esportazioni, template e duplicati, e le automazioni possono aggiungerli o toglierli.
+- Immagini e video nei gruppi: aggiungili dal menu del gruppo, li vedi impilati con una miniatura sotto i file audio e li apri in un visualizzatore a tutta finestra con zoom, controlli del video e frecce per passare al successivo. Un formato non riproducibile offre di aprire il file con l'app predefinita.
+- Le righe di audio, immagini e video mostrano un segno quando il file è stato spostato o eliminato, così puoi correggere il percorso.
+- Le esportazioni possono includere i file collegati: l'app lo chiede prima, con la dimensione stimata, e scrive un unico .zip con una barra di avanzamento; importando uno .zip i file vengono copiati nella cartella dati dell'app.
+- Un'impostazione in Impostazioni > Note sceglie l'aspetto di un gruppo chiuso: una striscia verticale stretta (predefinita) o una barra orizzontale che mantiene la larghezza.
+- Un pulsante "?" nella barra del titolo mostra le scorciatoie da tastiera.
+
+### Modificato
+
+- La barra laterale sinistra ha una sola fila di pulsanti, senza separatori; il pulsante che aggiungeva file audio al primo gruppo non c'è più (si aggiungono dal menu di ogni gruppo).
+- Le date seguono la lingua dell'app (in italiano GG/MM/AAAA).
+- Trascinare task, section e gruppi nelle note grandi è più leggero all'inizio e al rilascio.
+- I backup automatici partono anche quando l'app è nascosta nel tray.
+- Alcuni messaggi di errore ora sono tradotti invece di mostrare testo tecnico.
+
+### Corretto
+
+- Se la copia di sicurezza prima di un aggiornamento del database fallisce, l'app chiede se continuare o uscire invece di aggiornare senza copia, e ogni aggiornamento del database viene applicato tutto insieme o per niente.
+- L'app non dà più alla finestra l'accesso alla sua cartella dati (database e impostazioni) tramite il protocollo dei file; i file audio e media collegati vengono permessi uno per uno.
+- Le impostazioni che non si salvano alla chiusura vengono riprovate e segnalate invece di andare perse in silenzio.
+
 ## [0.23.0] - 2026-11-13
 
 ### Aggiunto
@@ -558,7 +583,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0

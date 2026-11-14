@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-14
+
+### Added
+
+- Tags on tasks: give a task one or more colored tags from its menu, the multi-selection menu or the details panel; tags are per workspace, can be renamed, recolored and deleted, follow undo and redo, travel with exports, templates and duplicates, and automations can add or remove them.
+- Images and videos in groups: add them from the group menu, see them stacked with a thumbnail under the audio files, and open them in a full-window viewer with zoom, video controls and the arrow keys to move to the next one. A format that can't be played offers to open the file with the default app.
+- Audio, image and video rows show a mark when their file has been moved or deleted, so you can fix the path.
+- Exports can include the linked files: the app asks first, with the estimated size, and writes a single .zip with a progress bar; importing a .zip copies the files into the app's data folder.
+- A setting in Settings > Notes chooses how a closed group looks: a narrow vertical strip (default) or a horizontal bar that keeps its width.
+- A "?" button in the title bar shows the keyboard shortcuts.
+
+### Changed
+
+- The left sidebar has a single row of buttons, without dividers; the button that added audio files to the first group is gone (add them from each group's menu).
+- Dates follow the language of the app (in Italian DD/MM/YYYY).
+- Dragging tasks, sections and groups in big notes is lighter at the start and at the drop.
+- Automatic backups also run while the app is hidden in the tray.
+- Some error messages are now translated instead of showing technical text.
+
+### Fixed
+
+- If the safety copy before a database update fails, the app asks whether to go on or exit instead of updating without a copy, and each database update is applied all at once or not at all.
+- The app no longer gives the window access to its data folder (database and settings) through the file protocol; linked audio and media files are allowed one by one.
+- Settings that fail to save on close are retried and reported instead of being lost silently.
+
 ## [0.23.0] - 2026-11-13
 
 ### Added
@@ -561,7 +586,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.24.0...HEAD
+[0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/ivanerricis/easytask/compare/v0.20.0...v0.21.0
