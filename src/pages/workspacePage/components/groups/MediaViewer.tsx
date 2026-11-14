@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next"
-import { useState, type KeyboardEvent, type PointerEvent, type WheelEvent } from "react"
+import { useState, type KeyboardEvent, type PointerEvent, type SyntheticEvent, type WheelEvent } from "react"
 import { ChevronLeft, ChevronRight, FileWarning } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { getMediaKind } from "@/db/queries/media"
 import type { MediaFile } from "@/types/types"
+
+/** The viewer is portaled, but React events still bubble to the note (its background menu, the selection of tasks...): they stop here. */
+const keepInside = (event: SyntheticEvent) => event.stopPropagation()
 
 const MIN_ZOOM = 1
 const MAX_ZOOM = 10
@@ -111,6 +114,10 @@ export const MediaViewer = ({ files, sources, index, onIndexChange, onClose }: M
         <Dialog open={index !== null} onOpenChange={isOpen => { if (!isOpen) onClose() }}>
             <DialogContent
                 onKeyDownCapture={handleKeyDown}
+                onKeyDown={keepInside}
+                onContextMenu={keepInside}
+                onPointerDown={keepInside}
+                onPointerUp={keepInside}
                 className="top-0 left-0 h-dvh max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_minmax(0,1fr)] gap-0 rounded-none border-0 bg-black/95 p-0 text-white sm:max-w-none"
             >
                 <DialogTitle className="sr-only">{t("media.viewer.title")}</DialogTitle>

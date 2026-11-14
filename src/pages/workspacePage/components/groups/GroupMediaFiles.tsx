@@ -115,7 +115,8 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen }: MediaFileRowProps
                 <button
                     type="button"
                     title={file.path}
-                    aria-label={t("media.open", { name: file.name })}
+                    // The state is part of the name: the icon inside is not read when the label replaces the content
+                    aria-label={missing ? `${t("media.open", { name: file.name })} (${t("audio.missing.title")})` : t("media.open", { name: file.name })}
                     onClick={onOpen}
                     className={cn(focusRing, "flex min-w-0 flex-1 items-center gap-2 py-1 rounded-xs cursor-pointer text-left")}
                 >

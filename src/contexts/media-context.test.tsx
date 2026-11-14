@@ -141,7 +141,7 @@ describe("images and videos of a group", () => {
         vi.mocked(open).mockResolvedValue("D:\\New\\b.png")
         renderGroup()
         await waitFor(() => expect(screen.getAllByRole("listitem")[1]).toHaveAttribute("data-missing", "true"))
-        await user.click(screen.getByRole("button", { name: "Apri b.png" }))
+        await user.click(screen.getByRole("button", { name: "Apri b.png (File non trovato)" }))
         const dialog = (await screen.findByText("File non trovato")).closest("[role=alertdialog],[role=dialog]") as HTMLElement
         expect(within(dialog).getByText("File non trovato")).toBeInTheDocument()
         expect(within(dialog).getByText("C:\\Pics\\b.png")).toBeInTheDocument()
@@ -158,7 +158,7 @@ describe("images and videos of a group", () => {
         const user = userEvent.setup()
         renderGroup()
         await waitFor(() => expect(screen.getAllByRole("listitem")[1]).toHaveAttribute("data-missing", "true"))
-        await user.click(screen.getByRole("button", { name: "Apri b.png" }))
+        await user.click(screen.getByRole("button", { name: "Apri b.png (File non trovato)" }))
         await user.click(await screen.findByRole("button", { name: "Elimina riferimento" }))
         await waitFor(() => expect(workspaceActions.deleteItem).toHaveBeenCalledWith("media_file", 2))
     })
@@ -247,6 +247,24 @@ describe("images and videos of a group", () => {
 
         await user.keyboard("{Escape}")
         await waitFor(() => expect(screen.queryByRole("dialog", { name: "Visualizzatore" })).toBeNull())
+    })
+
+    it("what happens in the viewer does not reach the note behind it (its background menu, its keys)", async () => {
+        const user = userEvent.setup()
+        const reached = vi.fn()
+        render(
+            <div onContextMenu={reached} onKeyDown={reached} onPointerDown={reached}>
+                <AudioProvider><DndContext><GroupMediaFiles groupId={7} /></DndContext></AudioProvider>
+            </div>
+        )
+        await user.click(await screen.findByRole("button", { name: "Apri a.jpg" }))
+        const dialog = await screen.findByRole("dialog", { name: "Visualizzatore" })
+        reached.mockClear()
+        fireEvent.contextMenu(dialog)
+        fireEvent.pointerDown(within(dialog).getByTestId("media-viewer-stage"), { pointerId: 1 })
+        fireEvent.keyDown(dialog, { key: "a" })
+        fireEvent.keyDown(dialog, { key: "ArrowRight" })
+        expect(reached).not.toHaveBeenCalled()
     })
 
     it("the arrows move through the files also when the video has the focus", async () => {
