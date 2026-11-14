@@ -378,6 +378,12 @@ export const settings = {
             top: "In cima",
             bottom: "In fondo",
         },
+        collapsedGroupLayout: {
+            label: "Gruppi chiusi",
+            description: "Come appare un gruppo chiuso: una striscia stretta con il nome in verticale, oppure una barra orizzontale con la sola intestazione che mantiene la larghezza del gruppo aperto.",
+            vertical: "Verticale",
+            horizontal: "Orizzontale",
+        },
         taskDensity: {
             label: "Densità dei task",
             description: "Spazio tra i task e dimensione del testo nelle note.",

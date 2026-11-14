@@ -48,6 +48,7 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 | Sfondo colorato dei task | Sì / No | Sì |
 | Nascondi task completati | Sì / No | No |
 | Task completati in fondo | Sì / No | No |
+| Gruppi chiusi (una striscia stretta in verticale, oppure una barra orizzontale che mantiene la larghezza del gruppo aperto) | Verticale, Orizzontale | Verticale |
 | Densità dei task | Compatta, Normale, Ampia | Normale |
 | **Comportamento**: Rinomina cliccando sul nome | Sì / No | Sì |
 | Continua ad aggiungere task (il campo resta aperto dopo aver creato un task) | Sì / No | Sì |

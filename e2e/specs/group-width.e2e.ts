@@ -120,6 +120,32 @@ describe("Group width", () => {
         await browser.waitUntil(async () => Math.abs((await renderedWidth()) - before) < 1.5, { timeoutMsg: "the width did not come back" })
     })
 
+    it("with the horizontal layout, a collapsed group keeps its width", async () => {
+        const chooseLayout = async (value: "vertical" | "horizontal") => {
+            await byLabel(await tr("settings.title")).click()
+            await $('[role="dialog"]').waitForDisplayed()
+            const nav = $(`[role="tablist"][aria-label="${await tr("settings.nav")}"]`)
+            await byText(await tr("settings.notes.title"), nav).click()
+            await byText(await tr(`settings.notes.collapsedGroupLayout.${value}`)).click()
+            await browser.keys("Escape")
+            await $('[role="dialog"]').waitForExist({ reverse: true })
+        }
+        await chooseLayout("horizontal")
+        try {
+            const before = await renderedWidth()
+            await domClick(byLabel(await tr("groups.collapse")))
+            await byLabel(await tr("groups.expand")).waitForDisplayed()
+            // Not a strip: the closed group is as wide as it was, with its one-row header (the ring stays)
+            await browser.waitUntil(async () => Math.abs((await cardWidth()) - before) < 1.5, { timeoutMsg: "the closed group did not keep its width" })
+            await (await groupRing()).waitForDisplayed()
+            await domClick(byLabel(await tr("groups.expand")))
+            await byLabel(await tr("groups.collapse")).waitForDisplayed()
+            await browser.waitUntil(async () => Math.abs((await renderedWidth()) - before) < 1.5, { timeoutMsg: "the width did not stay on reopening" })
+        } finally {
+            await chooseLayout("vertical")
+        }
+    })
+
     it("goes back to the automatic width on double click", async () => {
         const handle = byLabel(await tr("groups.width.handle"))
         await handle.doubleClick()

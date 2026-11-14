@@ -21,7 +21,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 vi.mock("@/contexts/use-active-note", () => ({
     useActiveNoteActions: () => ({ patchGroup }),
 }))
-const prefs = { showSectionCount: true, showTaskCount: true, showAudioFileCount: true, showGroupProgressBar: true, showUnnamedLabels: false, renameOnClick: true }
+const prefs = { showSectionCount: true, showTaskCount: true, showAudioFileCount: true, showGroupProgressBar: true, showUnnamedLabels: false, renameOnClick: true, collapsedGroupLayout: "vertical" }
 vi.mock("@/contexts/use-preferences", () => ({
     usePreferences: () => prefs,
 }))
@@ -36,6 +36,7 @@ beforeEach(() => {
     prefs.showAudioFileCount = true
     prefs.showUnnamedLabels = false
     prefs.renameOnClick = true
+    prefs.collapsedGroupLayout = "vertical"
     isOpen = true
     toggleOpen.mockReset()
     renameItem.mockReset().mockResolvedValue(undefined)
@@ -251,6 +252,39 @@ describe("GroupHeader progress and collapse", () => {
         prefs.showUnnamedLabels = true
         render(<GroupHeader group={makeGroup({ name: null })} index={2} />)
         expect(screen.getByText("Gruppo 3")).toBeInTheDocument()
+    })
+})
+
+describe("GroupHeader when collapsed with the horizontal layout", () => {
+    const withTasks = makeGroup({
+        sections: [makeSection({ tasks: [makeTask({ completed: true }), makeTask({ id: 2 })] })],
+    })
+
+    beforeEach(() => {
+        isOpen = false
+        prefs.collapsedGroupLayout = "horizontal"
+    })
+
+    it("keeps the one-row header: name, counters and ring, not the stacked strip", () => {
+        const { container } = render(<GroupHeader group={makeGroup({ name: "Lancio", sections: withTasks.sections })} />)
+        expect(screen.getByRole("button", { name: /Lancio/ })).toBeInTheDocument()
+        expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50")
+        expect(screen.getByText("50%")).toBeInTheDocument()
+        expect(container.querySelector("[class*='writing-mode']")).toBeNull()
+    })
+
+    it("labels the chevron 'Espandi gruppo' and toggles from it", async () => {
+        const user = userEvent.setup()
+        render(<GroupHeader group={withTasks} />)
+        await user.click(screen.getByLabelText("Espandi gruppo"))
+        expect(toggleOpen).toHaveBeenCalled()
+    })
+
+    it("still renames from the name", async () => {
+        const user = userEvent.setup()
+        render(<GroupHeader group={makeGroup({ name: "Lancio" })} />)
+        await user.click(screen.getByRole("button", { name: /Lancio/ }))
+        expect(screen.getByLabelText("Nome del gruppo")).toBeInTheDocument()
     })
 })
 

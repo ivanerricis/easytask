@@ -131,6 +131,14 @@ describe("PreferencesContext", () => {
         expect(prefs.savePref).toHaveBeenCalledWith("liveDrag", false)
     })
 
+    it("collapsed group layout is vertical by default and is saved when changed", async () => {
+        const { result } = renderHook(() => usePreferences(), { wrapper })
+        expect(result.current.collapsedGroupLayout).toBe("vertical")
+        act(() => result.current.setCollapsedGroupLayout("horizontal"))
+        expect(result.current.collapsedGroupLayout).toBe("horizontal")
+        expect(prefs.savePref).toHaveBeenCalledWith("collapsedGroupLayout", "horizontal")
+    })
+
     it("sets the spellcheck of the document from the preference", async () => {
         const { result } = renderHook(() => usePreferences(), { wrapper })
         expect(document.documentElement.spellcheck).toBe(true)

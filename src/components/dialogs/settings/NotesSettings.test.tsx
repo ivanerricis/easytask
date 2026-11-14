@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NotesSettings } from "./NotesSettings"
 
-const setters = { setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
+const setters = { setCollapsedGroupLayout: vi.fn(), setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
 let prefs: Record<string, unknown>
 const workspaces = [{ id: 1, name: "Alpha" }, { id: 2, name: "Beta" }]
 
@@ -14,7 +14,14 @@ vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => ({ ...prefs
 describe("NotesSettings", () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        prefs = { taskDensity: "normal", newTaskPosition: "bottom", spellcheck: true, reopenLastWorkspace: false, startupWorkspaceId: null }
+        prefs = { collapsedGroupLayout: "vertical", taskDensity: "normal", newTaskPosition: "bottom", spellcheck: true, reopenLastWorkspace: false, startupWorkspaceId: null }
+    })
+
+    it("changes the layout of the collapsed groups", async () => {
+        render(<NotesSettings />)
+        expect(screen.getByRole("radio", { name: "Verticale" })).toBeChecked()
+        await userEvent.click(screen.getByRole("radio", { name: "Orizzontale" }))
+        expect(setters.setCollapsedGroupLayout).toHaveBeenCalledWith("horizontal")
     })
 
     it("changes the task density", async () => {

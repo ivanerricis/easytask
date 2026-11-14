@@ -380,6 +380,12 @@ export const settings: Translation["settings"] = {
             top: "At the top",
             bottom: "At the bottom",
         },
+        collapsedGroupLayout: {
+            label: "Collapsed groups",
+            description: "How a collapsed group looks: a narrow strip with the name written vertically, or a horizontal bar with just its header that keeps the width of the open group.",
+            vertical: "Vertical",
+            horizontal: "Horizontal",
+        },
         taskDensity: {
             label: "Task density",
             description: "Spacing between tasks and text size in the notes.",

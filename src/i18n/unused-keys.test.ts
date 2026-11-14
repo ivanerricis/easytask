@@ -20,6 +20,7 @@ const DYNAMIC_PREFIXES = [
     "settings.themes.",
     "settings.data.backup.frequency.",
     "settings.notes.newTaskPosition.",
+    "settings.notes.collapsedGroupLayout.",
     "settings.notes.taskDensity.",
     "settings.audio.playerSize.",
     "shortcuts.categories.",
