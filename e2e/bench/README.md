@@ -34,7 +34,17 @@ Environment variables:
 - `LAG_RENDERS=1`: installs a React devtools hook that counts the components re-rendered per commit (`commits` in the result).
 - `LAG_PROFILE=1`: patches `getBoundingClientRect` / `getComputedStyle` and observes mutations (perturbs a little).
 - `LAG_CPU=1`: saves a `.cpuprofile` of the last run of each scenario.
+- `LAG_THROTTLE=4`: CPU throttling of the page (CDP), to imitate a slower machine and amplify differences. The 4x numbers are the
+  main criteria: on a fast quiet machine a 17 ms frame is just the vsync.
+- `LAG_WHY=<text>` (with `LAG_RENDERS=1`, best on an unminified build): for the components whose source contains the text, tells
+  why they re-rendered in each commit (props / contexts that changed).
+- `LAG_DEBUG=1`: prints the path of the `groups` scenario and saves a screenshot after every drag.
+
+The exe is found by its file name: any name works (the harness looks for the webview of `E2E_APP`), so keep one exe per
+build to compare (`bench-master.exe`, `bench-mine.exe`) and alternate them (A B A B): the machine noise drifts.
+Each drag is checked (`moved`): a scenario whose drag moved nothing measured the wrong thing (`groups` is a horizontal
+autoscroll drag on a small window, it does not move a task).
 
 Results: `result-profile<false|true>.json` with, per scenario, one entry per run (`drag`, `start1500`, `drop1500`,
 `changeAny`, `changeSection`, `longTasksRel`, ...). Other agents/tools using the CPU make the numbers noisy: run every
-scenario several times and compare medians. See `results-master.md` for reference numbers.
+scenario several times and compare medians. See `results-drop.md` for reference numbers.
