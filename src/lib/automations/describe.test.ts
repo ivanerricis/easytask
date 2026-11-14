@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { actionLabel, automationName, describeAutomation, triggerLabel } from "./describe"
-import { ACTION_TYPES, TRIGGER_TYPES } from "./types"
+import { ACTIONS_BY_SUBJECT, TRIGGER_TYPES } from "./types"
 
 const titleOf = (id: number) => id === 1 ? "Doing" : id === 2 ? "Done" : undefined
 const groupLabelOf = (id: number) => id === 7 ? "Sprint 3" : undefined
@@ -8,7 +8,7 @@ const groupLabelOf = (id: number) => id === 7 ? "Sprint 3" : undefined
 describe("labels", () => {
     it("every trigger and action type has a label", () => {
         for (const type of TRIGGER_TYPES) expect(triggerLabel(type)).not.toMatch(/^automations\./)
-        for (const type of ACTION_TYPES) expect(actionLabel(type)).not.toMatch(/^automations\./)
+        for (const type of new Set(Object.values(ACTIONS_BY_SUBJECT).flat())) expect(actionLabel(type)).not.toMatch(/^automations\./)
     })
 })
 

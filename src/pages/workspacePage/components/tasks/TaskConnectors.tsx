@@ -30,14 +30,3 @@ export function TaskConnectors({ depth, sizes }: { depth: number, sizes: Sizes }
 export function TaskConnectorTick({ sizes }: { depth: number, sizes: Sizes }) {
     return <span aria-hidden data-testid="subtask-tick" className={cn("pointer-events-none absolute left-[2px] h-px w-2.5 bg-muted-foreground", sizes.tickTop)} />
 }
-
-/**
- * The line of the subtasks of a task: it starts under the checkbox and, with a long text (a tall row), runs down to the
- * bottom of the row where the line of the first subtask goes on.
- */
-export function TaskChildrenLine({ isSubtask, sizes }: { isSubtask: boolean, sizes: Sizes }) {
-    return <span aria-hidden className={cn(
-        "pointer-events-none absolute bottom-0 w-px bg-muted-foreground/45",
-        isSubtask ? ["left-[27px]", sizes.lineTop.subtask] : ["left-[28px]", sizes.lineTop.task],
-    )} />
-}
