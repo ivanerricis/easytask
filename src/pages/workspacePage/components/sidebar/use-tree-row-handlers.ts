@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react"
 import { handleSelectionClick } from "./selection"
-import { useSelectionStore } from "./selection-context"
+import { useSelectionStore } from "./selection-context-object"
 import type { TreeItemType } from "./tree-dnd"
 import { treeRowKey, wasTreeJustDragged } from "./tree-row"
 

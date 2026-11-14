@@ -7,7 +7,8 @@ const LOADERS: Record<Exclude<FontFamily, "system">, () => Promise<unknown>> = {
     lora: () => import("@fontsource-variable/lora/wght.css"),
     "jetbrains-mono": () => import("@fontsource-variable/jetbrains-mono/wght.css"),
     atkinson: () => import("@fontsource-variable/atkinson-hyperlegible-next/wght.css"),
-    opendyslexic: () => Promise.all([import("@fontsource/opendyslexic/latin-400.css"), import("@fontsource/opendyslexic/latin-700.css")]),
+    // Our own @font-face rules: woff2 only (the package stylesheets also ship the .woff files)
+    opendyslexic: () => import("./opendyslexic.css"),
 }
 
 /**

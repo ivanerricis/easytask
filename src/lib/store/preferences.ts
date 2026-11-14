@@ -382,18 +382,6 @@ export const getReopenNotes = () => getPref("reopenNotes")
 export const getStartupWorkspaceId = () => getPref("startupWorkspaceId")
 export const getReopenLastWorkspace = () => getPref("reopenLastWorkspace")
 export const getLanguage = () => getPref("language")
-export const saveLanguage = (value: LanguagePreference) => savePref("language", value)
-export const getRightPanelTab = () => getPref("rightPanelTab")
-export const getSideBarRightOpen = () => getPref("sidebarRightOpen")
-export const getSidebarRightWidth = () => getPref("sidebarRightWidth")
-
-/**
- * Gets the primary color preference.
- * If no value is set (or it is not a hex color), it defaults to DEFAULT_PRIMARY_COLOR.
- * @returns A promise that resolves to the primary color hex code.
- * @category Store
- */
-export const getPrimaryColor = async (): Promise<string> => (await getPref("primaryColor")).hex
 
 /**
  * Saves the primary color preference (a value that is not a "#rgb"/"#rrggbb" color saves the default).
@@ -433,7 +421,6 @@ export const saveAccentOverride = async (hex: string | null): Promise<void> => {
     await savePrimaryColor(toHex6(hex))
 }
 
-export const getThemeId = () => getPref("themeId")
 export const saveThemeId = (id: string) => savePref("themeId", id)
 
 /**

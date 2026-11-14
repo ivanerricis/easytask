@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
-import { lazyWithPreload } from "./lazy-preload"
+import { lazyNamed, lazyWithPreload } from "./lazy-preload"
 
 const Hello = ({ name }: { name: string }) => <p>Ciao {name}</p>
 
@@ -39,5 +39,13 @@ describe("lazyWithPreload", () => {
         await expect(Lazy.preload()).rejects.toThrow("offline")
         await Lazy.preload()
         expect(load).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe("lazyNamed", () => {
+    it("picks the component by the name of its export", async () => {
+        const Lazy = lazyNamed(async () => ({ Hello, other: 1 as never }) as { Hello: typeof Hello }, "Hello")
+        render(<Suspense fallback={<p>fallback</p>}><Lazy name="Ada" /></Suspense>)
+        expect(await screen.findByText("Ciao Ada")).toBeInTheDocument()
     })
 })

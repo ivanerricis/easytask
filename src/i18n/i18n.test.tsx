@@ -134,8 +134,8 @@ describe("language setting", () => {
     })
 
     it("restores the persisted language when the app starts", async () => {
-        const { saveLanguage } = await import("@/lib/store/preferences")
-        await saveLanguage("en")
+        const { savePref } = await import("@/lib/store/preferences")
+        await savePref("language", "en")
         render(<PreferencesProvider><DialogSettings /></PreferencesProvider>)
         await waitFor(() => expect(i18n.language).toBe("en"))
         expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument()

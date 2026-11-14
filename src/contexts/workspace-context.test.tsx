@@ -7,6 +7,8 @@ import { createDBWorkspace, getDBWorkspaces } from "@/db/queries/workspace"
 import { getDBTrashedWorkspaces, purgeDBItem, restoreDBItem } from "@/db/queries/trash"
 import { deferred } from "@/test/ui-render"
 import { makeWorkspace } from "@/test/ui-fixtures"
+import { deleteWorkspaceTabs } from "@/lib/store/tabs"
+import { reportError } from "@/lib/report-error"
 
 vi.mock("@/db/queries/workspace", () => ({
     getDBWorkspaces: vi.fn(),
@@ -18,6 +20,9 @@ vi.mock("@/db/queries/trash", () => ({
     restoreDBItem: vi.fn(),
     purgeDBItem: vi.fn(),
 }))
+
+vi.mock("@/lib/store/tabs", () => ({ deleteWorkspaceTabs: vi.fn() }))
+vi.mock("@/lib/report-error", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/report-error")>()), reportError: vi.fn() }))
 
 const wrapper = ({ children }: { children: ReactNode }) => <WorkspaceProvider>{children}</WorkspaceProvider>
 
@@ -70,7 +75,18 @@ describe("WorkspaceContext", () => {
         vi.mocked(getDBWorkspaces).mockResolvedValue([])
         await act(() => result.current.purgeWorkspace(2))
         expect(purgeDBItem).toHaveBeenCalledWith("workspace", 2)
+        expect(deleteWorkspaceTabs).toHaveBeenCalledWith(2)
         expect(result.current.workspaces).toEqual([])
+    })
+
+    it("still purges the workspace when its saved tabs cannot be deleted", async () => {
+        vi.mocked(getDBWorkspaces).mockResolvedValue([])
+        vi.mocked(deleteWorkspaceTabs).mockRejectedValueOnce(new Error("store"))
+        const { result } = renderHook(() => useWorkspace(), { wrapper })
+        await act(() => result.current.purgeWorkspace(2))
+        expect(purgeDBItem).toHaveBeenCalledWith("workspace", 2)
+        expect(reportError).toHaveBeenCalledTimes(1)
+        expect(result.current.error).toBeNull()
     })
 
     it("surfaces restore errors and skips the refresh", async () => {

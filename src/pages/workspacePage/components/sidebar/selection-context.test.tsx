@@ -1,7 +1,8 @@
 import { useEffect } from "react"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { SelectionProvider, useSelectionStore, useIsInMultiSelection, useIsSelected } from "./selection-context"
+import { SelectionProvider } from "./selection-context"
+import { useSelectionStore, useIsInMultiSelection, useIsSelected } from "./selection-context-object"
 
 let workspaceId = 1
 vi.mock("@/contexts/use-workspace", () => ({ useWorkspace: () => ({ currentWorkspace: { id: workspaceId } }) }))

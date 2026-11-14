@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Navbar } from "@/components/navbar"
+import { ShortcutsHelpButton } from "@/components/shortcuts-help-button"
 import { AppMenu } from "@/components/app-menu"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { useWorkspaceData } from "@/contexts/workspace-data"
@@ -38,6 +39,7 @@ export const WorkSpaceLayout = ({ children }: WorkSpaceLayoutProps) => {
         <div className="flex flex-col w-full h-full">
             <Navbar
                 leftContainer={<AppMenu page="workspace" />}
+                rightContainer={<ShortcutsHelpButton />}
                 centerContainer={
                     <div className="flex items-center gap-1">
                         <ButtonNavbar

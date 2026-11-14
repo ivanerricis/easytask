@@ -6,7 +6,7 @@ import type { Folder, Note } from "@/types/types"
 import { ItemMenuButton } from "@/components/item-menu"
 import { ButtonMenuFolder } from "../folder/ButtonMenuFolder"
 import { ButtonMenuNote } from "../note/ButtonMenuNote"
-import { SelectionContext } from "./selection-context"
+import { SelectionContext } from "./selection-context-object"
 import { SelectionActionsProvider } from "./selection-actions"
 import { createSelectionStore } from "./selection"
 

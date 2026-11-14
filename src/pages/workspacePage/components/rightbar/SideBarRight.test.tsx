@@ -10,7 +10,7 @@ import { TabsProvider } from "@/contexts/tabs-context"
 import { useSelectedTask, useTabsActions } from "@/contexts/use-tabs"
 import { store } from "@/lib/store/initStore"
 import { saveShortcutOverrides } from "@/lib/store/shortcuts"
-import { getRightPanelTab, getSideBarRightOpen, getSidebarRightWidth } from "@/lib/store/preferences"
+import { getPref } from "@/lib/store/preferences"
 import { SIDEBAR_DEFAULT_WIDTH } from "@/lib/sidebar-layout"
 import { SideBarRight } from "./SideBarRight"
 import { RightPanelProvider } from "./right-panel-context"
@@ -104,7 +104,7 @@ describe("SideBarRight tabs", () => {
         await user.click(await screen.findByRole("tab", { name: "Cronologia" }))
         expect(screen.getByText("contenuto cronologia")).toBeInTheDocument()
         expect(screen.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", tab("Cronologia").id)
-        await waitFor(async () => expect(await getRightPanelTab()).toBe("history"))
+        await waitFor(async () => expect(await getPref("rightPanelTab")).toBe("history"))
     })
 
     it("restores the remembered tab", async () => {
@@ -150,11 +150,11 @@ describe("SideBarRight open state, width and shortcut", () => {
         await user.click(toggle())
         expect(toggle()).toHaveAttribute("aria-expanded", "false")
         expect(screen.queryByRole("tablist")).toBeNull()
-        await waitFor(async () => expect(await getSideBarRightOpen()).toBe(false))
+        await waitFor(async () => expect(await getPref("sidebarRightOpen")).toBe(false))
 
         await user.click(toggle())
         expect(await screen.findByRole("tablist")).toBeInTheDocument()
-        await waitFor(async () => expect(await getSideBarRightOpen()).toBe(true))
+        await waitFor(async () => expect(await getPref("sidebarRightOpen")).toBe(true))
     })
 
     it("restores a closed panel", async () => {
@@ -212,7 +212,7 @@ describe("SideBarRight open state, width and shortcut", () => {
         // The panel grows to the left
         await user.keyboard("{ArrowLeft}")
         expect(screen.getByRole("separator")).toHaveAttribute("aria-valuenow", String(SIDEBAR_DEFAULT_WIDTH + 16))
-        await waitFor(async () => expect(await getSidebarRightWidth()).toBe(SIDEBAR_DEFAULT_WIDTH + 16))
+        await waitFor(async () => expect(await getPref("sidebarRightWidth")).toBe(SIDEBAR_DEFAULT_WIDTH + 16))
     })
 
     it("restores the remembered width", async () => {

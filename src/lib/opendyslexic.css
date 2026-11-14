@@ -1,0 +1,17 @@
+/* OpenDyslexic, woff2 only (the @fontsource stylesheets also reference the larger .woff fallback, which every webview here can skip).
+   Only the weights used by the app (regular and bold, upright). Loaded when the font is chosen (font-family.ts). */
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(../../node_modules/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(../../node_modules/@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2) format('woff2');
+}

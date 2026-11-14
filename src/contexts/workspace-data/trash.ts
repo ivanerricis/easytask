@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react"
 import { emptyDBTrash, getDBTrash, getDBTrashCount, purgeDBItem, restoreDBItem } from "@/db/queries/trash"
 import { deleteDBItem, type DBItemType } from "@/db/queries/shared_queries"
+import { forgetOpenGroupWidth } from "@/lib/group-widths"
 import { removeThenWrite } from "./remove-optimistic"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
@@ -24,7 +25,7 @@ export function useTrashActions(rt: Runtime): TrashActions {
      */
     const deleteItem = useCallback((itemType: DBItemType, itemID: number) => withTrashChange(() =>
         // Folders and notes leave the sidebar tree at once (and their open tabs close with them); restored on failure
-        removeThenWrite(rt, itemType, itemID, () => deleteDBItem(itemType, itemID), () => afterItemChange(itemType))
+        removeThenWrite(rt, itemType, itemID, () => deleteDBItem(itemType, itemID), () => { afterItemChange(itemType); if (itemType === "section_group") forgetOpenGroupWidth(itemID) })
     ), [rt, withTrashChange, afterItemChange])
 
     /**
@@ -61,6 +62,7 @@ export function useTrashActions(rt: Runtime): TrashActions {
     const purgeItem = useCallback((itemType: DBItemType, itemID: number) =>
         withTrashChange(async () => {
             await purgeDBItem(itemType, itemID)
+            if (itemType === "section_group") forgetOpenGroupWidth(itemID)
             afterItemChange(itemType)
         }), [withTrashChange, afterItemChange])
 

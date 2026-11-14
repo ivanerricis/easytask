@@ -1,14 +1,14 @@
 import { useState } from "react"
-import { lazyWithPreload, preloadWhenIdle } from "@/lib/lazy-preload"
+import { lazyNamed, preloadWhenIdle } from "@/lib/lazy-preload"
 import { LazyMount } from "@/components/lazy-mount"
 import { useAppCommand } from "@/lib/app-commands"
 import type { NoteTemplate } from "@/types/template"
 
-const DialogTrash = lazyWithPreload(() => import("@/components/dialogs/dialog-trash").then(m => ({ default: m.DialogTrash })))
-const DialogArchive = lazyWithPreload(() => import("@/components/dialogs/dialog-archive").then(m => ({ default: m.DialogArchive })))
-const DialogTemplates = lazyWithPreload(() => import("@/components/dialogs/dialog-templates").then(m => ({ default: m.DialogTemplates })))
-const DialogPickTemplate = lazyWithPreload(() => import("@/components/dialogs/dialog-pick-template").then(m => ({ default: m.DialogPickTemplate })))
-const DialogNoteFromTemplate = lazyWithPreload(() => import("@/components/dialogs/dialog-note-from-template").then(m => ({ default: m.DialogNoteFromTemplate })))
+const DialogTrash = lazyNamed(() => import("@/components/dialogs/dialog-trash"), "DialogTrash")
+const DialogArchive = lazyNamed(() => import("@/components/dialogs/dialog-archive"), "DialogArchive")
+const DialogTemplates = lazyNamed(() => import("@/components/dialogs/dialog-templates"), "DialogTemplates")
+const DialogPickTemplate = lazyNamed(() => import("@/components/dialogs/dialog-pick-template"), "DialogPickTemplate")
+const DialogNoteFromTemplate = lazyNamed(() => import("@/components/dialogs/dialog-note-from-template"), "DialogNoteFromTemplate")
 preloadWhenIdle(DialogTrash, DialogArchive, DialogTemplates, DialogPickTemplate, DialogNoteFromTemplate)
 
 /**
