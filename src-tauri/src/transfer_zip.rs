@@ -13,7 +13,8 @@ use tauri::ipc::Channel;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
-use crate::{is_linked_file, DataDirInfo, AUDIO_EXTENSIONS, MEDIA_EXTENSIONS};
+use crate::files::{has_extension, is_linked_file, AUDIO_EXTENSIONS, MEDIA_EXTENSIONS};
+use crate::paths::DataDirInfo;
 
 /// Name of the JSON entry at the root of the archive.
 const JSON_ENTRY: &str = "workspace.easytask.json";
@@ -329,8 +330,8 @@ fn create_unique(dir: &Path, name: &str) -> Result<(File, PathBuf), String> {
 fn is_extractable(name: &str) -> bool {
     name.starts_with(FILES_PREFIX)
         && !name.ends_with('/')
-        && (crate::has_extension(Path::new(name), &AUDIO_EXTENSIONS)
-            || crate::has_extension(Path::new(name), &MEDIA_EXTENSIONS))
+        && (has_extension(Path::new(name), &AUDIO_EXTENSIONS)
+            || has_extension(Path::new(name), &MEDIA_EXTENSIONS))
 }
 
 /// Reads an archive: validates EVERY entry first (an absolute path, a `..`, a drive prefix, a backslash or a symbolic link
