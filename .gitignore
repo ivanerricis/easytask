@@ -34,3 +34,6 @@ src-tauri/gen
 .env*
 *.tsbuildinfo
 coverage/
+
+# Output of the drag benchmark (e2e/bench)
+e2e/bench/results/
