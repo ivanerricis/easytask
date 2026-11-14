@@ -5,7 +5,31 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { DatabaseSync, type SQLInputValue } from "node:sqlite"
 import type Database from "@tauri-apps/plugin-sql"
 import { createMockDb, type MockDb } from "@/test/db-mock"
+import { createRecordingInvoke } from "@/test/db-mock"
+import { invoke } from "@tauri-apps/api/core"
 import { initDB, legacyDbMessage, newerDbMessage } from "./initDb"
+
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }))
+
+/** Fake of the `db_transaction` command on the test database: like the real one it runs multi-statement SQL and rolls back on the first error. */
+async function sqliteTransaction(command: string, args?: { statements?: { sql: string }[] }) {
+    if (command !== "db_transaction") throw new Error(`Unexpected command ${command}`)
+    sqlite.exec("BEGIN")
+    try {
+        (args?.statements ?? []).forEach((statement, index) => {
+            try {
+                sqlite.exec(statement.sql)
+            } catch (error: unknown) {
+                throw `statement ${index} failed: ${error instanceof Error ? error.message : String(error)}`
+            }
+        })
+        sqlite.exec("COMMIT")
+        return []
+    } catch (error: unknown) {
+        try { sqlite.exec("ROLLBACK") } catch { /* already rolled back */ }
+        throw error
+    }
+}
 import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, latestSchema, mediaFileSchema, noteBackgroundSchema, sectionOrderSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial"
 import { automationSchema } from "./schema/automation"
 import { addGroupColorColumn } from "./schema/section_group"
@@ -38,6 +62,7 @@ beforeEach(() => {
     sqlite = new DatabaseSync(":memory:")
     sqlite.exec("PRAGMA foreign_keys=ON")
     vi.spyOn(console, "error").mockImplementation(() => undefined)
+    vi.mocked(invoke).mockReset().mockImplementation(sqliteTransaction as unknown as typeof invoke)
 })
 
 describe("initDB final schema", () => {
@@ -131,18 +156,34 @@ describe("initDB behaviour", () => {
         expect(db.execute).not.toHaveBeenCalled()
     })
 
-    it("applies the initial schema and then bumps the version on a fresh database", async () => {
+    it("applies every migration with its version bump in one transaction, or inside its own transaction script", async () => {
         const db: MockDb = createMockDb()
         db.select.mockResolvedValueOnce([{ user_version: 0 }])
+        const recorder = createRecordingInvoke()
+        vi.mocked(invoke).mockImplementation(recorder.invoke as unknown as typeof invoke)
         await initDB(db as unknown as Database)
-        expect(db.execute.mock.calls.map(c => c[0])).toEqual([...initialSchema, "PRAGMA user_version = 1", addGroupColorColumn, "PRAGMA user_version = 2", ...createWorkspaceEditTriggers, "PRAGMA user_version = 3", ...archiveSchema, "PRAGMA user_version = 4", ...automationSchema, "PRAGMA user_version = 5", ...taskArchiveSchema, "PRAGMA user_version = 6", ...sectionTitleSchema, "PRAGMA user_version = 7", ...groupStructureSchema, "PRAGMA user_version = 8", ...sectionOrderSchema, "PRAGMA user_version = 9", ...collapsedSchema, "PRAGMA user_version = 10", ...templateDraftSchema, "PRAGMA user_version = 11", ...trashIndexesSchema, "PRAGMA user_version = 12", ...noteBackgroundSchema, "PRAGMA user_version = 13", ...customThemeSchema, "PRAGMA user_version = 14", ...mediaFileSchema, "PRAGMA user_version = 15"])
+        const plain = [
+            [1, initialSchema], [2, [addGroupColorColumn]], [3, createWorkspaceEditTriggers], [4, archiveSchema], [5, automationSchema], [6, taskArchiveSchema],
+            [8, groupStructureSchema], [11, templateDraftSchema], [12, trashIndexesSchema], [13, noteBackgroundSchema], [14, customThemeSchema], [15, mediaFileSchema],
+        ] as const
+        expect(recorder.calls.map(call => call.map(s => s.sql))).toEqual(plain.map(([version, queries]) => [...queries, `PRAGMA user_version = ${version}`]))
+        // v7, v9 and v10 are scripts with their own transaction: the bump is written inside, right before the COMMIT, and never separately
+        const executed = db.execute.mock.calls.map(c => String(c[0]))
+        for (const [version, queries] of [[7, sectionTitleSchema], [9, sectionOrderSchema], [10, collapsedSchema]] as const) {
+            const script = queries.find(q => /BEGIN IMMEDIATE/.test(q))!
+            expect(executed).toContain(`${script.slice(0, script.lastIndexOf("COMMIT;"))}PRAGMA user_version = ${version};\n    COMMIT;${script.slice(script.lastIndexOf("COMMIT;") + 7)}`)
+        }
+        expect(executed.some(sql => sql.startsWith("PRAGMA user_version"))).toBe(false)
     })
 
     it("treats an empty PRAGMA result as a fresh database", async () => {
         const db: MockDb = createMockDb()
         db.select.mockResolvedValueOnce([])
+        const recorder = createRecordingInvoke()
+        vi.mocked(invoke).mockImplementation(recorder.invoke as unknown as typeof invoke)
         await initDB(db as unknown as Database)
-        expect(db.execute.mock.calls.at(-1)?.[0]).toBe("PRAGMA user_version = 15")
+        expect(recorder.calls[0].at(-1)?.sql).toBe("PRAGMA user_version = 1")
+        expect(recorder.calls.at(-1)?.at(-1)?.sql).toBe("PRAGMA user_version = 15")
     })
 
     it("refuses a legacy database (user_version > 0 without the application id) and leaves it untouched", async () => {
@@ -169,15 +210,13 @@ describe("initDB behaviour", () => {
     })
 
     it("rethrows on failure and does not bump the version", async () => {
-        const err = new Error("syntax error")
         const db: MockDb = createMockDb()
         db.select.mockResolvedValueOnce([{ user_version: 0 }])
-        db.execute.mockImplementation(async (q: unknown) => {
-            if (q === initialSchema[2]) throw err
-            return { rowsAffected: 0, lastInsertId: 0 }
-        })
-        await expect(initDB(db as unknown as Database)).rejects.toBe(err)
-        expect(db.execute.mock.calls.some(c => String(c[0]).startsWith("PRAGMA user_version ="))).toBe(false)
+        const recorder = createRecordingInvoke({ error: "statement 2 failed: syntax error" })
+        vi.mocked(invoke).mockImplementation(recorder.invoke as unknown as typeof invoke)
+        await expect(initDB(db as unknown as Database)).rejects.toMatchObject({ message: "statement 2 failed: syntax error", statementIndex: 2 })
+        expect(recorder.calls).toHaveLength(1)
+        expect(db.execute).not.toHaveBeenCalled()
         expect(console.error).toHaveBeenCalled()
     })
 
@@ -237,8 +276,9 @@ describe("initDB v2 (group color)", () => {
     it("still fails on other ALTER errors", async () => {
         const db: MockDb = createMockDb()
         db.select.mockResolvedValueOnce([{ user_version: 1 }]).mockResolvedValueOnce([{ application_id: APPLICATION_ID }])
-        db.execute.mockRejectedValueOnce(new Error("disk full"))
+        vi.mocked(invoke).mockRejectedValue("statement 0 failed: disk full")
         await expect(initDB(db as unknown as Database)).rejects.toThrow("disk full")
+        expect(db.execute).not.toHaveBeenCalled()
     })
 })
 
