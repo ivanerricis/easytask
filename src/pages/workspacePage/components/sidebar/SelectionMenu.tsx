@@ -8,8 +8,8 @@ import { Separator } from "@/components/ui/separator"
 import type { ItemMenuState } from "@/hooks/use-item-menu-state"
 import { useTreeData } from "./use-tree-data"
 import { getTopMostItems } from "./selection"
-import { useSelectedKeys, useSelectionStore } from "./selection-context"
-import { useSelectionActions } from "./selection-actions"
+import { useSelectedKeys, useSelectionStore } from "./selection-context-object"
+import { useSelectionActions } from "./selection-actions-object"
 import { getMultiMoveDestinations } from "./tree-multi-move"
 
 /**

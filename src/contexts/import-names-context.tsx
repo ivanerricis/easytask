@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, type ReactNode } from "react"
+import { useCallback, useState, type ReactNode } from "react"
 import type { ChooseImportNames, ImportName } from "@/lib/workspace-transfer"
 import { DialogImportNames } from "@/components/dialogs/dialog-import-names"
 import { ImportNamesContext } from "./import-names-context-object"
@@ -40,6 +40,3 @@ export function ImportNamesProvider({ children }: { children: ReactNode }) {
     )
 }
 
-/** The function that asks the names of an import (undefined outside the provider: the proposed names are used). */
-// eslint-disable-next-line react-refresh/only-export-components
-export const useImportNames = () => useContext(ImportNamesContext)

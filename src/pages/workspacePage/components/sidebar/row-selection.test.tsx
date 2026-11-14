@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { Folder, Note } from "@/types/types"
 import { ItemFolder } from "../folder/Folder"
 import { ItemNote } from "../note/Note"
-import { SelectionContext } from "./selection-context"
+import { SelectionContext } from "./selection-context-object"
 import { createSelectionStore } from "./selection"
 
 // The rename field needs the workspace data; the rows are tested without it

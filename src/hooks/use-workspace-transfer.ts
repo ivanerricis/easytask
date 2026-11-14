@@ -8,7 +8,7 @@ import { useTemplateDraftActions } from "@/contexts/use-template-drafts"
 import { reportError } from "@/lib/report-error"
 import { exportItemToFile, exportItemsToFile, exportWorkspaceToFile, importItemsFromFile, importWorkspaceFromFile } from "@/lib/workspace-transfer"
 import { getErrorMessage } from "@/lib/utils"
-import { useImportNames } from "@/contexts/import-names-context"
+import { useImportNames } from "@/contexts/import-names-context-object"
 
 /**
  * Click handlers for the workspace export/import, with their toasts. Shared by the menus and the settings.
