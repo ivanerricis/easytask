@@ -35,7 +35,7 @@ Folders and sub-tasks nest without limit. Groups and sections can be left withou
 - **Search notes** and **customizable keyboard shortcuts**. See [Keyboard shortcuts](./shortcuts).
 - **Split view**: two notes side by side, each with its own tabs. See [Folders and notes](./folders-and-notes#split-into-two-areas).
 - **Note background**: a color behind the whole note. See [Colors](./colors#note-background).
-- **Export and import** a workspace as an `.easytask.json` file.
+- **Export and import** a workspace as an `.easytask.json` file, or a `.easytask.zip` with the audio, images and videos.
 - **Italian and English** interface, nine built-in themes (including high contrast) and your own custom themes. See [Themes](./themes).
 - **Updates** with signed releases. See [Updates](./updates).
 

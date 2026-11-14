@@ -65,7 +65,7 @@ describe("importWorkspaceFromFile", () => {
     it("imports a file within the limit with the proposed name when nobody is asked", async () => {
         await expect(importWorkspaceFromFile()).resolves.toEqual({ workspaceId: 1, skippedFiles: 0 })
         expect(readTextFile).toHaveBeenCalledTimes(1)
-        expect(importDBWorkspace).toHaveBeenCalledWith({}, { name: "WS (importato)", extractedFiles: {} })
+        expect(importDBWorkspace).toHaveBeenCalledWith({}, { name: "WS (importato)" })
     })
 
     it("lets the user choose the name, and imports nothing when the choice is cancelled", async () => {
@@ -74,7 +74,7 @@ describe("importWorkspaceFromFile", () => {
             return submit(["Mio"])
         })
         await importWorkspaceFromFile(choose as never)
-        expect(importDBWorkspace).toHaveBeenCalledWith({}, { name: "Mio", extractedFiles: {} })
+        expect(importDBWorkspace).toHaveBeenCalledWith({}, { name: "Mio" })
 
         importDBWorkspace.mockClear()
         await expect(importWorkspaceFromFile((async () => null) as never)).resolves.toBeNull()
@@ -94,10 +94,10 @@ describe("importItemsFromFile", () => {
         fileContent = JSON.stringify({ scope: "items" })
         await expect(importItemsFromFile(7, 3)).resolves.toEqual({ skippedFiles: 0, items: [] })
         expect(suggestDBItemNames).toHaveBeenCalledWith({ scope: "items" }, 7, 3)
-        expect(importDBItems).toHaveBeenCalledWith({ scope: "items" }, 7, 3, { names: ["N (2)", "F"], extractedFiles: {} })
+        expect(importDBItems).toHaveBeenCalledWith({ scope: "items" }, 7, 3, { names: ["N (2)", "F"] })
 
         await importItemsFromFile(7, null, ((_: unknown, submit: (names: string[]) => Promise<unknown>) => submit(["A", "B"])) as never)
-        expect(importDBItems).toHaveBeenLastCalledWith({ scope: "items" }, 7, null, { names: ["A", "B"], extractedFiles: {} })
+        expect(importDBItems).toHaveBeenLastCalledWith({ scope: "items" }, 7, null, { names: ["A", "B"] })
     })
 
     it("refuses a workspace file before asking any name", async () => {

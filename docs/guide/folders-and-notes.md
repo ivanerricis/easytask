@@ -12,7 +12,7 @@ The top of the sidebar has a row of buttons:
 | Button                                   | What it does                                                    |
 | ---------------------------------------- | --------------------------------------------------------------- |
 | **New folder**, **New note**, **New note from template** | Create items. See below.                        |
-| **Import a note or folder**              | Imports a `.easytask.json` file of a note or folder.            |
+| **Import a note or folder**              | Imports a `.easytask.json` or `.easytask.zip` file of a note or folder.            |
 | **Collapse all folders** / **Expand all folders** | Closes or opens every folder at once.                  |
 | **Close all notes**                      | Closes every open tab.                                          |
 
@@ -64,7 +64,7 @@ Click the menu button of a row (it appears when you point at it) or right-click 
 | **Create template**  |        | yes  | Saves the note as a template. See [Templates](./templates).                         |
 | **Automations…**     |        | yes  | Opens the automations of the note. See [Automations](./automations).                |
 | **Import here**      | yes    |      | Imports a note or folder file inside the folder.                                    |
-| **Export**           | yes    | yes  | Saves the item to a `.easytask.json` file.                                          |
+| **Export**           | yes    | yes  | Saves the item to a `.easytask.json` file (or a `.easytask.zip` with the linked files).                                          |
 | **Archive**          | yes    | yes  | Hides the item without deleting it.                                                 |
 | **Delete**           | yes    | yes  | Moves the item to the trash, after confirming.                                      |
 

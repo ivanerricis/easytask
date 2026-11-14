@@ -187,13 +187,13 @@ export async function exportItemsToFile(items: { type: "note" | "folder", id: nu
 /** An export file the user picked: its validated content and, for a zip, where its files were extracted. */
 type PickedExport = {
     data: WorkspaceExport
-    /** Zip: entry name in the archive to the extracted copy (empty for a plain JSON). */
-    files: Record<string, string>
+    /** Zip: entry name in the archive to the extracted copy. Undefined for a plain JSON, whose rows keep their paths. */
+    files?: Record<string, string>
 }
 
 /** Deletes the files extracted from a zip that will not be imported (best effort). */
-async function discardExtracted(files: Record<string, string>): Promise<void> {
-    const paths = Object.values(files)
+async function discardExtracted(files: Record<string, string> | undefined): Promise<void> {
+    const paths = Object.values(files ?? {})
     if (paths.length === 0) return
     try {
         await invoke("delete_extracted_files", { paths })
@@ -250,7 +250,7 @@ async function pickExportFile(onProgress?: (progress: TransferProgress) => void)
     } catch {
         throw createError("TRANSFER_INVALID_FILE", i18n.t("errors.transfer.invalidJson"))
     }
-    return { data: validateWorkspaceExport(parseJson(text)), files: {} }
+    return { data: validateWorkspaceExport(parseJson(text)) }
 }
 
 /** Runs an import of a picked file; the files extracted from a zip are deleted when the import is cancelled or fails. */

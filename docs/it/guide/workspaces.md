@@ -54,27 +54,30 @@ Eliminare non distrugge nulla: puoi ripristinare il workspace dal **Cestino** de
 ## Esportare un workspace
 
 1. Apri il menu del workspace e scegli **Esporta**. Dentro un workspace puoi usare anche **File > Esporta workspace…**.
-2. Scegli dove salvare. Il nome proposto è `<nome del workspace>.easytask.json`.
+2. Se le note collegano file audio, immagini o video che esistono, EasyTask chiede **Includere i file collegati (audio, immagini e video)?** e mostra quanto sono grandi. Scegli **Solo i percorsi** per un file `<nome del workspace>.easytask.json` leggero, oppure **Includi i file** per un unico `<nome del workspace>.easytask.zip` che contiene anche i file.
+3. Scegli dove salvare.
 
 Il file contiene le cartelle e le note del workspace con il loro contenuto (gruppi, sezioni, task), le automazioni delle note e i template. Gli elementi nel cestino non sono inclusi. Usalo per spostare un workspace su un altro computer o per tenerne una copia.
 
 ::: info
-Il file contiene i percorsi dei file audio, non l'audio.
+Un file `.easytask.json` contiene solo i percorsi dei file audio, immagini e video, non i file. Un `.easytask.zip` contiene anche i file (mentre viene scritto compare una barra di avanzamento); i file che non si trovano sul computer restano fuori e il messaggio finale dice quanti.
 :::
 
 ## Importare un workspace
 
 1. Nella home fai clic su **Importa un workspace**.
-2. Scegli un file `.easytask.json`.
+2. Scegli un file `.easytask.json` o `.easytask.zip`.
 3. EasyTask mostra la finestra **Importa** con il **Nome del workspace** da usare. Controllalo, cambialo se vuoi e fai clic su **Importa**.
 
 Il nome proposto è già libero. Se esiste un workspace con lo stesso nome (anche nel cestino), EasyTask aggiunge un suffisso, per esempio `Restyling del sito (importato)`, poi `(importato 2)` e così via. Se scrivi un nome già usato, la finestra mostra un errore e resta aperta, così puoi cambiarlo.
 
-Dopo l'importazione un messaggio ti dice se alcuni file audio sono stati saltati. I file audio che non si trovano sul computer vengono saltati, tutto il resto viene importato.
+Quando importi un `.easytask.zip`, EasyTask copia i suoi file nella cartella `media` della [cartella dei dati](./data-and-backups) (niente viene sovrascritto) e le note usano quelle copie. Se annulli l'importazione, le copie vengono eliminate.
+
+Dopo l'importazione un messaggio ti dice se alcuni file sono stati saltati. I file audio, immagini e video che non si trovano sul computer vengono saltati, tutto il resto viene importato.
 
 Alcuni limiti:
 
-- Il file deve essere un'esportazione di EasyTask, di al massimo 50 MB.
+- Il file deve essere un'esportazione di EasyTask, di al massimo 50 MB (per un `.easytask.zip` il limite vale per i dati al suo interno, non per i file).
 - Un file che contiene solo una nota o una cartella non si può importare da qui: apri un workspace e usa **Importa una nota o una cartella** nella barra laterale. Vedi [Cartelle e note](./folders-and-notes).
 
 ## Il menu dell'applicazione
