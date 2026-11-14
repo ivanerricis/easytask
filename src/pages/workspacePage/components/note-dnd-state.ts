@@ -1,6 +1,7 @@
 import i18n from "@/i18n"
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type HTMLAttributes, type PointerEvent } from "react"
-import { useDraggable, useDroppable } from "@dnd-kit/core"
+import { useDraggable } from "@dnd-kit/core"
+import { registerZone } from "./note-dnd-hit"
 import { reportError } from "@/lib/report-error"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
@@ -86,9 +87,11 @@ export const noteKey = (kind: NoteOverKind, id: number) => `${kind}-${id}`
  */
 export function useNoteDrop(kind: NoteOverKind, id: number) {
     const key = noteKey(kind, id)
-    const { setNodeRef } = useDroppable({ id: key, data: { kind, id, accepts: ACCEPTS[kind] } })
+    // Not a dnd-kit droppable (see note-dnd-hit): the node only goes in the registry the drag hit-tests
+    const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, ACCEPTS[kind], node), [key, kind, id])
     const zone = useNoteDndSelector(state => state.hover.overKey === key ? state.hover.zone : null)
-    const activeKind = useNoteDndSelector(state => state.active?.kind ?? null)
+    // A task row reads `active` only together with `zone`, which is null outside a drag: its value never changes, so a drag starting or ending does not re-render the rows
+    const activeKind = useNoteDndSelector(state => kind === "task" ? "task" : state.active?.kind ?? null)
     // Only the kind of the dragged item is used by the droppables
     const active = useMemo(() => activeKind ? { kind: activeKind } : null, [activeKind])
     return { setNodeRef, zone, active }

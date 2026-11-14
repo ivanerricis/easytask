@@ -103,15 +103,34 @@ describe("NoteDndProvider renders", () => {
     })
 })
 
-describe("NoteDndProvider drag mark", () => {
+describe("NoteDndProvider drag state and announcements", () => {
+    let dnd: NoteDndStore
+    const Grab = () => { dnd = useContext(NoteDndStoreContext); return null }
+    const setup = () => render(<NoteDndProvider><Grab /></NoteDndProvider>)
+    const api = () => handlers as unknown as { onDragMove: (event: unknown) => void, onDragEnd: () => Promise<void> }
+
+    beforeEach(() => vi.mocked(announce).mockClear())
+
     it("marks the body while dragging (the insert lines hide by CSS), and clears it", () => {
-        let dnd: NoteDndStore | undefined
-        const Grab = () => { dnd = useContext(NoteDndStoreContext); return null }
-        render(<NoteDndProvider><Grab /></NoteDndProvider>)
+        setup()
         startDrag("task", 1)
         expect(document.body.hasAttribute("data-note-dragging")).toBe(true)
-        act(() => dnd?.set({ active: null }))
+        act(() => dnd.set({ active: null }))
         expect(document.body.hasAttribute("data-note-dragging")).toBe(false)
+    })
+
+    it("announces the target and the result from the hit test, not from dnd-kit (which has no over)", async () => {
+        setup()
+        const accessibility = (handlers as unknown as { accessibility: { announcements: Record<string, (e: unknown) => unknown> } }).accessibility
+        expect(accessibility.announcements.onDragOver({})).toBeUndefined()
+        expect(accessibility.announcements.onDragEnd({})).toBeUndefined()
+        startDrag("task", 1)
+        act(() => api().onDragMove({ active: { data: { current: { kind: "task", id: 1 } } }, over: null, delta: { x: 0, y: 0 } }))
+        expect(announce).not.toHaveBeenCalled() // still no target: nothing new to say
+        act(() => api().onDragMove({ active: { data: { current: { kind: "task", id: 1 } } }, over: null, delta: { x: 0, y: 0 } }))
+        expect(announce).not.toHaveBeenCalled()
+        await act(async () => { await api().onDragEnd() })
+        expect(announce).toHaveBeenCalledTimes(1) // the result (dnd-kit would always have said "no target")
     })
 })
 
