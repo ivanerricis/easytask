@@ -13,6 +13,7 @@ vi.mock("@/hooks/use-automations", () => ({ useAutomations: () => ({ dispatch: v
 vi.mock("@/contexts/undo/use-undo", async () => (await import("@/test/mocks")).undoModuleMock())
 vi.mock("./GroupHeader", () => ({ GroupHeader: () => <div>header</div> }))
 vi.mock("./GroupAudioFiles", () => ({ GroupAudioFiles: () => null }))
+vi.mock("./GroupMediaFiles", () => ({ GroupMediaFiles: () => null }))
 vi.mock("../section/Section", () => ({ Section: () => null }))
 vi.mock("../section/AddSection", () => ({ AddSection: () => null }))
 vi.mock("../NoteMoveSubmenus", () => ({ TaskMoveSubmenu: () => null }))

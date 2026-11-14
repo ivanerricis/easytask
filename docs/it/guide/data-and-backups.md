@@ -30,7 +30,7 @@ Per aprire la cartella vai in **Impostazioni > Dati > Cartella dati > Apri carte
 Se la cartella dati è sincronizzata da OneDrive, **Impostazioni > Dati** mostra un avviso. La sincronizzazione può causare errori "database is locked" o copie in conflitto del database. Escludi la cartella da OneDrive oppure usa la modalità portable.
 :::
 
-I file audio non sono qui. EasyTask conserva solo il loro percorso. Vedi [File audio](./audio).
+I file audio, le immagini e i video non sono qui. EasyTask conserva solo il loro percorso. Vedi [File audio](./audio).
 
 ## Backup automatici
 
@@ -75,7 +75,7 @@ Quello che hai fatto dopo la creazione del backup non è dentro il backup. Se ha
 
 Per eliminare un backup, clicca il pulsante cestino accanto e conferma.
 
-Un backup contiene solo il database. Le impostazioni e i file audio non ne fanno parte.
+Un backup contiene solo il database. Le impostazioni e i file audio, le immagini e i video non ne fanno parte.
 
 ## Copie prima di un aggiornamento del database
 

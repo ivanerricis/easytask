@@ -25,7 +25,7 @@ type TrashSource = {
 }
 
 /** The kinds of items of the trash of a workspace, in the order of the tabs. */
-const WORKSPACE_TYPES: TrashItem["type"][] = ["folder", "note", "section_group", "section", "task", "audio_file", "note_template"]
+const WORKSPACE_TYPES: TrashItem["type"][] = ["folder", "note", "section_group", "section", "task", "audio_file", "media_file", "note_template"]
 const WORKSPACES_TYPES: TrashItem["type"][] = ["workspace"]
 
 // Second line of a row: where it was, what it contained and when it was deleted

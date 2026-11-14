@@ -6,6 +6,7 @@ import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
 import { NewGroupEnd, NewGroupSlot } from "./NewGroupSlot"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useNoteAudioCounts } from "@/contexts/use-audio"
+import { useNoteMediaCounts } from "@/contexts/use-media"
 import { EmptyNoteHints } from "../EmptyNoteHints"
 import { NoteSkeleton } from "./NoteSkeleton"
 import { NoteProviders } from "./NoteProviders"
@@ -45,6 +46,7 @@ export const GroupContainer = () => {
     const { showAudioFileCount, showGroupSeparators } = usePreferences()
     const groups = noteDataTree?.groups
     const audioCounts = useNoteAudioCounts(activeId, showAudioFileCount)
+    const mediaCounts = useNoteMediaCounts(activeId, showAudioFileCount)
     const hasData = groups !== undefined
     const orderedGroups = useMemo(() => Array.isArray(groups) ? groupsByPosition(groups) : [], [groups])
     // A note opened for the first time has no data yet: its skeleton instead of an empty note with only "Nuovo gruppo"
@@ -92,7 +94,7 @@ export const GroupContainer = () => {
                                 {showGroupSeparators && index > 0 &&
                                     <div data-testid="group-separator" aria-hidden className="pointer-events-none absolute -left-1 top-0 h-full w-px -translate-x-1/2 bg-border" />}
                                 <NewGroupSlot index={index} />
-                                <Group group={group} index={index} audioCount={audioCounts[group.id] ?? 0} />
+                                <Group group={group} index={index} audioCount={audioCounts[group.id] ?? 0} mediaCount={mediaCounts[group.id] ?? 0} />
                             </GroupColumn>
                         ))}
                 <NewGroupEnd index={groups?.length ?? 0}>

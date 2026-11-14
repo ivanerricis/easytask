@@ -14,6 +14,7 @@ import { GROUP_MIN_WIDTH, GROUP_PROGRESS_MIN_WIDTH } from "@/lib/group-width"
 import { GroupResizeHandle } from "./GroupResizeHandle"
 import { useNoteDrag, useNoteDrop } from "../note-dnd-state"
 import { GroupAudioFiles } from "./GroupAudioFiles"
+import { GroupMediaFiles } from "./GroupMediaFiles"
 import { GroupTasks } from "./GroupTasks"
 import { useGroupOpen } from "@/contexts/use-tabs"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
@@ -27,6 +28,8 @@ type GroupProps = {
     index?: number
     /** Number of audio files of the group, shown in the header. */
     audioCount?: number
+    /** Number of images and videos of the group, shown in the header. */
+    mediaCount?: number
 }
 
 /**
@@ -35,7 +38,7 @@ type GroupProps = {
  */
 const openWidths = new Map<number, number>()
 
-export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => {
+export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }: GroupProps) => {
     // The empty area of a group (and its header) accepts a dragged section: it is appended to the group
     const { setNodeRef: setDropRef, zone, active } = useNoteDrop("group", group.id)
     // The group is also draggable (by its header) to reorder the groups
@@ -132,13 +135,15 @@ export const Group = memo(({ group, index = 0, audioCount = 0 }: GroupProps) => 
                 group={group}
                 index={index}
                 audioCount={audioCount}
+                mediaCount={mediaCount}
                 dragProps={dragProps}
                 compact={compact}
                 onAddSection={addSection}
             />
             {isOpen && <>
-                {/* The audio files stay put above the scrolling area: the list neither scrolls by itself nor with the sections */}
+                {/* The audio files and, under them, the images and videos stay put above the scrolling area: the lists neither scroll by themselves nor with the sections */}
                 {!isDraft && <GroupAudioFiles groupId={group.id} />}
+                {!isDraft && <GroupMediaFiles groupId={group.id} />}
                 {/* The list of the direct tasks (with its "New task" button) sits among the sections where the user put it;
                     it, the sections and the form of a new section scroll together */}
                 {/* The scrolling area is wider on the left (6px) and taller (4px) than the group, with the same padding inside: the drop

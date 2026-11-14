@@ -9,6 +9,7 @@ import { addGroupArchivedAt, addGroupColorColumn, addGroupWidthColumn, createSec
 import { createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
 import { createWorkspaceEditTriggers } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
+import { mediaFileSchema } from "./media_file";
 import { trashIndexSchema } from "./trash_index";
 import { createWorkspaceIndexes, createWorkspaceTable, createWorkspaceTrigger } from "./workspace";
 
@@ -116,10 +117,16 @@ export const noteBackgroundSchema: string[] = [...addNoteBackground]
 export const customThemeSchema: string[] = [...createCustomThemeTable]
 
 /**
+ * Migration v15: table of the images and videos linked to the groups.
+ * @category Database Schema
+ */
+export { mediaFileSchema }
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema,
 ]

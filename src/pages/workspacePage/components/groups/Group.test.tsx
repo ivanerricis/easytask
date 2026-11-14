@@ -24,6 +24,7 @@ vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ setG
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ patchGroup }) }))
 vi.mock("@/lib/report-error", async importOriginal => ({ ...await importOriginal<object>(), reportError: (...args: unknown[]) => reportError(...args) }))
 vi.mock("./GroupAudioFiles", () => ({ GroupAudioFiles: () => <div data-testid="audio-files" /> }))
+vi.mock("./GroupMediaFiles", () => ({ GroupMediaFiles: () => <div data-testid="media-files" /> }))
 vi.mock("../section/Section", () => ({ Section: ({ section }: { section: { id: number } }) => <div data-mock={`s${section.id}`}>section</div> }))
 vi.mock("./GroupTasks", () => ({ GroupTasks: () => <div data-mock="list">direct tasks</div> }))
 vi.mock("../section/AddSection", () => ({
@@ -166,6 +167,16 @@ describe("Group scrolling area", () => {
         render(<Group group={makeGroup({ id: 302, sections: [makeSection({ id: 1 })] })} />)
         const area = screen.getByText("section").parentElement as HTMLElement
         expect(area.contains(screen.getByTestId("audio-files"))).toBe(false)
+    })
+
+    it("shows the images and videos right under the audio files, also outside the scrolling area", () => {
+        render(<Group group={makeGroup({ id: 302, sections: [makeSection({ id: 1 })] })} />)
+        const area = screen.getByText("section").parentElement as HTMLElement
+        const audio = screen.getByTestId("audio-files")
+        const media = screen.getByTestId("media-files")
+        expect(area.contains(media)).toBe(false)
+        expect(audio.nextElementSibling).toBe(media)
+        expect(media.nextElementSibling).toBe(area)
     })
 })
 

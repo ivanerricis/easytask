@@ -15,6 +15,14 @@ export const errors: Translation["errors"] = {
         loadFiles: "Failed to load the audio files: {{message}}",
         loadFile: "Failed to load the audio file: {{message}}",
     },
+    media: {
+        notCreated: "The image or video was not created.",
+        unique: "A file with this name already exists in the group.",
+        checkCreate: "The file name and path cannot be empty.",
+        checkPath: "The path cannot be empty.",
+        loadFiles: "Failed to load the images and videos: {{message}}",
+        loadFile: "Failed to load the image or video: {{message}}",
+    },
     nameEmpty: "The name cannot be empty.",
     folder: {
         unique: "A folder with this name already exists.",
@@ -160,6 +168,7 @@ export const errors: Translation["errors"] = {
     refreshNote: "Could not refresh the note. Try again.",
     saveShortcuts: "Could not save the shortcuts. Try again.",
     loadAudio: "Could not load the audio files.",
+    loadMedia: "Could not load the images and videos.",
     loadTemplates: "Could not load the templates.",
     loadWorkspaceData: "Could not load the workspace data",
 }

@@ -1,6 +1,7 @@
 import { MenuItem, MenuShortcut } from "@/components/menu-kind"
-import { Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Copy, Download, FilePlus, FileText, FileX, FolderInput, FolderPlus, Info, Link2, LayoutTemplate, ListPlus, Music, OctagonAlert, OctagonX, PaintBucket, Palette, Pen, SquareArrowOutUpRight, Trash2, Upload, Zap, ListCollapse, ListChevronsUpDown, Eye, EyeOff, Columns3, Rows3, X, PanelLeft, PanelRight } from "lucide-react"
+import { Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Copy, Download, FilePlus, FileText, FileX, FolderInput, FolderPlus, Info, ImagePlus, Link2, LayoutTemplate, ListPlus, Music, OctagonAlert, OctagonX, PaintBucket, Palette, Pen, SquareArrowOutUpRight, Trash2, Upload, Zap, ListCollapse, ListChevronsUpDown, Eye, EyeOff, Columns3, Rows3, X, PanelLeft, PanelRight } from "lucide-react"
 import React from "react"
+import { cn } from "@/lib/utils"
 
 type ButtonInPopoverProps = {
     text: string
@@ -13,6 +14,8 @@ type ButtonInPopoverProps = {
     disabled?: boolean
     /** Keys of the shortcut, shown right-aligned. */
     shortcut?: string[]
+    /** Drawn attention to (e.g. "Update path" of a file that is missing). */
+    highlight?: boolean
     onClick?: () => void | Promise<void>
 }
 
@@ -37,6 +40,7 @@ const iconMap = {
     removeDescription: FileX,
     addSubtask: ListPlus,
     addAudio: Music,
+    addMedia: ImagePlus,
     createTemplate: LayoutTemplate,
     duplicate: Copy,
     export: Upload,
@@ -56,14 +60,15 @@ const iconMap = {
 
 export type ButtonInPopoverIcon = keyof typeof iconMap
 
-export const ButtonInPopover = React.memo(({ text, type, children, className, destructive, disabled, shortcut, onClick }:ButtonInPopoverProps) => {
+export const ButtonInPopover = React.memo(({ text, type, children, className, destructive, disabled, shortcut, highlight, onClick }:ButtonInPopoverProps) => {
     const IconComponent = iconMap[type]
 
     return (
         <MenuItem
             variant={destructive ? "destructive" : "default"}
             disabled={disabled}
-            className={className}
+            className={cn(highlight && "bg-primary/10 font-medium text-primary", className)}
+            data-highlight={highlight ? "true" : undefined}
             onSelect={() => { void onClick?.() }}
         >
             <IconComponent />

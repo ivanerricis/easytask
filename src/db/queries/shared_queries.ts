@@ -4,7 +4,7 @@ import { getDB } from "../dbManager";
 import { getErrorMessage } from "@/lib/utils";
 import { renameDBTemplate } from "./template";
 
-const ITEM_TYPES = ["workspace", "folder", "note", "section", "section_group", "task", "audio_file", "note_template"] as const
+const ITEM_TYPES = ["workspace", "folder", "note", "section", "section_group", "task", "audio_file", "media_file", "note_template"] as const
 
 /**
  * Tables that the shared queries are allowed to operate on.

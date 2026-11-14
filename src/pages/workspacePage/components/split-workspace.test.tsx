@@ -27,6 +27,11 @@ vi.mock("@/db/queries/group")
 vi.mock("@/db/queries/section")
 vi.mock("@/db/queries/collapsed")
 vi.mock("@/db/queries/shared_queries")
+vi.mock("@/db/queries/media", async importOriginal => ({
+    ...await importOriginal<typeof import("@/db/queries/media")>(),
+    getDBNoteMediaCounts: vi.fn(async () => ({})),
+    getDBGroupMediaFiles: vi.fn(async () => []),
+}))
 vi.mock("@/db/queries/audio", async importOriginal => ({
     ...await importOriginal<typeof import("@/db/queries/audio")>(),
     getDBNoteAudioFiles: vi.fn(async () => ({})),

@@ -72,6 +72,9 @@ const renderAll = () => render(
     </AudioProvider>
 )
 
+// The lists also ask `files_exist` (missing markers): the tests of the playback look only at the commands about playing
+const playbackCalls = () => vi.mocked(invoke).mock.calls.filter(([command]) => command !== "files_exist")
+
 const audioElement = () => document.querySelector("audio") as HTMLAudioElement | null
 
 beforeEach(() => {
@@ -105,7 +108,7 @@ describe("audio files of a group", () => {
         expect(await screen.findByText("song.mp3")).toBeInTheDocument()
         expect(screen.getByText("other.wav")).toBeInTheDocument()
         expect(audioElement()).toBeNull()
-        expect(invoke).not.toHaveBeenCalled()
+        expect(playbackCalls()).toEqual([])
         expect(play).not.toHaveBeenCalled()
     })
 
@@ -147,7 +150,7 @@ describe("audio files of a group", () => {
         await waitFor(() => expect(toast.info).toHaveBeenCalledWith(expect.stringContaining("Impostazioni")))
         expect(audioElement()).toBeNull()
         expect(play).not.toHaveBeenCalled()
-        expect(invoke).not.toHaveBeenCalled()
+        expect(playbackCalls()).toEqual([])
     })
 
     it("clicking another file switches the track and starts it from the beginning", async () => {
@@ -352,7 +355,7 @@ describe("missing file", () => {
         await waitFor(() => expect(updateDBAudioFilePath).toHaveBeenCalledWith(1, "D:\\New\\song.mp3"))
         expect(open).toHaveBeenCalledWith(expect.objectContaining({ multiple: false, filters: [expect.objectContaining({ extensions: expect.arrayContaining(["mp3", "flac"]) })] }))
         await waitFor(() => expect(audioElement()).not.toBeNull())
-        expect(invoke).toHaveBeenLastCalledWith("allow_audio_file", { path: "D:\\New\\song.mp3" })
+        expect(playbackCalls().at(-1)).toEqual(["allow_audio_file", { path: "D:\\New\\song.mp3" }])
         expect(audioElement()!.getAttribute("src")).toContain(encodeURIComponent("D:\\New\\song.mp3"))
         expect(play).toHaveBeenCalled()
     })

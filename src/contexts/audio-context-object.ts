@@ -1,5 +1,5 @@
 import { createContext } from "react"
-import type { AudioFile } from "@/types/types"
+import type { AudioFile, MediaFile } from "@/types/types"
 
 /**
  * The track loaded in the player. `playId` changes when a file is requested that is not the loaded one (or after
@@ -34,6 +34,8 @@ export type AudioContextType = {
      * once from here (and refreshes it), instead of starting empty and popping in a moment later.
      */
     filesCache: Map<number, AudioFile[]>
+    /** The same for the images and videos of each group. */
+    mediaCache: Map<number, MediaFile[]>
     /** Incremented whenever the audio files may have changed (add, rename, relink, delete, trash operations). */
     version: number
     /**
@@ -52,19 +54,25 @@ export type AudioContextType = {
     refresh: () => void
     /** Called by the player when the media element fails (unsupported codec, file removed after the check...). */
     reportPlaybackError: () => Promise<void>
+    /** Asks for images and videos and attaches them to a group (links only, nothing is copied). */
+    addMediaFiles: (groupId: number) => Promise<void>
+    /** Asks for the new location of an image or a video and stores it. */
+    relinkMediaFile: (file: MediaFile) => Promise<void>
+    /** Opens the "File non trovato" dialog (relink or delete the reference) for an image or a video that is missing. */
+    reportMissingMedia: (file: MediaFile) => void
 }
 
 /**
  * The files part of the audio state, in its own context so the lists of the groups do not re-render when the playback
  * changes (play, pause, next track): only a change of `version` reaches them.
  */
-export type AudioFilesContextType = Pick<AudioContextType, "filesCache" | "version">
+export type AudioFilesContextType = Pick<AudioContextType, "filesCache" | "mediaCache" | "version">
 
 /**
  * The actions of the audio state, which keep their identity across playback changes: a component that only starts a
  * playback or attaches files does not re-render on play/pause.
  */
-export type AudioActionsContextType = Pick<AudioContextType, "setPlaybackState" | "togglePlayback" | "playFile" | "closePlayer" | "addFiles" | "relinkFile" | "refresh" | "reportPlaybackError">
+export type AudioActionsContextType = Pick<AudioContextType, "setPlaybackState" | "togglePlayback" | "playFile" | "closePlayer" | "addFiles" | "relinkFile" | "refresh" | "reportPlaybackError" | "addMediaFiles" | "relinkMediaFile" | "reportMissingMedia">
 
 export const AudioContext = createContext<AudioContextType | null>(null)
 export const AudioFilesContext = createContext<AudioFilesContextType | null>(null)

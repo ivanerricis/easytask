@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { convertFileSrc, invoke } from "@tauri-apps/api/core"
 import { open } from "@tauri-apps/plugin-dialog"
 import { toast } from "sonner"
-import type { AudioFile } from "@/types/types"
+import type { AudioFile, MediaFile } from "@/types/types"
 import {
     AUDIO_EXTENSIONS, createDBAudioFile, getDBAudioFile, updateDBAudioFilePath,
 } from "@/db/queries/audio"
+import { MEDIA_EXTENSIONS, createDBMediaFile, updateDBMediaFilePath } from "@/db/queries/media"
 import { usePreferences } from "./use-preferences"
 import { useWorkspaceActions, useWorkspaceVersion } from "./workspace-data"
 import {
@@ -20,9 +21,14 @@ import { FolderSearch, Trash2 } from "lucide-react"
 import { ConfirmDialog } from "@/components/dialogs/dialog-confirm"
 
 const getFilters = () => [{ name: i18n.t("audio.dialogFilter"), extensions: [...AUDIO_EXTENSIONS] }]
+const getMediaFilters = () => [{ name: i18n.t("media.dialogFilter"), extensions: [...MEDIA_EXTENSIONS] }]
+
+/** The file that was not found: an audio file or an image/video, they share the dialog (relink or delete the reference). */
+type MissingFile = { file: AudioFile | MediaFile, kind: "audio" | "media" }
 
 /**
- * State of the audio files attached to the groups and of the floating player.
+ * State of the audio files attached to the groups and of the floating player. It also holds the actions on the images and
+ * videos of the groups (add, relink, missing file), which share the list reload and the "file not found" dialog.
  * The playback is deliberately not tied to the open note: it continues across tab switches
  * and stops only when the user closes the player, when the played file is deleted or when the workspace is left.
  * Mounted above both the note view and the player.
@@ -37,11 +43,12 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const [localVersion, setLocalVersion] = useState(0)
     const [reportedState, setPlaybackState] = useState<PlaybackState>("paused")
     const [toggleSeq, setToggleSeq] = useState(0)
-    const [missing, setMissing] = useState<AudioFile | null>(null)
+    const [missing, setMissing] = useState<MissingFile | null>(null)
     const playSeq = useRef(0)
     const trackRef = useRef(track)
     const knownFiles = useRef(new Map<number, AudioFile>())
     const [filesCache] = useState(() => new Map<number, AudioFile[]>())
+    const [mediaCache] = useState(() => new Map<number, MediaFile[]>())
 
     // Both counters only grow, so their sum changes whenever either does (the audio version, not the trash one: that one
     // moves with every task move and would reload the audio of every group)
@@ -74,7 +81,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         try {
             await invoke("allow_audio_file", { path: file.path })
         } catch {
-            setMissing(file)
+            setMissing({ file, kind: "audio" })
             return
         }
         setTrack({ audioId: file.id, name: file.name, src: convertFileSrc(file.path), playId: ++playSeq.current })
@@ -103,6 +110,45 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         }
     }, [refresh])
 
+    const addMediaFiles = useCallback(async (groupId: number) => {
+        try {
+            const selected = await open({ multiple: true, directory: false, filters: getMediaFilters() })
+            if (!selected) return
+            const paths = Array.isArray(selected) ? selected : [selected]
+
+            let failed = 0
+            for (const path of paths) {
+                try {
+                    await createDBMediaFile(groupId, path)
+                } catch (error) {
+                    failed++
+                    toast.error(getErrorMessage(error))
+                }
+            }
+            refresh()
+            if (paths.length > failed)
+                toast.success(i18n.t("media.added", { count: paths.length - failed }))
+        } catch (error) {
+            toast.error(i18n.t("media.addError", { message: getErrorMessage(error) }))
+        }
+    }, [refresh])
+
+    const relinkMediaFile = useCallback(async (file: MediaFile) => {
+        try {
+            const selected = await open({ multiple: false, directory: false, filters: getMediaFilters() })
+            const path = Array.isArray(selected) ? selected[0] : selected
+            if (!path) return
+
+            await updateDBMediaFilePath(file.id, path)
+            refresh()
+            toast.success(i18n.t("audio.pathUpdated"))
+        } catch (error) {
+            toast.error(i18n.t("audio.pathError", { message: getErrorMessage(error) }))
+        }
+    }, [refresh])
+
+    const reportMissingMedia = useCallback((file: MediaFile) => setMissing({ file, kind: "media" }), [])
+
     const relinkFile = useCallback(async (file: AudioFile, play = false) => {
         try {
             const selected = await open({ multiple: false, directory: false, filters: getFilters() })
@@ -127,7 +173,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         const exists = await invoke<boolean>("audio_file_exists", { path: file?.path ?? "" }).catch(() => true)
         if (!exists && file) {
             setTrack(null)
-            setMissing(file)
+            setMissing({ file, kind: "audio" })
         } else {
             toast.error(i18n.t("audio.playbackError"))
         }
@@ -153,11 +199,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }, [version])
 
     const handleDeleteReference = async () => {
-        const file = missing
+        const current = missing
         setMissing(null)
-        if (!file) return
+        if (!current) return
         try {
-            await deleteItem("audio_file", file.id)
+            await deleteItem(current.kind === "audio" ? "audio_file" : "media_file", current.file.id)
             refresh()
             toast.success(i18n.t("audio.referenceTrashed"))
         } catch (error) {
@@ -166,9 +212,11 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     }
 
     const handleRelink = () => {
-        const file = missing
+        const current = missing
         setMissing(null)
-        if (file) void relinkFile(file, true)
+        if (!current) return
+        if (current.kind === "audio") void relinkFile(current.file, true)
+        else void relinkMediaFile(current.file)
     }
 
     const playbackState: PlaybackState = track === null ? "paused" : reportedState
@@ -176,8 +224,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     // Three views of the same state: the full one, the files (version) and the stable actions, so a consumer re-renders only for what it reads
     const actions = useMemo<AudioActionsContextType>(() => ({
         setPlaybackState, togglePlayback, playFile, closePlayer, addFiles, relinkFile, refresh, reportPlaybackError,
-    }), [togglePlayback, playFile, closePlayer, addFiles, relinkFile, refresh, reportPlaybackError])
-    const files = useMemo<AudioFilesContextType>(() => ({ filesCache, version }), [filesCache, version])
+        addMediaFiles, relinkMediaFile, reportMissingMedia,
+    }), [togglePlayback, playFile, closePlayer, addFiles, relinkFile, refresh, reportPlaybackError, addMediaFiles, relinkMediaFile, reportMissingMedia])
+    const files = useMemo<AudioFilesContextType>(() => ({ filesCache, mediaCache, version }), [filesCache, mediaCache, version])
     const value = useMemo<AudioContextType>(() => ({
         ...actions, ...files, track, playbackState, toggleSeq,
     }), [actions, files, track, playbackState, toggleSeq])
@@ -191,13 +240,13 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                 open={missing !== null}
                 onOpenChange={(isOpen) => { if (!isOpen) setMissing(null) }}
                 title={t("audio.missing.title")}
-                description={t("audio.missing.description")}
+                description={t(missing?.kind === "media" ? "media.missing.description" : "audio.missing.description")}
                 secondary={{ label: t("audio.missing.deleteReference"), icon: Trash2, onClick: handleDeleteReference }}
                 secondaryDestructive
                 confirm={{ label: t("audio.updatePath"), icon: FolderSearch, onClick: handleRelink }}
             >
                 <p className="text-xs text-muted-foreground break-all rounded-xs border bg-secondary p-2">
-                    {missing?.path}
+                    {missing?.file.path}
                 </p>
             </ConfirmDialog>
             </AudioFilesContext.Provider>

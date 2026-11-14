@@ -2,7 +2,7 @@ import { MAX_NAME_LENGTH } from "@/lib/names"
 import { memo, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { usePreference } from "@/contexts/use-preference"
-import { ChevronDown, FileAudio, LayoutList, Plus, SquareCheckBig, type LucideIcon } from "lucide-react"
+import { ChevronDown, FileAudio, Images, LayoutList, Plus, SquareCheckBig, type LucideIcon } from "lucide-react"
 import { ProgressRing } from "@/components/ui/progress-ring"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,13 +43,15 @@ type GroupHeaderProps = {
     dragProps?: HTMLAttributes<HTMLElement>
     /** Number of audio files of the group (the badge is hidden when 0). */
     audioCount?: number
+    /** Number of images and videos of the group (the badge is hidden when 0). */
+    mediaCount?: number
     /** Narrow group: the completion bar is hidden so the name keeps its space. */
     compact?: boolean
     /** Opens the form of a new section in the group (the "Nuova sezione" entry of its menu). */
     onAddSection?: () => void
 }
 
-export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, compact = false, onAddSection }: GroupHeaderProps) => {
+export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, mediaCount = 0, compact = false, onAddSection }: GroupHeaderProps) => {
     const { t } = useTranslation()
     const showSectionCount = usePreference(p => p.showSectionCount)
     const showTaskCount = usePreference(p => p.showTaskCount)
@@ -157,6 +159,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                         {showSectionCount && <CountBadge icon={LayoutList} count={group.sections.length} label={t("common.counts.section", { count: group.sections.length })} />}
                         {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={t("common.counts.task", { count: taskCount })} />}
                         {showAudioFileCount && audioCount > 0 && <CountBadge icon={FileAudio} count={audioCount} label={t("groups.audioCount", { count: audioCount })} />}
+                        {showAudioFileCount && mediaCount > 0 && <CountBadge icon={Images} count={mediaCount} label={t("groups.mediaCount", { count: mediaCount })} />}
                     </div>
                     {ring && <div className="flex items-center gap-1.5 shrink-0 ml-1">
                         {ring}

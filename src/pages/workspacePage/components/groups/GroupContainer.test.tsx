@@ -31,6 +31,7 @@ const setHideCompletedTasks = vi.fn()
 const prefs = { showAudioFileCount: true, showGroupSeparators: false, hideCompletedTasks: false, setHideCompletedTasks }
 vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => prefs }))
 vi.mock("@/db/queries/audio", () => ({ getDBGroupAudioFiles: vi.fn(), getDBNoteAudioFiles: vi.fn() }))
+vi.mock("@/db/queries/media", () => ({ getDBGroupMediaFiles: vi.fn(async () => []), getDBNoteMediaCounts: vi.fn(async () => ({})) }))
 
 // The group stub exposes the move the drag & drop runs on drop (the real dnd-kit drag is not drivable in jsdom)
 let moveGroupTo: (groupId: number, index: number) => Promise<void>

@@ -13,6 +13,14 @@ export const errors = {
         loadFiles: "Impossibile caricare i file audio: {{message}}",
         loadFile: "Impossibile caricare il file audio: {{message}}",
     },
+    media: {
+        notCreated: "L'immagine o il video non è stato creato.",
+        unique: "Esiste già un file con questo nome nel gruppo.",
+        checkCreate: "Il nome e il percorso del file non possono essere vuoti.",
+        checkPath: "Il percorso non può essere vuoto.",
+        loadFiles: "Impossibile caricare le immagini e i video: {{message}}",
+        loadFile: "Impossibile caricare l'immagine o il video: {{message}}",
+    },
     nameEmpty: "Il nome non può essere vuoto.",
     folder: {
         unique: "Esiste già una cartella con questo nome.",
@@ -158,6 +166,7 @@ export const errors = {
     refreshNote: "Impossibile aggiornare la nota. Riprova.",
     saveShortcuts: "Impossibile salvare le scorciatoie. Riprova.",
     loadAudio: "Impossibile caricare i file audio.",
+    loadMedia: "Impossibile caricare le immagini e i video.",
     loadTemplates: "Impossibile caricare i template.",
     loadWorkspaceData: "Impossibile caricare i dati del workspace",
 }

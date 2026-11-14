@@ -103,6 +103,8 @@ export const groups = {
     progress: "Avanzamento del gruppo",
     audioCount_one: "{{count}} file audio",
     audioCount_other: "{{count}} file audio",
+    mediaCount_one: "{{count}} immagine o video",
+    mediaCount_other: "{{count}} immagini e video",
     width: {
         handle: "Ridimensiona il gruppo",
         value: "{{width}} pixel",

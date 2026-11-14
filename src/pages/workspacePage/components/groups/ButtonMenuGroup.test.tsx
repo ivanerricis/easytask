@@ -12,7 +12,8 @@ const patchGroup = vi.fn()
 const removeGroup = vi.fn()
 vi.mock("../NoteStepMoves", () => ({ GroupStepMoves: () => null, DirectStepMoves: ({ groupId }: { groupId: number }) => <div role="menuitem">mosse lista {groupId}</div> }))
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ patchGroup, removeGroup }) }))
-vi.mock("@/contexts/use-audio", () => ({ useAudioActions: () => ({ addFiles: vi.fn() }) }))
+const addMediaFiles = vi.fn()
+vi.mock("@/contexts/use-audio", () => ({ useAudioActions: () => ({ addFiles: vi.fn(), addMediaFiles }) }))
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 const updateItemColor = vi.fn()
 const recordColor = vi.fn()
@@ -65,6 +66,18 @@ describe("ButtonMenuGroup", () => {
         expect(screen.queryByText("Archivia")).not.toBeInTheDocument()
         expect(screen.queryByText("Automazioni…")).not.toBeInTheDocument()
         expect(screen.queryByText("Aggiungi file audio")).not.toBeInTheDocument()
+        expect(screen.queryByText("Aggiungi immagine o video")).not.toBeInTheDocument()
+    })
+
+    it("offers 'Aggiungi immagine o video' next to the audio entry, and it asks for the files of this group", async () => {
+        const user = userEvent.setup()
+        const row = setup()
+        fireEvent.contextMenu(row)
+        const audio = await screen.findByText("Aggiungi file audio")
+        const media = screen.getByRole("menuitem", { name: "Aggiungi immagine o video" })
+        expect(audio.compareDocumentPosition(media) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+        await user.click(media)
+        expect(addMediaFiles).toHaveBeenCalledWith(3)
     })
 
     it("archives the group, removing it from the note, and records the undo step", async () => {

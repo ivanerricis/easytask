@@ -14,14 +14,14 @@ const RESTORE_UNIQUE_MESSAGE = () => i18n.t("errors.trash.restoreUnique")
 type TrashRow = { type: DBItemType, id: number, name: string, context: string | null, deleted_at: string, extra: number }
 
 /** What a trashed item contained; a missing key counts as zero. */
-type TrashCounts = Partial<Record<"folders" | "notes" | "groups" | "sections" | "tasks" | "audio", number>>
+type TrashCounts = Partial<Record<"folders" | "notes" | "groups" | "sections" | "tasks" | "audio" | "media", number>>
 
 // Counters shown for each type, in display order (audio files have no content)
 const SUMMARY_FIELDS: Partial<Record<DBItemType, (keyof TrashCounts)[]>> = {
     workspace: ["folders", "notes"],
     folder: ["folders", "notes"],
     note: ["groups", "sections", "tasks"],
-    section_group: ["sections", "tasks", "audio"],
+    section_group: ["sections", "tasks", "audio", "media"],
     section: ["tasks"],
     task: ["tasks"],
     note_template: ["groups", "sections", "tasks"],
@@ -54,7 +54,7 @@ export function formatTrashSummary(type: DBItemType, counts: TrashCounts): strin
         .filter(field => (counts[field] ?? 0) > 0)
         .map(field => {
             const shared = SHARED_COUNT_KEYS[field]
-            const own = (SUBITEM_KEYS[type]?.[field] ?? field) as "folders" | "notes" | "audio" | "subfolders" | "subtasks"
+            const own = (SUBITEM_KEYS[type]?.[field] ?? field) as "folders" | "notes" | "audio" | "media" | "subfolders" | "subtasks"
             return i18n.t(shared && !SUBITEM_KEYS[type]?.[field] ? shared : `trash.summary.${own}`, { count: counts[field]! })
         })
     return parts.length > 0 ? parts.join(" · ") : i18n.t("trash.summary.empty")
@@ -125,7 +125,8 @@ export async function loadTrashCounts(db: Awaited<ReturnType<typeof getDB>>, wor
          SELECT g.id,
                 (SELECT COUNT(*) FROM section s WHERE s.groupID = g.id AND s.deleted_at IS NULL AND s.is_default = 0) AS sections,
                 (SELECT COUNT(*) FROM tt INNER JOIN section s ON s.id = tt.sec WHERE s.groupID = g.id) AS tasks,
-                (SELECT COUNT(*) FROM audio_file a WHERE a.section_groupID = g.id AND a.deleted_at IS NULL) AS audio
+                (SELECT COUNT(*) FROM audio_file a WHERE a.section_groupID = g.id AND a.deleted_at IS NULL) AS audio,
+                (SELECT COUNT(*) FROM media_file m WHERE m.section_groupID = g.id AND m.deleted_at IS NULL) AS media
          FROM section_group g INNER JOIN note n ON n.id = g.noteID
          WHERE ${root("g")} AND n.workspaceID = ?`, [workspaceId, workspaceId])
 
@@ -226,10 +227,16 @@ export async function getDBTrash(workspaceId: number): Promise<TrashItem[]> {
              INNER JOIN note n ON n.id = g.noteID
              WHERE n.workspaceID = ? AND a.deleted_at IS NOT NULL
              UNION ALL
+             SELECT 'media_file', 7, a.id, a.name, ? || n.name || ' › ' || COALESCE(NULLIF(TRIM(g.name), ''), ? || (g.position + 1)), a.deleted_at, 0
+             FROM media_file a
+             INNER JOIN section_group g ON g.id = a.section_groupID
+             INNER JOIN note n ON n.id = g.noteID
+             WHERE n.workspaceID = ? AND a.deleted_at IS NOT NULL
+             UNION ALL
              SELECT 'note_template', 6, t.id, t.name,
                     COALESCE(? || (SELECT n.name FROM note n WHERE n.id = t.sourceNoteID), ''), t.deleted_at, 0
              FROM note_template t WHERE t.workspaceID = ? AND t.deleted_at IS NOT NULL
-             ORDER BY deleted_at DESC, kind, id`, [workspaceId, workspaceId, workspaceId, notePrefix, workspaceId, notePrefix, groupPrefix, sectionPrefix, workspaceId, notePrefix, groupPrefix, workspaceId, fromPrefix, workspaceId])
+             ORDER BY deleted_at DESC, kind, id`, [workspaceId, workspaceId, workspaceId, notePrefix, workspaceId, notePrefix, groupPrefix, sectionPrefix, workspaceId, notePrefix, groupPrefix, workspaceId, notePrefix, groupPrefix, workspaceId, fromPrefix, workspaceId])
 
         const counts = await loadTrashCounts(db, workspaceId, new Set(rows.map(row => row.type)))
         if (rows.some(row => row.type === "note_template")) {
@@ -274,8 +281,12 @@ export async function getDBTrashCount(workspaceId: number): Promise<number> {
                   INNER JOIN section_group g ON g.id = a.section_groupID
                   INNER JOIN note n ON n.id = g.noteID
                   WHERE n.workspaceID = ? AND a.deleted_at IS NOT NULL)
+              + (SELECT COUNT(*) FROM media_file a
+                  INNER JOIN section_group g ON g.id = a.section_groupID
+                  INNER JOIN note n ON n.id = g.noteID
+                  WHERE n.workspaceID = ? AND a.deleted_at IS NOT NULL)
               + (SELECT COUNT(*) FROM note_template WHERE workspaceID = ? AND deleted_at IS NOT NULL) AS total`,
-            [workspaceId, workspaceId, workspaceId, workspaceId, workspaceId, workspaceId, workspaceId])
+            [workspaceId, workspaceId, workspaceId, workspaceId, workspaceId, workspaceId, workspaceId, workspaceId])
         return rows[0]?.total ?? 0
     } catch (error: unknown) {
         throw createError("TRASH_LOAD_FAILED", i18n.t("errors.trash.load", { message: getErrorMessage(error) }))
@@ -379,6 +390,16 @@ export function buildRestoreStatements(itemType: DBItemType, id: number, column:
                 restoreRow(column, "audio_file", "SELECT ?", [id]),
             ]
         }
+        case "media_file": {
+            const groupOfMedia = "SELECT section_groupID FROM media_file WHERE id = ?"
+            const noteOfMedia = `SELECT noteID FROM section_group WHERE id = (${groupOfMedia})`
+            return [
+                folderChain(column, `SELECT folderID FROM note WHERE id = (${noteOfMedia})`, [id]),
+                restoreRow(column, "note", noteOfMedia, [id]),
+                restoreRow(column, "section_group", groupOfMedia, [id]),
+                restoreRow(column, "media_file", "SELECT ?", [id]),
+            ]
+        }
         case "task": {
             const groupOfTask = `SELECT groupID FROM section WHERE id = (${SECTION_OF_TASK})`
             const noteOfTask = `SELECT noteID FROM section_group WHERE id = (${groupOfTask})`
@@ -465,6 +486,9 @@ export async function emptyDBTrash(workspaceId: number) {
                 INNER JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ?)`, [workspaceId])
         tx.add(
             `DELETE FROM audio_file WHERE deleted_at IS NOT NULL AND section_groupID IN (
+                SELECT g.id FROM section_group g INNER JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ?)`, [workspaceId])
+        tx.add(
+            `DELETE FROM media_file WHERE deleted_at IS NOT NULL AND section_groupID IN (
                 SELECT g.id FROM section_group g INNER JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ?)`, [workspaceId])
         tx.add('DELETE FROM note_template WHERE workspaceID = ? AND deleted_at IS NOT NULL', [workspaceId])
         await tx.run()
