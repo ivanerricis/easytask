@@ -10,6 +10,7 @@ import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
 import { withRollback } from "@/contexts/with-rollback"
 import { reportError } from "@/lib/report-error"
+import { getOpenGroupWidth, setOpenGroupWidth } from "@/lib/group-widths"
 import { GROUP_MIN_WIDTH, GROUP_PROGRESS_MIN_WIDTH } from "@/lib/group-width"
 import { GroupResizeHandle } from "./GroupResizeHandle"
 import { useNoteDrag, useNoteDrop } from "../note-dnd-state"
@@ -31,12 +32,6 @@ type GroupProps = {
     /** Number of images and videos of the group, shown in the header. */
     mediaCount?: number
 }
-
-/**
- * Last width of each group while it was open. A group is as wide as its widest section (or its header), so it would
- * shrink to the header as soon as it is collapsed: with the horizontal layout the collapsed group keeps this width instead.
- */
-const openWidths = new Map<number, number>()
 
 export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }: GroupProps) => {
     // The empty area of a group (and its header) accepts a dragged section: it is appended to the group
@@ -94,7 +89,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
             const measured = node.getBoundingClientRect().width
             // An element that is not laid out (width 0) says nothing
             if (measured <= 0) return
-            openWidths.set(group.id, measured)
+            setOpenGroupWidth(group.id, measured)
         }
         record()
         const observer = new ResizeObserver(record)
@@ -117,7 +112,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
             data-collapsed-layout={isOpen ? undefined : strip ? "vertical" : "horizontal"}
             // An explicit width replaces the content-driven one; as a strip the group is narrow (its width comes back on opening),
             // as a horizontal bar it keeps the width it had while open
-            style={{ ...panel, ...(strip ? {} : width !== null ? { width } : isOpen ? {} : { minWidth: openWidths.get(group.id) }) }}
+            style={{ ...panel, ...(strip ? {} : width !== null ? { width } : isOpen ? {} : { minWidth: getOpenGroupWidth(group.id) }) }}
             className={cn(
                 // As tall as its content, at most the height of the note (then its list scrolls)
                 "relative flex flex-col max-h-full rounded-xs border border-t-4",

@@ -20,6 +20,7 @@ import { emptyDBTrash, getDBTrash, getDBTrashCount, purgeDBItem, restoreDBItem }
 import { createDBNoteFromTemplate } from "@/db/queries/template"
 import { archiveDBItem, getDBArchive, getDBArchiveCount, unarchiveDBItem } from "@/db/queries/archive"
 import { deferred } from "@/test/ui-render"
+import { getOpenGroupWidth, setOpenGroupWidth } from "@/lib/group-widths"
 import { makeGroup, makeNote, makeSection, makeTask } from "@/test/ui-fixtures"
 import type { Folder } from "@/types/types"
 
@@ -363,6 +364,19 @@ describe("WorkspaceDataContext", () => {
             await act(() => result.current.deleteItem("note", 10))
             expect(result.current.notes).not.toBe(notes)
             expect(result.current.notes.map(n => n.id)).toEqual([11])
+        })
+
+        it("forgets the remembered open width of a group when it is deleted or purged", async () => {
+            const { result } = renderHook(() => useAll(), { wrapper })
+            setOpenGroupWidth(901, 300)
+            setOpenGroupWidth(902, 310)
+            setOpenGroupWidth(903, 320)
+            await act(() => result.current.deleteItem("section_group", 901))
+            await act(() => result.current.purgeItem("section_group", 902))
+            await act(() => result.current.deleteItem("section", 903))
+            expect(getOpenGroupWidth(901)).toBeUndefined()
+            expect(getOpenGroupWidth(902)).toBeUndefined()
+            expect(getOpenGroupWidth(903)).toBe(320)
         })
 
         it("bumps audioVersion only for what can change the visible audio, not for task moves", async () => {

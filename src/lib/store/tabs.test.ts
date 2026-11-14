@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { store } from "./initStore"
-import { getWorkspaceTabs, saveWorkspaceTabs } from "./tabs"
+import { saveStoreSoon } from "./save-soon"
+import { deleteWorkspaceTabs, getWorkspaceTabs, saveWorkspaceTabs } from "./tabs"
 
 vi.mock("./initStore", () => ({ store: { get: vi.fn(), set: vi.fn(), save: vi.fn(), delete: vi.fn() } }))
 vi.mock("./save-soon", () => ({ saveStoreSoon: vi.fn().mockResolvedValue(undefined) }))
@@ -84,5 +85,17 @@ describe("workspace tabs store", () => {
                 version: 2, left: { openIds: [1], activeId: 1 }, right: { openIds: [2], activeId: 2 }, focused: 1,
             })
         })
+    })
+})
+
+describe("deleteWorkspaceTabs", () => {
+    beforeEach(() => {
+        vi.resetAllMocks()
+    })
+
+    it("deletes the per-workspace key and saves", async () => {
+        await deleteWorkspaceTabs(7)
+        expect(store.delete).toHaveBeenCalledWith("openTabs:7")
+        expect(saveStoreSoon).toHaveBeenCalled()
     })
 })
