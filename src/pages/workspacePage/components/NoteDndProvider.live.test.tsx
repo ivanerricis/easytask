@@ -1,39 +1,43 @@
 // @vitest-environment jsdom
 import { act, render } from "@testing-library/react"
-import type { ReactNode } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { NoteDndProvider } from "./NoteDndProvider"
 import { groupNodeKey, registerShiftNode, sectionNodeKey } from "./note-dnd-shift"
 import type { NoteDataTree } from "@/types/types"
+import type { NoteDragRef } from "./note-dnd"
+import type { PointerDragHandlers } from "./note-dnd-pointer"
 
-type Handlers = {
-    onDragStart: (event: unknown) => void
-    onDragMove: (event: unknown) => void
-    onDragEnd: () => void
-    onDragCancel: () => void
-}
-let handlers: Handlers
 // The drop zones are not dnd-kit droppables (see note-dnd-hit): the tests say what is under the pointer with the `over` of the move event,
 // and the hit test returns it
 let hit: { ref: unknown, rect: unknown } | null = null
 // The callback the provider gives to be told when a row changes its size
 let onResize: (() => void) | undefined
 vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit, registerZone: () => undefined }))
-vi.mock("@dnd-kit/core", async importActual => ({
-    ...await importActual<typeof import("@dnd-kit/core")>(),
-    DndContext: (props: Handlers & { children: ReactNode }) => {
-        handlers = {
-            ...props,
-            onDragMove: (event: unknown) => {
-                const over = (event as { over?: { data: { current: unknown }, rect: unknown } | null }).over
-                hit = over ? { ref: over.data.current, rect: over.rect } : null
-                props.onDragMove(event)
-            },
-        }
-        return <>{props.children}</>
+// The controller of the pointer is replaced by one that hands the provider's handlers to the test (the real one is tested in
+// note-dnd-pointer.test.ts); the tests speak the shape of the old dnd-kit events, turned here into the pointer the provider gets now
+let latest: PointerDragHandlers
+const driver = () => latest
+const handlers = {
+    onDragStart: (event: unknown) => {
+        const ref = (event as { active: { data: { current: NoteDragRef } } }).active.data.current
+        driver().start(ref, { pointer: { x: 0, y: 0 }, press: { x: 0, y: 0 }, node: null })
     },
-    DragOverlay: () => null,
+    onDragMove: (event: unknown) => {
+        const { activatorEvent, delta, over } = event as { activatorEvent?: { clientX: number, clientY: number }, delta?: { x: number, y: number }, over?: { data: { current: unknown }, rect: unknown } | null }
+        hit = over ? { ref: over.data.current, rect: over.rect } : null
+        driver().move(activatorEvent ? { x: activatorEvent.clientX + (delta?.x ?? 0), y: activatorEvent.clientY + (delta?.y ?? 0) } : { x: -1, y: -1 })
+    },
+    onDragEnd: () => driver().end(),
+    onDragCancel: () => driver().cancel(),
+}
+vi.mock("./note-dnd-pointer", async importActual => ({
+    ...await importActual<typeof import("./note-dnd-pointer")>(),
+    createPointerDrag: () => {
+        return { press: () => undefined, getPointer: () => null, isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
+    },
 }))
+// The preview is a portal in the body, which these tests empty by hand; it has its own tests
+vi.mock("./NoteDragOverlay", () => ({ NoteDragOverlay: () => null }))
 vi.mock("./tasks/note-announcer-store", () => ({ announce: vi.fn() }))
 
 const task = (id: number) => ({ id, text: `Task ${id}`, subtasks: [], sectionID: 10 })

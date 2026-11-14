@@ -1,20 +1,36 @@
 import { act, render } from "@testing-library/react"
-import { useContext, type ReactNode } from "react"
+import { useContext } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NoteDndProvider } from "./NoteDndProvider"
 import { createSelectionStore } from "./sidebar/selection"
 import { TaskSelectionContext } from "./tasks/use-task-selection"
 import { taskKey } from "./tasks/task-selection"
-import { NoteDndStoreContext, type NoteDndStore } from "./note-dnd-state"
+import { NoteDndStoreContext, NoteDragPressContext, type NoteDndStore } from "./note-dnd-state"
 import { announce } from "./tasks/note-announcer-store"
+import type { NoteDragRef } from "./note-dnd"
+import type { PointerDragHandlers } from "./note-dnd-pointer"
 
-// DndContext is replaced by a stub that hands its handlers to the test: the pointer sensor needs a real browser
-type Handlers = { autoScroll: { canScroll: (element: Element) => boolean, threshold: { x: number, y: number } }, onDragStart: (event: unknown) => void, onDragCancel: () => void, sensors: unknown }
-let handlers: Handlers
-vi.mock("@dnd-kit/core", async importActual => ({
-    ...await importActual<typeof import("@dnd-kit/core")>(),
-    DndContext: (props: Handlers & { children: ReactNode }) => { handlers = props; return <>{props.children}</> },
-    DragOverlay: () => null,
+// The controller of the pointer is replaced by one that hands the provider's handlers to the test (the real one is tested in
+// note-dnd-pointer.test.ts); the tests speak the shape of the old dnd-kit events, turned here into the pointer the provider gets now
+let latest: PointerDragHandlers
+const driver = () => latest
+const handlers = {
+    onDragStart: (event: unknown) => {
+        const ref = (event as { active: { data: { current: NoteDragRef } } }).active.data.current
+        driver().start(ref, { pointer: { x: 0, y: 0 }, press: { x: 0, y: 0 }, node: null })
+    },
+    onDragMove: (event: unknown) => {
+        const { activatorEvent, delta } = event as { activatorEvent?: { clientX: number, clientY: number }, delta?: { x: number, y: number } }
+        driver().move(activatorEvent ? { x: activatorEvent.clientX + (delta?.x ?? 0), y: activatorEvent.clientY + (delta?.y ?? 0) } : { x: -1, y: -1 })
+    },
+    onDragEnd: () => driver().end(),
+    onDragCancel: () => driver().cancel(),
+}
+vi.mock("./note-dnd-pointer", async importActual => ({
+    ...await importActual<typeof import("./note-dnd-pointer")>(),
+    createPointerDrag: () => {
+        return { press: () => undefined, getPointer: () => null, isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
+    },
 }))
 vi.mock("./tasks/note-announcer-store", () => ({ announce: vi.fn() }))
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNote: () => ({ noteDataTree: null }) }))
@@ -56,7 +72,7 @@ describe("NoteDndProvider drag of a selected task", () => {
         setup()
         startDrag("task", 3)
         expect([...store.getSelected()]).toEqual([taskKey(1), taskKey(2)])
-        expect(announce).not.toHaveBeenCalled()
+        expect(announce).not.toHaveBeenCalledWith("Viene spostato solo questo task")
     })
 
     it("leaves a selection of a single task alone, without announcing anything", () => {
@@ -64,7 +80,7 @@ describe("NoteDndProvider drag of a selected task", () => {
         setup()
         startDrag("task", 1)
         expect(store.getSelected().size).toBe(1)
-        expect(announce).not.toHaveBeenCalled()
+        expect(announce).not.toHaveBeenCalledWith("Viene spostato solo questo task")
     })
 
     it("does not touch the selection when a section is dragged", () => {
@@ -85,11 +101,13 @@ describe("NoteDndProvider renders", () => {
         </TaskSelectionContext.Provider>
     )
 
-    it("keeps the same sensors across renders (new options would change the listeners of every draggable)", () => {
-        const view = render(tree())
-        const first = handlers.sensors
-        view.rerender(tree())
-        expect(handlers.sensors).toBe(first)
+    it("keeps the same press function across renders (a new one would change the props of every draggable)", () => {
+        let press: unknown
+        const Grab = () => { press = useContext(NoteDragPressContext); return null }
+        const view = render(<NoteDndProvider><Grab /></NoteDndProvider>)
+        const first = press
+        view.rerender(<NoteDndProvider><Grab /></NoteDndProvider>)
+        expect(press).toBe(first)
     })
 
     it("does not render again when the target of the drag changes, and the cursor follows it", () => {
@@ -119,31 +137,31 @@ describe("NoteDndProvider drag state and announcements", () => {
         expect(document.body.hasAttribute("data-note-dragging")).toBe(false)
     })
 
-    it("announces the target and the result from the hit test, not from dnd-kit (which has no over)", async () => {
+    it("announces the start, the target and the result from the hit test", async () => {
         setup()
-        const accessibility = (handlers as unknown as { accessibility: { announcements: Record<string, (e: unknown) => unknown> } }).accessibility
-        expect(accessibility.announcements.onDragOver({})).toBeUndefined()
-        expect(accessibility.announcements.onDragEnd({})).toBeUndefined()
         startDrag("task", 1)
+        vi.mocked(announce).mockClear() // the start of the drag is announced too
         act(() => api().onDragMove({ active: { data: { current: { kind: "task", id: 1 } } }, over: null, delta: { x: 0, y: 0 } }))
         expect(announce).not.toHaveBeenCalled() // still no target: nothing new to say
         act(() => api().onDragMove({ active: { data: { current: { kind: "task", id: 1 } } }, over: null, delta: { x: 0, y: 0 } }))
         expect(announce).not.toHaveBeenCalled()
         await act(async () => { await api().onDragEnd() })
-        expect(announce).toHaveBeenCalledTimes(1) // the result (dnd-kit would always have said "no target")
+        expect(announce).toHaveBeenCalledTimes(1) // the result
+    })
+
+    it("announces the start of the drag and its cancel", () => {
+        setup()
+        startDrag("task", 1)
+        expect(announce).toHaveBeenCalledTimes(1)
+        act(() => handlers.onDragCancel())
+        expect(announce).toHaveBeenCalledTimes(2)
+        expect(dnd.getState().active).toBeNull()
     })
 })
 
-describe("NoteDndProvider auto scroll", () => {
-    it("scrolls only the row of the groups and the list of a group, with explicit bands", () => {
+describe("NoteDndProvider drag overlay", () => {
+    it("shows no preview while nothing is dragged", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
-        const el = (attrs: Record<string, string>) => Object.entries(attrs).reduce((node, [k, v]) => (node.setAttribute(k, v), node), document.createElement("div"))
-        const { canScroll, threshold } = handlers.autoScroll
-        expect(canScroll(el({ "data-testid": "group-scroll" }))).toBe(true)
-        expect(canScroll(el({ "data-group-list": "" }))).toBe(true)
-        expect(canScroll(el({ "data-pane": "0" }))).toBe(false)
-        expect(canScroll(el({ role: "tablist" }))).toBe(false)
-        expect(canScroll(document.body)).toBe(false)
-        expect(threshold).toEqual({ x: 0.2, y: 0.2 })
+        expect(document.querySelector("[data-note-drag-overlay]")).toBeNull()
     })
 })

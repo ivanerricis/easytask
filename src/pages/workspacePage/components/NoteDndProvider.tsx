@@ -1,12 +1,7 @@
 import { getSectionLabel } from "./section/section-label"
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
-import type { CSSProperties, ReactNode } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { createPortal } from "react-dom"
-import {
-    DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
-    type CollisionDetection, type DragMoveEvent, type DragStartEvent,
-} from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
 import {
     computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
@@ -15,10 +10,7 @@ import { applyShifts, clearShifts, hasShifts, readLiveSnapshot } from "./note-dn
 import { clearZones, hitTest, measureZones } from "./note-dnd-hit"
 import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
-import { useColorAlpha } from "@/contexts/use-color-alpha"
-import { hexToRgba } from "@/lib/utils"
 import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
-import { DragEndGuard } from "@/components/dnd-end-guard"
 import {
     computeDropZone, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
     type DropZone, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
@@ -26,33 +18,20 @@ import {
 import { useTaskSelectionStore } from "./tasks/use-task-selection"
 import { taskKey } from "./tasks/task-selection"
 import { announce } from "./tasks/note-announcer-store"
-import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import type { NoteDataTree } from "@/types/types"
-import { NO_HOVER, NoteDndStoreContext, createNoteDndStore, noteKey, useGroupMoves, useNoteDndSelector, useNoteMoves, type NoteHover } from "./note-dnd-state"
+import { NO_HOVER, NoteDndStoreContext, NoteDragPressContext, createNoteDndStore, noteKey, useGroupMoves, useNoteDndSelector, useNoteMoves, type NoteHover } from "./note-dnd-state"
+import { createPointerDrag, type Point, type PointerDragHandlers } from "./note-dnd-pointer"
+import { scrollableAncestors, startAutoScroll } from "./note-dnd-autoscroll"
+import { createOverlayFollower } from "./note-dnd-overlay"
+import { NoteDragOverlay } from "./NoteDragOverlay"
 
 type PendingDrop =
     | { kind: "section", id: number, target: SectionTarget }
     | { kind: "group", id: number, index: number }
     | { kind: "task", id: number, target: TaskTarget }
 
-/** The drop zones are not dnd-kit droppables (see note-dnd-hit): dnd-kit has nothing to detect, `over` stays null. */
-const collisionDetection: CollisionDetection = () => []
-
-/**
- * What scrolls by itself while a group, a section or a task is dragged near an edge: the row of the groups (sideways) and the list of
- * a group (up and down, to reach a far task). Everything else (the pane, the page, the other pane of a split view) stays still: the
- * default of dnd-kit would scroll every scrollable ancestor. The band at the edge is 20% of the container on both axes.
- */
-const NOTE_AUTO_SCROLL = {
-    canScroll: (element: Element) => element.getAttribute("data-testid") === "group-scroll" || element.hasAttribute("data-group-list"),
-    threshold: { x: 0.2, y: 0.2 },
-}
-
-/** The edges of a droppable as dnd-kit measures them. */
+/** The edges of a drop zone, as the hit test measures them. */
 type Rect = { top: number, bottom: number, left: number, right: number }
-
-/** A click without moving (5px) is not a drag. A module constant on purpose: see the sensors in NoteDndProvider. */
-const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 5 } }
 
 /**
  * The cursor of the whole window while something is dragged. Over nothing valid (no droppable, or a no-op target such as a task
@@ -74,24 +53,8 @@ const DragCursor = () => {
 /** Longest wait for the optimistic update of a drop before the rows are put back anyway. */
 const SETTLE_TIMEOUT = 500
 
-/** The color of an item over the background of its preview, like its header (none: the preview keeps its own background). */
-const tintOf = (color: string | null | undefined, alpha: number): CSSProperties | undefined => {
-    const tint = color ? hexToRgba(alpha, color) : undefined
-    return tint ? { backgroundImage: `linear-gradient(${tint}, ${tint})` } : undefined
-}
-
-const getPointer = (event: DragMoveEvent): { x: number, y: number } | null => {
-    const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
-    if (origin && typeof origin.clientX === "number" && typeof origin.clientY === "number")
-        return { x: origin.clientX + event.delta.x, y: origin.clientY + event.delta.y }
-    const translated = event.active.rect?.current?.translated
-    return translated
-        ? { x: translated.left + translated.width / 2, y: translated.top + translated.height / 2 }
-        : null
-}
-
 /**
- * Drag & drop of groups, sections and tasks inside the open note (dnd-kit).
+ * Drag & drop of groups, sections and tasks inside the open note, driven by its own pointer controller (see note-dnd-pointer), not by dnd-kit.
  * Drop zones, from the pointer position on the hovered element:
  * - group (dragged by its header) over another group: left half = before, right half = after,
  *   persisted with an optimistic update of the group positions;
@@ -108,11 +71,9 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const { t } = useTranslation() // re-renders on language change so the screen reader texts follow it
     const selection = useTaskSelectionStore()
     const { noteDataTree } = useActiveNote()
-    const colorAlpha = useColorAlpha()
     const { moveSectionTo, moveTaskTo } = useNoteMoves()
-    // What is being dragged and over what is in a store (see NoteDndStore): only the preview and the cursor depend on it here
+    // What is being dragged and over what is in a store (see NoteDndStore): only the preview, the cursor and the dragged row depend on it
     const [store] = useState(createNoteDndStore)
-    const active = useSyncExternalStore(store.subscribe, () => store.getState().active)
     const { moveGroupTo } = useGroupMoves()
     const pendingRef = useRef<PendingDrop | null>(null)
     const lastMoveRef = useRef<{ key: string, tree: NoteDataTree } | null>(null)
@@ -125,9 +86,10 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
      */
     const liveShownRef = useRef<{ key: string, tree: NoteDataTree, place: LivePending | null, rect: Rect | null } | null>(null)
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-    /** The pointer in viewport coordinates, tracked while dragging (the hit test needs the real one, not the scroll adjusted delta of dnd-kit). */
-    const pointerRef = useRef<{ x: number, y: number } | null>(null)
-    const trackPointer = useRef((event: PointerEvent) => { pointerRef.current = { x: event.clientX, y: event.clientY } }).current
+    /** What follows the pointer (the preview) and what scrolls near an edge: set at the start of a drag, put away at its end. */
+    const [follower] = useState(createOverlayFollower)
+    const [drag] = useState(createPointerDrag)
+    const stopScrollRef = useRef<(() => void) | null>(null)
 
     // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
     const settle = () => {
@@ -142,9 +104,6 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         clearShifts(false)
     }, [])
 
-    // Options with a stable identity: a new object per render would change the sensors, and with them the listeners of every draggable
-    const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS))
-
     const describe = (ref: { kind?: NoteOverKind, id?: number } | undefined) => {
         if (!noteDataTree || !ref || typeof ref.id !== "number") return undefined
         if (ref.kind === "group") {
@@ -156,9 +115,6 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         return undefined
     }
     const nameOf = (ref: { kind?: NoteOverKind, id?: number } | undefined) => describe(ref) ?? t("dnd.unknownItem")
-    const built = buildDndAccessibility(entry => describe(entry.data.current as { kind?: NoteOverKind, id?: number } | undefined), { keyboard: false })
-    // The target is not a dnd-kit droppable (see note-dnd-hit): dnd-kit never has an `over` to announce, the hit test announces it (announceOver / announceEnd)
-    const accessibility = { ...built, announcements: { ...built.announcements, onDragOver: () => undefined, onDragEnd: () => undefined } }
     /** The target announced last (null: none), to announce only when it changes. */
     const announcedRef = useRef<NoteOverRef | null>(null)
     const announceOver = (over: NoteOverRef | null) => {
@@ -173,8 +129,9 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const reset = () => {
-        window.removeEventListener("pointermove", trackPointer, true)
-        pointerRef.current = null
+        stopScrollRef.current?.()
+        stopScrollRef.current = null
+        follower.end()
         clearZones()
         pendingRef.current = null
         lastMoveRef.current = null
@@ -207,34 +164,31 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (shown?.place) syncLive(shown.place, shown)
     }
 
-    const handleDragStart = (event: DragStartEvent) => {
-        const data = event.active.data.current as NoteDragRef | undefined
+    const handleDragStart: PointerDragHandlers["start"] = (data, { pointer, press, node }) => {
         lastMoveRef.current = null
-        if (data) {
-            measureZones(data.kind, () => refreshLive(data.kind))
-            const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
-            pointerRef.current = typeof origin?.clientX === "number" && typeof origin.clientY === "number" ? { x: origin.clientX, y: origin.clientY } : null
-            window.addEventListener("pointermove", trackPointer, true)
-        }
+        measureZones(data.kind, () => refreshLive(data.kind))
+        stopScrollRef.current = startAutoScroll(scrollableAncestors(node), () => drag.getPointer())
+        follower.begin(node?.getBoundingClientRect() ?? null, press, pointer)
+        announce(t("dnd.start", { name: nameOf(data) }))
         // A task of a multi-selection moves alone: the selection is dropped so what is dragged is what moves
-        if (data?.kind === "task" && selection && selection.getSelected().size >= 2 && selection.has(taskKey(data.id))) {
+        if (data.kind === "task" && selection && selection.getSelected().size >= 2 && selection.has(taskKey(data.id))) {
             selection.reset()
             announce(t("tasks.keyboard.dragSingle"))
         }
         // The layout at rest, before anything moves: the sizes the shifts are computed from
-        liveRef.current = liveDrag && data ? { snapshot: readLiveSnapshot(data.kind), dragged: noteKey(data.kind, data.id), axis: data.kind === "group" ? "x" : "y" } : null
-        store.set({ active: data ? { kind: data.kind, id: data.id } : null })
+        liveRef.current = liveDrag ? { snapshot: readLiveSnapshot(data.kind), dragged: noteKey(data.kind, data.id), axis: data.kind === "group" ? "x" : "y" } : null
+        store.set({ active: { kind: data.kind, id: data.id } })
     }
 
-    const handleDragMove = (event: DragMoveEvent) => {
-        const dragged = event.active.data.current as NoteDragRef | undefined
-        const hit = dragged ? hitTest(pointerRef.current ?? getPointer(event) ?? { x: -1, y: -1 }) : null
+    const handleDragMove = (pointer: Point) => {
+        const dragged = store.getState().active
+        follower.follow(pointer)
+        const hit = dragged ? hitTest(pointer) : null
         const over = hit ? { data: { current: hit.ref }, rect: hit.rect } : null
         // The few px around a column belong to no group: the columns (and the drop) keep the place of the group left behind
         if (dragged?.kind === "group" && !over && liveRef.current) {
             const shown = liveShownRef.current
-            const pointer = getPointer(event)
-            if (shown?.place && shown.rect && pointer && isInColumnGap(shown.rect, pointer)) return
+            if (shown?.place && shown.rect && isInColumnGap(shown.rect, pointer)) return
         }
         if (!dragged || !over || !noteDataTree) {
             pendingRef.current = null
@@ -249,12 +203,9 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const overRef: NoteOverRef = { kind: overData.kind, id: overData.id }
         let zone: DropZone = "inside"
         if (dragged.kind === "group") {
-            const pointer = getPointer(event)
-            if (!pointer) return
             zone = computeGroupDropZone(over.rect, pointer.x)
         } else if (overRef.kind === "task" || overRef.kind === "section") {
-            const pointerY = getPointer(event)?.y
-            if (pointerY == null) return
+            const pointerY = pointer.y
             const overTask = overRef.kind === "task" ? findTask(noteDataTree, overRef.id) : undefined
             zone = computeDropZone(dragged.kind, overRef.kind, over.rect, pointerY, { hasSubtasks: (overTask?.subtasks.length ?? 0) > 0 })
         }
@@ -266,8 +217,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 const overKey = noteKey("task", overRef.id)
                 const shown = liveShownRef.current
-                const pointerY = getPointer(event)?.y
-                const liveZone = shown?.place?.over === overKey && shown.place.zone && pointerY != null
+                const pointerY = pointer.y
+                const liveZone = shown?.place?.over === overKey && shown.place.zone
                     ? holdLiveZone(shown.place.zone, zone, over.rect, pointerY)
                     : zone
                 const key = `${overKey}|${liveZone}`
@@ -279,11 +230,11 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         } else if (liveRef.current && dragged.kind === "section") {
             const overKey = noteKey(overRef.kind, overRef.id)
             const shown = liveShownRef.current
-            const pointerY = getPointer(event)?.y
+            const pointerY = pointer.y
             // The few px between two sections belong to the group: the rows (and the drop) keep the place of the section left behind
-            if (overRef.kind === "group" && shown?.place && shown.rect && pointerY != null
+            if (overRef.kind === "group" && shown?.place && shown.rect
                 && shown.place.list === groupListKey(overRef.id) && isInRowGap(shown.rect, pointerY)) return
-            const liveZone = overRef.kind === "section" && shown?.place?.over === overKey && shown.place.zone && pointerY != null
+            const liveZone = overRef.kind === "section" && shown?.place?.over === overKey && shown.place.zone
                 ? holdHalfZone(shown.place.zone, zone, over.rect, pointerY)
                 : zone
             const key = `${overKey}|${liveZone}`
@@ -304,8 +255,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 const overKey = noteKey("group", overRef.id)
                 const shown = liveShownRef.current
-                const pointerX = getPointer(event)?.x
-                const liveZone = shown?.place?.over === overKey && shown.place.zone && pointerX != null
+                const pointerX = pointer.x
+                const liveZone = shown?.place?.over === overKey && shown.place.zone
                     ? holdHalfZoneX(shown.place.zone, zone, over.rect, pointerX)
                     : zone
                 const key = `${overKey}|${liveZone}`
@@ -359,62 +310,25 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const handleDragCancel = () => {
+        const dragged = store.getState().active
+        if (dragged) announce(t("dnd.cancel", { name: nameOf(dragged) }))
         reset()
         clearShifts(true)
     }
 
-    const preview = useMemo(() => {
-        if (!active || !noteDataTree) return null
-        if (active.kind === "group") {
-            const found = findGroup(noteDataTree, active.id)
-            return found ? (
-                <div
-                    className="min-w-[200px] max-w-[320px] truncate rounded-xs border bg-background p-2 text-sm font-semibold shadow-lg"
-                    style={tintOf(found.group.color, colorAlpha.header())}
-                >
-                    {getGroupLabel(found.group, found.index)}
-                </div>
-            ) : null
-        }
-        if (active.kind === "section") {
-            const section = findSection(noteDataTree, active.id)
-            return section ? (
-                <div
-                    className="min-w-[250px] max-w-[320px] truncate rounded-xs border bg-accent p-2 text-sm shadow-lg"
-                    style={tintOf(section.color, colorAlpha.header())}
-                >
-                    {getSectionLabel(section)}
-                </div>
-            ) : null
-        }
-        const task = findTask(noteDataTree, active.id)
-        return task ? (
-            <div
-                className="max-w-[320px] truncate rounded-xs border bg-background p-2 text-sm shadow-lg border-l-4"
-                style={task.color ? { borderLeftColor: task.color } : undefined}
-            >
-                {task.text}
-            </div>
-        ) : null
-    }, [active, noteDataTree, colorAlpha])
+    // The controller calls the handlers of the latest render (they read the note and the preferences of that render)
+    useLayoutEffect(() => {
+        drag.setHandlers({ start: handleDragStart, move: handleDragMove, end: () => { void handleDragEnd() }, cancel: handleDragCancel })
+    })
+    useEffect(() => () => drag.cancel(), [drag])
 
     return (
         <NoteDndStoreContext.Provider value={store}>
-            <DndContext
-                sensors={sensors}
-                accessibility={accessibility}
-                collisionDetection={collisionDetection}
-                onDragStart={handleDragStart}
-                onDragMove={handleDragMove}
-                onDragEnd={handleDragEnd}
-                onDragCancel={handleDragCancel}
-                autoScroll={NOTE_AUTO_SCROLL}
-            >
+            <NoteDragPressContext.Provider value={drag.press}>
                 {children}
                 <DragCursor />
-                <DragEndGuard dragging={active !== null} onLost={handleDragCancel} />
-                {createPortal(<DragOverlay dropAnimation={null}>{preview && <div className="rotate-2">{preview}</div>}</DragOverlay>, document.body)}
-            </DndContext>
+                <NoteDragOverlay follower={follower} />
+            </NoteDragPressContext.Provider>
         </NoteDndStoreContext.Provider>
     )
 }

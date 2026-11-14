@@ -1,6 +1,5 @@
 import i18n from "@/i18n"
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type HTMLAttributes, type PointerEvent } from "react"
-import { useDraggable } from "@dnd-kit/core"
+import { createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore, type HTMLAttributes } from "react"
 import { registerZone } from "./note-dnd-hit"
 import { reportError } from "@/lib/report-error"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
@@ -16,6 +15,7 @@ import {
     ACCEPTS, moveGroupInList,
     type DropZone, type NoteDragKind, type NoteDragRef, type NoteOverKind, type SectionTarget, type TaskTarget,
 } from "./note-dnd"
+import type { NoteDragPress } from "./note-dnd-pointer"
 
 /**
  * Hover state shared by the droppables while dragging: the key of the droppable under the pointer
@@ -97,21 +97,30 @@ export function useNoteDrop(kind: NoteOverKind, id: number) {
     return { setNodeRef, zone, active }
 }
 
+/** Starts the drag gesture of the provider (see note-dnd-pointer). Without a provider nothing can be dragged. */
+export const NoteDragPressContext = createContext<NoteDragPress>(() => undefined)
+
 /**
  * Registers a draggable (group, section or task). There is no drag handle: `dragProps` goes on the element that
  * starts the drag (the header of a group or section, the row of a task); a click without moving (5px) is not a drag.
- * The whole item is dimmed while it is dragged (the preview is rendered by the DragOverlay).
+ * The whole item is dimmed while it is dragged (the preview is rendered by the NoteDragOverlay).
  * The pointer events of portals rendered inside that element (dialogs) do not start a drag.
+ *
+ * Not a dnd-kit hook: a `useDraggable` re-renders its component each time dnd-kit's `active` changes, i.e. every row of the note at the
+ * start and the end of a drag. Here `dragProps` and `setNodeRef` never change and `isDragging` is read from the store with the id of
+ * the item, so only the dragged item re-renders.
  * @category Note DnD
  */
 export function useNoteDrag(kind: NoteDragKind, id: number) {
-    const { setNodeRef, listeners, isDragging } = useDraggable({ id: `drag-${kind}-${id}`, data: { kind, id } })
-    const start = listeners?.onPointerDown as ((event: PointerEvent<HTMLElement>) => void) | undefined
-    // Kept the same object while `start` is the same, so a memoized row does not re-render because of it
+    const press = useContext(NoteDragPressContext)
+    // The element that is dragged (the one the preview starts over), which is not always the one that gets the pointer down (a header)
+    const nodeRef = useRef<HTMLElement | null>(null)
+    const setNodeRef = useCallback((node: HTMLElement | null) => { nodeRef.current = node }, [])
     const dragProps = useMemo<HTMLAttributes<HTMLElement>>(
-        () => start ? { onPointerDown: event => { if (event.currentTarget.contains(event.target as Node)) start(event) } } : {},
-        [start],
+        () => ({ onPointerDown: event => press(event, { kind, id }, nodeRef.current) }),
+        [press, kind, id],
     )
+    const isDragging = useNoteDndSelector(state => state.active?.kind === kind && state.active.id === id)
     return { setNodeRef, dragProps, isDragging }
 }
 
