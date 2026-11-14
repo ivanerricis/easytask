@@ -1,4 +1,4 @@
-import { hasShifts, shiftOf } from "./note-dnd-shift"
+import { isDisplaced, shiftNodesOf, shiftOf } from "./note-dnd-shift"
 import type { NoteDragKind, NoteOverKind, NoteOverRef } from "./note-dnd"
 
 /**
@@ -14,7 +14,7 @@ import type { NoteDragKind, NoteOverKind, NoteOverRef } from "./note-dnd"
 type Zone = { kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement }
 
 /** A measured zone: its rect when it was measured (viewport coordinates) and the scrollable ancestors it moves with. */
-type Measured = { ref: NoteOverRef, area: number, left: number, top: number, width: number, height: number, scrollers: HTMLElement[] }
+type Measured = { ref: NoteOverRef, node: HTMLElement, area: number, left: number, top: number, width: number, height: number, scrollers: HTMLElement[] }
 
 /** The edges of a zone, in the viewport coordinates of the moment of the hit test (the scroll since the measure is added up). */
 export type HitRect = { top: number, bottom: number, left: number, right: number, width: number, height: number }
@@ -29,6 +29,9 @@ let scrollAtMeasure = new Map<HTMLElement, { left: number, top: number }>()
 let stale = false
 let observer: ResizeObserver | null = null
 let observing = false
+let onWindowResize: (() => void) | null = null
+/** The frame a call to `onResize` waits for (0: none), so a burst of changes calls it once. */
+let resizeFrame = 0
 
 /** Registers (or, with a null node, forgets) a drop zone. A ref callback: cheap, it triggers no render. */
 export function registerZone(key: string, kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement | null): void {
@@ -43,7 +46,7 @@ const markStale = () => { stale = true }
 
 /** Measures the zones that accept `kind`, at their resting place (a shift still applied by a drop that has not settled is taken out). */
 function measure(kind: NoteDragKind): void {
-    const shifted = hasShifts()
+    const shifted = isDisplaced()
     // The scrollable ancestors, found once per element going up (an element scrolls when its content is bigger than it)
     const chains = new Map<HTMLElement, HTMLElement[]>()
     const chainOf = (element: HTMLElement | null): HTMLElement[] => {
@@ -65,7 +68,7 @@ function measure(kind: NoteDragKind): void {
         for (const scroller of scrollers) if (!baseline.has(scroller)) baseline.set(scroller, { left: scroller.scrollLeft, top: scroller.scrollTop })
         const left = rect.left - (shifted ? shiftOf(node, "x") : 0)
         const top = rect.top - (shifted ? shiftOf(node, "y") : 0)
-        next.push({ ref: { kind: zone.kind, id: zone.id }, area: rect.width * rect.height, left, top, width: rect.width, height: rect.height, scrollers })
+        next.push({ ref: { kind: zone.kind, id: zone.id }, node, area: rect.width * rect.height, left, top, width: rect.width, height: rect.height, scrollers })
     }
     measured = next
     measuredKind = kind
@@ -73,15 +76,28 @@ function measure(kind: NoteDragKind): void {
     stale = false
 }
 
-/** Measures the zones for a drag of `kind` and starts watching the lists for a change of size. */
-export function measureZones(kind: NoteDragKind): void {
+/**
+ * Measures the zones for a drag of `kind` and starts watching for a change of size: the lists, the zones that take part and the
+ * wrappers that the live drag shifts (a row that grows or shrinks, e.g. an image that finishes loading or a text that wraps, moves
+ * everything below it; the transforms of the shifts do not change a size, so they never trigger this). `onResize` is called, after the
+ * zones were marked to be measured again, at most once per frame.
+ */
+export function measureZones(kind: NoteDragKind, onResize?: () => void): void {
     measure(kind)
     stopObserving()
     if (typeof ResizeObserver === "undefined") return
     observing = false
-    observer = new ResizeObserver(() => { if (observing) markStale() }) // the first call is the one of observe()
+    const changed = () => {
+        markStale()
+        if (!onResize || resizeFrame) return
+        resizeFrame = requestAnimationFrame(() => { resizeFrame = 0; onResize() })
+    }
+    observer = new ResizeObserver(() => { if (observing) changed() }) // the first call is the one of observe()
     document.querySelectorAll(LISTS).forEach(list => observer?.observe(list))
-    window.addEventListener("resize", markStale)
+    for (const zone of measured) observer.observe(zone.node)
+    for (const node of shiftNodesOf(kind)) observer.observe(node)
+    onWindowResize = changed
+    window.addEventListener("resize", onWindowResize)
     // Lets the first (initial) notification pass before changes count
     requestAnimationFrame(() => { observing = true })
 }
@@ -89,7 +105,10 @@ export function measureZones(kind: NoteDragKind): void {
 function stopObserving() {
     observer?.disconnect()
     observer = null
-    window.removeEventListener("resize", markStale)
+    if (onWindowResize) window.removeEventListener("resize", onWindowResize)
+    onWindowResize = null
+    if (resizeFrame) cancelAnimationFrame(resizeFrame)
+    resizeFrame = 0
 }
 
 /** Forgets the measures (the end of the drag). */

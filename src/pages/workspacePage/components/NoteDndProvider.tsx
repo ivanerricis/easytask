@@ -194,11 +194,24 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         applyShifts(shifts ?? new Map(), shifts && shifts.size > 0 ? live.dragged : null, live.axis, slot)
     }
 
+    /**
+     * A row changed its size during the drag (an image that finished loading, a text that wrapped): the layout at rest is read again (the
+     * shifts applied are taken out) and the rows are moved by the new sizes, so the room that opens is as tall as it should be. The zones
+     * of the hit test measure themselves again by their own flag.
+     */
+    const refreshLive = (kind: NoteDragRef["kind"]) => {
+        const live = liveRef.current
+        if (!live) return
+        live.snapshot = readLiveSnapshot(kind)
+        const shown = liveShownRef.current
+        if (shown?.place) syncLive(shown.place, shown)
+    }
+
     const handleDragStart = (event: DragStartEvent) => {
         const data = event.active.data.current as NoteDragRef | undefined
         lastMoveRef.current = null
         if (data) {
-            measureZones(data.kind)
+            measureZones(data.kind, () => refreshLive(data.kind))
             const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
             pointerRef.current = typeof origin?.clientX === "number" && typeof origin.clientY === "number" ? { x: origin.clientX, y: origin.clientY } : null
             window.addEventListener("pointermove", trackPointer, true)

@@ -16,7 +16,9 @@ let handlers: Handlers
 // The drop zones are not dnd-kit droppables (see note-dnd-hit): the tests say what is under the pointer with the `over` of the move event,
 // and the hit test returns it
 let hit: { ref: unknown, rect: unknown } | null = null
-vi.mock("./note-dnd-hit", () => ({ measureZones: () => undefined, clearZones: () => undefined, hitTest: () => hit, registerZone: () => undefined }))
+// The callback the provider gives to be told when a row changes its size
+let onResize: (() => void) | undefined
+vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit, registerZone: () => undefined }))
 vi.mock("@dnd-kit/core", async importActual => ({
     ...await importActual<typeof import("@dnd-kit/core")>(),
     DndContext: (props: Handlers & { children: ReactNode }) => {
@@ -97,6 +99,19 @@ const moveOver = (activeId: number, overId: number, ratio: number) => act(() => 
 const transforms = () => [1, 2, 3].map(id => wrappers.get(id)!.style.transform)
 
 describe("NoteDndProvider live drag of the tasks", () => {
+    it("reads the layout again when a row changes its size mid drag, and moves the rows by the new sizes", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        start(1)
+        moveOver(1, 3, 0.9) // after task 3
+        expect(transforms()).toEqual(["", "translate3d(0, -20px, 0)", "translate3d(0, -20px, 0)"])
+        // The dragged row grows from 20 to 50 (an image finished loading). Rows 2 and 3 are at rest at 50 and 70, 20px up on screen
+        const rects = { 1: { top: 0, height: 50 }, 2: { top: 30, height: 20 }, 3: { top: 50, height: 20 } } as const
+        for (const id of [1, 2, 3] as const) wrappers.get(id)!.getBoundingClientRect = () => rects[id] as DOMRect
+        act(() => { onResize?.() })
+        flushFrame()
+        expect(transforms()).toEqual(["", "translate3d(0, -50px, 0)", "translate3d(0, -50px, 0)"])
+    })
+
     it("shifts the rows between the dragged task and the place, and hides the dragged one", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(1)

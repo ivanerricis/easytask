@@ -222,7 +222,57 @@ describe("shiftOf", () => {
     })
 })
 
+describe("shiftOf of a row gliding back", () => {
+    it("still counts what is left of the transition until it ends", () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+        const a = wrapper(1, 1)
+        applyShifts(new Map([["task-1", 20]]))
+        flushFrame()
+        applyShifts(new Map())
+        flushFrame()
+        expect(a.style.transform).toBe("")
+        expect(hasShifts()).toBe(false)
+        const spy = vi.spyOn(window, "getComputedStyle").mockReturnValue({ transform: "matrix(1, 0, 0, 1, 0, 6)" } as CSSStyleDeclaration)
+        expect(shiftOf(a)).toBe(6)
+        spy.mockRestore()
+        vi.advanceTimersByTime(SHIFT_DURATION + 60)
+        expect(shiftOf(a)).toBe(0)
+    })
+})
+
 describe("readLiveSnapshot", () => {
+    it("takes the applied shifts out: a re-read mid drag gives the layout at rest", () => {
+        const first = wrapper(1, 5)
+        const second = wrapper(2, 5)
+        const sub = wrapper(3, 5, second)
+        // task 2 and its subtask are shifted by 20 on screen, task 1 is not
+        first.getBoundingClientRect = () => ({ top: 0, height: 60 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 80, height: 40 }) as DOMRect
+        sub.getBoundingClientRect = () => ({ top: 100, height: 20 }) as DOMRect
+        applyShifts(new Map([["task-2", 20]]))
+        flushFrame()
+        const { items } = readLiveSnapshot()
+        expect(items.get("task-1")).toMatchObject({ top: 0, height: 60 })
+        expect(items.get("task-2")).toMatchObject({ top: 60, height: 40 })
+        expect(items.get("task-3")).toMatchObject({ top: 80, height: 20 }) // rides on its parent
+    })
+
+    it("sees the new size of a row that grew after the first read", () => {
+        const first = wrapper(1, 5)
+        const second = wrapper(2, 5)
+        first.getBoundingClientRect = () => ({ top: 0, height: 60 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 60, height: 40 }) as DOMRect
+        expect(readLiveSnapshot().items.get("task-1")?.height).toBe(60)
+        applyShifts(new Map([["task-2", 20]]))
+        flushFrame()
+        // The first row grows by 30 (an image finished loading): the second is pushed down, on top of its shift
+        first.getBoundingClientRect = () => ({ top: 0, height: 90 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 110, height: 40 }) as DOMRect
+        const { items } = readLiveSnapshot()
+        expect(items.get("task-1")?.height).toBe(90)
+        expect(items.get("task-2")).toMatchObject({ top: 90, height: 40 })
+    })
+
     it("reads lists, parents and sizes in document order", () => {
         const first = wrapper(1, 5)
         const sub = wrapper(2, 5, first)

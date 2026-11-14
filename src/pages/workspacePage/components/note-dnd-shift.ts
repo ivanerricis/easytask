@@ -162,15 +162,18 @@ function writeSlot(animate: boolean) {
 /** Measures where the lists of the wrappers are at rest (see `restLists`), on the axis the kind moves along. */
 function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis) {
     const next = new Map<string, RestList>()
+    const shifted = isDisplaced()
     for (const [index, node] of sorted.entries()) {
         const list = listOf[index]
         if (next.has(list) || !node.parentElement) continue
         const container = node.parentElement
+        // The container of a subtask list rides on the shift of its parent task: its place at rest is without it
+        const moved = shifted ? shiftOf(container, along) : 0
         const box = container.getBoundingClientRect()
         const rect = node.getBoundingClientRect()
         next.set(list, along === "x"
-            ? { container, start: box.left + container.clientLeft, cross: rect.top - box.top - container.clientTop, crossSize: rect.height, scroll: container.scrollLeft, crossScroll: container.scrollTop }
-            : { container, start: box.top + container.clientTop, cross: rect.left - box.left - container.clientLeft, crossSize: rect.width, scroll: container.scrollTop, crossScroll: container.scrollLeft })
+            ? { container, start: box.left - moved + container.clientLeft, cross: rect.top - box.top - container.clientTop, crossSize: rect.height, scroll: container.scrollLeft, crossScroll: container.scrollTop }
+            : { container, start: box.top - moved + container.clientTop, cross: rect.left - box.left - container.clientLeft, crossSize: rect.width, scroll: container.scrollTop, crossScroll: container.scrollLeft })
     }
     restLists = next
 }
@@ -217,6 +220,12 @@ export function clearShifts(animate: boolean): void {
 /** Whether something is moved (or about to be). */
 export const hasShifts = (): boolean => applied.size > 0 || hiddenKey !== null || [...target.values()].some(dy => dy !== 0)
 
+/**
+ * Whether a node may be off its resting place on screen: shifted, or gliding back (it is not in `applied` any more but its transition
+ * has not ended). What measures the layout needs this, `hasShifts` is about what the drop has to settle.
+ */
+export const isDisplaced = (): boolean => hasShifts() || leaving.size > 0
+
 /** The offset of a node along the axis right now (an animation in progress included), from its inline transform. */
 const currentOffset = (node: HTMLElement, wanted: number): number => {
     const value = (typeof getComputedStyle === "function" ? getComputedStyle(node).transform : "") || node.style.transform
@@ -238,18 +247,32 @@ export function shiftOf(element: HTMLElement, along: ShiftAxis = "y"): number {
     if (along !== axis) return 0
     let total = 0
     for (const [node, dy] of applied) if (node.contains(element)) total += currentOffset(node, dy)
+    // A row gliding back is still off its place by what is left of the transition
+    for (const node of leaving) if (!applied.has(node) && node.contains(element)) total += currentOffset(node, 0)
     return total
 }
 
+type ShiftKind = "task" | "section" | "group" | "tab"
+
+const attributeOf = (kind: ShiftKind) => ({ task: SHIFT_ATTR.task, section: SHIFT_ATTR.sectionWrap, group: SHIFT_ATTR.groupWrap, tab: SHIFT_ATTR.tab }[kind])
+
+/** The registered wrappers of the kind that is dragged (the ones the live drag can move), in no particular order. */
+export function shiftNodesOf(kind: ShiftKind): HTMLElement[] {
+    const attribute = attributeOf(kind)
+    return [...nodes.values()].filter(node => node.isConnected && node.hasAttribute(attribute))
+}
+
 /**
- * Reads the layout of the registered wrappers of the kind that is dragged (call it before anything is shifted: the snapshot must be
- * of the resting layout). Only the wrappers that can be moved are read: a section drag does not touch the hundreds of tasks.
+ * Reads the layout of the registered wrappers of the kind that is dragged. Call it before anything is shifted, or later (a row changed
+ * its size): the shifts applied right now are taken out, so the snapshot is always of the resting layout. Only the wrappers that can be
+ * moved are read: a section drag does not touch the hundreds of tasks.
  */
-export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "task"): LiveSnapshot {
-    const attribute = { task: SHIFT_ATTR.task, section: SHIFT_ATTR.sectionWrap, group: SHIFT_ATTR.groupWrap, tab: SHIFT_ATTR.tab }[kind]
-    const wanted = (node: HTMLElement) => node.hasAttribute(attribute)
-    const sorted = [...nodes.values()]
-        .filter(node => node.isConnected && wanted(node))
+export function readLiveSnapshot(kind: ShiftKind = "task"): LiveSnapshot {
+    const shifted = isDisplaced()
+    const along: ShiftAxis = kind === "tab" || kind === "group" ? "x" : "y"
+    /** Where the node would be at rest: its rect minus the shift it and its ancestors carry (the one on screen, an animation in progress included, like the rect). */
+    const resting = (node: HTMLElement, edge: number) => edge - (shifted ? shiftOf(node, along) : 0)
+    const sorted = shiftNodesOf(kind)
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     const infos: LiveNodeInfo[] = sorted.map(node => {
         const rect = node.getBoundingClientRect()
@@ -260,7 +283,7 @@ export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "t
                 key: tabNodeKey(pane, Number(node.getAttribute(SHIFT_ATTR.tab))),
                 list: tabListKey(pane),
                 parent: null,
-                top: rect.left,
+                top: resting(node, rect.left),
                 height: rect.width,
             }
         }
@@ -270,7 +293,7 @@ export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "t
                 key: groupNodeKey(Number(node.getAttribute(SHIFT_ATTR.groupWrap))),
                 list: GROUPS_LIST,
                 parent: null,
-                top: rect.left,
+                top: resting(node, rect.left),
                 height: rect.width,
             }
         }
@@ -279,7 +302,7 @@ export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "t
                 key: sectionNodeKey(Number(node.getAttribute(SHIFT_ATTR.sectionWrap))),
                 list: groupListKey(Number(node.getAttribute(SHIFT_ATTR.group))),
                 parent: null,
-                top: rect.top,
+                top: resting(node, rect.top),
                 height: rect.height,
             }
         }
@@ -289,10 +312,10 @@ export function readLiveSnapshot(kind: "task" | "section" | "group" | "tab" = "t
             key: `task-${node.getAttribute(SHIFT_ATTR.task)}`,
             list: parentId ? `t-${parentId}` : `s-${node.getAttribute(SHIFT_ATTR.section)}`,
             parent: parentId ? `task-${parentId}` : null,
-            top: rect.top,
+            top: resting(node, rect.top),
             height: rect.height,
         }
     })
-    readRestLists(sorted, infos.map(info => info.list), kind === "tab" || kind === "group" ? "x" : "y")
+    readRestLists(sorted, infos.map(info => info.list), along)
     return buildLiveSnapshot(infos)
 }
