@@ -2,8 +2,8 @@
 
 The content of a note is organized in three levels. A note holds **groups**, shown side by side as columns. A group holds **sections**, stacked in the column. A section holds **tasks**, and a task can have **subtasks**, as deep as you need. A group can also hold tasks of its own, directly under its header, without any section. That list of tasks can sit anywhere among the sections of the group.
 
-![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-light.png){.light-only}
-![A selected task with its details in the right panel: path, status, priority, color, description, subtasks progress and dates](../screenshots/en/task-details-dark.png){.dark-only}
+![A selected task with its details in the right panel: path, status, priority, color, tags, description, subtasks progress and dates](../screenshots/en/task-details-light.png){.light-only}
+![A selected task with its details in the right panel: path, status, priority, color, tags, description, subtasks progress and dates](../screenshots/en/task-details-dark.png){.dark-only}
 
 ## Groups and sections
 
@@ -91,7 +91,7 @@ Point at a task and click **Add subtask**, or choose it from the task menu. Type
 
 Open the menu of the task (menu button or right-click):
 
-![Context menu of a task with Add subtask, Add description, Add priority, Rename, Change color, Move up and down, Move to, Show details, Archive and Delete](../screenshots/en/task-menu-light.png)
+![Context menu of a task with Add subtask, Add description, Add priority, Tags…, Rename, Change color, Move up and down, Move to, Show details, Archive and Delete](../screenshots/en/task-menu-light.png)
 
 | Entry                                      | What it does                                                          |
 | ------------------------------------------ | --------------------------------------------------------------------- |

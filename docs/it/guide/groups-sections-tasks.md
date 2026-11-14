@@ -2,8 +2,8 @@
 
 Il contenuto di una nota è organizzato su tre livelli. Una nota contiene dei **gruppi**, affiancati come colonne. Un gruppo contiene delle **sezioni**, impilate nella colonna. Una sezione contiene dei **task**, e un task può avere dei **sottotask**, annidati quanto serve. Un gruppo può anche contenere task propri, subito sotto l'intestazione, senza alcuna sezione. Questa lista di task può stare in qualsiasi punto tra le sezioni del gruppo.
 
-![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
-![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, tag, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, tag, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
 
 ## Gruppi e sezioni
 
@@ -91,7 +91,7 @@ Passa il mouse su un task e fai clic su **Aggiungi sottotask**, oppure scegli la
 
 Apri il menu del task (pulsante del menu o clic destro):
 
-![Menu contestuale di un task con Aggiungi sottoattività, Aggiungi descrizione, Aggiungi priorità, Rinomina, Cambia colore, Sposta su e giù, Sposta in, Mostra dettagli, Archivia ed Elimina](../../screenshots/it/task-menu-light.png)
+![Menu contestuale di un task con Aggiungi sottoattività, Aggiungi descrizione, Aggiungi priorità, Tag…, Rinomina, Cambia colore, Sposta su e giù, Sposta in, Mostra dettagli, Archivia ed Elimina](../../screenshots/it/task-menu-light.png)
 
 | Voce                                         | Cosa fa                                                              |
 | -------------------------------------------- | -------------------------------------------------------------------- |
