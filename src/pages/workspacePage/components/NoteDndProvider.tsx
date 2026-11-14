@@ -4,14 +4,15 @@ import type { CSSProperties, ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { createPortal } from "react-dom"
 import {
-    DndContext, DragOverlay, PointerSensor, getClientRect, useSensor, useSensors,
-    type Collision, type CollisionDetection, type DragMoveEvent, type DragStartEvent,
+    DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+    type CollisionDetection, type DragMoveEvent, type DragStartEvent,
 } from "@dnd-kit/core"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, makeShiftFreeMeasure, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
-import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf } from "./note-dnd-shift"
+import { applyShifts, clearShifts, hasShifts, readLiveSnapshot } from "./note-dnd-shift"
+import { clearZones, hitTest, measureZones } from "./note-dnd-hit"
 import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
@@ -20,7 +21,7 @@ import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { DragEndGuard } from "@/components/dnd-end-guard"
 import {
     computeDropZone, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
-    type DropZone, type NoteDragKind, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
+    type DropZone, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
 } from "./note-dnd"
 import { useTaskSelectionStore } from "./tasks/use-task-selection"
 import { taskKey } from "./tasks/task-selection"
@@ -34,35 +35,8 @@ type PendingDrop =
     | { kind: "group", id: number, index: number }
     | { kind: "task", id: number, target: TaskTarget }
 
-/**
- * The droppable under the pointer wins, the smallest one first (a task row beats its section card, a section card
- * beats its group). Only droppables that accept the dragged kind take part.
- */
-const collisionDetection: CollisionDetection = ({ active, droppableContainers, droppableRects, pointerCoordinates }) => {
-    const kind = active.data.current?.kind as NoteDragKind | undefined
-    if (!kind || !pointerCoordinates) return []
-    const hits: Collision[] = []
-    for (const container of droppableContainers) {
-        const accepts = container.data.current?.accepts as NoteDragKind[] | undefined
-        const rect = droppableRects.get(container.id)
-        if (!accepts?.includes(kind) || !rect) continue
-        const { x, y } = pointerCoordinates
-        // `left` and `top` of a dnd-kit Rect are getters that add up the scroll of every scrollable ancestor each time they are read
-        // (this runs for every droppable on every pointer move): two reads, the other edges from the size
-        const left = rect.left
-        if (x < left || x > left + rect.width) continue
-        const top = rect.top
-        if (y < top || y > top + rect.height) continue
-        hits.push({ id: container.id, data: { droppableContainer: container, value: rect.width * rect.height } })
-    }
-    return hits.sort((a, b) => (a.data?.value as number) - (b.data?.value as number))
-}
-
-/**
- * With the live drag the rows are moved by a transform while the drag goes on: the places to hit are measured without it, or the
- * target would flip between the place and its shifted copy.
- */
-const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => getClientRect(element, { ignoreTransform: true }), shiftOf) } }
+/** The drop zones are not dnd-kit droppables (see note-dnd-hit): dnd-kit has nothing to detect, `over` stays null. */
+const collisionDetection: CollisionDetection = () => []
 
 /**
  * What scrolls by itself while a group, a section or a task is dragged near an edge: the row of the groups (sideways) and the list of
@@ -89,7 +63,6 @@ const DragCursor = () => {
     const active = useNoteDndSelector(state => state.active !== null)
     const noTarget = useNoteDndSelector(state => state.hover.overKey === null)
     useGrabbingCursor(active, noTarget)
-    // The "+" insert lines hide by CSS while this is set: a store selector in each of them would re-render (and rebuild) every line when a drag starts and ends
     useLayoutEffect(() => {
         if (!active) return
         document.body.setAttribute("data-note-dragging", "")
@@ -111,7 +84,7 @@ const getPointer = (event: DragMoveEvent): { x: number, y: number } | null => {
     const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
     if (origin && typeof origin.clientX === "number" && typeof origin.clientY === "number")
         return { x: origin.clientX + event.delta.x, y: origin.clientY + event.delta.y }
-    const translated = event.active.rect.current.translated
+    const translated = event.active.rect?.current?.translated
     return translated
         ? { x: translated.left + translated.width / 2, y: translated.top + translated.height / 2 }
         : null
@@ -152,6 +125,9 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
      */
     const liveShownRef = useRef<{ key: string, tree: NoteDataTree, place: LivePending | null, rect: Rect | null } | null>(null)
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    /** The pointer in viewport coordinates, tracked while dragging (the hit test needs the real one, not the scroll adjusted delta of dnd-kit). */
+    const pointerRef = useRef<{ x: number, y: number } | null>(null)
+    const trackPointer = useRef((event: PointerEvent) => { pointerRef.current = { x: event.clientX, y: event.clientY } }).current
 
     // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
     const settle = () => {
@@ -169,8 +145,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     // Options with a stable identity: a new object per render would change the sensors, and with them the listeners of every draggable
     const sensors = useSensors(useSensor(PointerSensor, POINTER_SENSOR_OPTIONS))
 
-    const accessibility = buildDndAccessibility(entry => {
-        const ref = entry.data.current as { kind?: NoteOverKind, id?: number } | undefined
+    const describe = (ref: { kind?: NoteOverKind, id?: number } | undefined) => {
         if (!noteDataTree || !ref || typeof ref.id !== "number") return undefined
         if (ref.kind === "group") {
             const found = findGroup(noteDataTree, ref.id)
@@ -179,11 +154,31 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (ref.kind === "section") return (s => s && getSectionLabel(s))(findSection(noteDataTree, ref.id))
         if (ref.kind === "task") return findTask(noteDataTree, ref.id)?.text
         return undefined
-    }, { keyboard: false })
+    }
+    const nameOf = (ref: { kind?: NoteOverKind, id?: number } | undefined) => describe(ref) ?? t("dnd.unknownItem")
+    const built = buildDndAccessibility(entry => describe(entry.data.current as { kind?: NoteOverKind, id?: number } | undefined), { keyboard: false })
+    // The target is not a dnd-kit droppable (see note-dnd-hit): dnd-kit never has an `over` to announce, the hit test announces it (announceOver / announceEnd)
+    const accessibility = { ...built, announcements: { ...built.announcements, onDragOver: () => undefined, onDragEnd: () => undefined } }
+    /** The target announced last (null: none), to announce only when it changes. */
+    const announcedRef = useRef<NoteOverRef | null>(null)
+    const announceOver = (over: NoteOverRef | null) => {
+        const dragged = store.getState().active
+        const before = announcedRef.current
+        if (before?.kind === over?.kind && before?.id === over?.id) return
+        announcedRef.current = over
+        if (dragged) announce(over ? t("dnd.over", { name: nameOf(dragged), target: nameOf(over) }) : t("dnd.overNone", { name: nameOf(dragged) }))
+    }
+    const announceEnd = (dragged: NoteDragRef | null, over: NoteOverRef | null) => {
+        if (dragged) announce(over ? t("dnd.end", { name: nameOf(dragged), target: nameOf(over) }) : t("dnd.endNone", { name: nameOf(dragged) }))
+    }
 
     const reset = () => {
+        window.removeEventListener("pointermove", trackPointer, true)
+        pointerRef.current = null
+        clearZones()
         pendingRef.current = null
         lastMoveRef.current = null
+        announcedRef.current = null
         liveRef.current = null
         liveShownRef.current = null
         store.set({ active: null, hover: NO_HOVER })
@@ -202,6 +197,12 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const handleDragStart = (event: DragStartEvent) => {
         const data = event.active.data.current as NoteDragRef | undefined
         lastMoveRef.current = null
+        if (data) {
+            measureZones(data.kind)
+            const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
+            pointerRef.current = typeof origin?.clientX === "number" && typeof origin.clientY === "number" ? { x: origin.clientX, y: origin.clientY } : null
+            window.addEventListener("pointermove", trackPointer, true)
+        }
         // A task of a multi-selection moves alone: the selection is dropped so what is dragged is what moves
         if (data?.kind === "task" && selection && selection.getSelected().size >= 2 && selection.has(taskKey(data.id))) {
             selection.reset()
@@ -214,7 +215,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
 
     const handleDragMove = (event: DragMoveEvent) => {
         const dragged = event.active.data.current as NoteDragRef | undefined
-        const over = event.over
+        const hit = dragged ? hitTest(pointerRef.current ?? getPointer(event) ?? { x: -1, y: -1 }) : null
+        const over = hit ? { data: { current: hit.ref }, rect: hit.rect } : null
         // The few px around a column belong to no group: the columns (and the drop) keep the place of the group left behind
         if (dragged?.kind === "group" && !over && liveRef.current) {
             const shown = liveShownRef.current
@@ -226,6 +228,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             lastMoveRef.current = null
             if (liveShownRef.current) syncLive(null)
             store.set({ hover: NO_HOVER })
+            announceOver(null)
             return
         }
 
@@ -322,11 +325,13 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const next: NoteHover = pending ? { overKey: noteKey(overRef.kind, overRef.id), zone, targetSectionId } : NO_HOVER
         const prev = store.getState().hover
         if (prev.overKey !== next.overKey || prev.zone !== next.zone || prev.targetSectionId !== next.targetSectionId) store.set({ hover: next })
+        announceOver(pending ? overRef : null)
     }
 
     const handleDragEnd = async () => {
         const pending = pendingRef.current
         const shifted = hasShifts()
+        announceEnd(store.getState().active, pending ? announcedRef.current : null)
         reset()
         if (shifted && (pending?.kind === "task" || pending?.kind === "group" || (pending?.kind === "section" && pending.target.type === "group"))) {
             // The optimistic update below replaces the tree: the rows go back in that commit (see the layout effect)
@@ -391,7 +396,6 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
                 autoScroll={NOTE_AUTO_SCROLL}
-                measuring={liveDrag ? LIVE_MEASURING : undefined}
             >
                 {children}
                 <DragCursor />

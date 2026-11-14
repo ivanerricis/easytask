@@ -11,12 +11,25 @@ type Handlers = {
     onDragMove: (event: unknown) => void
     onDragEnd: () => void
     onDragCancel: () => void
-    measuring?: unknown
 }
 let handlers: Handlers
+// The drop zones are not dnd-kit droppables (see note-dnd-hit): the tests say what is under the pointer with the `over` of the move event,
+// and the hit test returns it
+let hit: { ref: unknown, rect: unknown } | null = null
+vi.mock("./note-dnd-hit", () => ({ measureZones: () => undefined, clearZones: () => undefined, hitTest: () => hit, registerZone: () => undefined }))
 vi.mock("@dnd-kit/core", async importActual => ({
     ...await importActual<typeof import("@dnd-kit/core")>(),
-    DndContext: (props: Handlers & { children: ReactNode }) => { handlers = props; return <>{props.children}</> },
+    DndContext: (props: Handlers & { children: ReactNode }) => {
+        handlers = {
+            ...props,
+            onDragMove: (event: unknown) => {
+                const over = (event as { over?: { data: { current: unknown }, rect: unknown } | null }).over
+                hit = over ? { ref: over.data.current, rect: over.rect } : null
+                props.onDragMove(event)
+            },
+        }
+        return <>{props.children}</>
+    },
     DragOverlay: () => null,
 }))
 vi.mock("./tasks/note-announcer-store", () => ({ announce: vi.fn() }))
@@ -111,18 +124,12 @@ describe("NoteDndProvider live drag of the tasks", () => {
         expect(wrappers.get(1)!.style.opacity).toBe("")
     })
 
-    it("moves nothing when the live drag is off, and measures the droppables the usual way", () => {
+    it("moves nothing when the live drag is off", () => {
         liveDrag = false
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(1)
         moveOver(1, 3, 0.9)
         expect(transforms()).toEqual(["", "", ""])
-        expect(handlers.measuring).toBeUndefined()
-    })
-
-    it("measures the droppables without the shift when the live drag is on", () => {
-        render(<NoteDndProvider>{null}</NoteDndProvider>)
-        expect(handlers.measuring).toBeDefined()
     })
 
     it("treats a missing preference as on", () => {
