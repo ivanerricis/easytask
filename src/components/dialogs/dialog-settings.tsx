@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Settings } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
-import { cn } from "@/lib/utils"
 import { LazyMount } from "@/components/lazy-mount"
 
 const DialogSettingsContent = lazyWithPreload(() => import("./dialog-settings-content").then(m => ({ default: m.DialogSettingsContent })))
@@ -43,7 +42,7 @@ export const DialogSettings = ({ className }: DialogSettingsProps) => {
                     variant="buttonIcon"
                     size="icon"
                     aria-label={t("settings.title")}
-                    className={cn("absolute left-1 bottom-1", className)}
+                    className={className}
                 >
                     <Settings />
                 </Button>
