@@ -24,7 +24,7 @@ Un breve giro di come è fatto EasyTask, per chi vuole modificare il codice.
 | `src/test` | Helper e mock dei test |
 | `src/lib` | Logica pura: store delle preferenze, motore delle automazioni, updater, colori, temi (`lib/themes`: temi predefiniti, validazione, controlli di contrasto, variabili CSS), scorciatoie, import ed export dei workspace. `lib/tabs` contiene i reducer puri di tab e layout, senza dipendenze dai context |
 | `src/i18n` | Configurazione di i18next e file delle lingue `it` e `en` |
-| `src-tauri/src` | Il backend Rust (`lib.rs`, `media_session.rs`) |
+| `src-tauri/src` | Il backend Rust (`lib.rs`, `paths.rs`, `settings.rs`, `window.rs`, `files.rs`, `audio.rs`, `db.rs`, `transfer_zip.rs`, `media_session.rs`) |
 | `src-tauri/capabilities` | Permessi concessi al frontend |
 | `e2e` | Test end-to-end, giro dell'interfaccia e screenshot della documentazione |
 | `scripts` | Script per cambiare e controllare la versione |

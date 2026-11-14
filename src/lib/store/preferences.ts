@@ -260,7 +260,7 @@ export const APP_PREFS = {
      * the first frame). null for the built-in themes.
      */
     activeThemeCache: def<ThemeDefinition | null>({ key: "activeThemeCache", default: null, normalize: value => normalizeStoredThemes([value])[0] ?? null }),
-    /** Background of the active theme, "#rrggbb": also read by the Rust side at startup (key "themeBackground" in src-tauri/src/lib.rs). */
+    /** Background of the active theme, "#rrggbb": also read by the Rust side at startup (key "themeBackground" in src-tauri/src/settings.rs). */
     themeBackground: def<string | null>({ key: "themeBackground", default: null, normalize: value => isHex6(value) ? value.toLowerCase() : null }),
     /** Where the floating audio player was left (position and scale). */
     audioPlayerPosition: def<AudioPlayerPosition>({ key: "audioPlayerPosition", default: DEFAULT_AUDIO_PLAYER_POSITION, normalize: normalizeAudioPlayerPosition }),
@@ -283,7 +283,7 @@ export const APP_PREFS = {
     /** A folder chosen by the user for the backups; null = the "backups" folder in the data folder. */
     backupFolder: def<string | null>({ key: "backupFolder", default: null, normalize: value => typeof value === "string" && value.trim().length > 0 ? value : null }),
     closeToTray: def({ key: "closeToTray", default: false, normalize: value => value === true }),
-    // The two keys below are also read by the Rust side at startup (src-tauri/src/lib.rs, setup): keep the names identical there
+    // The two keys below are also read by the Rust side at startup (src-tauri/src/settings.rs, read in the setup of lib.rs): keep the names identical there
     /** Restore the position and size of the window at the next start. */
     rememberWindowState: def({ key: "rememberWindowState", default: true, normalize: value => value !== false }),
     /** Keep the window above the others (applied at start by the Rust side, and when changed). */
