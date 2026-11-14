@@ -98,6 +98,7 @@ Open the menu of the task (menu button or right-click):
 | **Add subtask**                            | Adds a subtask.                                                       |
 | **Add description** / **Remove description** | Opens a window where you write the **Description**. `Shift+Enter` adds a new line, `Ctrl+Enter` saves. |
 | **Add priority** / **Remove priority**     | Marks the task as high priority. A flag appears on the task.          |
+| **Tags…**                                  | Opens the list of the tags of the workspace to give them to the task (see [Tags](#tags)). |
 | **Rename**                                 | Edits the text.                                                       |
 | **Change color**                           | Colors the task with a side bar (and a light background, if you want it). |
 | **Move up**, **Move down**                 | Moves the task one step among its siblings.                           |
@@ -108,6 +109,22 @@ Open the menu of the task (menu button or right-click):
 ![A task with a description, shown in the details panel on the right](../screenshots/en/task-description-light.png)
 
 A task with a description shows a small icon: click it to read the description. The look of the tasks is set by **Task density** (**Compact**, **Normal**, **Roomy**) and **Colored task background**.
+
+### Tags
+
+Tags are labels for your tasks, like "Bug", "Waiting" or "Home". Each workspace has its own list of tags, and a tag has a name and a color from the same [palette](./colors) as the rest of the app. A task can have many tags: they show on its row as small colored pills, after the description icon and the subtask counter. Many tags wrap on more lines, and a long name is cut (the full name is in the tooltip of the pill).
+
+To tag a task, open its menu and choose **Tags…** (or use the **Tags** field of the [details panel](#the-details-panel)):
+
+- Check a tag to give it to the task, uncheck it to take it away. The change applies at once.
+- Type a name in **Name of the new tag** and press `Enter` (or **Create**) to create a tag and give it to the task. If a tag with that name already exists, the task gets that one.
+- Click the **…** button of a tag to **rename** it, change its **color** (or remove it with **No color**) or **delete** it. Deleting a tag removes it from every task that has it, after a confirmation.
+
+With several tasks selected, **Tags…** in their menu works on all of them: a tag is checked when all the selected tasks have it, a small count such as "2/3" shows when only some do, and checking it gives it to the others.
+
+Creating, giving, taking, renaming, recoloring and deleting a tag are all steps of the [undo history](./undo-and-history); creating a tag for a task is a single step. The tags of a task in the trash or in the archive stay with it, and come back when you restore it.
+
+Tags go with the data: they are copied by [templates](./templates), by duplicating a note or a section, and by the workspace [export](./data-and-backups#export-and-import-a-workspace). An [automation](./automations) can add or remove a tag.
 
 ### Move tasks
 
@@ -138,7 +155,7 @@ Hold **Ctrl** (**Cmd** on macOS) and click to add a task to the selection or rem
 
 With the keyboard, focus a task and press **Shift+Down** or **Shift+Up** to extend the selection one task at a time (**Shift+End** and **Shift+Home** go to the last and first task of the list); going back toward the first task shrinks it again. **Ctrl+Space** (**Cmd+Space** on macOS) adds the focused task to the selection or removes it, so you can pick tasks that are not next to each other: move with the plain arrows, which keep the selection, and press it on each one. These keys do not change the task shown in the details panel. When the selection shrinks to one task or to none, a screen reader announces it; with two or more, it reads the counter.
 
-Right click a selected task (or open its menu) to act on all of them at once: **Delete N tasks**, **Archive N tasks**, **Color** and **Move to…** (the end of a section, or the tasks directly in a group). A selected task stands for its subtasks too, so they are deleted, archived and moved with it. Each action is a single step in the [undo history](./undo-and-history). Dragging still moves one task at a time.
+Right click a selected task (or open its menu) to act on all of them at once: **Delete N tasks**, **Archive N tasks**, **Color**, **Tags…** and **Move to…** (the end of a section, or the tasks directly in a group). A selected task stands for its subtasks too, so they are deleted, archived and moved with it. Each action is a single step in the [undo history](./undo-and-history). Dragging still moves one task at a time.
 
 Selected tasks get a dashed outline (not only a tint) and are announced as "selected" by screen readers; with two or more selected, a counter such as "3 selected" appears at the bottom of the note.
 
@@ -164,7 +181,7 @@ The panel on the right has two tabs. Open or close it with `Ctrl+Shift+B` or **V
 
 **Details** shows:
 
-- for a selected task (click it): its path, status, a switch for **High priority**, the **Color**, the **Description** (editable, with **Save** and **Cancel**), the progress of its subtasks and its dates;
+- for a selected task (click it): its path, status, a switch for **High priority**, the **Color**, the **Tags** (with a button to change them), the **Description** (editable, with **Save** and **Cancel**), the progress of its subtasks and its dates;
 - for the note, when no task is selected: the number of groups, sections and tasks, the overall progress, the color and the dates.
 
 **History** lists the actions you can undo and redo. See [Undo and history](./undo-and-history).
