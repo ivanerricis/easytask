@@ -17,6 +17,11 @@ const reportError = vi.fn()
 vi.mock("./backup", () => ({ createPreMigrationBackup: (...a: unknown[]) => createBackup(...a) }))
 vi.mock("@/lib/report-error", async (importOriginal) => ({ ...(await importOriginal<object>()), reportError: (...a: unknown[]) => reportError(...a) }))
 
+const ask = vi.fn()
+const exit = vi.fn()
+vi.mock("@tauri-apps/plugin-dialog", () => ({ ask: (...a: unknown[]) => ask(...a) }))
+vi.mock("@tauri-apps/plugin-process", () => ({ exit: (...a: unknown[]) => exit(...a) }))
+
 let db: MockDb
 
 // The module keeps a singleton promise, so load a fresh copy per test
@@ -32,6 +37,8 @@ beforeEach(() => {
     initDB.mockReset().mockResolvedValue(undefined)
     createBackup.mockReset().mockResolvedValue(undefined)
     reportError.mockReset()
+    ask.mockReset()
+    exit.mockReset().mockResolvedValue(undefined)
 })
 
 describe("getDB", () => {
@@ -51,13 +58,58 @@ describe("getDB", () => {
         expect(createBackup).toHaveBeenCalledWith(db, 6, 7)
     })
 
-    it("does not block the start when that backup fails", async () => {
-        const getDB = await freshGetDB()
-        await getDB()
-        createBackup.mockRejectedValueOnce(new Error("disk full"))
-        const { beforeMigrate } = initDB.mock.calls[0][1] as { beforeMigrate: (d: unknown, from: number, to: number) => Promise<void> }
-        await expect(beforeMigrate(db, 6, 7)).resolves.toBeUndefined()
-        expect(reportError).toHaveBeenCalledWith(expect.objectContaining({ message: "disk full" }))
+    describe("when the pre-migration backup fails", () => {
+        const beforeMigrateOf = async () => {
+            const getDB = await freshGetDB()
+            await getDB()
+            createBackup.mockRejectedValueOnce(new Error("disk full"))
+            return (initDB.mock.calls[0][1] as { beforeMigrate: (d: unknown, from: number, to: number) => Promise<void> }).beforeMigrate
+        }
+
+        it("asks the user with a blocking dialog and migrates anyway on \"Continue anyway\"", async () => {
+            const beforeMigrate = await beforeMigrateOf()
+            ask.mockResolvedValueOnce(true)
+            await expect(beforeMigrate(db, 6, 7)).resolves.toBeUndefined()
+            expect(reportError).toHaveBeenCalledWith(expect.objectContaining({ message: "disk full" }))
+            expect(ask).toHaveBeenCalledTimes(1)
+            expect(ask.mock.calls[0][0]).toContain("disk full")
+            expect(ask.mock.calls[0][1]).toMatchObject({ kind: "warning", title: expect.any(String), okLabel: expect.any(String), cancelLabel: expect.any(String) })
+            expect(exit).not.toHaveBeenCalled()
+        })
+
+        it("exits the app and aborts the migration on \"Exit\"", async () => {
+            const beforeMigrate = await beforeMigrateOf()
+            ask.mockResolvedValueOnce(false)
+            await expect(beforeMigrate(db, 6, 7)).rejects.toMatchObject({ code: "DB_MIGRATION_CANCELLED" })
+            expect(exit).toHaveBeenCalledWith(0)
+        })
+
+        it("does not migrate when the dialog cannot be shown", async () => {
+            const beforeMigrate = await beforeMigrateOf()
+            ask.mockRejectedValueOnce(new Error("no window"))
+            await expect(beforeMigrate(db, 6, 7)).rejects.toMatchObject({ code: "DB_MIGRATION_CANCELLED" })
+            expect(exit).toHaveBeenCalledWith(0)
+        })
+
+        it("does not ask when the backup succeeds or already exists", async () => {
+            const getDB = await freshGetDB()
+            await getDB()
+            const { beforeMigrate } = initDB.mock.calls[0][1] as { beforeMigrate: (d: unknown, from: number, to: number) => Promise<void> }
+            createBackup.mockResolvedValueOnce(null)
+            await beforeMigrate(db, 6, 7)
+            expect(ask).not.toHaveBeenCalled()
+        })
+
+        it("rejects getDB and closes the connection when the user exits", async () => {
+            initDB.mockImplementationOnce(async (_db: unknown, options: { beforeMigrate: (d: unknown, from: number, to: number) => Promise<void> }) => {
+                createBackup.mockRejectedValueOnce(new Error("disk full"))
+                await options.beforeMigrate(db, 6, 7)
+            })
+            ask.mockResolvedValueOnce(false)
+            const getDB = await freshGetDB()
+            await expect(getDB()).rejects.toMatchObject({ code: "DB_MIGRATION_CANCELLED" })
+            expect(db.close).toHaveBeenCalledTimes(1)
+        })
     })
 
     it("creates the database once for concurrent calls", async () => {

@@ -1,4 +1,6 @@
 import { join } from "@tauri-apps/api/path";
+import { ask } from "@tauri-apps/plugin-dialog";
+import { exit } from "@tauri-apps/plugin-process";
 import Database from "@tauri-apps/plugin-sql";
 import i18n from "@/i18n";
 import { createError } from "@/types/error";
@@ -21,6 +23,29 @@ export function setRestoring(value: boolean): void {
 }
 
 /**
+ * The safety copy before a migration failed. This runs before React is mounted, so the question is a blocking native
+ * dialog: "Continue anyway" returns and the migration goes on, "Exit" closes the app and rejects, so the database is
+ * never touched (the next start asks again). If the dialog itself cannot be shown the migration is NOT run.
+ */
+async function confirmMigrationWithoutBackup(cause: unknown): Promise<void> {
+    const reason = cause instanceof Error ? cause.message : String((cause as { message?: unknown })?.message ?? cause);
+    let proceed = false;
+    try {
+        proceed = await ask(i18n.t("errors.db.backupFailed.description", { message: reason, interpolation: { escapeValue: false } }), {
+            title: i18n.t("errors.db.backupFailed.title"),
+            kind: "warning",
+            okLabel: i18n.t("errors.db.backupFailed.continue"),
+            cancelLabel: i18n.t("errors.db.backupFailed.exit"),
+        });
+    } catch (error) {
+        reportError(error);
+    }
+    if (proceed) return;
+    await exit(0).catch(reportError);
+    throw createError("DB_MIGRATION_CANCELLED", i18n.t("errors.db.migrationCancelled"));
+}
+
+/**
  * Creates the database if it doesn't exist and migrates it to the latest schema.
  * @returns Promise resolving to the Database instance.
  * @category Database
@@ -33,7 +58,8 @@ async function createDB(): Promise<Database> {
 
     try {
         await initDB(db, {
-            // An existing database about to change its schema is copied first (best effort: never blocks the start).
+            // An existing database about to change its schema is copied first. If the copy cannot be made the user decides
+            // (see confirmMigrationWithoutBackup); an already existing copy of the same migration is not a failure.
             // Imported lazily because the backup module depends on this one.
             beforeMigrate: async (opened, from, to) => {
                 try {
@@ -41,6 +67,7 @@ async function createDB(): Promise<Database> {
                     await createPreMigrationBackup(opened, from, to);
                 } catch (error) {
                     reportError(error);
+                    await confirmMigrationWithoutBackup(error);
                 }
             },
         });

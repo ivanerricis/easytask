@@ -320,6 +320,34 @@ describe("runAutoBackup", () => {
         expect(db.execute).not.toHaveBeenCalled()
     })
 
+    it("never runs two backups at once", async () => {
+        let release: () => void = () => undefined
+        db.execute.mockImplementationOnce(async (sql: unknown) => {
+            await new Promise<void>(resolve => { release = resolve })
+            files.set(/INTO '(.*)'/.exec(String(sql))![1], 1234)
+            return { rowsAffected: 0, lastInsertId: 0 }
+        })
+        const first = runAutoBackup()
+        await vi.waitFor(() => expect(db.execute).toHaveBeenCalledTimes(1))
+        await expect(runAutoBackup()).resolves.toBe(false)
+        expect(db.execute).toHaveBeenCalledTimes(1)
+        release()
+        await expect(first).resolves.toBe(true)
+        // once finished, the next check works again (here: nothing is due, a backup exists today)
+        await expect(runAutoBackup()).resolves.toBe(false)
+        expect(reportError).not.toHaveBeenCalled()
+    })
+
+    it("a failed rotation is reported and the backup stays a success", async () => {
+        const { remove } = await import("@tauri-apps/plugin-fs")
+        keep = 1
+        seed("easytask-20200101-100000.db")
+        seed("easytask-20200102-100000.db")
+        vi.mocked(remove).mockRejectedValueOnce(new Error("file in use"))
+        await expect(runAutoBackup()).resolves.toBe(true)
+        expect(reportError).toHaveBeenCalledWith(expect.objectContaining({ message: "file in use" }))
+    })
+
     it("swallows failures and reports them without a toast message", async () => {
         db.execute.mockRejectedValueOnce(new Error("disk full"))
         await expect(runAutoBackup()).resolves.toBe(false)
