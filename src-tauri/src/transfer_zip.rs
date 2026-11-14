@@ -351,7 +351,10 @@ pub fn read_zip(
         let entry = archive
             .by_index_raw(index)
             .map_err(|e| format!("INVALID_ARCHIVE: {e}"))?;
-        let name = entry.name().to_string();
+        let name = entry
+            .name()
+            .map_err(|e| format!("INVALID_ARCHIVE: unsafe entry name: {e}"))?
+            .to_string();
         if !is_safe_entry_name(&name) {
             return Err(format!("INVALID_ARCHIVE: unsafe entry name {name:?}"));
         }
