@@ -131,11 +131,11 @@ describe("ActiveNoteProvider", () => {
 
         act(() => latest.current.openNote(1))
         await waitFor(() => expect(shownGroup(latest)).toBe(10))
-        expect(listener).toHaveBeenCalledWith(1)
+        expect(listener).toHaveBeenCalledWith(1, "load")
 
         listener.mockClear()
         act(() => { latest.current.patchGroup(10, { name: "Named" }) })
-        expect(listener).toHaveBeenCalledWith(1)
+        expect(listener).toHaveBeenCalledWith(1, "edit")
 
         stop()
         listener.mockClear()

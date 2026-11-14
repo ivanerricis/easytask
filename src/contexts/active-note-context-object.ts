@@ -25,9 +25,9 @@ export type ActiveNoteActionsType = NoteOptimisticActions & {
     subscribeNoteTree: (listener: () => void) => () => void
     /**
      * Calls the listener with the id of a note every time its cached data is replaced (optimistic update, undo, reload),
-     * including a reload that brings the same data. Returns the function that stops listening.
+     * including a reload that brings the same data; the second argument tells a `load` (read from the database) from an `edit`. Returns the function that stops listening.
      */
-    subscribeNoteChanges: (listener: (noteId: number) => void) => () => void
+    subscribeNoteChanges: (listener: (noteId: number, source: "load" | "edit") => void) => () => void
 }
 
 export const ActiveNoteContext = createContext<ActiveNoteContextType | null>(null)

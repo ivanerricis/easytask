@@ -33,6 +33,8 @@ type DraftAutosaver = {
     /** True while the draft has changes that are not saved. */
     isDirty: (key: number) => boolean
     subscribe: (listener: () => void) => () => void
+    /** Cancels every pending timer (the provider is unmounted). */
+    dispose: () => void
 }
 
 type DraftState = {
@@ -136,6 +138,7 @@ export function createDraftAutosaver({ save, whenIdle, delay = DRAFT_SAVE_DELAY,
             drafts.delete(key)
             emit()
         },
+        dispose: () => drafts.forEach(clearTimer),
         getStatus: key => drafts.get(key)?.status ?? "idle",
         isDirty: key => drafts.get(key)?.dirty ?? false,
         subscribe: listener => {
