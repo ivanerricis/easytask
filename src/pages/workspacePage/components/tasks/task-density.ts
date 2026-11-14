@@ -20,8 +20,6 @@ export type TaskDensityClasses = {
     subtaskCheckbox: string
     /** Horizontal tick of a subtask, at the middle of its checkbox. */
     tickTop: string
-    /** Height of the vertical part of the tick of the last subtask. */
-    tickHeight: string
     /** The field of a new subtask. */
     input: string
 }
@@ -34,7 +32,6 @@ export const TASK_DENSITIES: Record<TaskDensity, TaskDensityClasses> = {
         checkbox: "mt-0",
         subtaskCheckbox: "mt-px",
         tickTop: "top-[10px]",
-        tickHeight: "h-[12px]",
         input: "h-5 text-xs md:text-xs",
     },
     normal: {
@@ -44,7 +41,6 @@ export const TASK_DENSITIES: Record<TaskDensity, TaskDensityClasses> = {
         checkbox: "mt-0.5",
         subtaskCheckbox: "mt-[3px]",
         tickTop: "top-[16px]",
-        tickHeight: "h-[18px]",
         input: "h-6 text-sm md:text-sm",
     },
     large: {
@@ -54,7 +50,6 @@ export const TASK_DENSITIES: Record<TaskDensity, TaskDensityClasses> = {
         checkbox: "mt-1",
         subtaskCheckbox: "mt-[5px]",
         tickTop: "top-[22px]",
-        tickHeight: "h-[24px]",
         input: "h-7 text-base md:text-base",
     },
 }
