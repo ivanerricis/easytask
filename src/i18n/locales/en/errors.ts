@@ -157,6 +157,13 @@ export const errors: Translation["errors"] = {
     db: {
         legacy: "Database from an older, incompatible version: delete the file Documents/EasyTask/easytask.db and restart the app.",
         newer: "Database created by a newer version of the app: update EasyTask or delete the file Documents/EasyTask/easytask.db.",
+        backupFailed: {
+            title: "Could not create the database backup",
+            description: "EasyTask cannot make a safety copy of your data before updating the database: {{message}}\n\nIf you continue and the update goes wrong, you may lose data.",
+            continue: "Continue anyway",
+            exit: "Exit",
+        },
+        migrationCancelled: "Startup cancelled: the database was not updated.",
     },
     refreshTree: "Could not refresh the list of folders and notes. Try again.",
     moveGroup: "Could not move the group. Try again.",
