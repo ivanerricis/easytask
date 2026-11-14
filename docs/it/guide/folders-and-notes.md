@@ -7,7 +7,7 @@ Dentro un workspace, la barra laterale sinistra mostra un albero di cartelle e n
 
 ## La barra laterale
 
-In cima alla barra laterale ci sono dei pulsanti, in tre gruppi:
+In cima alla barra laterale c'è una fila di pulsanti:
 
 | Pulsante                                  | Cosa fa                                                         |
 | ----------------------------------------- | --------------------------------------------------------------- |

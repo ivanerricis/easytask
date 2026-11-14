@@ -7,7 +7,7 @@ Inside a workspace, the left sidebar shows a tree of folders and notes. Folders 
 
 ## The sidebar
 
-The top of the sidebar has buttons, in three groups:
+The top of the sidebar has a row of buttons:
 
 | Button                                   | What it does                                                    |
 | ---------------------------------------- | --------------------------------------------------------------- |
