@@ -1,6 +1,6 @@
-import { $, browser, expect } from "@wdio/globals"
+﻿import { $, browser } from "@wdio/globals"
 import {
-    addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, openContextMenu, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
+    addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, menuButton, openMenuWithButton, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
     waitForApp,
     groupCard, newSectionInGroup,
 } from "../helpers"
@@ -22,13 +22,12 @@ const xpathString = (value: string) =>
 /** The row of the task with this text (its aria-label is the text). */
 const rowOf = (text: string) => $(`//*[@role='treeitem'][@aria-label=${xpathString(text)}]`)
 
-/** The names of the tags shown on the row of the task. */
+/** The names of the tags shown on the row of the task (textContent: getText is unreliable on a truncated pill on WebKitGTK). */
 const badgesOf = async (text: string): Promise<string[]> => {
-    const names: string[] = []
-    for (const badge of await rowOf(text).$$('[data-testid="tag-badge"]')) names.push(await badge.getText())
-    return names
+    const row = (await rowOf(text).getElement()) as unknown as HTMLElement
+    return browser.execute((el: HTMLElement) =>
+        Array.from(el.querySelectorAll('[data-testid="tag-badge"]')).map(badge => (badge.textContent ?? "").trim()), row)
 }
-
 /** The tags saved for the task in the database: [name of the tag] ordered by the tag list. */
 const savedTags = async (text: string): Promise<string[]> => {
     const rows = await sql<{ name: string }[]>(
@@ -72,19 +71,25 @@ describe("Tags of the tasks", () => {
     })
 
     it("creates a tag from the menu of the task and shows its pill on the row", async () => {
-        const menu = await openContextMenu(rowOf(TASK))
-        await byText(await tr("tags.menu"), menu).click()
+        await rowOf(TASK).moveTo()
+        // The pointer press of the menu button is not delivered by WebKitGTK: the helper falls back to the keyboard
+        const menu = await openMenuWithButton(await menuButton(rowOf(TASK)))
+        await domClick(byText(await tr("tags.menu"), menu))
         const dialog = await topDialog()
         await dialog.waitForDisplayed({ timeoutMsg: "the tags dialog did not open" })
         await typeInto(byLabel(await tr("tags.newLabel")), TAG)
-        await browser.keys("Enter")
+        // The Create button submits the form (a click through the DOM: no pointer events needed)
+        await domClick(byText(await tr("tags.create"), dialog))
 
         await browser.waitUntil(async () => (await badgesOf(TASK)).join() === TAG, { timeoutMsg: "the pill of the tag is not on the row" })
         await browser.waitUntil(async () => (await savedTags(TASK)).join() === TAG, { timeoutMsg: "the tag was not saved for the task" })
         // The new tag is in the list of the dialog, checked
-        await expect($(`[role="checkbox"][aria-label="${TAG}"]`)).toHaveAttribute("aria-checked", "true")
+        await browser.waitUntil(
+            () => browser.execute((name: string) => document.querySelector(`[role="checkbox"][aria-label="${name}"]`)?.getAttribute("aria-checked") === "true", TAG),
+            { timeoutMsg: "the new tag is not checked in the list" },
+        )
 
-        await byText(await tr("tags.done"), dialog).click()
+        await domClick(byText(await tr("tags.done"), dialog))
         await dialog.waitForDisplayed({ reverse: true, timeoutMsg: "the tags dialog did not close" })
     })
 
@@ -98,3 +103,4 @@ describe("Tags of the tasks", () => {
         await browser.waitUntil(async () => (await savedTags(TASK)).join() === TAG, { timeoutMsg: "the tag was not saved again by the redo" })
     })
 })
+
