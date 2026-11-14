@@ -8,6 +8,7 @@ import { captureTaskPlace, type ColorChange, type ManyItemRef, type TaskMoveStep
 import { withRollback } from "@/contexts/with-rollback"
 import { useAutomations } from "@/hooks/use-automations"
 import { ConfirmDialog } from "@/components/dialogs/dialog-confirm"
+import { DialogTaskTags } from "@/components/tags/DialogTaskTags"
 import { FormError } from "@/components/form-error"
 import { reportError } from "@/lib/report-error"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
@@ -33,6 +34,8 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
     const isDraft = useIsActiveDraft()
     const [deleting, setDeleting] = useState<{ items: ManyItemRef[], open: boolean }>({ items: [], open: false })
     const [error, setError] = useState<string | null>(null)
+    // The tasks whose tags are being edited (null = the dialog is closed)
+    const [tagging, setTagging] = useState<number[] | null>(null)
     // Trashed by an earlier attempt of the same confirmation
     const trashed = useRef(new Set<number>())
 
@@ -106,6 +109,12 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         if (changes.length > 0) recorder.colorMany(changes)
     })()), [getNoteTree, selectedIds, patchTask, updateItemColor, recorder])
 
+    const requestTags = useCallback(() => {
+        const tree = getNoteTree()
+        const ids = tree ? getSelectedTasks(tree, selectedIds()).map(task => task.id) : []
+        if (ids.length > 0) setTagging(ids)
+    }, [getNoteTree, selectedIds])
+
     const moveTo = useCallback((sectionId: number) => recorder.track((async () => {
         const done: TaskMoveStep[] = []
         try {
@@ -125,13 +134,14 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
     })()), [recorder, getTargets, getNoteTree, applyTaskMove, moveTask, dispatch])
 
     const value = useMemo<TaskSelectionActions>(
-        () => ({ getTargets, requestDelete, archiveSelection, applyColor, moveTo }),
-        [getTargets, requestDelete, archiveSelection, applyColor, moveTo],
+        () => ({ getTargets, requestDelete, archiveSelection, applyColor, requestTags, moveTo }),
+        [getTargets, requestDelete, archiveSelection, applyColor, requestTags, moveTo],
     )
 
     return (
         <TaskSelectionActionsContext.Provider value={value}>
             {children}
+            {tagging && <DialogTaskTags open onOpenChange={open => { if (!open) setTagging(null) }} taskIds={tagging} />}
             <ConfirmDialog
                 open={deleting.open}
                 onOpenChange={open => {

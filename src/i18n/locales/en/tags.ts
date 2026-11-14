@@ -1,7 +1,6 @@
 import type { Translation } from "../it"
 
 export const tags: Translation["tags"] = {
-    title: "Tags",
     menu: "Tags…",
     dialogTitle: "Tags of the task",
     dialogTitleMany: "Tags of {{count}} tasks",
@@ -13,9 +12,7 @@ export const tags: Translation["tags"] = {
     newPlaceholder: "Name of the new tag",
     create: "Create",
     manage: "Manage the tag {{name}}",
-    rename: "Rename",
     renameLabel: "Tag name",
-    color: "Color",
     noColor: "No color",
     delete: "Delete the tag",
     deleteTitle: "Delete the tag?",
@@ -28,8 +25,6 @@ export const tags: Translation["tags"] = {
     edit: "Edit the tags",
     field: "Tags",
     errors: {
-        create: "Could not create the tag: {{message}}",
-        rename: "Could not rename the tag: {{message}}",
         color: "Could not change the color of the tag: {{message}}",
         delete: "Could not delete the tag: {{message}}",
         assign: "Could not change the tags: {{message}}",

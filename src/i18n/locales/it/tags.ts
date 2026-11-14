@@ -1,5 +1,4 @@
 export const tags = {
-    title: "Tag",
     menu: "Tag…",
     dialogTitle: "Tag del task",
     dialogTitleMany: "Tag di {{count}} task",
@@ -11,9 +10,7 @@ export const tags = {
     newPlaceholder: "Nome del nuovo tag",
     create: "Crea",
     manage: "Gestisci il tag {{name}}",
-    rename: "Rinomina",
     renameLabel: "Nome del tag",
-    color: "Colore",
     noColor: "Nessun colore",
     delete: "Elimina il tag",
     deleteTitle: "Eliminare il tag?",
@@ -26,8 +23,6 @@ export const tags = {
     edit: "Modifica i tag",
     field: "Tag",
     errors: {
-        create: "Impossibile creare il tag: {{message}}",
-        rename: "Impossibile rinominare il tag: {{message}}",
         color: "Impossibile cambiare il colore del tag: {{message}}",
         delete: "Impossibile eliminare il tag: {{message}}",
         assign: "Impossibile cambiare i tag: {{message}}",

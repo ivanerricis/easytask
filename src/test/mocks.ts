@@ -28,7 +28,7 @@ export const sonnerMock = () => ({ toast: toastMock, Toaster: () => null })
 const UNDO_RECORDER_METHODS = [
     "rename", "color", "background", "taskCompletion", "taskPriority", "taskDescription", "remove", "create", "archive", "unarchive", "archiveMany",
     "treeMove", "removeMany", "colorMany", "colorContent", "treeMoveMany", "sectionMove", "directMove", "sectionMoveToNewGroup",
-    "taskMove", "taskMoveMany", "record",
+    "taskMove", "taskMoveMany", "tagCreate", "tagDelete", "tagRename", "tagColor", "tagAssign", "record",
 ] as const satisfies readonly (keyof UndoRecorder)[]
 const _allUndoMethodsListed: Exclude<keyof UndoRecorder, typeof UNDO_RECORDER_METHODS[number] | "track"> extends never ? true : never = true
 void _allUndoMethodsListed

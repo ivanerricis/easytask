@@ -47,6 +47,8 @@ export type TaskSelectionActions = {
     archiveSelection: () => Promise<void>
     /** Sets (or, with null, removes) the color of every selected task, subtasks included; one undo step. */
     applyColor: (color: string | null) => Promise<void>
+    /** Opens the dialog of the tags of every selected task (subtasks of a selected task included when they are selected too). */
+    requestTags: () => void
     /** Moves the selection to the end of a section, in the order of the tasks; one undo step. */
     moveTo: (sectionId: number) => Promise<void>
 }

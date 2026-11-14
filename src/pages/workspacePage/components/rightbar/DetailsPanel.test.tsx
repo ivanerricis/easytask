@@ -20,6 +20,8 @@ const patchTask = vi.fn()
 const rollback = vi.fn()
 vi.mock("@/contexts/workspace-data", () => ({
     useWorkspaceActions: () => ({ updateTaskPriority, updateTaskDescription, updateItemColor }),
+    useTagsOf: () => [],
+    useWorkspaceTags: () => [],
 }))
 let tree: NoteDataTree | null
 vi.mock("@/contexts/use-active-note", () => ({

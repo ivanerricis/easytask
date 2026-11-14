@@ -2,12 +2,13 @@ import i18n from "@/i18n"
 import { reportError } from "@/lib/report-error"
 import type { DBItemType } from "@/db/queries/shared_queries"
 import type { TaskMoveTarget } from "@/db/queries/move"
-import type { ArchiveItemType, NoteDataTree, WorkspaceDataTree } from "@/types/types"
+import type { ArchiveItemType, NoteDataTree, Tag, WorkspaceDataTree } from "@/types/types"
 import type { PreviousColor, WorkspaceActionsType } from "../workspace-data"
 import type { ActiveNoteActionsType } from "../active-note-context-object"
 import { findSection, findTask } from "../note-tree-ops"
 import { findTreeItem, type TreeItemType } from "../workspace-tree-ops"
 import { withRollback } from "../with-rollback"
+import { patchTagOnTasks } from "@/lib/task-tags"
 import type { UndoCommand } from "./stack"
 
 /**
@@ -20,7 +21,8 @@ export type UndoDeps = {
     getWorkspaceId: () => number | null
     workspace: Pick<WorkspaceActionsType,
         "renameItem" | "updateItemColor" | "updateNoteBackground" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
-        "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData">
+        "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData" |
+        "renameTag" | "updateTagColor" | "deleteTag" | "restoreTag" | "setTaskTag">
     note: Pick<ActiveNoteActionsType,
         "patchTask" | "patchSection" | "patchGroup" | "removeGroup" | "removeSection" | "removeTask" |
         "applySectionMove" | "applyDirectSectionMove" | "applyTaskMove" | "refreshActiveNote" | "getNoteTree">
@@ -270,6 +272,28 @@ export function createUndoCommands(deps: UndoDeps) {
             workspace.updateTaskDescription(taskId, description !== "" ? description : undefined))
     }
 
+    /** Gives a tag to tasks (or takes it away) in the cached note, then writes it; the cache is put back if the write fails. */
+    const setTagOn = async (tagId: number, taskIds: readonly number[], assigned: boolean) => {
+        const { rollback } = patchTagOnTasks(note, tagId, taskIds, assigned)
+        await withRollback(rollback, () => workspace.setTaskTag(tagId, taskIds, assigned))
+    }
+
+    /** Deletes a tag (its links go with it) and refreshes the open note, which carries the tag ids of its tasks. */
+    const deleteTagOf = async (tagId: number) => {
+        await workspace.deleteTag(tagId)
+        await reloadNote()
+    }
+
+    /** Puts a tag back with its links and refreshes the open note. */
+    const restoreTagOf = async (tag: Tag, taskIds: readonly number[]) => {
+        await workspace.restoreTag(tag, taskIds)
+        await reloadNote()
+    }
+
+    /** The label of an action on a tag, with its name. */
+    const tagLabel = (key: "createTag" | "renameTag" | "colorTag" | "deleteTag" | "assignTag" | "unassignTag", name: string) =>
+        i18n.t("undo.named", { label: i18n.t(`undo.labels.${key}`), name: shorten(name) })
+
     /** The same label for every multi-selection action: the translated count ("Delete 3 items"). */
     const manyLabel = (key: "deleteMany" | "colorMany" | "moveMany" | "archiveMany", count: number) => i18n.t(`undo.labels.${key}`, { count })
 
@@ -471,6 +495,44 @@ export function createUndoCommands(deps: UndoDeps) {
             reloadEvenOnFailure: true,
         }),
 
+        /**
+         * Creation of a tag, possibly together with giving it to tasks (`taskIds`): undone by deleting it (the links go with it),
+         * redone by putting it back with the same id and links.
+         */
+        tagCreate: (tag: Tag, taskIds: readonly number[] = []): UndoCommand => ({
+            label: tagLabel("createTag", tag.name),
+            undo: () => deleteTagOf(tag.id),
+            redo: () => restoreTagOf(tag, taskIds),
+        }),
+
+        /** Deletion of a tag: undone by putting it back with the same id, place and links (`taskIds` are the tasks that had it). */
+        tagDelete: (tag: Tag, taskIds: readonly number[]): UndoCommand => ({
+            label: tagLabel("deleteTag", tag.name),
+            undo: () => restoreTagOf(tag, taskIds),
+            redo: () => deleteTagOf(tag.id),
+        }),
+
+        tagRename: (tagId: number, before: string, after: string): UndoCommand => ({
+            label: tagLabel("renameTag", before),
+            undo: () => workspace.renameTag(tagId, before),
+            redo: () => workspace.renameTag(tagId, after),
+        }),
+
+        tagColor: (tagId: number, name: string, before: string | null, after: string | null): UndoCommand => ({
+            label: tagLabel("colorTag", name),
+            undo: () => workspace.updateTagColor(tagId, before),
+            redo: () => workspace.updateTagColor(tagId, after),
+        }),
+
+        /** A tag given to (or taken from) one or more tasks as ONE step; `taskIds` are the tasks that really changed. */
+        tagAssign: (tag: Pick<Tag, "id" | "name">, taskIds: readonly number[], assigned: boolean): UndoCommand => ({
+            label: taskIds.length === 1
+                ? tagLabel(assigned ? "assignTag" : "unassignTag", tag.name)
+                : i18n.t("undo.named", { label: i18n.t(assigned ? "undo.labels.assignTagMany" : "undo.labels.unassignTagMany", { count: taskIds.length }), name: shorten(tag.name) }),
+            undo: () => setTagOn(tag.id, taskIds, !assigned),
+            redo: () => setTagOn(tag.id, taskIds, assigned),
+        }),
+
         /** Move of a task (with its subtasks) to another section or parent task. */
         taskMove: (taskId: number, name: string, from: TaskPlace, to: TaskPlace): UndoCommand => ({
             label: makeLabel("move", "task", name),
@@ -512,5 +574,5 @@ export function createUndoRecorder(commands: UndoCommands, record: (command: Und
 const noop = () => {}
 export const NOOP_RECORDER: UndoRecorder = {
     rename: noop, color: noop, background: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
-    archive: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, record: noop, track: write => write,
+    archive: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagAssign: noop, record: noop, track: write => write,
 }

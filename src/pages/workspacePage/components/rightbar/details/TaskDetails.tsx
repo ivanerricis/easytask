@@ -18,7 +18,7 @@ import { isDefaultSection, taskSections } from "@/lib/group-sections"
 import { getSectionLabel } from "../../section/section-label"
 import { getGroupLabel } from "../../groups/group-label"
 import { countTasks } from "../../groups/group-progress"
-import { ColorField, Dates, Field, ProgressBar, sectionTitle } from "./fields"
+import { ColorField, Dates, Field, ProgressBar, TagsField, sectionTitle } from "./fields"
 
 const containsTask = (tasks: Task[], taskId: number): boolean =>
     tasks.some(task => task.id === taskId || containsTask(task.subtasks, taskId))
@@ -120,6 +120,7 @@ export const TaskDetails = ({ task, tree, noteName }: { task: Task, tree: NoteDa
                 addColorItem={addColorItem}
                 getItemId={activeId ?? undefined}
             />
+            <TagsField taskId={task.id} tagIDs={task.tagIDs} />
             <TaskDescription key={task.id} task={task} />
             <Field label={t("details.subtasks")}>
                 {subtasks.total === 0

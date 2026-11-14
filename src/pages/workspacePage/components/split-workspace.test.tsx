@@ -38,6 +38,7 @@ vi.mock("@/db/queries/audio", async importOriginal => ({
     getDBGroupAudioFiles: vi.fn(async () => []),
 }))
 vi.mock("@/db/queries/template-draft", () => ({ getDBTemplateDrafts: vi.fn(async () => []) }))
+vi.mock("@/db/queries/tag", () => ({ getDBTags: vi.fn(async () => []) }))
 vi.mock("@/lib/store/tabs", () => ({
     getWorkspaceTabs: vi.fn(async () => ({ left: { openIds: [], activeId: null }, right: null, focused: 0 })),
     saveWorkspaceTabs: vi.fn(async () => {}),
