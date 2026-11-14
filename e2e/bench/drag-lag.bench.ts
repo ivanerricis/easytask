@@ -370,6 +370,8 @@ describe("lag benchmark", () => {
     for (const live of [true, false]) for (const name of Object.keys(scenarios)) {
         if (only.length && !only.includes(`${name}:${live}`)) continue
         it(`${name} live=${live} profile=${PROFILE}`, async () => {
+            // The throttle of the previous scenario would make the settings dialog too slow to close
+            await cdp("Emulation.setCPUThrottlingRate", { rate: 1 })
             await setLiveDrag(live)
             if (Number(process.env.LAG_THROTTLE) > 1) await cdp("Emulation.setCPUThrottlingRate", { rate: Number(process.env.LAG_THROTTLE) }) // a slower machine
             await browser.pause(800)
