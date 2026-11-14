@@ -214,7 +214,7 @@ describe("images and videos of a group", () => {
         vi.mocked(open).mockResolvedValueOnce("D:\\x\\dup.jpg")
         vi.mocked(createDBMediaFile).mockRejectedValue(new Error("nome duplicato"))
         await user.click(screen.getByRole("button", { name: "add-media" }))
-        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("nome duplicato"))
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Impossibile aggiungere \"dup.jpg\""))
         expect(toast.success).not.toHaveBeenCalled()
 
         vi.mocked(open).mockRejectedValueOnce(new Error("no dialog"))

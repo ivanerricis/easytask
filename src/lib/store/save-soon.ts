@@ -1,3 +1,4 @@
+import { reportError } from "@/lib/report-error"
 import { store } from "./initStore"
 
 // Lives apart from initStore so tests can replace the store with an in-memory one and still get the real debounce
@@ -31,7 +32,7 @@ export const saveStoreSoon = (): Promise<void> =>
     new Promise<void>((resolve, reject) => {
         waiting.push({ resolve, reject })
         if (saveTimer) clearTimeout(saveTimer)
-        saveTimer = setTimeout(() => { void runSave().catch(() => {}) }, SAVE_DEBOUNCE_MS)
+        saveTimer = setTimeout(() => { void runSave().catch(error => reportError(error)) }, SAVE_DEBOUNCE_MS)
     })
 
 /**

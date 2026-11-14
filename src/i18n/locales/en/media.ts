@@ -7,6 +7,7 @@ export const media: Translation["media"] = {
     added_one: "Media file added",
     added_other: "{{count}} media files added",
     addError: "Could not add the images or videos: {{message}}",
+    addFileError: "Could not add \"{{name}}\"",
     open: "Open {{name}}",
     unsupported: "Format not supported",
     openWithDefault: "Open with default app",

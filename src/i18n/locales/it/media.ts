@@ -5,6 +5,7 @@ export const media = {
     added_one: "File multimediale aggiunto",
     added_other: "{{count}} file multimediali aggiunti",
     addError: "Impossibile aggiungere le immagini o i video: {{message}}",
+    addFileError: "Impossibile aggiungere \"{{name}}\"",
     open: "Apri {{name}}",
     unsupported: "Formato non riproducibile",
     openWithDefault: "Apri con l'app predefinita",

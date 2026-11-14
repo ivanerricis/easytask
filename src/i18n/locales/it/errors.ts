@@ -126,6 +126,7 @@ export const errors = {
         limit: "Puoi avere al massimo {{max}} temi personalizzati: eliminane uno prima.",
         import: "Impossibile importare il tema: {{message}}",
         export: "Impossibile esportare il tema: {{message}}",
+        action: "Operazione sul tema non riuscita",
         save: "Impossibile salvare il tema: {{message}}",
         notFound: "Il tema non esiste più.",
         imported_one: "Importato {{count}} tema",

@@ -20,7 +20,8 @@ import { reportError } from "@/lib/report-error"
 import { FolderSearch, Trash2 } from "lucide-react"
 import { ConfirmDialog } from "@/components/dialogs/dialog-confirm"
 
-const getFilters = () => [{ name: i18n.t("audio.dialogFilter"), extensions: [...AUDIO_EXTENSIONS] }]
+const baseName = (path: string) => path.split(/[\\/]/).pop() ?? path
+const getFilters =() => [{ name: i18n.t("audio.dialogFilter"), extensions: [...AUDIO_EXTENSIONS] }]
 const getMediaFilters = () => [{ name: i18n.t("media.dialogFilter"), extensions: [...MEDIA_EXTENSIONS] }]
 
 /** The file that was not found: an audio file or an image/video, they share the dialog (relink or delete the reference). */
@@ -99,7 +100,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                     await createDBAudioFile(groupId, path)
                 } catch (error) {
                     failed++
-                    toast.error(getErrorMessage(error))
+                    reportError(error, i18n.t("audio.addFileError", { name: baseName(path) }))
                 }
             }
             refresh()
@@ -122,7 +123,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
                     await createDBMediaFile(groupId, path)
                 } catch (error) {
                     failed++
-                    toast.error(getErrorMessage(error))
+                    reportError(error, i18n.t("media.addFileError", { name: baseName(path) }))
                 }
             }
             refresh()

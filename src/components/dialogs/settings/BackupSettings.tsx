@@ -36,7 +36,7 @@ import {
     saveBackupKeep,
     type BackupFrequency,
 } from "@/lib/store/preferences"
-import { getErrorMessage } from "@/lib/utils"
+import { formatDateTime, getErrorMessage } from "@/lib/utils"
 import { FormError } from "@/components/form-error"
 import { SettingsRow, SettingsSelectRow, SettingsSwitchRow } from "./SettingsRow"
 import { useOpenDataFolder } from "./use-open-data-folder"
@@ -56,7 +56,7 @@ async function assertWritable(folder: string): Promise<void> {
 }
 
 export const BackupSettings = () => {
-    const { t, i18n } = useTranslation()
+    const { t } = useTranslation()
     const [backups, setBackups] = useState<BackupInfo[]>([])
     const [preMigration, setPreMigration] = useState<PreMigrationBackupInfo[]>([])
     const [keep, setKeep] = useState(String(DEFAULT_BACKUP_KEEP))
@@ -256,7 +256,7 @@ export const BackupSettings = () => {
                 ) : (
                     <ul className="flex flex-col gap-1 max-h-48 overflow-y-auto rounded-xs border p-1" aria-label={t("settings.data.backup.list.title")}>
                         {backups.map(backup => {
-                            const date = backup.date.toLocaleString(i18n.language)
+                            const date = formatDateTime(backup.date)
                             return (
                             <li key={backup.name} className="flex items-center justify-between gap-2 text-sm">
                                 <span className="min-w-0 truncate">
@@ -305,7 +305,7 @@ export const BackupSettings = () => {
                             <li key={copy.name} className="flex items-center justify-between gap-2 text-sm">
                                 <span className="min-w-0 truncate">{copy.name}</span>
                                 <span className="shrink-0 text-xs text-muted-foreground">
-                                    {copy.date?.toLocaleString(i18n.language)} {formatSize(copy.size)}
+                                    {copy.date ? formatDateTime(copy.date) : ""} {formatSize(copy.size)}
                                 </span>
                             </li>
                         ))}
@@ -319,7 +319,7 @@ export const BackupSettings = () => {
                 irreversible
                 initialFocus="cancel"
                 title={t("settings.data.backup.delete.title")}
-                description={t("settings.data.backup.delete.description", { date: toDelete?.date.toLocaleString(i18n.language) ?? "" })}
+                description={t("settings.data.backup.delete.description", { date: toDelete ? formatDateTime(toDelete.date) : "" })}
                 confirm={{ label: t("common.delete"), icon: Trash2, onClick: () => { if (toDelete) void remove(toDelete) } }}
             />
             <ConfirmDialog
@@ -329,7 +329,7 @@ export const BackupSettings = () => {
                 irreversible
                 initialFocus="cancel"
                 title={t("settings.data.backup.restore.title")}
-                description={t("settings.data.backup.restore.description", { date: toRestore?.date.toLocaleString(i18n.language) ?? "" })}
+                description={t("settings.data.backup.restore.description", { date: toRestore ? formatDateTime(toRestore.date) : "" })}
                 confirm={{ label: t("settings.data.backup.restore.confirm"), icon: History, onClick: () => { if (toRestore) void restore(toRestore) } }}
             />
         </>

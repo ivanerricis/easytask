@@ -121,8 +121,8 @@ describe("DetailsPanel without selection", () => {
         expect(screen.getByText("6 task")).toBeInTheDocument()
         expect(screen.getByText("3 di 6 task completati (50%)")).toBeInTheDocument()
         expect(screen.getByRole("progressbar", { name: "3 di 6 task completati" })).toBeInTheDocument()
-        expect(screen.getByText("Creato il 02-01-2026 alle 08:00:00")).toBeInTheDocument()
-        expect(screen.getByText("Modificato il 03-02-2026 alle 12:00:00")).toBeInTheDocument()
+        expect(screen.getByText("Creato il 02/01/2026 alle 08:00:00")).toBeInTheDocument()
+        expect(screen.getByText("Modificato il 03/02/2026 alle 12:00:00")).toBeInTheDocument()
     })
 
     it("shows no dates for a note without them (the draft of a template)", async () => {
@@ -159,8 +159,8 @@ describe("DetailsPanel with a selected task", () => {
         expect(screen.getByRole("switch", { name: "Priorità alta" })).not.toBeChecked()
         expect(screen.getByRole("textbox", { name: "Descrizione" })).toHaveValue("bozza")
         expect(screen.getByText("2 di 3 completati (67%)")).toBeInTheDocument()
-        expect(screen.getByText("Creato il 04-03-2026 alle 09:30:00")).toBeInTheDocument()
-        expect(screen.getByText("Modificato il 05-03-2026 alle 11:15:00")).toBeInTheDocument()
+        expect(screen.getByText("Creato il 04/03/2026 alle 09:30:00")).toBeInTheDocument()
+        expect(screen.getByText("Modificato il 05/03/2026 alle 11:15:00")).toBeInTheDocument()
     })
 
     it("uses the group name in the path and shows a completed task without subtasks", async () => {

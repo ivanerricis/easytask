@@ -19,15 +19,35 @@ export function hexToRgba(alpha: number, hex?: string) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-/** Formats a "YYYY-MM-DD" date following the current language ("DD-MM-YYYY" in Italian, "MM/DD/YYYY" in English). */
+const STORED_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/
+
+/** Parses a stored "YYYY-MM-DD" or "YYYY-MM-DD HH:MM[:SS]" (local time, no timezone) as a local date; null when it is not one. */
+function parseStoredDate(value: string): Date | null {
+  const match = STORED_DATE.exec(value)
+  if (!match) return null
+  const [year, month, day, hour = 0, minute = 0, second = 0] = match.slice(1).map(part => Number(part ?? 0))
+  const date = new Date(year, month - 1, day, hour, minute, second)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const DATE_FORMAT: Intl.DateTimeFormatOptions = { year: "numeric", month: "2-digit", day: "2-digit" }
+const DATE_TIME_FORMAT: Intl.DateTimeFormatOptions = { ...DATE_FORMAT, hour: "2-digit", minute: "2-digit", second: "2-digit" }
+
+/** Formats a stored "YYYY-MM-DD" date in the current language ("DD/MM/YYYY" in Italian, "MM/DD/YYYY" in English); a value that is not a date comes back as it is. */
 export function formatDate(dateStr: string) {
   if (!dateStr) return ""
-  const [year, month, day] = dateStr.split("-")
-  if (currentLanguage() === "it") return `${day}-${month}-${year}`
-  const date = new Date(Number(year), Number(month) - 1, Number(day))
-  if (Number.isNaN(date.getTime())) return dateStr
-  return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date)
+  const date = parseStoredDate(dateStr)
+  if (!date) return dateStr
+  return new Intl.DateTimeFormat(currentLanguage(), DATE_FORMAT).format(date)
 }
+
+/** Formats a date and time in the current language. Takes a Date, a timestamp in milliseconds or a stored "YYYY-MM-DD HH:MM[:SS]" (local time). */
+export function formatDateTime(value: Date | number | string) {
+  const date = typeof value === "string" ? parseStoredDate(value) : new Date(value)
+  if (!date || Number.isNaN(date.getTime())) return String(value)
+  return new Intl.DateTimeFormat(currentLanguage(), DATE_TIME_FORMAT).format(date)
+}
+
 export function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message
   if (typeof err === "object" && err !== null && "message" in err) return String((err as { message: unknown }).message)

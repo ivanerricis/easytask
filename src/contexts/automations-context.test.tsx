@@ -366,14 +366,18 @@ describe("AutomationsProvider with two panes", () => {
         expect(mocks.refreshActiveNote).not.toHaveBeenCalled()
     })
 
-    it("a failed write to the other pane's note reloads it, and the failure (not the reload) is reported", async () => {
+    it("a failed write to the other pane's note reloads it, and both the failure and the failed reload are reported", async () => {
         mocks.trees[2] = fresh()
-        mocks.applyDBAutomationChanges.mockRejectedValueOnce(new Error("boom"))
-        mocks.getNoteData.mockRejectedValueOnce(new Error("reload"))
+        const boom = new Error("boom")
+        const reload = new Error("reload")
+        mocks.applyDBAutomationChanges.mockRejectedValueOnce(boom)
+        mocks.getNoteData.mockRejectedValueOnce(reload)
         const { result } = renderHook(() => useAutomations(), { wrapper })
         await expect(result.current.dispatch({ type: "task.completed", taskId: 11 }, 2)).resolves.toBeUndefined()
         expect(mocks.getNoteData).toHaveBeenCalledWith(2)
-        expect(mocks.reportError).toHaveBeenCalledTimes(1)
+        expect(mocks.reportError).toHaveBeenCalledTimes(2)
+        expect(mocks.reportError.mock.calls[0][0]).toBe(reload)
+        expect(mocks.reportError.mock.calls[1][0]).toBe(boom)
         expect(mocks.recorded).toHaveLength(0)
     })
 
