@@ -691,10 +691,11 @@ pub fn run() {
             // The settings file is read once and shared by the startup steps below
             let settings = read_settings(&info.path);
 
-            // Runtime scope limited to the data folder (no global scope in the capabilities).
+            // Runtime scope of the fs plugin limited to the data folder (no global scope in the capabilities).
+            // The asset protocol gets no folder: the webview only streams user-linked audio, images and videos, and
+            // each one is allowed by allow_audio_file / allow_media_file (also the ones extracted by import_zip into
+            // <data>/media), so the database and the settings are not readable through asset URLs.
             app.fs_scope().allow_directory(&info.path, true)?;
-            app.asset_protocol_scope()
-                .allow_directory(&info.path, true)?;
             // The custom backup folder (if any): only the folder itself, not its subfolders. When the user picks a
             // new one the dialog plugin adds it to the scope for the current session.
             if let Some(folder) = custom_backup_folder_from(settings.as_ref()) {
