@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePreference } from "@/contexts/use-preference"
-import { useNoteDndSelector } from "../note-dnd-state"
 import { useHasTaskSelection } from "./use-task-selection"
 import { useTaskInsertStore } from "./task-insert-state"
 
@@ -23,15 +22,15 @@ type TaskInsertLineProps = {
 export const TaskInsertLine = memo(function TaskInsertLine({ listKey, afterTaskId, first }: TaskInsertLineProps) {
     const { t } = useTranslation()
     const showTaskInsertLine = usePreference(p => p.showTaskInsertLine)
-    const dragging = useNoteDndSelector(state => state.active !== null)
     const hasSelection = useHasTaskSelection()
     const store = useTaskInsertStore()
     const open = useCallback(() => store.claim({ listKey, afterTaskId }), [store, listKey, afterTaskId])
 
-    if (!showTaskInsertLine || dragging || hasSelection) return null
+    if (!showTaskInsertLine || hasSelection) return null
 
+    // Hidden while dragging by CSS (the provider marks the body): a store selector here would re-render every line when a drag starts and ends
     return (
-        <div className="relative z-20 h-0" aria-hidden>
+        <div className="relative z-20 h-0 [body[data-note-dragging]_&]:hidden" aria-hidden>
             <div
                 data-testid="task-insert-zone"
                 className={first ? "group/insert absolute inset-x-0 top-0 h-1" : "group/insert absolute inset-x-0 -top-[3px] h-1.5"}

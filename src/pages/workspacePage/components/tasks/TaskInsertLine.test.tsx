@@ -74,11 +74,11 @@ describe("TaskInsertLine", () => {
         expect(screen.queryByTestId("task-insert-zone")).not.toBeInTheDocument()
     })
 
-    it("disappears during a drag and comes back", () => {
+    it("is hidden during a drag by CSS (the provider marks the body), without re-rendering: it stays in the DOM", () => {
         setup()
+        const line = screen.getByTestId("task-insert-zone").parentElement!
+        expect(line.className).toContain("[body[data-note-dragging]_&]:hidden")
         act(() => dnd.set({ active: { kind: "task", id: 1 } }))
-        expect(screen.queryByTestId("task-insert-zone")).not.toBeInTheDocument()
-        act(() => dnd.set({ active: null }))
         expect(screen.getByTestId("task-insert-zone")).toBeInTheDocument()
     })
 

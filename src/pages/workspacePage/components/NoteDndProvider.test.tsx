@@ -103,6 +103,18 @@ describe("NoteDndProvider renders", () => {
     })
 })
 
+describe("NoteDndProvider drag mark", () => {
+    it("marks the body while dragging (the insert lines hide by CSS), and clears it", () => {
+        let dnd: NoteDndStore | undefined
+        const Grab = () => { dnd = useContext(NoteDndStoreContext); return null }
+        render(<NoteDndProvider><Grab /></NoteDndProvider>)
+        startDrag("task", 1)
+        expect(document.body.hasAttribute("data-note-dragging")).toBe(true)
+        act(() => dnd?.set({ active: null }))
+        expect(document.body.hasAttribute("data-note-dragging")).toBe(false)
+    })
+})
+
 describe("NoteDndProvider auto scroll", () => {
     it("scrolls only the row of the groups and the list of a group, with explicit bands", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)

@@ -89,6 +89,12 @@ const DragCursor = () => {
     const active = useNoteDndSelector(state => state.active !== null)
     const noTarget = useNoteDndSelector(state => state.hover.overKey === null)
     useGrabbingCursor(active, noTarget)
+    // The "+" insert lines hide by CSS while this is set: a store selector in each of them would re-render (and rebuild) every line when a drag starts and ends
+    useLayoutEffect(() => {
+        if (!active) return
+        document.body.setAttribute("data-note-dragging", "")
+        return () => document.body.removeAttribute("data-note-dragging")
+    }, [active])
     return null
 }
 
