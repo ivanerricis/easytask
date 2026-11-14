@@ -29,6 +29,7 @@ export const audio: Translation["audio"] = {
     added_one: "Audio file added",
     added_other: "{{count}} audio files added",
     addError: "Could not add the audio files: {{message}}",
+    addFileError: "Could not add \"{{name}}\"",
     pathUpdated: "Path updated",
     pathError: "Could not update the path: {{message}}",
     playerHidden: "The floating player is turned off: enable it in Settings > Audio to play audio files",

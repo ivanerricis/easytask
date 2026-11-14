@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 import { applyLanguagePreference } from "@/i18n"
-import { cn, formatDate, getErrorMessage, hexToRgba } from "./utils"
+import { cn, formatDate, formatDateTime, getErrorMessage, hexToRgba } from "./utils"
 
 describe("getErrorMessage", () => {
     it("returns the message of an Error", () => {
@@ -43,11 +43,37 @@ describe("cn", () => {
 })
 
 describe("formatDate", () => {
-    it("uses DD-MM-YYYY in Italian and MM/DD/YYYY in English", async () => {
-        expect(formatDate("2024-03-15")).toBe("15-03-2024")
+    afterEach(async () => { await applyLanguagePreference("it") })
+
+    it("uses DD/MM/YYYY in Italian and MM/DD/YYYY in English", async () => {
+        await applyLanguagePreference("it")
+        expect(formatDate("2024-03-15")).toBe("15/03/2024")
         await applyLanguagePreference("en")
         expect(formatDate("2024-03-15")).toBe("03/15/2024")
         expect(formatDate("")).toBe("")
+    })
+
+    it("parses the date as a local one (no day shift) and gives back what is not a date", async () => {
+        await applyLanguagePreference("it")
+        expect(formatDate("2024-01-01")).toBe("01/01/2024")
+        expect(formatDate("2024-12-31")).toBe("31/12/2024")
+        expect(formatDate("not a date")).toBe("not a date")
+    })
+})
+
+describe("formatDateTime", () => {
+    afterEach(async () => { await applyLanguagePreference("it") })
+
+    it("formats a timestamp, a Date and a stored local date-time in both languages", async () => {
+        const local = new Date(2026, 2, 4, 9, 30, 15)
+        await applyLanguagePreference("it")
+        expect(formatDateTime(local.getTime())).toBe("04/03/2026, 09:30:15")
+        expect(formatDateTime(local)).toBe("04/03/2026, 09:30:15")
+        expect(formatDateTime("2026-03-04 09:30:15")).toBe("04/03/2026, 09:30:15")
+        expect(formatDateTime("2026-03-04 09:30")).toBe("04/03/2026, 09:30:00")
+        await applyLanguagePreference("en")
+        expect(formatDateTime("2026-03-04 21:30:15")).toBe("03/04/2026, 09:30:15 PM")
+        expect(formatDateTime("garbage")).toBe("garbage")
     })
 })
 

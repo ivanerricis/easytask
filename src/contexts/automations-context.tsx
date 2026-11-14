@@ -103,7 +103,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
         try {
             await write()
         } catch (error) {
-            await getNoteData(noteId).catch(() => {})
+            await getNoteData(noteId).catch(reloadError => reportError(reloadError))
             throw error
         }
     }, [getNoteData])

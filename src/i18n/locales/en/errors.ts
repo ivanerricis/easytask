@@ -129,6 +129,7 @@ export const errors: Translation["errors"] = {
         limit: "You can have at most {{max}} custom themes: delete one first.",
         import: "Could not import the theme: {{message}}",
         export: "Could not export the theme: {{message}}",
+        action: "The operation on the theme failed",
         save: "Could not save the theme: {{message}}",
         notFound: "The theme no longer exists.",
         imported_one: "Imported {{count}} theme",

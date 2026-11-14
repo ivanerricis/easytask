@@ -11,7 +11,7 @@ import { useTheme } from "@/components/use-theme"
 import { describeThemeImport, exportTheme, importThemes, themeDisplayName } from "@/lib/theme-transfer"
 import { MAX_CUSTOM_THEMES, MAX_THEME_NAME_LENGTH, type ThemeDefinition } from "@/lib/themes/types"
 import { newCustomThemeId, uniqueThemeName } from "@/lib/themes/validate"
-import { getErrorMessage } from "@/lib/utils"
+import { reportError } from "@/lib/report-error"
 import { SettingsCard } from "./SettingsRow"
 import { ThemeEditorDialog } from "./ThemeEditorDialog"
 import { ThemePreview } from "./ThemePreview"
@@ -100,7 +100,7 @@ export const CustomThemesSection = () => {
         try {
             await action()
         } catch (error) {
-            toast.error(getErrorMessage(error))
+            reportError(error, t("errors.themes.action"))
         }
     }
 

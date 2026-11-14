@@ -1,5 +1,6 @@
 import type { TemplateDraft } from "@/db/queries/template-draft"
 import type { Note } from "@/types/types"
+import { reportError } from "@/lib/report-error"
 
 /**
  * Save state of a template draft: `idle` (nothing changed since it was opened), `saving`, `saved` or `error`
@@ -97,7 +98,8 @@ export function createDraftAutosaver({ save, whenIdle, delay = DRAFT_SAVE_DELAY,
                 if (written === false && (previous === "idle" || previous === "saved")) setStatus(state, state.dirty ? "saving" : previous)
                 else setStatus(state, state.dirty ? "saving" : "saved")
                 return true
-            } catch {
+            } catch (error) {
+                reportError(error)
                 if (showSaving !== null) clearTimeout(showSaving)
                 state.dirty = true
                 setStatus(state, "error")

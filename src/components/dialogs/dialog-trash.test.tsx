@@ -45,7 +45,7 @@ describe("DialogTrash templates", () => {
         note.refreshActiveNote.mockResolvedValue(undefined)
         render(<DialogTrash isOpen onOpenChange={vi.fn()} />)
         expect(await screen.findByRole("tab", { name: /Template/ })).toHaveAttribute("aria-selected", "true")
-        expect(screen.getByText(/Da: Sprint · 2 gruppi · 3 sezioni · 6 task · Eliminato il 04-09-2026 09:00/)).toBeInTheDocument()
+        expect(screen.getByText(/Da: Sprint · 2 gruppi · 3 sezioni · 6 task · Eliminato il 04\/09\/2026 09:00/)).toBeInTheDocument()
         await user.click(screen.getByRole("button", { name: "Ripristina Retro" }))
         await waitFor(() => expect(data.restoreItem).toHaveBeenCalledWith("note_template", 5))
     })
@@ -75,7 +75,7 @@ describe("DialogTrash", () => {
         expect(screen.queryByText("Nota B")).not.toBeInTheDocument()
 
         await openTab(user, /Note/)
-        expect(screen.getByText(/Cartella A · Eliminato il 02-09-2026 08:05/)).toBeInTheDocument()
+        expect(screen.getByText(/Cartella A · Eliminato il 02\/09\/2026 08:05/)).toBeInTheDocument()
         expect(screen.queryByText("Cartella A")).not.toBeInTheDocument()
     })
 
@@ -105,10 +105,10 @@ describe("DialogTrash", () => {
     it("shows what a deleted item contained between context and date, with the full text as title", async () => {
         const user = userEvent.setup()
         render(<DialogTrash isOpen onOpenChange={vi.fn()} />)
-        const folderLine = await screen.findByText("1 sottocartella · 2 note · Eliminato il 01-09-2026 10:30")
-        expect(folderLine).toHaveAttribute("title", "1 sottocartella · 2 note · Eliminato il 01-09-2026 10:30")
+        const folderLine = await screen.findByText("1 sottocartella · 2 note · Eliminato il 01/09/2026 10:30")
+        expect(folderLine).toHaveAttribute("title", "1 sottocartella · 2 note · Eliminato il 01/09/2026 10:30")
         await openTab(user, /Task/)
-        expect(screen.getByText("Nota B › Sezione 1 · Vuoto · Eliminato il 03-09-2026 12:00")).toBeInTheDocument()
+        expect(screen.getByText("Nota B › Sezione 1 · Vuoto · Eliminato il 03/09/2026 12:00")).toBeInTheDocument()
     })
 
     it("nel piè di pagina Chiudi sta a sinistra e Svuota cestino (l'azione) a destra", async () => {
@@ -286,7 +286,7 @@ describe("DialogTrashWorkspaces", () => {
     it("shows the summary of a trashed workspace", async () => {
         ws.getTrashedWorkspaces.mockResolvedValue([{ ...makeWorkspace({ id: 7, name: "Vecchio", deleted_at: "2026-09-05 09:00:00" }), summary: "3 cartelle · 12 note" }])
         render(<DialogTrashWorkspaces isOpen onOpenChange={vi.fn()} />)
-        expect(await screen.findByText("3 cartelle · 12 note · Eliminato il 05-09-2026 09:00")).toBeInTheDocument()
+        expect(await screen.findByText("3 cartelle · 12 note · Eliminato il 05/09/2026 09:00")).toBeInTheDocument()
     })
 
     it("purges all workspaces when emptying", async () => {

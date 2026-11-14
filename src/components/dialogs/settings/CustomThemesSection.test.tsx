@@ -102,7 +102,7 @@ describe("CustomThemesSection", () => {
         exportTheme.mockRejectedValue({ code: "X", message: "negato" })
         render(<CustomThemesSection />)
         await user.click(screen.getByRole("button", { name: "Esporta: Mio" }))
-        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("negato"))
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Operazione sul tema non riuscita"))
     })
 
     it("asks before deleting", async () => {

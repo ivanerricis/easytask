@@ -27,6 +27,7 @@ export const audio = {
     added_one: "File audio aggiunto",
     added_other: "{{count}} file audio aggiunti",
     addError: "Impossibile aggiungere i file audio: {{message}}",
+    addFileError: "Impossibile aggiungere \"{{name}}\"",
     pathUpdated: "Percorso aggiornato",
     pathError: "Impossibile aggiornare il percorso: {{message}}",
     playerHidden: "Il lettore flottante è disattivato: abilitalo da Impostazioni > Audio per riprodurre i file audio",

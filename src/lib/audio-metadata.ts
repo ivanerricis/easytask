@@ -77,6 +77,3 @@ export const formatChannels = (channels: number, labels: { mono: string, stereo:
 /** "3" or "3/12" (track or disc number with the optional total). */
 export const formatPosition = (index: number, total?: number | null): string => total ? `${index}/${total}` : `${index}`
 
-/** Date and time of a timestamp in milliseconds, in the current language. */
-export const formatDateTime = (ms: number): string =>
-    new Intl.DateTimeFormat(currentLanguage(), { dateStyle: "short", timeStyle: "medium" }).format(new Date(ms))

@@ -1,4 +1,5 @@
 import { createEmitter } from "@/lib/emitter"
+import { reportError } from "@/lib/report-error"
 
 /**
  * One undoable user action. `undo` and `redo` are the inverse of each other: they only use stable ids
@@ -126,7 +127,7 @@ export function createUndoHistory(limit = UNDO_LIMIT, initialIsBlocked: (command
             try {
                 await command[direction]()
                 // A failure of the follow-up (e.g. a reload) is its own business: the command was applied
-                try { await onApplied(command, direction) } catch { /* ignored */ }
+                try { await onApplied(command, direction) } catch (error) { reportError(error) }
             } catch (error) {
                 // A failed command is dropped: its state can no longer be trusted
                 if (startedAt === generation) {

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { invoke } from "@tauri-apps/api/core"
 import i18n from "@/i18n"
-import { formatBitDepth, formatBitrate, formatChannels, formatDateTime, formatDuration, formatFileSize, formatPosition, formatSampleRate, getAudioMetadata } from "./audio-metadata"
+import { formatBitDepth, formatBitrate, formatChannels, formatDuration, formatFileSize, formatPosition, formatSampleRate, getAudioMetadata } from "./audio-metadata"
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }))
 
@@ -40,10 +40,9 @@ describe("audio metadata formatters", () => {
         expect(formatChannels(6, labels)).toBe("6 canali")
     })
 
-    it("formats track numbers and dates", () => {
+    it("formats track numbers", () => {
         expect(formatPosition(3)).toBe("3")
         expect(formatPosition(3, 12)).toBe("3/12")
-        expect(formatDateTime(new Date(2026, 2, 4, 9, 30, 15).getTime())).toContain("09:30:15")
     })
 })
 

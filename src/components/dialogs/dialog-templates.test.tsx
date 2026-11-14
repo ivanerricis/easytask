@@ -97,7 +97,7 @@ describe("DialogTemplates", () => {
         expect(data.getTemplates).toHaveBeenCalledWith(4)
         expect(screen.getByText("Onboarding")).toBeInTheDocument()
         expect(screen.getByText(/Da: Sprint · Creato il/)).toBeInTheDocument()
-        expect(screen.getAllByText(/Creato il 02-09-2026/)).toHaveLength(2)
+        expect(screen.getAllByText(/Creato il 02\/09\/2026/)).toHaveLength(2)
         expect(screen.getByText("1 gruppo · 2 sezioni · 2 task")).toBeInTheDocument()
         expect(screen.getByText("0 gruppi · 0 sezioni · 0 task")).toBeInTheDocument()
         expect(screen.getByText(/Nota eliminata/)).toBeInTheDocument()

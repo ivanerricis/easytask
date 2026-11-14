@@ -56,7 +56,7 @@ describe("DialogArchive", () => {
 
     it("shows context, summary and archive date of a row", async () => {
         render(<DialogArchive isOpen onOpenChange={vi.fn()} />)
-        expect(await screen.findByText("Cartella A · 2 gruppi · 3 sezioni · Archiviato il 02-09-2026 08:05")).toBeInTheDocument()
+        expect(await screen.findByText("Cartella A · 2 gruppi · 3 sezioni · Archiviato il 02/09/2026 08:05")).toBeInTheDocument()
     })
 
     it("switches type by click and with the arrow keys", async () => {
