@@ -121,7 +121,7 @@ export type Task = {
  * `summary` describes what the item contained ("2 gruppi · 3 sezioni · 5 task"), empty when there is nothing to say.
  */
 export type TrashItem = {
-    type: "workspace" | "folder" | "note" | "section_group" | "section" | "task" | "audio_file" | "note_template"
+    type: "workspace" | "folder" | "note" | "section_group" | "section" | "task" | "audio_file" | "media_file" | "note_template"
     id: number
     name: string
     context: string
@@ -170,6 +170,11 @@ export type AudioFile = {
     creation_date: string
     creation_time: string
 }
+
+/**
+ * An image or a video attached to a group. Like an audio file only its path is stored; the kind comes from the extension.
+ */
+export type MediaFile = AudioFile
 
 export type AudioPlayerPosition = {
     x: number,

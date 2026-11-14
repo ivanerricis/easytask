@@ -2,6 +2,7 @@ import type { Translation } from "../it"
 import { common, ui, layout, dnd } from "./common"
 import { dialogs } from "./dialogs"
 import { audio } from "./audio"
+import { media } from "./media"
 import { shortcuts } from "./shortcuts"
 import { settings } from "./settings"
 import { undo, archive, trash, history } from "./archive"
@@ -17,6 +18,7 @@ export const en: Translation = {
     common,
     dialogs,
     audio,
+    media,
     settings,
     shortcuts,
     undo,

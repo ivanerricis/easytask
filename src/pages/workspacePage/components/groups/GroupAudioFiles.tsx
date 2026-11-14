@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useState } from "react"
-import { AudioLines, Music, Pause, Square } from "lucide-react"
+import { AudioLines, Music, Pause, Square, TriangleAlert } from "lucide-react"
 import { ButtonInPopover } from "@/components/button-in-popover"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
 import { DialogRenameItem } from "@/components/dialogs/dialog-rename"
@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { ItemMenu, ItemMenuButton } from "@/components/item-menu"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
 import { useAudio, useGroupAudioFiles } from "@/contexts/use-audio"
+import { useMissingPaths } from "@/contexts/use-media"
 import { useShowAudioInfo } from "../rightbar/use-right-panel"
 import { cn } from "@/lib/utils"
 import { focusRing } from "@/lib/a11y"
@@ -17,9 +18,11 @@ import type { AudioFile } from "@/types/types"
 type AudioFileRowProps = {
     file: AudioFile
     groupId: number
+    /** The file is no longer at its saved path. */
+    missing?: boolean
 }
 
-const AudioFileRow = ({ file, groupId }: AudioFileRowProps) => {
+const AudioFileRow = ({ file, groupId, missing = false }: AudioFileRowProps) => {
     const { t } = useTranslation()
     const { track, playbackState, playFile, relinkFile, refresh } = useAudio()
     const [isRenameOpen, setRenameOpen] = useState(false)
@@ -57,6 +60,7 @@ const AudioFileRow = ({ file, groupId }: AudioFileRowProps) => {
             <ButtonInPopover
                 text={t("audio.updatePath")}
                 type="relink"
+                highlight={missing}
                 onClick={() => {
                     menu.close()
                     void relinkFile(file)
@@ -100,6 +104,7 @@ const AudioFileRow = ({ file, groupId }: AudioFileRowProps) => {
         <ItemMenu state={menu} items={items} dialogs={dialogs} contentClassName="p-1 rounded-xs">
             <div
                 role="listitem"
+                data-missing={missing ? "true" : undefined}
                 className={cn(
                     "group flex items-center gap-1 border pl-2 pr-1 bg-background hover:bg-secondary rounded-xs text-xs",
                     isCurrent && "border-primary"
@@ -113,7 +118,8 @@ const AudioFileRow = ({ file, groupId }: AudioFileRowProps) => {
                     className={cn(focusRing, "flex min-w-0 flex-1 items-center gap-2 py-1 rounded-xs cursor-pointer text-left")}
                 >
                     <StateIcon className={cn("shrink-0", state === "ended" ? "size-3.5 mx-px fill-current" : "size-4", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
-                    <span className="flex-1 truncate">{file.name}</span>
+                    <span className={cn("flex-1 truncate", missing && "text-muted-foreground")}>{file.name}</span>
+                    {missing && <TriangleAlert className="size-4 shrink-0 text-destructive" role="img" aria-label={t("audio.missing.title")} />}
                     {state && <span className="sr-only">{t(`audio.${state === "playing" ? "nowPlaying" : state}`)}</span>}
                 </button>
                 <div className="flex items-center leading-none shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
@@ -135,12 +141,13 @@ type GroupAudioFilesProps = {
 export const GroupAudioFiles = ({ groupId }: GroupAudioFilesProps) => {
     const { t } = useTranslation()
     const files = useGroupAudioFiles(groupId)
+    const missing = useMissingPaths(files)
     if (files.length === 0) return null
 
     return (
         <div role="list" className="flex flex-col gap-1" aria-label={t("audio.files")}>
             {files.map(file => (
-                <AudioFileRow key={file.id} file={file} groupId={groupId} />
+                <AudioFileRow key={file.id} file={file} groupId={groupId} missing={missing.has(file.path)} />
             ))}
         </div>
     )

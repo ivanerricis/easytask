@@ -3,6 +3,7 @@ import i18n from "@/i18n";
 import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, noteBackgroundSchema, sectionOrderSchema, sectionTitleSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
+import { mediaFileSchema } from "./schema/media_file";
 import { automationSchema } from "./schema/automation";
 
 /**
@@ -40,6 +41,8 @@ const migrations: string[][] = [
     noteBackgroundSchema,
     // v14: custom themes of the user (global, not per workspace)
     customThemeSchema,
+    // v15: images and videos linked to the groups
+    mediaFileSchema,
 ];
 
 /**

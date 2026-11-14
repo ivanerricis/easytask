@@ -11,7 +11,11 @@ const workspaceOf: Record<string, (row: "NEW" | "OLD") => string> = {
     section: r => `(SELECT n.workspaceID FROM section_group g JOIN note n ON n.id = g.noteID WHERE g.id = ${r}.groupID)`,
     task: r => `(SELECT n.workspaceID FROM section s JOIN section_group g ON g.id = s.groupID JOIN note n ON n.id = g.noteID WHERE s.id = ${r}.sectionID)`,
     audio_file: r => `(SELECT n.workspaceID FROM section_group g JOIN note n ON n.id = g.noteID WHERE g.id = ${r}.section_groupID)`,
+    media_file: r => `(SELECT n.workspaceID FROM section_group g JOIN note n ON n.id = g.noteID WHERE g.id = ${r}.section_groupID)`,
 }
+
+/** Tables created by a later migration: they get their triggers from it, not from migration v3. */
+const CREATED_LATER = ["media_file"]
 
 const bump = (ws: string, extra = "") => `
         UPDATE workspace SET${NOW_SET}
@@ -55,4 +59,4 @@ export function triggersFor(table: string, updateColumns?: readonly string[]): s
  * No recursion: the workspace trigger fires only on name/color and recursive_triggers is off.
  * @category Database Schema
  */
-export const createWorkspaceEditTriggers: string[] = Object.keys(workspaceOf).flatMap(table => triggersFor(table))
+export const createWorkspaceEditTriggers: string[] = Object.keys(workspaceOf).filter(table => !CREATED_LATER.includes(table)).flatMap(table => triggersFor(table))

@@ -324,7 +324,7 @@ export const settings = {
         },
         sectionCount: "Mostra numero di sezioni",
         taskCount: "Mostra numero di task",
-        audioFileCount: "Mostra numero di file audio",
+        audioFileCount: "Mostra il numero di file audio, immagini e video",
         groupSeparators: {
             label: "Linee tra i gruppi",
             description: "Disegna una sottile linea guida verticale tra i gruppi di una nota.",

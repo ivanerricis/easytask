@@ -39,7 +39,26 @@ Click the file that is playing to pause it, and again to resume.
 - `Alt+P` plays or pauses the audio while the player is open. You can change it in **Settings > Shortcuts**.
 - The media keys of your keyboard, and the media controls of the system (the volume flyout and the lock screen), show the title of the track and can play, pause and skip.
 
+## Images and videos
+
+A group can also hold images and videos. Like audio files they are linked, not copied: EasyTask stores only the path.
+
+1. Open the menu of the group.
+2. Choose **Add image or video**.
+3. Pick one or more files. Supported formats: `jpg`, `jpeg`, `png`, `gif`, `webp`, `avif`, `bmp` for images and `mp4`, `webm`, `mov`, `m4v` for videos. Whether a video plays depends on the codecs of your system.
+
+They are listed one under the other, right under the audio files, each with a small thumbnail. Click a file to open the viewer, a full-window view:
+
+- an image zooms with the mouse wheel, moves when you drag it while zoomed, and goes back to its size with a double click
+- a video has the usual playback controls
+- the left and right arrow keys, or the buttons at the sides, show the previous and next file of the group
+- `Esc` closes the viewer
+
+Each file has a menu with **Rename**, **Update path** and **Delete**, which works like it does for audio files. The number of images and videos is shown in the header of the group next to the number of audio files, and both follow the setting **Show number of audio files, images and videos**.
+
 ## Missing files
+
+When a group is shown, EasyTask checks that its audio files, images and videos are still at their saved path. A file that is not found has a warning icon (and a grey thumbnail for images and videos), and **Update path** is highlighted in its menu.
 
 When you click a file that is no longer at its saved path, EasyTask shows **File not found** with the path it expected. You can:
 
@@ -52,4 +71,4 @@ You can also choose **Update path** from the menu of a file at any time, for exa
 
 Open **Settings > Audio** to change how the player looks and behaves. The options are in the [Settings](./settings#audio) page. If the floating player is turned off, files do not play and EasyTask shows a message that tells you to enable it.
 
-Audio paths are included when you export a workspace. When you import it on another computer, files that are not found there are skipped. See [Data and backups](./data-and-backups).
+Audio paths are included when you export a workspace. Images and videos are not exported yet. When you import it on another computer, files that are not found there are skipped. See [Data and backups](./data-and-backups).

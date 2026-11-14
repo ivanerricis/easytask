@@ -3,6 +3,7 @@ import { ButtonInPopover } from "@/components/button-in-popover";
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete";
 import { useDeleteRequest } from "@/components/dialogs/use-delete-item";
 import { getDBGroupAudioFiles } from "@/db/queries/audio";
+import { getDBGroupMediaFiles } from "@/db/queries/media";
 import { groupHasContent } from "@/lib/delete-content";
 import { MenuGroup } from "@/components/menu-kind";
 import { Separator } from "@/components/ui/separator";
@@ -47,13 +48,13 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
         addSectionAfterClose(e)
     }
     const { patchGroup, removeGroup } = useActiveNoteActions()
-    const { addFiles } = useAudioActions()
+    const { addFiles, addMediaFiles } = useAudioActions()
     const { addColorItem, archive } = useItemMutations("section_group", patchGroup, removeGroup)
     const { request: requestDelete } = useDeleteRequest({
         item: group,
         itemType: "section_group",
         optimistic: () => removeGroup(group.id),
-        hasContent: async () => groupHasContent(group, (await getDBGroupAudioFiles(group.id)).length),
+        hasContent: async () => groupHasContent(group, (await getDBGroupAudioFiles(group.id)).length + (await getDBGroupMediaFiles(group.id)).length),
         openDialog: () => setDeleteOpen(true),
     })
 
@@ -72,6 +73,14 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                 onClick={() => {
                     menu.close()
                     void addFiles(group.id)
+                }}
+            />}
+            {!isDraft && <ButtonInPopover
+                text={t("media.add")}
+                type="addMedia"
+                onClick={() => {
+                    menu.close()
+                    void addMediaFiles(group.id)
                 }}
             />}
             {onAddSection && <ButtonInPopover

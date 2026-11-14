@@ -39,7 +39,26 @@ Clicca il file in riproduzione per metterlo in pausa, e di nuovo per riprendere.
 - `Alt+P` avvia o mette in pausa l'audio mentre il player è aperto. Puoi cambiarla in **Impostazioni > Scorciatoie**.
 - I tasti multimediali della tastiera e i controlli multimediali del sistema (il pannello del volume e la schermata di blocco) mostrano il titolo della traccia e permettono di riprodurre, mettere in pausa e saltare.
 
+## Immagini e video
+
+Un gruppo può contenere anche immagini e video. Come i file audio sono collegati, non copiati: EasyTask salva solo il percorso.
+
+1. Apri il menu del gruppo.
+2. Scegli **Aggiungi immagine o video**.
+3. Seleziona uno o più file. Formati supportati: `jpg`, `jpeg`, `png`, `gif`, `webp`, `avif`, `bmp` per le immagini e `mp4`, `webm`, `mov`, `m4v` per i video. La riproduzione di un video dipende dai codec del tuo sistema.
+
+Sono elencati uno sotto l'altro, subito sotto i file audio, ciascuno con una piccola anteprima. Clicca un file per aprire il visualizzatore, una vista a tutta finestra:
+
+- un'immagine si ingrandisce con la rotella del mouse, si sposta trascinandola quando è ingrandita e torna alla dimensione originale con un doppio clic
+- un video ha i comandi di riproduzione consueti
+- le frecce sinistra e destra, o i pulsanti ai lati, mostrano il file precedente e quello successivo del gruppo
+- `Esc` chiude il visualizzatore
+
+Ogni file ha un menu con **Rinomina**, **Aggiorna percorso** ed **Elimina**, che funziona come per i file audio. Il numero di immagini e video compare nell'intestazione del gruppo accanto al numero di file audio, ed entrambi seguono l'impostazione **Mostra il numero di file audio, immagini e video**.
+
 ## File mancanti
+
+Quando un gruppo viene mostrato, EasyTask controlla che i suoi file audio, le immagini e i video siano ancora nel percorso salvato. Un file che non si trova ha un'icona di avviso (e un'anteprima grigia per immagini e video), e **Aggiorna percorso** è evidenziato nel suo menu.
 
 Quando clicchi un file che non si trova più nel percorso salvato, EasyTask mostra **File non trovato** con il percorso che si aspettava. Puoi:
 
@@ -52,4 +71,4 @@ Puoi scegliere **Aggiorna percorso** anche dal menu di un file in qualsiasi mome
 
 Apri **Impostazioni > Audio** per cambiare aspetto e comportamento del player. Le opzioni sono nella pagina [Impostazioni](./settings#audio). Se il player flottante è disattivato, i file non vengono riprodotti ed EasyTask mostra un messaggio che ti dice di abilitarlo.
 
-I percorsi dei file audio sono inclusi quando esporti un workspace. Quando lo importi su un altro computer, i file che non vengono trovati sono saltati. Vedi [Dati e backup](./data-and-backups).
+I percorsi dei file audio sono inclusi quando esporti un workspace. Immagini e video non vengono ancora esportati. Quando lo importi su un altro computer, i file che non vengono trovati sono saltati. Vedi [Dati e backup](./data-and-backups).

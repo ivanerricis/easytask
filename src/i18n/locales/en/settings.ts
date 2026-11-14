@@ -326,7 +326,7 @@ export const settings: Translation["settings"] = {
         },
         sectionCount: "Show number of sections",
         taskCount: "Show number of tasks",
-        audioFileCount: "Show number of audio files",
+        audioFileCount: "Show number of audio files, images and videos",
         groupSeparators: {
             label: "Lines between groups",
             description: "Draws a thin vertical guide line between the groups of a note.",

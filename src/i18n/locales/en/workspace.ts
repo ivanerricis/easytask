@@ -105,6 +105,8 @@ export const groups: Translation["groups"] = {
     progress: "Group progress",
     audioCount_one: "{{count}} audio file",
     audioCount_other: "{{count}} audio files",
+    mediaCount_one: "{{count}} image or video",
+    mediaCount_other: "{{count}} images and videos",
     width: {
         handle: "Resize the group",
         value: "{{width}} pixels",

@@ -30,7 +30,7 @@ To open the folder, go to **Settings > Data > Data folder > Open data folder** a
 If the data folder is synced by OneDrive, **Settings > Data** shows a warning. Syncing can cause "database is locked" errors or conflicting copies of the database. Exclude the folder from OneDrive or use portable mode.
 :::
 
-Audio files are not stored here. EasyTask keeps only their path. See [Audio files](./audio).
+Audio files, images and videos are not stored here. EasyTask keeps only their path. See [Audio files](./audio).
 
 ## Automatic backups
 
@@ -75,7 +75,7 @@ Everything you did after the backup was made is not in it. If you are not sure, 
 
 To delete a backup, click the trash button next to it and confirm.
 
-A backup contains the database only. Your settings and your audio files are not part of it.
+A backup contains the database only. Your settings and your audio files, images and videos are not part of it.
 
 ## Copies before a database update
 

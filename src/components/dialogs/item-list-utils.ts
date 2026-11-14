@@ -1,4 +1,4 @@
-import { Briefcase, FileText, Folder, Layers, LayoutList, LayoutTemplate, Music, SquareCheck } from "lucide-react"
+import { Briefcase, FileText, Folder, Layers, LayoutList, LayoutTemplate, Images, Music, SquareCheck } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 
@@ -11,6 +11,7 @@ export const ITEM_ICONS = {
     section: LayoutList,
     task: SquareCheck,
     audio_file: Music,
+    media_file: Images,
     note_template: LayoutTemplate,
 } satisfies Record<string, LucideIcon>
 

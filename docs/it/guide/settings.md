@@ -41,7 +41,7 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 | Mostra barra d'avanzamento nei gruppi | Sì / No | Sì |
 | **Contatori**: Mostra numero di sezioni | Sì / No | Sì |
 | Mostra numero di task | Sì / No | Sì |
-| Mostra numero di file audio | Sì / No | Sì |
+| Mostra il numero di file audio, immagini e video | Sì / No | Sì |
 | Mostra sottotask completati | Sì / No | Sì |
 | **Visualizzazione**: Linee tra i gruppi | Sì / No | No |
 | Mostra il nome dei gruppi e delle sezioni senza nome | Sì / No | No |

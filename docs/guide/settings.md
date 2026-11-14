@@ -41,7 +41,7 @@ The theme gallery shows a preview of each theme; move between them with the arro
 | Show progress bar in groups | On / Off | On |
 | **Counters**: Show number of sections | On / Off | On |
 | Show number of tasks | On / Off | On |
-| Show number of audio files | On / Off | On |
+| Show number of audio files, images and videos | On / Off | On |
 | Show completed subtasks | On / Off | On |
 | **Display**: Lines between groups | On / Off | Off |
 | Show names of unnamed groups and sections | On / Off | Off |

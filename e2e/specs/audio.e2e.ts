@@ -259,6 +259,13 @@ describe("Audio files and the floating player", () => {
         expect(await rowState(FILE)).toEqual({ icon: "music", sr: "", current: null })
     })
 
+    it("marks the file that is gone with a warning icon, the others have none", async () => {
+        const row = async (name: string) => (await audioRow(name)).$("..")
+        await browser.waitUntil(async () => (await (await row(MISSING)).getAttribute("data-missing")) === "true", { timeoutMsg: "the missing file was not marked" })
+        await expect((await row(MISSING)).$(`[role="img"][aria-label=${JSON.stringify(await tr("audio.missing.title"))}]`)).toBeDisplayed()
+        expect(await (await row(FILE)).getAttribute("data-missing")).toBeNull()
+    })
+
     it("tells when the file is no longer at the saved path", async () => {
         await clickRow(MISSING)
         const dialog = await topDialog()

@@ -25,8 +25,8 @@ import type { Runtime, TabsBridge, WorkspaceActionsType, WorkspaceStateType } fr
 /** Refetches of a reload whose response was overtaken by an optimistic update. */
 const MAX_RELOAD_RETRIES = 3
 
-/** The items whose deletion, restore or purge can change the visible audio files. */
-const AUDIO_TYPES: readonly DBItemType[] = ["folder", "note", "section_group", "audio_file"]
+/** The items whose deletion, restore or purge can change the visible audio and media files. */
+const AUDIO_TYPES: readonly DBItemType[] = ["folder", "note", "section_group", "audio_file", "media_file"]
 
 export function WorkspaceDataProvider({ children }: { children: React.ReactNode }) {
 

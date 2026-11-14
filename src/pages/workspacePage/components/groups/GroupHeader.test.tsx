@@ -321,6 +321,23 @@ describe("GroupHeader audio file count", () => {
     })
 })
 
+describe("GroupHeader media file count", () => {
+    const badge = (container: HTMLElement) => container.querySelector("svg.lucide-images")
+
+    it("shows the number of images and videos next to the audio count", () => {
+        const { container } = render(<GroupHeader group={makeGroup({ name: "G" })} audioCount={2} mediaCount={4} />)
+        expect(badge(container)?.parentElement).toHaveTextContent("4")
+        expect(container.querySelector("svg.lucide-file-audio")?.parentElement).toHaveTextContent("2")
+        expect(badge(container)?.parentElement).toHaveAttribute("aria-label", "4 immagini e video")
+    })
+
+    it("is hidden without media files and when the preference of the counters is off", () => {
+        expect(badge(render(<GroupHeader group={makeGroup({ name: "G" })} mediaCount={0} />).container)).not.toBeInTheDocument()
+        prefs.showAudioFileCount = false
+        expect(badge(render(<GroupHeader group={makeGroup({ name: "H" })} mediaCount={4} />).container)).not.toBeInTheDocument()
+    })
+})
+
 describe("GroupHeader task count with direct tasks", () => {
     it("counts the tasks directly in the group together with those of its sections, but only the visible sections", () => {
         const group = makeGroup({

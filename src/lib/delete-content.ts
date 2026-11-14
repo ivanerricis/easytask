@@ -4,8 +4,8 @@ import type { Group, Section } from "@/types/types"
 export const sectionHasContent = (section: Pick<Section, "tasks">): boolean => (section.tasks?.length ?? 0) > 0
 
 /**
- * A group has content when it has a named section, a task (in a section or directly in the group) or an audio file.
- * @param audioFileCount How many audio files the group has.
+ * A group has content when it has a named section, a task (in a section or directly in the group), an audio file, an image or a video.
+ * @param audioFileCount How many linked files (audio, images and videos) the group has.
  */
 export const groupHasContent = (group: Pick<Group, "sections" | "defaultSection">, audioFileCount: number): boolean =>
     audioFileCount > 0
