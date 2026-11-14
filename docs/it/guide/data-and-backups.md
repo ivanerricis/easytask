@@ -87,12 +87,12 @@ Queste copie non seguono **Backup da conservare**: EasyTask ne tiene al massimo 
 
 L'esportazione salva un workspace in un unico file che puoi conservare, condividere o aprire su un altro computer.
 
-- **Esporta**: apri il workspace, poi usa **Impostazioni > Dati > Importa / Esporta > Esporta workspace corrente** (oppure **File > Esporta workspace…**). Scegli dove salvare `<nome>.easytask.json`.
-- **Importa**: usa **Impostazioni > Dati > Importa / Esporta > Importa workspace** e scegli il file. EasyTask crea un nuovo workspace. Quello che hai già non viene modificato.
+- **Esporta**: apri il workspace, poi usa **Impostazioni > Dati > Importa / Esporta > Esporta workspace corrente** (oppure **File > Esporta workspace…**). Se le note collegano file audio, immagini o video, EasyTask chiede se includerli: ottieni un `<nome>.easytask.zip` con i file, oppure un `<nome>.easytask.json` con solo i percorsi.
+- **Importa**: usa **Impostazioni > Dati > Importa / Esporta > Importa workspace** e scegli il file `.easytask.json` o `.easytask.zip`. EasyTask crea un nuovo workspace. Quello che hai già non viene modificato.
 
-Il file contiene cartelle, note con il loro contenuto (gruppi, sezioni e task, compresi i task creati direttamente in un gruppo, e la larghezza di ogni gruppo), template e i percorsi dei file audio. Gli elementi nel cestino non vengono esportati.
+Il file contiene cartelle, note con il loro contenuto (gruppi, sezioni e task, compresi i task creati direttamente in un gruppo, e la larghezza di ogni gruppo), template e i file audio, immagini e video collegati ai gruppi (i loro percorsi, oppure i file stessi in un `.easytask.zip`). Gli elementi nel cestino non vengono esportati.
 
-Il file di export ha una versione del formato (ora la 2). EasyTask importa solo i file della versione attuale: un file esportato da una versione precedente dell'app, quando i task non potevano stare direttamente in un gruppo, viene rifiutato.
+Il file di export ha una versione del formato (ora la 3). EasyTask importa solo i file della versione attuale: un file esportato da una versione precedente dell'app, prima che le immagini e i video si potessero collegare a un gruppo, viene rifiutato.
 
 Se un file audio non si trova sul computer dove importi, viene saltato ed EasyTask ti dice quanti.
 

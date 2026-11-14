@@ -12,7 +12,7 @@ In cima alla barra laterale c'è una fila di pulsanti:
 | Pulsante                                  | Cosa fa                                                         |
 | ----------------------------------------- | --------------------------------------------------------------- |
 | **Nuova cartella**, **Nuova nota**, **Nuova nota da template** | Creano elementi. Vedi sotto.               |
-| **Importa una nota o una cartella**       | Importa un file `.easytask.json` di una nota o di una cartella. |
+| **Importa una nota o una cartella**       | Importa un file `.easytask.json` o `.easytask.zip` di una nota o cartella. |
 | **Comprimi tutte le cartelle** / **Espandi tutte le cartelle** | Chiude o apre tutte le cartelle in un colpo. |
 | **Chiudi tutte le note**                  | Chiude tutti i tab aperti.                                  |
 
@@ -64,7 +64,7 @@ Fai clic sul pulsante del menu di una riga (compare quando ci passi sopra) oppur
 | **Crea template**    |          | sì   | Salva la nota come template. Vedi [Template](./templates).                     |
 | **Automazioni…**     |          | sì   | Apre le automazioni della nota. Vedi [Automazioni](./automations).             |
 | **Importa qui**      | sì       |      | Importa dentro la cartella un file di una nota o di una cartella.              |
-| **Esporta**          | sì       | sì   | Salva l'elemento in un file `.easytask.json`.                                  |
+| **Esporta**          | sì       | sì   | Salva l'elemento in un file `.easytask.json` (o `.easytask.zip` con i file collegati). |
 | **Archivia**         | sì       | sì   | Nasconde l'elemento senza eliminarlo.                                          |
 | **Elimina**          | sì       | sì   | Sposta l'elemento nel cestino, dopo conferma.                                  |
 

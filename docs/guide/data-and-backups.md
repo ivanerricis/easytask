@@ -87,12 +87,12 @@ These copies do not follow **Backups to keep**: EasyTask keeps at most 10 and de
 
 Export saves one workspace to a single file you can keep, share or open on another computer.
 
-- **Export**: open the workspace, then use **Settings > Data > Import / Export > Export current workspace** (or **File > Export workspace…**). Choose where to save `<name>.easytask.json`.
-- **Import**: use **Settings > Data > Import / Export > Import workspace** and pick the file. EasyTask creates a new workspace. Nothing already in your app is changed.
+- **Export**: open the workspace, then use **Settings > Data > Import / Export > Export current workspace** (or **File > Export workspace…**). If the notes link audio, image or video files, EasyTask asks whether to include them: you get a `<name>.easytask.zip` with the files, or a `<name>.easytask.json` with only their paths.
+- **Import**: use **Settings > Data > Import / Export > Import workspace** and pick the `.easytask.json` or `.easytask.zip` file. EasyTask creates a new workspace. Nothing already in your app is changed.
 
-The file holds folders, notes with their content (groups, sections and tasks, including the tasks you created directly in a group, and the width of each group), templates and the paths of the audio files. Items in the trash are not exported.
+The file holds folders, notes with their content (groups, sections and tasks, including the tasks you created directly in a group, and the width of each group), templates and the audio, image and video files linked to the groups (their paths, or the files themselves in a `.easytask.zip`). Items in the trash are not exported.
 
-The export file has a format version (now 2). EasyTask only imports files of the current version: a file exported by an older version of the app, before tasks could live directly in a group, is rejected.
+The export file has a format version (now 3). EasyTask only imports files of the current version: a file exported by an older version of the app, before images and videos could be linked to a group, is rejected.
 
 If an audio file is not found on the computer where you import, it is skipped and EasyTask tells you how many.
 

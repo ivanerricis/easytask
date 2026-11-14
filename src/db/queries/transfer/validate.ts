@@ -145,7 +145,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {
         if (!isObject(note) || !isNonEmpty(note.ref) || !isNonEmpty(note.name) || !isNumber(note.position)
-            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.archived_at) || !Array.isArray(note.audio)
+            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.archived_at) || !Array.isArray(note.audio) || !Array.isArray(note.media)
             || !(note.folderRef === null || (isString(note.folderRef) && folderRefs.has(note.folderRef)))) malformed()
         if (noteRefs.has(note.ref)) malformed()
         noteRefs.add(note.ref)
@@ -156,9 +156,10 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
             for (const automation of note.automations as unknown[])
                 if (!isPortableAutomation(automation, content)) malformed()
         }
-        for (const audio of note.audio as unknown[]) {
-            if (!isObject(audio) || !isNumber(audio.groupIndex) || !isNonEmpty(audio.name) || !isNonEmpty(audio.path)
-                || !isNumber(audio.position) || audio.groupIndex < 0 || audio.groupIndex >= content.groups.length) malformed()
+        for (const file of [...note.audio as unknown[], ...note.media as unknown[]]) {
+            if (!isObject(file) || !isNumber(file.groupIndex) || !isNonEmpty(file.name) || !isNonEmpty(file.path)
+                || !isNumber(file.position) || file.groupIndex < 0 || file.groupIndex >= content.groups.length
+                || !(file.file === undefined || isNonEmpty(file.file))) malformed()
         }
     }
     for (const template of templates as unknown[]) {

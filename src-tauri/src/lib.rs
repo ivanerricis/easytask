@@ -1,4 +1,5 @@
 mod media_session;
+mod transfer_zip;
 
 use std::path::{Path, PathBuf};
 use tauri::Manager;
@@ -793,6 +794,10 @@ pub fn run() {
             allow_media_file,
             open_media_file,
             files_exist,
+            transfer_zip::linked_files_size,
+            transfer_zip::export_zip,
+            transfer_zip::import_zip,
+            transfer_zip::delete_extracted_files,
             audio_metadata,
             db_transaction,
             data_dir,

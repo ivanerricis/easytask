@@ -1,11 +1,12 @@
 import i18n from "@/i18n"
 import type Database from "@tauri-apps/plugin-sql"
 import { invoke } from "@tauri-apps/api/core"
-import { type ExportFolder, type WorkspaceExport } from "@/types/transfer"
+import { type ExportAudio, type ExportFolder, type WorkspaceExport } from "@/types/transfer"
 import { createError, handleDBError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
 import { getDB } from "../../dbManager"
 import { AUDIO_EXTENSIONS } from "../audio"
+import { MEDIA_EXTENSIONS } from "../media"
 import { addNoteContent } from "../template"
 import { addNoteAutomations } from "../automation"
 import { chunked } from "../sql"
@@ -29,9 +30,39 @@ async function defaultAudioExists(path: string): Promise<boolean> {
     }
 }
 
-const hasAudioExtension = (path: string) => {
+/**
+ * Default check for the images and videos of an import: the Rust `files_exist` command (which only looks at files with an
+ * allowed extension). Like {@link defaultAudioExists}, an error of the command keeps the row: only a definite `false` skips it.
+ * @param path Absolute path of the image or video.
+ * @category Database Queries
+ */
+async function defaultMediaExists(path: string): Promise<boolean> {
+    try {
+        return (await invoke<boolean[]>("files_exist", { paths: [path] }))[0] !== false
+    } catch {
+        return true
+    }
+}
+
+const hasExtension = (path: string, extensions: readonly string[]) => {
     const dot = path.lastIndexOf(".")
-    return dot >= 0 && (AUDIO_EXTENSIONS as readonly string[]).includes(path.slice(dot + 1).toLowerCase())
+    return dot >= 0 && extensions.includes(path.slice(dot + 1).toLowerCase())
+}
+const hasAudioExtension = (path: string) => hasExtension(path, AUDIO_EXTENSIONS)
+const hasMediaExtension = (path: string) => hasExtension(path, MEDIA_EXTENSIONS)
+
+/** What an import needs to decide about the linked files (audio, images, videos) of a file. */
+type FileChecks = {
+    audioExists: (path: string) => Promise<boolean>
+    mediaExists: (path: string) => Promise<boolean>
+    /** Zip import: where each entry of the archive (`files/...`) was extracted. */
+    extractedFiles?: Readonly<Record<string, string>>
+}
+
+/** The path a row of the file points to: the extracted copy for an entry of a zip (undefined when the archive lacks it), else the path in the file. */
+function pathOfFile(file: ExportAudio, extractedFiles: FileChecks["extractedFiles"]): string | undefined {
+    if (file.file === undefined || extractedFiles === undefined) return file.path
+    return Object.hasOwn(extractedFiles, file.file) ? extractedFiles[file.file] : undefined
 }
 
 /**
@@ -73,18 +104,18 @@ async function checkAudioPaths(paths: readonly string[], audioExists: (path: str
 
 type PendingFolder = { folder: ExportFolder, parentRef: TxRef | number | null }
 
-type InsertedItems = { skippedAudio: number, folderRefs: Map<string, TxRef>, noteRefs: TxRef[] }
+type InsertedItems = { skippedFiles: number, folderRefs: Map<string, TxRef>, noteRefs: TxRef[] }
 
 /**
  * Adds to `tx` the folders, notes (with their content) and audio files of an export. The top items of the file go under
- * `rootParent` (a folder id or reference, null = workspace root). Audio files that are missing, have no audio extension or
- * clash on the name inside the group are skipped and counted.
+ * `rootParent` (a folder id or reference, null = workspace root). Audio, image and video files that are missing, have no allowed
+ * extension or clash on the name inside the group are skipped and counted.
  */
 async function insertItems(
     tx: Transaction, data: WorkspaceExport, workspaceRef: TxRef | number, rootParent: TxRef | number | null,
-    audioExists: (path: string) => Promise<boolean>,
+    checks: FileChecks,
 ): Promise<InsertedItems> {
-    let skippedAudio = 0
+    let skippedFiles = 0
     // Folders level by level: children reference the ids of their parents
     const folderRefs = new Map<string, TxRef>()
     const childrenOf = new Map<string | null, ExportFolder[]>()
@@ -108,7 +139,13 @@ async function insertItems(
 
     let noteRefs: TxRef[] = []
     if (data.notes.length > 0) {
-        const existing = await checkAudioPaths(data.notes.flatMap(note => note.audio.map(file => file.path)).filter(hasAudioExtension), audioExists)
+        const pathsOf = (list: (note: (typeof data.notes)[number]) => ExportAudio[], hasAllowedExtension: (path: string) => boolean) =>
+            data.notes.flatMap(note => list(note).map(file => pathOfFile(file, checks.extractedFiles))
+                .filter((path): path is string => path !== undefined && hasAllowedExtension(path)))
+        const [audioExisting, mediaExisting] = [
+            await checkAudioPaths(pathsOf(note => note.audio, hasAudioExtension), checks.audioExists),
+            await checkAudioPaths(pathsOf(note => note.media, hasMediaExtension), checks.mediaExists),
+        ]
         noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "archived_at", "position"],
             data.notes.map(note => [
                 workspaceRef, note.folderRef === null ? rootParent : folderRefs.get(note.folderRef) ?? null,
@@ -118,23 +155,29 @@ async function insertItems(
         for (const [i, note] of data.notes.entries()) {
             const { groups: groupRefs, sections: sectionRefs, defaultSections } = addNoteContent(tx, noteRefs[i], note.content)
             if (note.automations?.length) addNoteAutomations(tx, noteRefs[i], note.automations, note.content, sectionRefs, groupRefs, defaultSections)
-            const rows: unknown[][] = []
-            const taken = new Set<string>()
-            for (const file of note.audio) {
-                const keep = hasAudioExtension(file.path) && existing.get(file.path) === true
-                // UNIQUE(name, section_groupID): a duplicated name in the file is skipped instead of failing the import
-                const key = `${file.groupIndex}^@${file.name.toLowerCase()}`
-                if (!keep || taken.has(key)) {
-                    skippedAudio += 1
-                    continue
+            for (const [table, files, hasAllowedExtension, existing] of [
+                ["audio_file", note.audio, hasAudioExtension, audioExisting],
+                ["media_file", note.media, hasMediaExtension, mediaExisting],
+            ] as const) {
+                const rows: unknown[][] = []
+                const taken = new Set<string>()
+                for (const file of files) {
+                    const path = pathOfFile(file, checks.extractedFiles)
+                    const keep = path !== undefined && hasAllowedExtension(path) && existing.get(path) === true
+                    // UNIQUE(name, section_groupID): a duplicated name in the file is skipped instead of failing the import
+                    const key = `${file.groupIndex}^@${file.name.toLowerCase()}`
+                    if (!keep || taken.has(key)) {
+                        skippedFiles += 1
+                        continue
+                    }
+                    taken.add(key)
+                    rows.push([groupRefs[file.groupIndex], file.name, path, file.position])
                 }
-                taken.add(key)
-                rows.push([groupRefs[file.groupIndex], file.name, file.path, file.position])
+                if (rows.length > 0) tx.insertRows(table, ["section_groupID", "name", "path", "position"], rows)
             }
-            if (rows.length > 0) tx.insertRows("audio_file", ["section_groupID", "name", "path", "position"], rows)
         }
     }
-    return { skippedAudio, folderRefs, noteRefs }
+    return { skippedFiles, folderRefs, noteRefs }
 }
 
 
@@ -143,17 +186,23 @@ async function insertItems(
  * `options.name` (chosen by the user) is given: that one is used as is, and a clash is an error.
  * The workspace and everything in it are written in ONE database transaction: on any failure nothing is created.
  * @param data A validated export (see validateWorkspaceExport).
- * @param options `audioExists` decides whether an audio file is kept (files for which it returns false or throws are skipped).
- * Audio files without an allowed extension (AUDIO_EXTENSIONS) are always skipped.
- * @returns The ID of the new workspace and the number of skipped audio files.
+ * @param options `audioExists` / `mediaExists` decide whether an audio file / an image or video is kept (files for which they
+ * return false or throw are skipped). Files without an allowed extension (AUDIO_EXTENSIONS, MEDIA_EXTENSIONS) are always skipped.
+ * `extractedFiles` (zip import): where each entry of the archive was extracted; rows that name an entry (`file`) point to
+ * that copy, and are skipped when the archive does not have it.
+ * @returns The ID of the new workspace and the number of skipped files (audio, images and videos).
  * @category Database Queries
  */
 export async function importDBWorkspace(
     data: WorkspaceExport,
-    options: { audioExists?: (path: string) => Promise<boolean>, name?: string } = {},
-): Promise<{ workspaceId: number, skippedAudio: number }> {
+    options: { audioExists?: (path: string) => Promise<boolean>, mediaExists?: (path: string) => Promise<boolean>, extractedFiles?: Readonly<Record<string, string>>, name?: string } = {},
+): Promise<{ workspaceId: number, skippedFiles: number }> {
     if (data.scope === "items") throw createError("TRANSFER_ITEMS_FILE", i18n.t("errors.transfer.itemsFile"))
-    const audioExists = options.audioExists ?? defaultAudioExists
+    const checks: FileChecks = {
+        audioExists: options.audioExists ?? defaultAudioExists,
+        mediaExists: options.mediaExists ?? defaultMediaExists,
+        extractedFiles: options.extractedFiles,
+    }
     const tx = new Transaction()
     let workspace: number
     try {
@@ -169,7 +218,7 @@ export async function importDBWorkspace(
 
     try {
         const workspaceRef = tx.idOf(workspace)
-        const { skippedAudio } = await insertItems(tx, data, workspaceRef, null, audioExists)
+        const { skippedFiles } = await insertItems(tx, data, workspaceRef, null, checks)
 
         if (data.templates.length > 0) {
             tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "bg_color", "content"],
@@ -177,7 +226,7 @@ export async function importDBWorkspace(
         }
 
         const results = await tx.run()
-        return { workspaceId: results[workspace].lastInsertId, skippedAudio }
+        return { workspaceId: results[workspace].lastInsertId, skippedFiles }
     } catch (error: unknown) {
         // Statement 0 is the workspace row itself: a name clash (race with another writer) or an invalid name
         rethrowTxError(error, workspace, "WORKSPACE", {
@@ -219,7 +268,7 @@ export async function suggestDBItemNames(data: WorkspaceExport, workspaceId: num
 
 /** The notes and folders created by an items import, with their name after the renaming of the clashes. */
 export type ImportedItems = {
-    skippedAudio: number
+    skippedFiles: number
     items: { type: "folder" | "note", id: number, name: string }[]
 }
 
@@ -231,10 +280,10 @@ export type ImportedItems = {
  * @param data A validated export with scope "items" (see validateWorkspaceExport).
  * @param workspaceId The workspace to import into.
  * @param parentFolderId The destination folder, null for the workspace root.
- * @param options `audioExists` decides whether an audio file is kept (see importDBWorkspace). `names`: the names chosen by
+ * @param options `audioExists`, `mediaExists` and `extractedFiles`: see importDBWorkspace. `names`: the names chosen by
  * the user for the top items, in the order of suggestDBItemNames; they are used as they are, so an empty name or a clash
  * (with a sibling or between them) is an error ("TRANSFER_NAME_EMPTY" / "TRANSFER_NAME_TAKEN") and nothing is imported.
- * @returns The skipped audio files and the top items created (with their new ids), for the caller to refresh and undo.
+ * @returns The number of skipped files and the top items created (with their new ids), for the caller to refresh and undo.
  * @throws "TRANSFER_WORKSPACE_FILE" for a whole-workspace file, "TRANSFER_PARENT_MISSING" when the destination folder is gone,
  * "TRANSFER_IMPORT_FAILED" otherwise.
  * @category Database Queries
@@ -243,10 +292,14 @@ export async function importDBItems(
     source: WorkspaceExport,
     workspaceId: number,
     parentFolderId: number | null,
-    options: { audioExists?: (path: string) => Promise<boolean>, names?: readonly string[] } = {},
+    options: { audioExists?: (path: string) => Promise<boolean>, mediaExists?: (path: string) => Promise<boolean>, extractedFiles?: Readonly<Record<string, string>>, names?: readonly string[] } = {},
 ): Promise<ImportedItems> {
     if (source.scope !== "items") throw createError("TRANSFER_WORKSPACE_FILE", i18n.t("errors.transfer.workspaceFile"))
-    const audioExists = options.audioExists ?? defaultAudioExists
+    const checks: FileChecks = {
+        audioExists: options.audioExists ?? defaultAudioExists,
+        mediaExists: options.mediaExists ?? defaultMediaExists,
+        extractedFiles: options.extractedFiles,
+    }
     // The top items get a new name/position/archive state below: work on copies, the caller's object stays as it is
     const data: WorkspaceExport = { ...source, folders: source.folders.map(folder => ({ ...folder })), notes: source.notes.map(note => ({ ...note })) }
     try {
@@ -282,11 +335,11 @@ export async function importDBItems(
         }
 
         const tx = new Transaction()
-        const { skippedAudio, folderRefs, noteRefs } = await insertItems(tx, data, workspaceId, parentFolderId, audioExists)
+        const { skippedFiles, folderRefs, noteRefs } = await insertItems(tx, data, workspaceId, parentFolderId, checks)
         const results = await tx.run()
         const idOf = (ref: TxRef) => results[ref.$ref].lastInsertId - ref.offset
         return {
-            skippedAudio,
+            skippedFiles,
             items: [
                 ...topFolders.map(folder => ({ type: "folder" as const, id: idOf(folderRefs.get(folder.ref)!), name: folder.name })),
                 ...topNotes.map(note => ({ type: "note" as const, id: idOf(noteRefs[data.notes.indexOf(note)]), name: note.name })),

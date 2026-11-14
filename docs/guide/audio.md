@@ -71,4 +71,4 @@ You can also choose **Update path** from the menu of a file at any time, for exa
 
 Open **Settings > Audio** to change how the player looks and behaves. The options are in the [Settings](./settings#audio) page. If the floating player is turned off, files do not play and EasyTask shows a message that tells you to enable it.
 
-Audio paths are included when you export a workspace. Images and videos are not exported yet. When you import it on another computer, files that are not found there are skipped. See [Data and backups](./data-and-backups).
+When you export a workspace, a note or a folder, EasyTask asks whether to include the linked files (audio, images and videos): with them you get a `.easytask.zip`, without them a `.easytask.json` with only the paths. When you import a `.easytask.json` on another computer, files that are not found there are skipped. See [Data and backups](./data-and-backups).

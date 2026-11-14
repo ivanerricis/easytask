@@ -71,4 +71,4 @@ Puoi scegliere **Aggiorna percorso** anche dal menu di un file in qualsiasi mome
 
 Apri **Impostazioni > Audio** per cambiare aspetto e comportamento del player. Le opzioni sono nella pagina [Impostazioni](./settings#audio). Se il player flottante è disattivato, i file non vengono riprodotti ed EasyTask mostra un messaggio che ti dice di abilitarlo.
 
-I percorsi dei file audio sono inclusi quando esporti un workspace. Immagini e video non vengono ancora esportati. Quando lo importi su un altro computer, i file che non vengono trovati sono saltati. Vedi [Dati e backup](./data-and-backups).
+Quando esporti un workspace, una nota o una cartella, EasyTask chiede se includere i file collegati (audio, immagini e video): con i file ottieni un `.easytask.zip`, senza un `.easytask.json` con i soli percorsi. Quando importi un `.easytask.json` su un altro computer, i file che non vengono trovati sono saltati. Vedi [Dati e backup](./data-and-backups).

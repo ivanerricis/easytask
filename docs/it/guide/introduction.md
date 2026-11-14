@@ -35,7 +35,7 @@ Cartelle e sottotask si annidano senza limiti. Gruppi e sezioni possono restare 
 - **Ricerca delle note** e **scorciatoie da tastiera personalizzabili**. Vedi [Scorciatoie da tastiera](./shortcuts).
 - **Vista divisa**: due note affiancate, ognuna con i suoi tab. Vedi [Cartelle e note](./folders-and-notes#dividere-in-due-aree).
 - **Sfondo della nota**: un colore dietro tutta la nota. Vedi [Colori](./colors#sfondo-della-nota).
-- **Esporta e importa** un workspace come file `.easytask.json`.
+- **Esporta e importa** un workspace come file `.easytask.json`, oppure `.easytask.zip` con audio, immagini e video.
 - Interfaccia in **italiano e inglese**, nove temi predefiniti (anche ad alto contrasto) e temi personalizzati. Vedi [Temi](./themes).
 - **Aggiornamenti** con versioni firmate. Vedi [Aggiornamenti](./updates).
 

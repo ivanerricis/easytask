@@ -28,8 +28,8 @@ import { useItemTransfer } from "./use-workspace-transfer"
 
 beforeEach(() => {
     vi.clearAllMocks()
-    exportItemToFile.mockResolvedValue(true)
-    exportItemsToFile.mockResolvedValue(true)
+    exportItemToFile.mockResolvedValue({ missingFiles: 0 })
+    exportItemsToFile.mockResolvedValue({ missingFiles: 0 })
     getWorkspaceData.mockResolvedValue(undefined)
 })
 
@@ -37,14 +37,22 @@ describe("useItemTransfer", () => {
     it("exports an item and confirms", async () => {
         const { result } = renderHook(() => useItemTransfer())
         await act(() => result.current.exportItem("note", { id: 2, name: "N" }))
-        expect(exportItemToFile).toHaveBeenCalledWith("note", { id: 2, name: "N" })
+        expect(exportItemToFile).toHaveBeenCalledWith("note", { id: 2, name: "N" }, expect.objectContaining({ onProgress: expect.any(Function) }))
         expect(toast.success).toHaveBeenCalledWith("Esportato")
         expect(result.current.isBusy).toBe(false)
     })
 
+    it("warns when linked files were not found and are left out of the export", async () => {
+        exportItemToFile.mockResolvedValueOnce({ missingFiles: 2 })
+        const { result } = renderHook(() => useItemTransfer())
+        await act(() => result.current.exportItem("note", { id: 2, name: "N" }))
+        expect(toast.warning).toHaveBeenCalledWith(expect.stringContaining("2 file collegati"))
+        expect(toast.success).not.toHaveBeenCalled()
+    })
+
     it("stays silent when the export dialog is cancelled and shows the error when it fails", async () => {
         const { result } = renderHook(() => useItemTransfer())
-        exportItemToFile.mockResolvedValueOnce(false)
+        exportItemToFile.mockResolvedValueOnce(null)
         await act(() => result.current.exportItem("folder", { id: 2, name: "F" }))
         expect(toast.success).not.toHaveBeenCalled()
         exportItemToFile.mockRejectedValueOnce(new Error("boom"))
@@ -56,7 +64,7 @@ describe("useItemTransfer", () => {
         const items = [{ type: "note" as const, id: 1 }, { type: "folder" as const, id: 2 }]
         const { result } = renderHook(() => useItemTransfer())
         await act(() => result.current.exportItems(items, "Selezione"))
-        expect(exportItemsToFile).toHaveBeenCalledWith(items, "Selezione")
+        expect(exportItemsToFile).toHaveBeenCalledWith(items, "Selezione", expect.objectContaining({ onProgress: expect.any(Function) }))
         expect(toast.success).toHaveBeenCalledWith("Esportato")
         exportItemsToFile.mockRejectedValueOnce(new Error("boom"))
         await act(() => result.current.exportItems(items, "Selezione"))
@@ -65,7 +73,7 @@ describe("useItemTransfer", () => {
     })
 
     it("keeps the success when refreshing the tree fails after an import", async () => {
-        importItemsFromFile.mockResolvedValue({ skippedAudio: 0, items: [{ type: "note", id: 5, name: "N" }] })
+        importItemsFromFile.mockResolvedValue({ skippedFiles: 0, items: [{ type: "note", id: 5, name: "N" }] })
         getWorkspaceData.mockRejectedValue(new Error("refresh"))
         const { result } = renderHook(() => useItemTransfer())
         await act(() => result.current.importItems(null))
@@ -75,21 +83,21 @@ describe("useItemTransfer", () => {
     })
 
     it("imports into a folder, refreshes the tree, records the creation for undo and confirms", async () => {
-        importItemsFromFile.mockResolvedValue({ skippedAudio: 0, items: [{ type: "folder", id: 11, name: "F (2)" }] })
+        importItemsFromFile.mockResolvedValue({ skippedFiles: 0, items: [{ type: "folder", id: 11, name: "F (2)" }] })
         const { result } = renderHook(() => useItemTransfer())
         await act(() => result.current.importItems(3))
         // Outside the ImportNamesProvider no dialog is shown: the proposed names are used
-        expect(importItemsFromFile).toHaveBeenCalledWith(7, 3, undefined)
+        expect(importItemsFromFile).toHaveBeenCalledWith(7, 3, undefined, expect.any(Function))
         expect(getWorkspaceData).toHaveBeenCalledWith(7)
         expect(create).toHaveBeenCalledWith("folder", 11, "F (2)")
         expect(toast.success).toHaveBeenCalledWith("Importato")
     })
 
-    it("reports skipped audio files", async () => {
-        importItemsFromFile.mockResolvedValue({ skippedAudio: 2, items: [{ type: "note", id: 5, name: "N" }] })
+    it("reports skipped files", async () => {
+        importItemsFromFile.mockResolvedValue({ skippedFiles: 2, items: [{ type: "note", id: 5, name: "N" }] })
         const { result } = renderHook(() => useItemTransfer())
         await act(() => result.current.importItems(null))
-        expect(toast.success).toHaveBeenCalledWith("Importato · 2 audio saltati")
+        expect(toast.success).toHaveBeenCalledWith("Importato · 2 file saltati")
     })
 
     it("does nothing when the dialog is cancelled", async () => {
