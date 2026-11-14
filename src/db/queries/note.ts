@@ -5,6 +5,7 @@ import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 import { chunked, nextPositionSql, placeholders } from "./sql";
+import { attachTags, type TagLinkRow, type UsedTag } from "./tag";
 
 /** SQL filter that hides the archived rows (nothing when they are kept); `alias` is the table alias of the column. */
 const notArchived = (includeArchived: boolean, alias = "") =>
@@ -28,7 +29,7 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
         const db = await getDB()
         const gA = notArchived(includeArchived)
         // Three independent selects (no transaction): the pooled connection can serve them in parallel
-        const [groups, sectionRows, tasks] = await Promise.all([
+        const [groups, sectionRows, tasks, links] = await Promise.all([
             db.select<Group[]>(
                 `SELECT * FROM section_group WHERE noteID=? AND deleted_at IS NULL${gA} ORDER BY position`, [noteId]),
             db.select<Section[]>(`
@@ -40,16 +41,26 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
                 SELECT id FROM section WHERE deleted_at IS NULL${gA} AND groupID IN (
                 SELECT id FROM section_group WHERE noteID=? AND deleted_at IS NULL${gA}))
                 ORDER BY position, id`, [noteId]),
+            db.select<TagLinkRow[]>(`
+                SELECT tt.taskID, tg.id, tg.name, tg.color FROM task_tag tt
+                INNER JOIN tag tg ON tg.id = tt.tagID
+                INNER JOIN task t ON t.id = tt.taskID
+                INNER JOIN section s ON s.id = t.sectionID
+                INNER JOIN section_group g ON g.id = s.groupID
+                WHERE g.noteID = ? AND g.deleted_at IS NULL${notArchived(includeArchived, "g")} AND s.deleted_at IS NULL${notArchived(includeArchived, "s")}
+                  AND t.deleted_at IS NULL${notArchived(includeArchived, "t")}
+                ORDER BY tg.position, tg.id`, [noteId]),
         ])
         const sections = sectionRows.map(withTitle)
-        return { groups, sections, tasks }
+        const tags = attachTags(tasks, links)
+        return { groups, sections, tasks, tags }
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
     }
 }
 
 /** The groups, sections and tasks of a note (see getDBNoteData). */
-export type NoteData = { groups: Group[], sections: Section[], tasks: Task[] }
+export type NoteData = { groups: Group[], sections: Section[], tasks: Task[], tags: UsedTag[] }
 
 /**
  * Like getDBNoteData for many notes at once: a few selects for the whole list (chunked) instead of three per note.
@@ -64,12 +75,12 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
     try {
         const db = await getDB()
         const arch = (alias: string) => notArchived(includeArchived, alias)
-        const result = new Map<number, NoteData>(noteIds.map(id => [id, { groups: [], sections: [], tasks: [] }]))
+        const result = new Map<number, NoteData>(noteIds.map(id => [id, { groups: [], sections: [], tasks: [], tags: [] }]))
         const dataOf = (noteID: number) => result.get(noteID)!
 
         for (const ids of chunked(noteIds)) {
             const marks = placeholders(ids.length)
-            const [groups, sections, tasks] = await Promise.all([
+            const [groups, sections, tasks, links] = await Promise.all([
                 db.select<Group[]>(
                     `SELECT * FROM section_group g WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} ORDER BY g.position, g.id`, ids),
                 db.select<(Section & { _noteID: number })[]>(
@@ -84,10 +95,29 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                      WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} AND s.deleted_at IS NULL${arch("s")}
                        AND t.deleted_at IS NULL${arch("t")}
                      ORDER BY t.position, t.id`, ids),
+                db.select<(TagLinkRow & { _noteID: number })[]>(
+                    `SELECT tt.taskID, tg.id, tg.name, tg.color, g.noteID AS _noteID FROM task_tag tt
+                     INNER JOIN tag tg ON tg.id = tt.tagID
+                     INNER JOIN task t ON t.id = tt.taskID
+                     INNER JOIN section s ON s.id = t.sectionID
+                     INNER JOIN section_group g ON g.id = s.groupID
+                     WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} AND s.deleted_at IS NULL${arch("s")}
+                       AND t.deleted_at IS NULL${arch("t")}
+                     ORDER BY tg.position, tg.id`, ids),
             ])
             for (const group of groups) dataOf(group.noteID).groups.push(group)
             for (const { _noteID, ...section } of sections) dataOf(_noteID).sections.push(withTitle(section))
             for (const { _noteID, ...task } of tasks) dataOf(_noteID).tasks.push(task as Task)
+            const linksByNote = new Map<number, TagLinkRow[]>()
+            for (const { _noteID, ...link } of links) {
+                const list = linksByNote.get(_noteID)
+                if (list) list.push(link)
+                else linksByNote.set(_noteID, [link])
+            }
+            for (const [noteID, list] of linksByNote) {
+                const data = dataOf(noteID)
+                data.tags = attachTags(data.tasks, list)
+            }
         }
         return result
     } catch (error: unknown) {

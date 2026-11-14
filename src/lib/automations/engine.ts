@@ -1,7 +1,7 @@
 import type { Group, NoteDataTree, Task } from "@/types/types"
 import { isDefaultSection, taskSections } from "@/lib/group-sections"
 import { findGroup, findSection, findTask, mapTask, moveGroupInList, moveTask, patchGroup, patchSection, patchTask, removeGroup } from "@/contexts/note-tree-ops"
-import { isStateTrigger, isValidRule, referencedGroups, referencedSections, type Automation, type AutomationAction, type AutomationEvent, type AutomationTrigger } from "./types"
+import { isStateTrigger, isValidRule, referencedGroups, referencedSections, referencedTags, type Automation, type AutomationAction, type AutomationEvent, type AutomationTrigger } from "./types"
 
 /**
  * Most events handled for one user action: the actions of a rule raise new events (a move, a completion…) and the
@@ -153,6 +153,16 @@ function applyAction(tree: NoteDataTree, taskId: number, action: AutomationActio
         case "setColor":
             if ((task.color ?? null) === action.color) return none
             return { tree: patchTask(tree, taskId, { color: action.color }), events: [] }
+        case "addTag": {
+            const tags = task.tagIDs ?? []
+            if (tags.includes(action.tagId)) return none
+            return { tree: patchTask(tree, taskId, { tagIDs: [...tags, action.tagId] }), events: [] }
+        }
+        case "removeTag": {
+            const tags = task.tagIDs ?? []
+            if (!tags.includes(action.tagId)) return none
+            return { tree: patchTask(tree, taskId, { tagIDs: tags.filter(id => id !== action.tagId) }), events: [] }
+        }
         case "completeSubtasks":
             if (task.subtasks.length === 0 || allSubtasksCompleted(task)) return none
             return { tree: mapTask(tree, taskId, completeAll), events: [{ type: "subtasks.completed", taskId }] }
@@ -169,18 +179,21 @@ function applyAction(tree: NoteDataTree, taskId: number, action: AutomationActio
  *   action not allowed for its trigger, is skipped;
  * - the events raised by the actions are handled in turn (at most MAX_AUTOMATION_STEPS events);
  * - a rule runs at most once per task (or group) in a chain, so two rules cannot bounce a task forever.
+ * - a rule whose tag no longer exists (`tagIds`, the tags of the workspace; omitted = not checked) is skipped.
  * @param tree The note after the user action.
  * @param rules The rules of the note.
  * @param event What the user did.
+ * @param tagIds The ids of the tags of the workspace.
  * @category Automations
  */
-export function runAutomations(tree: NoteDataTree, rules: readonly Automation[], event: AutomationEvent): AutomationOutcome {
+export function runAutomations(tree: NoteDataTree, rules: readonly Automation[], event: AutomationEvent, tagIds?: ReadonlySet<number>): AutomationOutcome {
     const active = rules
         .filter(rule => rule.enabled
             && !isStateTrigger(rule.trigger.type)
             && isValidRule(rule.trigger, rule.actions)
             && referencedSections(rule).every(id => !!findSection(tree, id))
-            && referencedGroups(rule).every(id => !!findGroup(tree, id)))
+            && referencedGroups(rule).every(id => !!findGroup(tree, id))
+            && (!tagIds || referencedTags(rule).every(id => tagIds.has(id))))
         .sort((a, b) => a.position - b.position || a.id - b.id)
     if (active.length === 0) return { tree, applied: [], touched: [], touchedGroups: [], archivedGroups: [] }
 

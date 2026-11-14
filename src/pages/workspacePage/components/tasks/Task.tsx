@@ -243,6 +243,7 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                                 doneSubtasks={doneSubtasks}
                                 totalSubtasks={task.subtasks.length}
                                 priority={!!task.priority}
+                                tagIDs={task.tagIDs}
                                 onOpenDescription={openDescription}
                             />
                             <TaskRowToolbar taskText={task.text} hasDescription={hasDescription} inner={inner} onOpenDescription={openDescription} onAddSubtask={startAddSubtask} />

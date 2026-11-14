@@ -1,0 +1,32 @@
+import type { Translation } from "../it"
+
+export const tags: Translation["tags"] = {
+    menu: "Tags…",
+    dialogTitle: "Tags of the task",
+    dialogTitleMany: "Tags of {{count}} tasks",
+    dialogDescription: "Check the tags to give to the task. Tags belong to this workspace.",
+    dialogDescriptionMany: "Check the tags to give to the selected tasks. Tags belong to this workspace.",
+    list: "Tags of the workspace",
+    empty: "No tags in this workspace yet: create one below.",
+    newLabel: "New tag",
+    newPlaceholder: "Name of the new tag",
+    create: "Create",
+    manage: "Manage the tag {{name}}",
+    renameLabel: "Tag name",
+    noColor: "No color",
+    delete: "Delete the tag",
+    deleteTitle: "Delete the tag?",
+    deleteDescription: "The tag \"{{name}}\" will be removed from all the tasks that have it. You can undo it.",
+    deleteConfirm: "Delete tag",
+    save: "Save",
+    done: "Done",
+    badges: "Tags: {{names}}",
+    none: "No tags",
+    edit: "Edit the tags",
+    field: "Tags",
+    errors: {
+        color: "Could not change the color of the tag: {{message}}",
+        delete: "Could not delete the tag: {{message}}",
+        assign: "Could not change the tags: {{message}}",
+    },
+}

@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { DialogAddColor } from "@/components/dialogs/dialog-add-color"
+import { Tags } from "lucide-react"
+import { TagBadge } from "@/components/tag-badge"
+import { TagPicker } from "@/components/tags/TagPicker"
+import { useTagsOf } from "@/contexts/workspace-data"
 import { formatDate } from "@/lib/utils"
 
 export const sectionTitle = "text-xs font-semibold uppercase tracking-wide text-muted-foreground"
@@ -63,6 +67,32 @@ export const ColorField = ({ item, itemType, addColorItem, getItemId }: ColorFie
     )
 }
 
+
+/** The tags of a task: its pills (or "no tags") and the button that opens the list to change them. */
+export const TagsField = ({ taskId, tagIDs }: { taskId: number, tagIDs?: number[] }) => {
+    const { t } = useTranslation()
+    const tags = useTagsOf(tagIDs)
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+                <h3 className={sectionTitle}>{t("tags.field")}</h3>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" aria-label={t("tags.edit")}>
+                            <Tags />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-72">
+                        <TagPicker taskIds={[taskId]} />
+                    </PopoverContent>
+                </Popover>
+            </div>
+            {tags.length === 0
+                ? <span className="text-sm text-muted-foreground">{t("tags.none")}</span>
+                : <div data-testid="details-tags" className="flex flex-wrap gap-1">{tags.map(tag => <TagBadge key={tag.id} tag={tag} />)}</div>}
+        </div>
+    )
+}
 
 export const ProgressBar = ({ done, total, label }: { done: number, total: number, label: string }) => {
     const percent = total === 0 ? 0 : Math.round((done / total) * 100)

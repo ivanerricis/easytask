@@ -25,6 +25,7 @@ import { makeGroup, makeNote, makeSection, makeTask, makeWorkspace } from "@/tes
 import type { Folder } from "@/types/types"
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
+vi.mock("@/db/queries/tag", () => ({ getDBTags: vi.fn(async () => []), getDBNoteTags: vi.fn(async () => []) }))
 vi.mock("@/db/queries/workspace", () => ({ getDBWorkspaces: vi.fn(), createDBWorkspace: vi.fn(), getDBWorkspaceData: vi.fn() }))
 vi.mock("@/db/queries/note", () => ({
     createDBNoteInFolder: vi.fn(),

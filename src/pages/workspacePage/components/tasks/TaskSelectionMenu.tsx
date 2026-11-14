@@ -61,6 +61,11 @@ export const TaskSelectionMenuItems = ({ menu }: { menu: ItemMenuState }) => {
                     <DialogAddColor onPick={color => actions.applyColor(color)} setDropDownOpen={menu.close} />
                 </MenuSubContent>
             </MenuSub>
+            <ButtonInPopover
+                text={t("tags.menu")}
+                type="tags"
+                onClick={() => { menu.close(); actions.requestTags() }}
+            />
             {!isDraft && <ButtonInPopover
                 text={t("tasks.selection.archive", { count })}
                 type="archive"

@@ -218,6 +218,9 @@ export async function importDBWorkspace(
 
     try {
         const workspaceRef = tx.idOf(workspace)
+        // The tag list first (in its order): the tags of the tasks, by name, find them there
+        if (data.tags?.length)
+            tx.insertRows("tag", ["workspaceID", "name", "color", "position"], data.tags.map((tag, position) => [workspaceRef, tag.name.trim(), tag.color || null, position]))
         const { skippedFiles } = await insertItems(tx, data, workspaceRef, null, checks)
 
         if (data.templates.length > 0) {

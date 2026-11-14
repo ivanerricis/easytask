@@ -227,3 +227,30 @@ describe("direct area of a group", () => {
             expect(isPortableAutomation(rule(ref), content)).toBe(false)
     })
 })
+
+describe("tag actions", () => {
+    const index = buildSectionIndex(content, [10, 11, 20])
+    const tags = new Map([[3, { name: "Bug", color: "#ff0000" }]])
+    const rule = (actions: never[]) => ({ name: null, enabled: true, trigger: { type: "task.completed" as const, sectionId: null }, actions })
+
+    it("names the tag in the portable rule", () => {
+        expect(toPortable(rule([{ type: "addTag", tagId: 3 }] as never), index, undefined, tags)?.actions).toEqual([
+            { type: "addTag", tag: { name: "Bug", color: "#ff0000" } },
+        ])
+    })
+
+    it("leaves the rule out when its tag is unknown (or the tags are not given)", () => {
+        expect(toPortable(rule([{ type: "removeTag", tagId: 4 }] as never), index, undefined, tags)).toBeNull()
+        expect(toPortable(rule([{ type: "removeTag", tagId: 3 }] as never), index)).toBeNull()
+    })
+
+    it("validates a portable tag action", () => {
+        const portable = (action: unknown) => ({ name: null, enabled: true, trigger: { type: "task.completed", sectionId: null }, actions: [action] })
+        expect(isPortableAutomation(portable({ type: "addTag", tag: { name: "Bug", color: null } }), content)).toBe(true)
+        expect(isPortableAutomation(portable({ type: "addTag", tag: { name: " ", color: null } }), content)).toBe(false)
+        expect(isPortableAutomation(portable({ type: "removeTag", tag: { name: "Bug", color: 3 } }), content)).toBe(false)
+        expect(isPortableAutomation(portable({ type: "removeTag" }), content)).toBe(false)
+        // A state trigger only has the color
+        expect(isPortableAutomation({ ...portable({ type: "addTag", tag: { name: "Bug", color: null } }), trigger: { type: "section.noOpenTasks", sectionId: null } }, content)).toBe(false)
+    })
+})

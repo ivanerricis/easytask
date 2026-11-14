@@ -12,6 +12,7 @@ import { tasks, transfer, duplicate } from "./tasks"
 import { details, rightPanel } from "./details"
 import { automations } from "./automations"
 import { templateEditor } from "./template-editor"
+import { tags } from "./tags"
 
 export const it = {
     common,
@@ -48,6 +49,7 @@ export const it = {
     details,
     automations,
     templateEditor,
+    tags,
 }
 
 export type Translation = typeof it

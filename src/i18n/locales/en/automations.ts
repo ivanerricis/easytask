@@ -73,7 +73,12 @@ export const automations: Translation["automations"] = {
         completeSubtasks: "Complete all subtasks",
         moveGroup: "Move the group",
         archiveGroup: "Archive the group",
+        addTag: "Add a tag",
+        removeTag: "Remove a tag",
     },
+    tag: "Tag",
+    noTags: "This workspace has no tags: create one from the menu of a task.",
+    pausedTag: "Paused: the tag of this rule was deleted.",
     values: {
         completed: "Completed",
         open: "To do",
@@ -109,6 +114,9 @@ export const automations: Translation["automations"] = {
         moveGroupTop: "move the group to the top of the note",
         moveGroupBottom: "move the group to the bottom of the note",
         archiveGroup: "archive the group",
+        addTag: "add the tag \"{{tag}}\"",
+        removeTag: "remove the tag \"{{tag}}\"",
+        missingTag: "(deleted tag)",
     },
     errors: {
         load: "Could not load the automations: {{message}}",

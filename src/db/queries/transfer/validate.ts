@@ -34,6 +34,11 @@ function checkTask(task: unknown, counter: Counter, depth = 0) {
     bump(counter)
     if (!isString(task.text) || !isNumber(task.position) || !Array.isArray(task.subtasks)) malformed()
     if (!isNullableString(task.description) || !isNullableString(task.color) || !isNullableString(task.archived_at)) malformed()
+    if (task.tags !== undefined) {
+        if (!Array.isArray(task.tags)) malformed()
+        bump(counter, task.tags.length)
+        for (const tag of task.tags as unknown[]) if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color)) malformed()
+    }
     for (const subtask of task.subtasks as unknown[]) checkTask(subtask, counter, depth + 1)
 }
 
@@ -77,6 +82,7 @@ type ContentTask = NoteTemplateContent["groups"][number]["sections"][number]["ta
 function normalizeTask(task: ContentTask) {
     task.text = untitled(task.text)
     task.color = cleanColor(task.color)
+    for (const tag of task.tags ?? []) tag.color = cleanColor(tag.color)
     for (const subtask of task.subtasks) normalizeTask(subtask)
 }
 
@@ -142,6 +148,12 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     for (const folder of folders as ExportFolder[])
         if (folder.parentRef !== null && !folderRefs.has(folder.parentRef)) malformed()
 
+    if (data.tags !== undefined) {
+        if (!Array.isArray(data.tags)) malformed()
+        bump(counter, data.tags.length)
+        for (const tag of data.tags as unknown[]) if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color)) malformed()
+    }
+
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {
         if (!isObject(note) || !isNonEmpty(note.ref) || !isNonEmpty(note.name) || !isNumber(note.position)
@@ -187,6 +199,12 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
         if (template.bg_color !== undefined) template.bg_color = cleanColor(template.bg_color)
         template.name = template.name.trim()
         normalizeContent(template.content)
+    }
+    if (result.tags) {
+        // One tag per name, the case ignored (the first one wins)
+        const seen = new Set<string>()
+        for (const tag of result.tags) tag.color = cleanColor(tag.color)
+        result.tags = result.tags.filter(tag => !seen.has(tag.name.trim().toLowerCase()) && !!seen.add(tag.name.trim().toLowerCase()))
     }
     dedupeNames(result.folders, folder => folder.parentRef)
     dedupeNames(result.notes, note => note.folderRef)

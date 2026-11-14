@@ -11,7 +11,7 @@ type TemplateActions = Pick<WorkspaceActionsType,
  * Note templates. Every write bumps the templates version.
  * @category WorkspaceData Context
  */
-export function useTemplateActions({ withLoading, bumpTemplates, applyTree, getWorkspaceData }: Runtime): TemplateActions {
+export function useTemplateActions({ withLoading, bumpTemplates, applyTree, getWorkspaceData, reloadTags }: Runtime): TemplateActions {
     /**
      * Retrieves the templates of a workspace. Does not touch the context state.
      * @param workspaceID - The ID of the workspace.
@@ -88,8 +88,10 @@ export function useTemplateActions({ withLoading, bumpTemplates, applyTree, getW
                 tree => insertTreeItem(tree, "note", buildNote(id, workspaceID, folderID, name.trim(), color ?? undefined, getFolderNotes(tree, folderID)), folderID),
                 tree => removeTreeItem(tree, "note", id))
             if (!applied) await getWorkspaceData(workspaceID)
+            // The template brings its tags: the ones the workspace does not have yet were created with the note
+            await reloadTags()
             return id
-        }), [withLoading, applyTree, getWorkspaceData])
+        }), [withLoading, applyTree, getWorkspaceData, reloadTags])
 
     return useMemo(() => ({ getTemplates, countTemplates, createTemplateFromNote, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate }), [ getTemplates, countTemplates, createTemplateFromNote, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate ])
 }

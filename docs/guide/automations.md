@@ -64,6 +64,7 @@ What you can choose depends on the trigger.
 | **Mark as** | Marks the task as **Completed** or **To do** | task triggers |
 | **Priority** | **Add priority** or **Remove priority** | task triggers |
 | **Color** | Gives a color, or **No color** | every trigger |
+| **Add a tag** / **Remove a tag** | Gives the task a [tag](./groups-sections-tasks#tags) of the workspace, or takes it away (nothing happens if it already is in that state). If the tag is deleted the rule pauses | task triggers |
 | **Complete all subtasks** | Completes every subtask of the task, at any depth | task triggers |
 | **Move the group** | Moves the group **At the top** or **At the bottom** of the note | group event trigger |
 | **Archive the group** | Archives the group | group event trigger |

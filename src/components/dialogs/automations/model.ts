@@ -1,6 +1,8 @@
 import i18n from "@/i18n"
 import { getDBNoteData } from "@/db/queries/note"
 import { getDBAutomations } from "@/db/queries/automation"
+import { getDBNoteTags } from "@/db/queries/tag"
+import type { Tag } from "@/types/types"
 import { buildNoteTreeFromData } from "@/contexts/tree-builders"
 import { PALETTE_COLORS } from "@/lib/colors"
 import {
@@ -13,7 +15,7 @@ export type SectionOption = { id: number, title: string, group?: string }
 /** `direct` is the direct area of the group, listed ahead of its sections. */
 export type GroupOption = { id: number, label: string, direct?: SectionOption, sections: SectionOption[] }
 
-export type DialogData = { rules: Automation[], groups: GroupOption[] }
+export type DialogData = { rules: Automation[], groups: GroupOption[], tags: Tag[] }
 
 /** The steps of the editor: when (trigger), then (actions), summary (sentence, name, on/off). */
 export const STEPS = ["when", "then", "summary"] as const
@@ -28,7 +30,7 @@ export const stepReachable = (step: number, draft: AutomationDraft) => STEPS.sli
 
 /** The rules of a note and its sections, grouped by group. */
 export async function loadDialogData(noteId: number): Promise<DialogData> {
-    const [rules, data] = await Promise.all([getDBAutomations(noteId), getDBNoteData(noteId)])
+    const [rules, data, tags] = await Promise.all([getDBAutomations(noteId), getDBNoteData(noteId), getDBNoteTags(noteId)])
     const tree = buildNoteTreeFromData(data)
     const groups = tree.groups.map((group, index): GroupOption => {
         const label = group.name?.trim() || i18n.t("groups.defaultLabel", { index: index + 1 })
@@ -39,16 +41,18 @@ export async function loadDialogData(noteId: number): Promise<DialogData> {
             sections: group.sections.map(section => ({ id: section.id, title: section.title })),
         }
     })
-    return { rules, groups }
+    return { rules, groups, tags }
 }
 
 /** The default action of a type (moves go to the first section other than the one of the trigger). */
-export function defaultAction(type: AutomationActionType, sections: SectionOption[], avoid: number | null): AutomationAction {
+export function defaultAction(type: AutomationActionType, sections: SectionOption[], avoid: number | null, tags: readonly Tag[] = []): AutomationAction {
     switch (type) {
         case "moveTo": return { type, sectionId: (sections.find(s => s.id !== avoid) ?? sections[0]).id, at: "bottom" }
         case "setCompleted":
         case "setPriority": return { type, value: true }
         case "setColor": return { type, color: PALETTE_COLORS[0] }
+        case "addTag":
+        case "removeTag": return { type, tagId: tags[0]?.id ?? 0 }
         case "completeSubtasks":
         case "archiveGroup": return { type }
         case "moveGroup": return { type, at: "bottom" }

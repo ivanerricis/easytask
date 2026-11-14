@@ -64,6 +64,7 @@ Cosa puoi scegliere dipende dal trigger.
 | **Segna come** | Segna il task come **Completato** o **Da fare** | trigger sui task |
 | **Priorità** | **Aggiungi priorità** o **Rimuovi priorità** | trigger sui task |
 | **Colore** | Dà un colore, oppure **Nessun colore** | ogni trigger |
+| **Aggiungi un tag** / **Togli un tag** | Dà al task un [tag](./groups-sections-tasks#tag) del workspace, o lo toglie (non succede nulla se è già in quello stato). Se il tag viene eliminato la regola va in pausa | trigger sui task |
 | **Completa tutti i sottotask** | Completa ogni sottotask del task, a qualsiasi profondità | trigger sui task |
 | **Sposta il gruppo** | Sposta il gruppo **In cima** o **In fondo** alla nota | trigger a evento sui gruppi |
 | **Archivia il gruppo** | Archivia il gruppo | trigger a evento sui gruppi |

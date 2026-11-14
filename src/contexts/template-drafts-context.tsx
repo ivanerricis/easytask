@@ -20,6 +20,8 @@ type TemplateDraftsProviderProps = {
     setDrafts: Dispatch<SetStateAction<TemplateDraft[]>>
     /** Resolves when the writes in flight to the workspace have finished (its identity must not change). */
     whenIdle: () => Promise<void>
+    /** Called after a draft is created: the template brings its tags, the workspace may have got the ones it lacked. */
+    onTagsChanged?: () => Promise<void>
     children: React.ReactNode
 }
 
@@ -35,7 +37,7 @@ const sameDrafts = (a: TemplateDraft[], b: TemplateDraft[]) =>
  * at startup. The operations on the drafts run one after the other, so an opening never overlaps a closing.
  * @category Template drafts
  */
-export function TemplateDraftsProvider({ workspaceId, drafts, setDrafts, whenIdle, children }: TemplateDraftsProviderProps) {
+export function TemplateDraftsProvider({ workspaceId, drafts, setDrafts, whenIdle, onTagsChanged, children }: TemplateDraftsProviderProps) {
     const { openIds, restored } = useTabs()
     const { openNote } = useTabsActions()
     const { subscribeNoteChanges } = useActiveNoteActions()
@@ -151,6 +153,7 @@ export function TemplateDraftsProvider({ workspaceId, drafts, setDrafts, whenIdl
                 tracked.current.set(noteId, template.id)
                 if (draft) setDrafts(list => list.some(candidate => candidate.noteId === noteId) ? list : [...list, draft])
                 openNote(noteId)
+                await onTagsChanged?.()
             }),
             flushTemplate: templateId => flushIds(openDraftIds().filter(id => tracked.current.get(id) === templateId)),
             flushAll: () => flushIds(openDraftIds()),
@@ -158,7 +161,7 @@ export function TemplateDraftsProvider({ workspaceId, drafts, setDrafts, whenIdl
             refreshDrafts,
             statusStore: { subscribe: saver.subscribe, getStatus: saver.getStatus },
         }
-    }, [saver, enqueue, setDrafts, openNote, refreshDrafts])
+    }, [saver, enqueue, setDrafts, openNote, refreshDrafts, onTagsChanged])
 
     const visible = useMemo(() => drafts.filter(draft => !draft.trashed), [drafts])
     const value = useMemo(() => ({ drafts: visible }), [visible])

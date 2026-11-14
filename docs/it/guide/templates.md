@@ -22,6 +22,7 @@ Il template è un'istantanea indipendente della nota in quel momento. Le modific
 | --- | --- |
 | Gruppi, sezioni, task e sottotask, nel loro ordine (anche il posto della lista dei task del gruppo) | File audio |
 | Descrizioni dei task, stato di completamento e priorità | Gruppi, sezioni e task archiviati |
+| I [tag](./groups-sections-tasks#tag) dei task, per nome e colore: una nota creata dal template riusa il tag del workspace con lo stesso nome, oppure lo crea | |
 | I colori della nota, dei gruppi, delle sezioni e dei task | Elementi nel cestino |
 | | [Automazioni](./automations) |
 

@@ -67,6 +67,14 @@ export const errors = {
         load: "Impossibile leggere l'elemento da duplicare: {{message}}",
         apply: "Impossibile duplicare l'elemento: {{message}}",
     },
+    tag: {
+        unique: "Esiste già un tag con questo nome.",
+        check: "Il nome del tag non può essere vuoto.",
+        load: "Impossibile caricare i tag: {{message}}",
+        delete: "Impossibile eliminare il tag: {{message}}",
+        restore: "Impossibile ripristinare il tag: {{message}}",
+        assign: "Impossibile cambiare i tag: {{message}}",
+    },
     template: {
         unique: "Esiste già un template con questo nome.",
         check: "Il nome del template non può essere vuoto.",

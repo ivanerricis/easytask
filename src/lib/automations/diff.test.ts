@@ -104,15 +104,15 @@ describe("taskChanges", () => {
         const moved = moveTask(before, 13, { sectionId: 2, parentTaskId: null }, 0)
         // 20 only shifted its index: it is a change of place when asked for
         expect(taskChanges(before, moved, [13, 20, 10])).toEqual([
-            { id: 13, place: true, completed: false, priority: false, color: false },
-            { id: 20, place: true, completed: false, priority: false, color: false },
+            { id: 13, place: true, completed: false, priority: false, color: false, tags: false },
+            { id: 20, place: true, completed: false, priority: false, color: false, tags: false },
         ])
         expect(taskChanges(before, moved, [])).toEqual([])
         expect(taskChanges(before, patchTask(before, 11, { completed: true }), [11])).toEqual([
-            { id: 11, place: false, completed: true, priority: false, color: false },
+            { id: 11, place: false, completed: true, priority: false, color: false, tags: false },
         ])
         expect(taskChanges(before, patchTask(before, 12, { color: "#fff", priority: true }), [12])).toEqual([
-            { id: 12, place: false, completed: false, priority: true, color: true },
+            { id: 12, place: false, completed: false, priority: true, color: true, tags: false },
         ])
     })
 
@@ -180,7 +180,7 @@ describe("restoreTasks", () => {
     it("skips a task whose destination section no longer exists", () => {
         const { before, tree: after } = run()
         const latest = removeSection(after, 1)
-        const restored = restoreTasks(latest, before, [{ id: 13, place: true, completed: false, priority: false, color: false }])
+        const restored = restoreTasks(latest, before, [{ id: 13, place: true, completed: false, priority: false, color: false, tags: false }])
         expect(layout(restored)).toEqual(layout(latest))
     })
 
@@ -188,7 +188,7 @@ describe("restoreTasks", () => {
         const before = base()
         const after = patchTask(before, 11, { completed: true })
         const latest = removeTask(after, 10)
-        expect(restoreTasks(latest, before, [{ id: 11, place: true, completed: true, priority: false, color: false }])).toBe(latest)
+        expect(restoreTasks(latest, before, [{ id: 11, place: true, completed: true, priority: false, color: false, tags: false }])).toBe(latest)
     })
 
     it("does nothing without changes", () => {
@@ -450,5 +450,41 @@ describe("direct area of a group", () => {
         const before = direct()
         const after = patchSection(before, 90, { color: "#123456" })
         expect(diffSectionStatements(before, after)).toEqual([{ sql: "UPDATE section SET color = ? WHERE id = ?", params: ["#123456", 90] }])
+    })
+})
+
+describe("tags in the diff", () => {
+    it("writes the links that were added and removed, and only those", () => {
+        const before = patchTask(base(), 13, { tagIDs: [1, 2] })
+        const after = patchTask(before, 13, { tagIDs: [2, 3] })
+        expect(diffTaskStatements(before, after)).toEqual([
+            { sql: "INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT ?, id FROM tag WHERE id = ?", params: [13, 3] },
+            { sql: "DELETE FROM task_tag WHERE taskID = ? AND tagID = ?", params: [13, 1] },
+        ])
+        // The order of the ids is not a change
+        expect(diffTaskStatements(before, patchTask(before, 13, { tagIDs: [2, 1] }))).toEqual([])
+        expect(taskChanges(before, patchTask(before, 13, { tagIDs: [2, 1] }), [13])).toEqual([])
+    })
+
+    it("reports the task as changed and restores its tags on the latest note", () => {
+        const before = patchTask(base(), 13, { tagIDs: [1] })
+        const after = patchTask(before, 13, { tagIDs: [1, 4] })
+        const changes = taskChanges(before, after, [13])
+        expect(changes).toEqual([{ id: 13, place: false, completed: false, priority: false, color: false, tags: true }])
+        // Undo: back to what `before` had, on a note that changed in the meantime (another field)
+        const latest = patchTask(after, 13, { priority: true })
+        const undone = restoreTasks(latest, before, changes)
+        expect(taskOf(undone, 13).tagIDs).toEqual([1])
+        expect(taskOf(undone, 13).priority).toBe(true)
+        expect(taskOf(restoreTasks(undone, after, changes), 13).tagIDs).toEqual([1, 4])
+    })
+
+    it("a rule run by the engine produces the statements of its tag actions", () => {
+        const before = base()
+        const rule = makeRule(1, { type: "task.completed", sectionId: null }, [{ type: "addTag", tagId: 8 }])
+        const { tree } = runAutomations(patchTask(before, 13, { completed: true }), [rule], { type: "task.completed", taskId: 13 })
+        expect(diffTaskStatements(patchTask(before, 13, { completed: true }), tree)).toEqual([
+            { sql: "INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT ?, id FROM tag WHERE id = ?", params: [13, 8] },
+        ])
     })
 })

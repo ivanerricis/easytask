@@ -73,6 +73,16 @@ export type ExportTemplate = {
 }
 
 /**
+ * A tag of the workspace in a workspace export, in the order of the list. Unused tags travel too; the tags of the tasks
+ * are in the content of the notes (by name), so an items export carries only those.
+ * @category Types
+ */
+export type ExportTag = {
+    name: string
+    color: string | null
+}
+
+/**
  * Content of a `<workspace name>.easytask.json` file (or of `workspace.easytask.json` inside a `.easytask.zip`): the non deleted content of a workspace (archived items included, with
  * their `archived_at`: they are imported archived).
  * @category Types
@@ -90,6 +100,8 @@ export type WorkspaceExport = {
     folders: ExportFolder[]
     notes: ExportNote[]
     templates: ExportTemplate[]
+    /** The tag list of the workspace (whole workspace files only); absent in files without tags, which import without any. */
+    tags?: ExportTag[]
 }
 
 /**

@@ -59,7 +59,7 @@ describe("getDBNoteData vs getDBNotesData", () => {
         it(`return the same data when positions tie (includeArchived=${includeArchived})`, async () => {
             const bulk = await getDBNotesData([10, 11, 99], includeArchived)
             for (const id of [10, 11]) expect(bulk.get(id)).toEqual(await getDBNoteData(id, includeArchived))
-            expect(bulk.get(99)).toEqual({ groups: [], sections: [], tasks: [] })
+            expect(bulk.get(99)).toEqual({ groups: [], sections: [], tasks: [], tags: [] })
         })
     }
 

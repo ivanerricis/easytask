@@ -2,8 +2,8 @@
 
 Il contenuto di una nota è organizzato su tre livelli. Una nota contiene dei **gruppi**, affiancati come colonne. Un gruppo contiene delle **sezioni**, impilate nella colonna. Una sezione contiene dei **task**, e un task può avere dei **sottotask**, annidati quanto serve. Un gruppo può anche contenere task propri, subito sotto l'intestazione, senza alcuna sezione. Questa lista di task può stare in qualsiasi punto tra le sezioni del gruppo.
 
-![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
-![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, tag, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-light.png){.light-only}
+![Un task selezionato con i suoi dettagli nel pannello a destra: percorso, stato, priorità, colore, tag, descrizione, avanzamento delle sottoattività e date](../../screenshots/it/task-details-dark.png){.dark-only}
 
 ## Gruppi e sezioni
 
@@ -91,13 +91,14 @@ Passa il mouse su un task e fai clic su **Aggiungi sottotask**, oppure scegli la
 
 Apri il menu del task (pulsante del menu o clic destro):
 
-![Menu contestuale di un task con Aggiungi sottoattività, Aggiungi descrizione, Aggiungi priorità, Rinomina, Cambia colore, Sposta su e giù, Sposta in, Mostra dettagli, Archivia ed Elimina](../../screenshots/it/task-menu-light.png)
+![Menu contestuale di un task con Aggiungi sottoattività, Aggiungi descrizione, Aggiungi priorità, Tag…, Rinomina, Cambia colore, Sposta su e giù, Sposta in, Mostra dettagli, Archivia ed Elimina](../../screenshots/it/task-menu-light.png)
 
 | Voce                                         | Cosa fa                                                              |
 | -------------------------------------------- | -------------------------------------------------------------------- |
 | **Aggiungi sottotask**                       | Aggiunge un sottotask.                                               |
 | **Aggiungi descrizione** / **Rimuovi descrizione** | Apre una finestra dove scrivi la **Descrizione**. `Maiusc+Invio` va a capo, `Ctrl+Invio` salva. |
 | **Aggiungi priorità** / **Rimuovi priorità** | Segna il task come ad alta priorità. Sul task compare una bandierina. |
+| **Tag…**                                     | Apre l'elenco dei tag del workspace per darli al task (vedi [Tag](#tag)). |
 | **Rinomina**                                 | Modifica il testo.                                                   |
 | **Cambia colore**                            | Colora il task con una barra laterale (e uno sfondo leggero, se lo vuoi). |
 | **Sposta su**, **Sposta giù**                | Sposta il task di un passo tra i suoi fratelli.                      |
@@ -108,6 +109,22 @@ Apri il menu del task (pulsante del menu o clic destro):
 ![Un task con una descrizione, mostrata nel pannello dei dettagli a destra](../../screenshots/it/task-description-light.png)
 
 Un task con una descrizione mostra una piccola icona: fai clic per leggerla. L'aspetto dei task dipende da **Densità dei task** (**Compatta**, **Normale**, **Ampia**) e da **Sfondo colorato dei task**.
+
+### Tag
+
+I tag sono etichette per i tuoi task, come "Bug", "In attesa" o "Casa". Ogni workspace ha il suo elenco di tag, e un tag ha un nome e un colore della stessa [palette](./colors) del resto dell'app. Un task può avere più tag: compaiono sulla sua riga come piccole pillole colorate, dopo l'icona della descrizione e il contatore dei sottotask. Se i tag sono molti vanno a capo su più righe, e un nome lungo viene tagliato (il nome intero è nel suggerimento della pillola).
+
+Per mettere un tag a un task apri il suo menu e scegli **Tag…** (oppure usa il campo **Tag** del [pannello dei dettagli](#il-pannello-dei-dettagli)):
+
+- Spunta un tag per darlo al task, toglila per toglierlo. La modifica vale subito.
+- Scrivi un nome in **Nome del nuovo tag** e premi `Invio` (o **Crea**) per creare un tag e darlo al task. Se esiste già un tag con quel nome, il task riceve quello.
+- Fai clic sul pulsante **…** di un tag per **rinominarlo**, cambiarne il **colore** (o toglierlo con **Nessun colore**) o **eliminarlo**. Eliminare un tag lo toglie da ogni task che lo ha, dopo una conferma.
+
+Con più task selezionati, **Tag…** nel loro menu agisce su tutti: un tag è spuntato quando tutti i task selezionati lo hanno, un piccolo conteggio come "2/3" compare quando solo alcuni lo hanno, e spuntarlo lo dà agli altri.
+
+Creare, dare, togliere, rinominare, ricolorare ed eliminare un tag sono passi della [cronologia di annullamento](./undo-and-history); creare un tag per un task è un solo passo. I tag di un task nel cestino o in archivio restano con lui, e tornano quando lo ripristini.
+
+I tag viaggiano con i dati: li copiano i [template](./templates), la duplicazione di una nota o di una sezione e l'[esportazione](./data-and-backups#esportare-e-importare-un-workspace) del workspace. Un'[automazione](./automations) può aggiungere o togliere un tag.
 
 ### Spostare i task
 
@@ -138,7 +155,7 @@ Tieni premuto **Ctrl** (**Cmd** su macOS) e clicca per aggiungere un task alla s
 
 Da tastiera, porta il focus su un task e premi **Maiusc+Giù** o **Maiusc+Su** per estendere la selezione di un task alla volta (**Maiusc+End** e **Maiusc+Home** vanno all'ultimo e al primo task della lista); tornando verso il primo task la selezione si restringe. **Ctrl+Spazio** (**Cmd+Spazio** su macOS) aggiunge alla selezione il task con il focus o lo toglie, così puoi scegliere task non vicini: spostati con le frecce semplici, che mantengono la selezione, e premilo su ciascuno. Questi tasti non cambiano il task mostrato nel pannello dei dettagli. Quando la selezione scende a un solo task o a nessuno, uno screen reader lo annuncia; con due o più legge il contatore.
 
-Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti insieme: **Elimina N task**, **Archivia N task**, **Colora** e **Sposta in…** (in fondo a una sezione, o tra i task diretti di un gruppo). Un task selezionato vale anche per i suoi sottotask, che vengono eliminati, archiviati e spostati con lui. Ogni azione è un solo passo nella [cronologia di annullamento](./undo-and-history). Il trascinamento sposta sempre un task alla volta.
+Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti insieme: **Elimina N task**, **Archivia N task**, **Colora**, **Tag…** e **Sposta in…** (in fondo a una sezione, o tra i task diretti di un gruppo). Un task selezionato vale anche per i suoi sottotask, che vengono eliminati, archiviati e spostati con lui. Ogni azione è un solo passo nella [cronologia di annullamento](./undo-and-history). Il trascinamento sposta sempre un task alla volta.
 
 I task selezionati hanno un contorno tratteggiato (oltre alla tinta) e gli screen reader li annunciano come "selezionato"; con due o più task selezionati, in basso nella nota compare un contatore, ad esempio "3 selezionati".
 
@@ -164,7 +181,7 @@ Il pannello a destra ha due tab. Aprilo o chiudilo con `Ctrl+Maiusc+B` o **Visua
 
 **Dettagli** mostra:
 
-- per un task selezionato (fai clic su di esso): il percorso, lo stato, un interruttore per **Priorità alta**, il **Colore**, la **Descrizione** (modificabile, con **Salva** e **Annulla**), l'avanzamento dei sottotask e le date;
+- per un task selezionato (fai clic su di esso): il percorso, lo stato, un interruttore per **Priorità alta**, il **Colore**, i **Tag** (con un pulsante per cambiarli), la **Descrizione** (modificabile, con **Salva** e **Annulla**), l'avanzamento dei sottotask e le date;
 - per la nota, quando nessun task è selezionato: il numero di gruppi, sezioni e task, l'avanzamento complessivo, il colore e le date.
 
 **Cronologia** elenca le azioni che puoi annullare e ripetere. Vedi [Annulla e cronologia](./undo-and-history).

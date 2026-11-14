@@ -23,6 +23,7 @@ import { useActiveNoteId, useSelectTask } from "@/contexts/use-tabs"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { useIsInTaskMultiSelection } from "./use-task-selection"
 import { TaskSelectionMenuItems } from "./TaskSelectionMenu"
+import { DialogTaskTags } from "@/components/tags/DialogTaskTags"
 
 type ButtonMenuTaskProps = {
     task: Task
@@ -45,6 +46,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
     const { request: requestRename, onCloseAutoFocus: renameAfterClose } = useAfterMenuClose(onRename)
     const menu = useItemMenuState()
     const [isDeleteTaskOpen, setDeleteTaskOpen] = useState(false)
+    const [isTagsOpen, setTagsOpen] = useState(false)
     const { updateTaskPriority, updateTaskDescription } = useWorkspaceActions()
     const activeId = useActiveNoteId()
     const isDraft = useIsActiveDraft()
@@ -121,6 +123,11 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
                 type={task.priority ? 'removePriority' : 'addPriority'}
                 onClick={() => { handleEditPriority(); menu.close() }}
             />
+            <ButtonInPopover
+                text={t("tags.menu")}
+                type="tags"
+                onClick={() => { setTagsOpen(true); menu.close() }}
+            />
             <Separator />
             <ButtonInPopover
                 text={t("common.rename")}
@@ -167,6 +174,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
 
     const dialogs = (
         <>
+            {isTagsOpen && <DialogTaskTags open={isTagsOpen} onOpenChange={setTagsOpen} taskIds={[task.id]} />}
             {isDeleteTaskOpen &&
                 <DialogDeleteItem
                     item={task}

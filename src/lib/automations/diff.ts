@@ -13,6 +13,8 @@ type TaskState = {
     completed: boolean
     priority: boolean
     color: string | null
+    /** The ids of its tags, ascending. */
+    tags: number[]
 }
 
 type Flat = { tasks: Map<number, TaskState>, containers: Map<string, number[]> }
@@ -26,6 +28,7 @@ function flatten(tree: NoteDataTree): Flat {
             tasks.set(task.id, {
                 container, index, sectionId,
                 completed: !!task.completed, priority: !!task.priority, color: task.color ?? null,
+                tags: [...(task.tagIDs ?? [])].sort((a, b) => a - b),
             })
             visit(task.subtasks, `t${task.id}`, sectionId)
         })
@@ -74,6 +77,10 @@ export function diffTaskStatements(before: NoteDataTree, after: NoteDataTree): T
         if (old.priority !== state.priority) { sets.push("priority = ?"); params.push(state.priority ? 1 : 0) }
         if (old.color !== state.color) { sets.push("color = ?"); params.push(state.color) }
         if (sets.length > 0) statements.push({ sql: `UPDATE task SET ${sets.join(", ")} WHERE id = ?`, params: [...params, id] })
+        for (const tagId of state.tags.filter(tag => !old.tags.includes(tag)))
+            statements.push({ sql: "INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT ?, id FROM tag WHERE id = ?", params: [id, tagId] })
+        for (const tagId of old.tags.filter(tag => !state.tags.includes(tag)))
+            statements.push({ sql: "DELETE FROM task_tag WHERE taskID = ? AND tagID = ?", params: [id, tagId] })
     }
 
     for (const [container, ids] of next.containers) {
@@ -88,7 +95,7 @@ export function diffTaskStatements(before: NoteDataTree, after: NoteDataTree): T
  * What an automation changed on a task: its place (parent or index) and/or some of its flags.
  * @category Automations
  */
-export type TaskChange = { id: number, place: boolean, completed: boolean, priority: boolean, color: boolean }
+export type TaskChange = { id: number, place: boolean, completed: boolean, priority: boolean, color: boolean, tags: boolean }
 
 /**
  * What changed between two versions of a note on the given tasks (those an automation acted on); tasks missing from
@@ -109,8 +116,9 @@ export function taskChanges(before: NoteDataTree, after: NoteDataTree, ids: read
             completed: old.completed !== state.completed,
             priority: old.priority !== state.priority,
             color: old.color !== state.color,
+            tags: old.tags.length !== state.tags.length || old.tags.some((tag, i) => tag !== state.tags[i]),
         }
-        if (change.place || change.completed || change.priority || change.color) changes.push(change)
+        if (change.place || change.completed || change.priority || change.color || change.tags) changes.push(change)
     }
     return changes
 }
@@ -144,6 +152,7 @@ export function restoreTasks(current: NoteDataTree, source: NoteDataTree, change
         if (change.completed) patch.completed = !!task.completed
         if (change.priority) patch.priority = !!task.priority
         if (change.color) patch.color = task.color ?? null
+        if (change.tags) patch.tagIDs = task.tagIDs ?? []
         if (Object.keys(patch).length > 0) tree = patchTask(tree, task.id, patch)
     }
     return tree

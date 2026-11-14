@@ -71,7 +71,12 @@ export const automations = {
         completeSubtasks: "Completa tutti i sottotask",
         moveGroup: "Sposta il gruppo",
         archiveGroup: "Archivia il gruppo",
+        addTag: "Aggiungi un tag",
+        removeTag: "Togli un tag",
     },
+    tag: "Tag",
+    noTags: "Questo workspace non ha tag: creane uno dal menu di un task.",
+    pausedTag: "In pausa: il tag di questa regola è stato eliminato.",
     values: {
         completed: "Completato",
         open: "Da fare",
@@ -107,6 +112,9 @@ export const automations = {
         moveGroupTop: "sposta il gruppo in cima alla nota",
         moveGroupBottom: "sposta il gruppo in fondo alla nota",
         archiveGroup: "archivia il gruppo",
+        addTag: "aggiungi il tag \"{{tag}}\"",
+        removeTag: "togli il tag \"{{tag}}\"",
+        missingTag: "(tag eliminato)",
     },
     errors: {
         load: "Impossibile caricare le automazioni: {{message}}",

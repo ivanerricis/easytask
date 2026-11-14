@@ -71,7 +71,10 @@ export function colorName(color: string): string {
 /** A natural list in the current language ("A, B e C"). */
 const joinList = (items: string[]) => new Intl.ListFormat(i18n.language, { style: "long", type: "conjunction" }).format(items)
 
-function describeAction(action: AutomationAction, titleOf: SectionTitleOf, subject: AutomationSubject): string {
+/** Name of a tag of the workspace, undefined when it no longer exists. */
+type TagNameOf = (tagId: number) => string | undefined
+
+function describeAction(action: AutomationAction, titleOf: SectionTitleOf, subject: AutomationSubject, tagNameOf?: TagNameOf): string {
     switch (action.type) {
         case "moveTo": {
             const direct = directGroup(titleOf, action.sectionId)
@@ -84,6 +87,9 @@ function describeAction(action: AutomationAction, titleOf: SectionTitleOf, subje
             const suffix = subject === "group" ? "Group" : subject === "section" ? "Section" : ""
             return i18n.t(`automations.describe.${action.color ? "setColor" : "removeColor"}${suffix}`, { color: action.color ? colorName(action.color) : "" })
         }
+        case "addTag":
+        case "removeTag":
+            return i18n.t(action.type === "addTag" ? "automations.describe.addTag" : "automations.describe.removeTag", { tag: tagNameOf?.(action.tagId) ?? i18n.t("automations.describe.missingTag") })
         case "completeSubtasks": return i18n.t("automations.describe.completeSubtasks")
         case "moveGroup": return i18n.t(action.at === "top" ? "automations.describe.moveGroupTop" : "automations.describe.moveGroupBottom")
         case "archiveGroup": return i18n.t("automations.describe.archiveGroup")
@@ -93,12 +99,13 @@ function describeAction(action: AutomationAction, titleOf: SectionTitleOf, subje
 /**
  * The rule as a sentence ("When a task is completed in "Doing", move to the bottom of "Done"").
  * @param groupLabelOf Resolves the group of a group rule; without it the group is shown as deleted.
+ * @param tagNameOf Resolves the tag of a tag action; without it the tag is shown as deleted.
  * @category Automations
  */
-export function describeAutomation(rule: Pick<Automation, "trigger" | "actions">, titleOf: SectionTitleOf, groupLabelOf?: GroupLabelOf): string {
+export function describeAutomation(rule: Pick<Automation, "trigger" | "actions">, titleOf: SectionTitleOf, groupLabelOf?: GroupLabelOf, tagNameOf?: TagNameOf): string {
     return i18n.t("automations.describe.rule", {
         trigger: describeTrigger(rule.trigger, titleOf, groupLabelOf),
-        actions: joinList(rule.actions.map(action => describeAction(action, titleOf, triggerSubject(rule.trigger.type)))),
+        actions: joinList(rule.actions.map(action => describeAction(action, titleOf, triggerSubject(rule.trigger.type), tagNameOf))),
     })
 }
 
@@ -106,5 +113,5 @@ export function describeAutomation(rule: Pick<Automation, "trigger" | "actions">
  * The name shown for a rule: its own name, or its description.
  * @category Automations
  */
-export const automationName = (rule: Pick<Automation, "name" | "trigger" | "actions">, titleOf: SectionTitleOf, groupLabelOf?: GroupLabelOf) =>
-    rule.name ?? describeAutomation(rule, titleOf, groupLabelOf)
+export const automationName = (rule: Pick<Automation, "name" | "trigger" | "actions">, titleOf: SectionTitleOf, groupLabelOf?: GroupLabelOf, tagNameOf?: TagNameOf) =>
+    rule.name ?? describeAutomation(rule, titleOf, groupLabelOf, tagNameOf)

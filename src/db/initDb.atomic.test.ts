@@ -67,7 +67,7 @@ describe("initDB atomic migrations", () => {
     it("a fresh database reaches the latest version", async () => {
         await initDB(adapter())
         expect(pragma("user_version")).toBe(LATEST_SCHEMA_VERSION)
-        expect(LATEST_SCHEMA_VERSION).toBe(15)
+        expect(LATEST_SCHEMA_VERSION).toBe(16)
         expect(tables()).toContain("media_file")
     })
 
@@ -94,7 +94,7 @@ describe("initDB atomic migrations", () => {
         // the next start applies it
         vi.mocked(invoke).mockImplementation(sqliteTransaction as unknown as typeof invoke)
         await initDB(adapter())
-        expect(pragma("user_version")).toBe(15)
+        expect(pragma("user_version")).toBe(16)
         expect(tables()).toContain("media_file")
     })
 

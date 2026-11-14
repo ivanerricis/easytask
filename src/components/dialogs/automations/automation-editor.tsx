@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TooltipCustom } from "@/components/tooltip-custom"
+import type { Tag } from "@/types/types"
 import { PALETTE_COLORS } from "@/lib/colors"
 import { MAX_NAME_LENGTH } from "@/lib/names"
 import { actionLabel, colorName, describeAutomation, triggerLabel, type SectionName } from "@/lib/automations/describe"
@@ -24,6 +25,9 @@ type AutomationEditorProps = {
     sections: SectionOption[]
     titleOf: (id: number) => SectionName | undefined
     groupLabelOf: (id: number) => string | undefined
+    /** The tags of the workspace of the note, for the tag actions. */
+    tags: Tag[]
+    tagNameOf: (id: number) => string | undefined
     /** The section / group the dialog was opened for: where a new state trigger starts. */
     openedSectionId: number | null
     openedGroupId: number | null
@@ -97,7 +101,7 @@ const ColorDot = ({ color }: { color: string | null }) => (
     <span aria-hidden className="inline-block size-3.5 shrink-0 rounded-full align-[-0.2em] ring-1 ring-inset ring-foreground/20 in-data-[slot=select-value]:me-2" style={color ? { backgroundColor: color } : undefined} />
 )
 
-export const AutomationEditor = ({ step, draft, groups, sections, titleOf, groupLabelOf, openedSectionId, openedGroupId, onChange }: AutomationEditorProps) => {
+export const AutomationEditor = ({ step, draft, groups, sections, titleOf, groupLabelOf, tags, tagNameOf, openedSectionId, openedGroupId, onChange }: AutomationEditorProps) => {
     const { t } = useTranslation()
     const nameId = useId()
     const enabledId = useId()
@@ -105,7 +109,8 @@ export const AutomationEditor = ({ step, draft, groups, sections, titleOf, group
     const container = useRef<HTMLDivElement>(null)
     const { trigger, actions } = draft
     const groupTrigger = isGroupTrigger(trigger.type)
-    const allowedActions = actionsForTrigger(trigger.type)
+    // A workspace without tags offers no tag action (unless the rule already has one: it is shown as a missing tag)
+    const allowedActions = actionsForTrigger(trigger.type).filter(type => (type !== "addTag" && type !== "removeTag") || tags.length > 0 || actions.some(action => action.type === type))
     // The section of the trigger: a group trigger has none
     const triggerSection = "sectionId" in trigger ? trigger.sectionId : null
     // A state trigger only has the color: the "add action" button goes away once it is used
@@ -171,7 +176,7 @@ export const AutomationEditor = ({ step, draft, groups, sections, titleOf, group
                             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
                                 <ChoiceSelect label={t("automations.actionType")} value={action.type}
                                     options={allowedActions.map(type => ({ value: type, label: actionLabel(type) }))}
-                                    onChange={type => setAction(index, defaultAction(type, sections, triggerSection))} />
+                                    onChange={type => setAction(index, defaultAction(type, sections, triggerSection, tags))} />
                                 <TooltipCustom text={t("automations.removeAction")}>
                                     <Button variant="ghost" size="icon" type="button" aria-label={t("automations.removeAction")}
                                         onClick={() => onChange({ ...draft, actions: actions.filter((_, i) => i !== index) })}>
@@ -179,9 +184,12 @@ export const AutomationEditor = ({ step, draft, groups, sections, titleOf, group
                                     </Button>
                                 </TooltipCustom>
                             </div>
-                            <ActionParams action={action} groups={groups} sections={sections} onChange={next => setAction(index, next)} />
+                            <ActionParams action={action} groups={groups} sections={sections} tags={tags} onChange={next => setAction(index, next)} />
                         </div>
                     ))}
+                    {tags.length === 0 && triggerSubject(trigger.type) === "task" && !isStateTrigger(trigger.type) && (
+                        <p className="text-xs text-muted-foreground">{t("automations.noTags")}</p>
+                    )}
                     {canAddAction && (
                         <Button variant="outline" size="sm" type="button" className="justify-self-start"
                             onClick={() => {
@@ -201,7 +209,7 @@ export const AutomationEditor = ({ step, draft, groups, sections, titleOf, group
                 <>
                     <div className="grid gap-2">
                         <span className="text-sm font-medium">{t("automations.summaryTitle")}</span>
-                        <p className="rounded-xs border bg-muted/40 p-3 text-sm break-words">{describeAutomation(draft, titleOf, groupLabelOf)}</p>
+                        <p className="rounded-xs border bg-muted/40 p-3 text-sm break-words">{describeAutomation(draft, titleOf, groupLabelOf, tagNameOf)}</p>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor={nameId}>{t("automations.name")}</Label>
@@ -218,8 +226,8 @@ export const AutomationEditor = ({ step, draft, groups, sections, titleOf, group
     )
 }
 
-const ActionParams = ({ action, groups, sections, onChange }: {
-    action: AutomationAction, groups: GroupOption[], sections: SectionOption[], onChange: (action: AutomationAction) => void,
+const ActionParams = ({ action, groups, sections, tags, onChange }: {
+    action: AutomationAction, groups: GroupOption[], sections: SectionOption[], tags: Tag[], onChange: (action: AutomationAction) => void,
 }) => {
     const { t } = useTranslation()
     const label = actionLabel(action.type)
@@ -256,6 +264,19 @@ const ActionParams = ({ action, groups, sections, onChange }: {
                     <SelectContent>
                         <SelectItem value={NO_COLOR}><ColorDot color={null} />{t("automations.values.noColor")}</SelectItem>
                         {colors.map(color => <SelectItem key={color} value={color}><ColorDot color={color} />{colorName(color)}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            )
+        }
+        case "addTag":
+        case "removeTag": {
+            const missing = !tags.some(tag => tag.id === action.tagId)
+            return (
+                <Select value={String(action.tagId)} onValueChange={value => onChange({ ...action, tagId: Number(value) })}>
+                    <SelectTrigger aria-label={t("automations.tag")} className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {missing && <SelectItem value={String(action.tagId)}>{t("automations.describe.missingTag")}</SelectItem>}
+                        {tags.map(tag => <SelectItem key={tag.id} value={String(tag.id)}><ColorDot color={tag.color} />{tag.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
             )

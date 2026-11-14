@@ -110,9 +110,22 @@ export type Task = {
     completed: boolean
     priority: boolean
     description: string
+    /** The tags of the task (ids of the tags of its workspace, in the order of the tag list); absent when it has none. */
+    tagIDs?: number[]
     /** Saved state of the subtasks of the task (closed = hidden): true (or 1 from the database) = closed; absent/false = open. A state of the view: undo, templates, exports and copies do not carry it. */
     collapsed?: boolean | number
     subtasks: Task[]
+}
+
+/**
+ * A tag of a workspace: a name and a color that can be given to the tasks of the workspace. `position` is its place in the list.
+ */
+export type Tag = {
+    id: number
+    workspaceID: number
+    name: string
+    color: string | null
+    position: number
 }
 
 /**
