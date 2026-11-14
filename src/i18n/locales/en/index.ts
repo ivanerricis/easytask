@@ -13,6 +13,7 @@ import { tasks, transfer, duplicate } from "./tasks"
 import { details, rightPanel } from "./details"
 import { automations } from "./automations"
 import { templateEditor } from "./template-editor"
+import { tags } from "./tags"
 
 export const en: Translation = {
     common,
@@ -49,4 +50,5 @@ export const en: Translation = {
     details,
     automations,
     templateEditor,
+    tags,
 }

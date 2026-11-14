@@ -34,6 +34,10 @@ export type AutomationAction =
     | { type: "setPriority", value: boolean }
     /** Colors the task or the group of the rule; null removes the color. */
     | { type: "setColor", color: string | null }
+    /** Gives the task a tag of the workspace (nothing when it has it already). */
+    | { type: "addTag", tagId: number }
+    /** Takes a tag away from the task (nothing when it does not have it). */
+    | { type: "removeTag", tagId: number }
     /** Completes every subtask (at any depth). */
     | { type: "completeSubtasks" }
     /** Moves the group to the top or to the bottom of the note. */
@@ -97,7 +101,7 @@ export const triggerSubject = (type: AutomationTriggerType): AutomationSubject =
 
 /** The actions a rule can have for each subject (`setColor` acts on the subject, whichever it is). */
 export const ACTIONS_BY_SUBJECT: Record<AutomationSubject, readonly AutomationActionType[]> = {
-    task: ["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks"],
+    task: ["moveTo", "setCompleted", "setPriority", "setColor", "addTag", "removeTag", "completeSubtasks"],
     group: ["setColor", "moveGroup", "archiveGroup"],
     section: ["setColor"],
 }
@@ -144,6 +148,8 @@ export function isAutomationAction(value: unknown): value is AutomationAction {
         case "setCompleted":
         case "setPriority": return typeof action.value === "boolean"
         case "setColor": return action.color === null || (typeof action.color === "string" && action.color.length > 0)
+        case "addTag":
+        case "removeTag": return typeof action.tagId === "number" && Number.isInteger(action.tagId)
         case "completeSubtasks":
         case "archiveGroup": return true
         case "moveGroup": return action.at === "top" || action.at === "bottom"
@@ -168,4 +174,12 @@ export function referencedSections(rule: Pick<Automation, "trigger" | "actions">
  */
 export function referencedGroups(rule: Pick<Automation, "trigger">): number[] {
     return "groupId" in rule.trigger && rule.trigger.groupId !== null ? [rule.trigger.groupId] : []
+}
+
+/**
+ * The tags a rule refers to (its tag actions): a rule whose tag was deleted is skipped.
+ * @category Automations
+ */
+export function referencedTags(rule: Pick<Automation, "actions">): number[] {
+    return [...new Set(rule.actions.flatMap(action => action.type === "addTag" || action.type === "removeTag" ? [action.tagId] : []))]
 }

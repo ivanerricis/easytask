@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { automationName, describeAutomation, type SectionName } from "@/lib/automations/describe"
-import { referencedGroups, referencedSections, type Automation } from "@/lib/automations/types"
+import { referencedGroups, referencedSections, referencedTags, type Automation } from "@/lib/automations/types"
 import { cn } from "@/lib/utils"
 
 type Names = {
     titleOf: (id: number) => SectionName | undefined
     groupLabelOf: (id: number) => string | undefined
+    tagNameOf: (id: number) => string | undefined
 }
 
 type AutomationRowProps = Names & {
@@ -19,11 +20,12 @@ type AutomationRowProps = Names & {
     onDelete: (rule: Automation) => void
 }
 
-const AutomationRow = ({ rule, titleOf, groupLabelOf, onToggle, onEdit, onDelete }: AutomationRowProps) => {
+const AutomationRow = ({ rule, titleOf, groupLabelOf, tagNameOf, onToggle, onEdit, onDelete }: AutomationRowProps) => {
     const { t } = useTranslation()
-    const name = automationName(rule, titleOf, groupLabelOf)
+    const name = automationName(rule, titleOf, groupLabelOf, tagNameOf)
     const pausedKey = referencedGroups(rule).some(id => groupLabelOf(id) === undefined) ? "automations.pausedGroup"
-        : referencedSections(rule).some(id => titleOf(id) === undefined) ? "automations.paused" : null
+        : referencedSections(rule).some(id => titleOf(id) === undefined) ? "automations.paused"
+        : referencedTags(rule).some(id => tagNameOf(id) === undefined) ? "automations.pausedTag" : null
     return (
         <li className="flex items-center gap-3 px-3 py-2">
             <Switch
@@ -34,7 +36,7 @@ const AutomationRow = ({ rule, titleOf, groupLabelOf, onToggle, onEdit, onDelete
             <div className={cn("flex flex-col min-w-0 flex-1", !rule.enabled && "opacity-60")}>
                 {rule.name && <span className="text-sm font-medium truncate">{rule.name}</span>}
                 <span className={cn("break-words", rule.name ? "text-sm text-muted-foreground" : "text-sm")}>
-                    {describeAutomation(rule, titleOf, groupLabelOf)}
+                    {describeAutomation(rule, titleOf, groupLabelOf, tagNameOf)}
                 </span>
                 {pausedKey && (
                     <span className="flex items-start gap-1 text-sm text-destructive break-words">

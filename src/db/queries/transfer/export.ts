@@ -8,6 +8,7 @@ import { getDB } from "../../dbManager"
 import { buildNotesContent, parseTemplateContent } from "../template"
 import { getDBAutomationsByNote, toPortableAutomations } from "../automation"
 import { chunked, placeholders } from "../sql"
+import { getDBTagIndex, getDBTags } from "../tag"
 
 type LinkedFileRow = { section_groupID: number, name: string, path: string, position: number }
 
@@ -45,13 +46,13 @@ type ExportEntry ={ note: Note & { color: string | null }, folderRef: string | n
  */
 async function buildNotesExport(db: Database, entries: ExportEntry[]): Promise<ExportNote[]> {
     const noteIds = entries.map(({ note }) => note.id)
-    const [contents, rules] = await Promise.all([buildNotesContent(noteIds, true), getDBAutomationsByNote(noteIds)])
+    const [contents, rules, tagIndex] = await Promise.all([buildNotesContent(noteIds, true), getDBAutomationsByNote(noteIds), getDBTagIndex(noteIds)])
 
     const [audioByNote, mediaByNote] = await Promise.all([loadLinkedFiles(db, "audio_file", noteIds), loadLinkedFiles(db, "media_file", noteIds)])
 
     return entries.map(({ note, folderRef }): ExportNote => {
         const { content, sectionIds, groupIds, defaultSectionIds } = contents.get(note.id)!
-        const automations = toPortableAutomations(rules.get(note.id) ?? [], content, sectionIds, groupIds, defaultSectionIds)
+        const automations = toPortableAutomations(rules.get(note.id) ?? [], content, sectionIds, groupIds, defaultSectionIds, tagIndex)
         // Index of every group in the content (groupIds is in content order)
         const groupIndex = new Map(groupIds.map((id, index) => [id, index]))
         return {
@@ -84,7 +85,7 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
         if (workspaces.length === 0)
             throw createError("TRANSFER_WORKSPACE_MISSING", i18n.t("errors.transfer.workspaceMissing"))
 
-        const [folders, notes, templates] = await Promise.all([
+        const [folders, notes, templates, tags] = await Promise.all([
             db.select<(Folder & { color: string | null })[]>(
                 'SELECT * FROM folder WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY position, id', [workspaceId]),
             db.select<(Note & { color: string | null })[]>(
@@ -92,6 +93,7 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
             db.select<{ name: string, color: string | null, bg_color: string | null, content: string }[]>(
                 'SELECT name, color, bg_color, content FROM note_template WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY name COLLATE NOCASE, id',
                 [workspaceId]),
+            getDBTags(workspaceId),
         ])
 
         // An item inside a trashed folder is hidden with it: it is exported only when its whole folder chain is alive
@@ -133,6 +135,7 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
             folders: exportFolders,
             notes: exportNotes,
             templates: exportTemplates,
+            ...(tags.length > 0 ? { tags: tags.map(({ name, color }) => ({ name, color })) } : {}),
         }
     } catch (error: unknown) {
         throw toAppError(error, e => createError("TRANSFER_EXPORT_FAILED", i18n.t("errors.transfer.export", { message: getErrorMessage(e) })))

@@ -1,11 +1,12 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react"
-import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, TrashItem, WorkspaceDataTree } from "@/types/types"
+import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, Tag, TrashItem, WorkspaceDataTree } from "@/types/types"
 import type { CollapsibleKind } from "@/db/queries/collapsed"
 import type { DBItemType } from "@/db/queries/shared_queries"
 import type { TaskMoveTarget } from "@/db/queries/move"
 import type { NoteTemplate } from "@/types/template"
 import type { NewTaskPosition } from "@/lib/store/preferences"
 import type { LayoutState } from "@/contexts/layout-reducer"
+import type { WorkspaceTagsStore } from "./tags"
 
 export type WorkspaceStateType = {
     folders: Folder[]
@@ -59,6 +60,16 @@ export type WorkspaceActionsType = {
     updateTaskPriority: (taskID: number, priority: boolean) => Promise<void>
     updateTaskCompletion: (taskID: number, isCompleted: boolean) => Promise<void>
     updateTaskDescription: (taskID: number, description?: string) => Promise<void>
+    /** Creates a tag at the end of the list of the workspace and shows it in the list. */
+    createTag: (workspaceID: number, name: string, color?: string | null) => Promise<Tag>
+    renameTag: (tagID: number, name: string) => Promise<void>
+    updateTagColor: (tagID: number, color: string | null) => Promise<void>
+    /** Deletes a tag with its links; resolves with the tasks that had it. The caller refreshes the open note. */
+    deleteTag: (tagID: number) => Promise<number[]>
+    /** Puts a deleted tag back (same id and place) and gives it again to the tasks. The caller refreshes the open note. */
+    restoreTag: (tag: Tag, taskIds: readonly number[]) => Promise<void>
+    /** Gives a tag to the tasks (or takes it away). Does not touch the open note: the caller patches it first. */
+    setTaskTag: (tagID: number, taskIds: readonly number[], assigned: boolean) => Promise<void>
     renameItem: (itemType: DBItemType, itemId: number, name: string) => Promise<void>
     updateItemColor: (itemType: DBItemType, itemId: number, color?: string) => Promise<void>
     /** Saves the background color of a note (undefined = default) and updates the sidebar tree at once. */
@@ -138,6 +149,8 @@ export type Runtime = {
      * for the types that carry audio files (`forceAudio`: for every type, e.g. a restored section can bring back its group).
      */
     afterItemChange: (itemType: DBItemType, forceAudio?: boolean) => void
+    /** The tags of the open workspace (see useWorkspaceTags). */
+    tags: WorkspaceTagsStore
     /** Reloads the tree without waiting for it; a failure is reported, not thrown. */
     reloadTreeInBackground: (workspaceId: number) => void
     setCurrentFolder: Dispatch<SetStateAction<Folder | null>>

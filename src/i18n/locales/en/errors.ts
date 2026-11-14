@@ -69,6 +69,14 @@ export const errors: Translation["errors"] = {
         load: "Failed to read the item to duplicate: {{message}}",
         apply: "Failed to duplicate the item: {{message}}",
     },
+    tag: {
+        unique: "A tag with this name already exists.",
+        check: "The tag name cannot be empty.",
+        load: "Failed to load the tags: {{message}}",
+        delete: "Failed to delete the tag: {{message}}",
+        restore: "Failed to restore the tag: {{message}}",
+        assign: "Failed to change the tags: {{message}}",
+    },
     template: {
         unique: "A template with this name already exists.",
         check: "The template name cannot be empty.",

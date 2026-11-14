@@ -44,7 +44,7 @@ vi.mock("@/contexts/use-active-note", () => ({
     useActiveNote: () => ({ noteDataTree: mocks.tree }),
     useActiveNoteActions: () => noteActions,
 }))
-vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ notifyArchiveChanged: mocks.notifyArchiveChanged }) }))
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ notifyArchiveChanged: mocks.notifyArchiveChanged }), useWorkspaceTags: () => [] }))
 vi.mock("@/contexts/undo/use-undo", () => ({
     // Stable like the real recorder: a new one on every render would re-run the sync effect
     useUndoRecorder: () => mocks.recorder,

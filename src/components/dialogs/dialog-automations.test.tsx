@@ -14,6 +14,7 @@ vi.mock("@/db/queries/automation", () => ({
     setDBAutomationEnabled: vi.fn(),
 }))
 vi.mock("@/db/queries/note", () => ({ getDBNoteData: vi.fn() }))
+vi.mock("@/db/queries/tag", () => ({ getDBTags: vi.fn(async () => []), getDBNoteTags: vi.fn(async () => []) }))
 const sync = vi.fn()
 vi.mock("@/hooks/use-automations", () => ({ useAutomations: () => ({ dispatch: vi.fn(), sync }) }))
 

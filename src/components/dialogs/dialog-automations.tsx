@@ -37,7 +37,7 @@ type DialogAutomationsProps = {
  */
 export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, groupId }: DialogAutomationsProps) => {
     const { t } = useTranslation()
-    const { rules, setRules, groups, loaded, error, setError, sections, titleOf, groupLabelOf, reload } = useAutomationDialogData(noteId, isOpen)
+    const { rules, setRules, groups, loaded, error, setError, sections, titleOf, groupLabelOf, tags, tagNameOf, reload } = useAutomationDialogData(noteId, isOpen)
     // The rule being edited (id null = a new one), null while the list is shown; `initial` is the draft as the editor opened
     const [editing, setEditing] = useState<{ id: number | null, draft: AutomationDraft, initial: string, step: Step } | null>(null)
     const [deleting, setDeleting] = useState<Automation | null>(null)
@@ -168,6 +168,8 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                                     sections={sections}
                                     titleOf={titleOf}
                                     groupLabelOf={groupLabelOf}
+                                    tags={tags}
+                                    tagNameOf={tagNameOf}
                                     openedSectionId={sectionId ?? null}
                                     openedGroupId={groupId ?? null}
                                     onChange={draft => { setError(null); setEditing({ ...editing, draft }) }}
@@ -188,6 +190,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                             rules={rules}
                             titleOf={titleOf}
                             groupLabelOf={groupLabelOf}
+                            tagNameOf={tagNameOf}
                             onToggle={(rule, checked) => void toggle(rule, checked)}
                             onEdit={rule => openEditor(rule.id, { name: rule.name, enabled: rule.enabled, trigger: rule.trigger, actions: rule.actions })}
                             onDelete={setDeleting}
@@ -239,7 +242,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                 open={deleting !== null}
                 onOpenChange={open => { if (!open) setDeleting(null) }}
                 title={t("automations.deleteConfirm.title")}
-                description={deleting ? automationName(deleting, titleOf, groupLabelOf) : undefined}
+                description={deleting ? automationName(deleting, titleOf, groupLabelOf, tagNameOf) : undefined}
                 destructive
                 irreversible
                 confirm={{ label: t("common.delete"), icon: Trash2, onClick: () => { if (deleting) return remove(deleting) } }}

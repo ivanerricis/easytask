@@ -104,15 +104,15 @@ describe("taskChanges", () => {
         const moved = moveTask(before, 13, { sectionId: 2, parentTaskId: null }, 0)
         // 20 only shifted its index: it is a change of place when asked for
         expect(taskChanges(before, moved, [13, 20, 10])).toEqual([
-            { id: 13, place: true, completed: false, priority: false, color: false },
-            { id: 20, place: true, completed: false, priority: false, color: false },
+            { id: 13, place: true, completed: false, priority: false, color: false, tags: false },
+            { id: 20, place: true, completed: false, priority: false, color: false, tags: false },
         ])
         expect(taskChanges(before, moved, [])).toEqual([])
         expect(taskChanges(before, patchTask(before, 11, { completed: true }), [11])).toEqual([
-            { id: 11, place: false, completed: true, priority: false, color: false },
+            { id: 11, place: false, completed: true, priority: false, color: false, tags: false },
         ])
         expect(taskChanges(before, patchTask(before, 12, { color: "#fff", priority: true }), [12])).toEqual([
-            { id: 12, place: false, completed: false, priority: true, color: true },
+            { id: 12, place: false, completed: false, priority: true, color: true, tags: false },
         ])
     })
 
@@ -180,7 +180,7 @@ describe("restoreTasks", () => {
     it("skips a task whose destination section no longer exists", () => {
         const { before, tree: after } = run()
         const latest = removeSection(after, 1)
-        const restored = restoreTasks(latest, before, [{ id: 13, place: true, completed: false, priority: false, color: false }])
+        const restored = restoreTasks(latest, before, [{ id: 13, place: true, completed: false, priority: false, color: false, tags: false }])
         expect(layout(restored)).toEqual(layout(latest))
     })
 
@@ -188,7 +188,7 @@ describe("restoreTasks", () => {
         const before = base()
         const after = patchTask(before, 11, { completed: true })
         const latest = removeTask(after, 10)
-        expect(restoreTasks(latest, before, [{ id: 11, place: true, completed: true, priority: false, color: false }])).toBe(latest)
+        expect(restoreTasks(latest, before, [{ id: 11, place: true, completed: true, priority: false, color: false, tags: false }])).toBe(latest)
     })
 
     it("does nothing without changes", () => {

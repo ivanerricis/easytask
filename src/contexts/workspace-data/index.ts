@@ -1,5 +1,6 @@
 export { WorkspaceDataProvider } from "./provider"
 export { useWorkspaceState, useWorkspaceActions, useWorkspaceLoading, useWorkspaceData } from "./context"
 export { useWorkspaceVersion } from "./versions"
+export { useWorkspaceTags, useTagsOf } from "./tags"
 export type { WorkspaceVersionKind } from "./versions"
 export type { WorkspaceStateType, WorkspaceActionsType, PreviousColor } from "./types"

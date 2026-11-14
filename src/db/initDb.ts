@@ -4,6 +4,7 @@ import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, grou
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
+import { tagSchema } from "./schema/tag";
 import { automationSchema } from "./schema/automation";
 import { TransactionError, runTransactionOn } from "./transaction-core";
 
@@ -44,6 +45,8 @@ const migrations: string[][] = [
     customThemeSchema,
     // v15: images and videos linked to the groups
     mediaFileSchema,
+    // v16: tags of the tasks (a list per workspace) and their links
+    tagSchema,
 ];
 
 /**

@@ -1,11 +1,12 @@
 import i18n from "@/i18n"
-import type { NoteTemplate, NoteTemplateContent, TemplateGroup, TemplateSection, TemplateTask } from "@/types/template";
+import type { NoteTemplate, NoteTemplateContent, TemplateGroup, TemplateSection, TemplateTag, TemplateTask } from "@/types/template";
 import type { Group, Section, Task } from "@/types/types";
 import { createError, handleDBError, toAppError } from "@/types/error";
 import { getErrorMessage } from "@/lib/utils";
 import { getDB } from "../dbManager";
 import { rethrowTxError, Transaction, type TxRef } from "../transaction";
 import { getDBNoteData, getDBNotesData, type NoteData } from "./note";
+import { addEnsureTag, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
 
@@ -42,9 +43,10 @@ const toTemplate = ({ content, ...row }: TemplateRow): NoteTemplate =>
  * Returns a function that snapshots a section (with its tasks and subtasks at any depth) out of a list of tasks.
  * A subtask whose ancestor is not in the list is left out with it.
  * @param tasks The (non deleted) tasks of the sections that will be snapshotted.
+ * @param tags The tags their `tagIDs` refer to (a tag that is not here is left out of the snapshot).
  * @category Database Queries
  */
-export function createSectionSnapshotter(tasks: Task[]): (section: Pick<Section, "id" | "title" | "color" | "archived_at" | "position">) => TemplateSection {
+export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[] = []): (section: Pick<Section, "id" | "title" | "color" | "archived_at" | "position">) => TemplateSection {
     const childrenOf = new Map<number, Task[]>()
     const topOf = new Map<number, Task[]>()
     for (const task of tasks) {
@@ -55,6 +57,10 @@ export function createSectionSnapshotter(tasks: Task[]): (section: Pick<Section,
         else bucket.set(key, [task])
     }
 
+    const tagById = new Map(tags.map(tag => [tag.id, tag]))
+    const tagsOf = (task: Task): TemplateTag[] =>
+        (task.tagIDs ?? []).flatMap(id => tagById.get(id) ?? []).map(({ name, color }) => ({ name, color: color ?? null }))
+
     const snapshotTask = (task: Task): TemplateTask => ({
         ...(task.archived_at ? { archived_at: task.archived_at } : {}),
         text: task.text,
@@ -62,6 +68,7 @@ export function createSectionSnapshotter(tasks: Task[]): (section: Pick<Section,
         completed: !!task.completed,
         priority: !!task.priority,
         color: task.color ?? null,
+        ...(tagsOf(task).length > 0 ? { tags: tagsOf(task) } : {}),
         position: task.position,
         subtasks: (childrenOf.get(task.id) ?? []).map(snapshotTask),
     })
@@ -87,8 +94,8 @@ export type NoteContent = { content: NoteTemplateContent, sectionIds: number[], 
  * @param data The groups, sections and tasks of a note.
  * @category Database Queries
  */
-export function buildContentFromRows({ groups, sections, tasks }: NoteData): NoteContent {
-    const snapshotSection = createSectionSnapshotter(tasks)
+export function buildContentFromRows({ groups, sections, tasks, tags }: NoteData): NoteContent {
+    const snapshotSection = createSectionSnapshotter(tasks, tags)
     const sectionsByGroup = new Map<number, Section[]>()
     for (const section of sections) {
         const list = sectionsByGroup.get(section.groupID)
@@ -321,6 +328,7 @@ export function addSections(tx: Transaction, sources: { groupRef: number | TxRef
         sources.map(({ groupRef, section, isDefault }) => [groupRef, section.title || null, section.color ?? null, section.archived_at || null, section.position, isDefault ? 1 : 0]))
 
     // Tasks level by level: the subtasks of a level reference the ids of their parents
+    const tagged: { taskRef: TxRef, tags: TemplateTag[] }[] = []
     let level: PendingTask[] = sources.flatMap(({ section }, i) =>
         section.tasks.map(task => ({ sectionRef: sectionRefs[i], parentRef: null, task })))
     while (level.length > 0) {
@@ -330,10 +338,40 @@ export function addSections(tx: Transaction, sources: { groupRef: number | TxRef
                 sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
                 task.priority ? 1 : 0, task.color ?? null, task.archived_at || null, task.position,
             ]))
+        level.forEach(({ task }, i) => { if (task.tags?.length) tagged.push({ taskRef: refs[i], tags: task.tags }) })
         level = level.flatMap(({ sectionRef, task }, i) =>
             task.subtasks.map(subtask => ({ sectionRef, parentRef: refs[i], task: subtask })))
     }
+    if (tagged.length > 0) addTaskTags(tx, sectionRefs[0], tagged)
     return sectionRefs
+}
+
+/** Rows per statement of the links (two parameters each). */
+const TAG_LINK_CHUNK = 200
+
+/**
+ * Adds to a transaction the statements that give tags to tasks created in the same transaction: the tags missing in the
+ * workspace of the tasks are created first (at the end of its list, in the order they appear; a tag with the same name, ignoring
+ * the case, is reused as it is), then the links are written.
+ * @param tx The transaction collecting the statements.
+ * @param sectionRef A section created in the transaction (or its id): it tells the workspace.
+ * @param tasks The tasks (by reference) and their tags.
+ * @category Database Queries
+ */
+export function addTaskTags(tx: Transaction, sectionRef: number | TxRef, tasks: readonly { taskRef: TxRef | number, tags: readonly TemplateTag[] }[]): void {
+    const wanted = new Map<string, TemplateTag>()
+    for (const { tags } of tasks)
+        for (const tag of tags) if (!wanted.has(tag.name.toLowerCase())) wanted.set(tag.name.toLowerCase(), tag)
+    for (const tag of wanted.values()) addEnsureTag(tx, WORKSPACE_OF_SECTION, sectionRef, tag)
+    const links = tasks.flatMap(({ taskRef, tags }) => [...new Set(tags.map(tag => tag.name.toLowerCase()))].map(name => [taskRef, name] as const))
+    for (let start = 0; start < links.length; start += TAG_LINK_CHUNK) {
+        const chunk = links.slice(start, start + TAG_LINK_CHUNK)
+        tx.add(
+            `WITH v(taskID, name) AS (VALUES ${chunk.map(() => "(?, ?)").join(", ")})
+             INSERT OR IGNORE INTO task_tag (taskID, tagID)
+             SELECT v.taskID, tg.id FROM v INNER JOIN tag tg ON tg.name = v.name AND tg.workspaceID = ${WORKSPACE_OF_SECTION}`,
+            [...chunk.flat(), sectionRef])
+    }
 }
 
 /**

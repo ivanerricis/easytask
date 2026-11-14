@@ -113,8 +113,8 @@ describe("subjects", () => {
 
     it("every action type belongs to a subject", () => {
         const listed = [...ACTIONS_BY_SUBJECT.task, ...ACTIONS_BY_SUBJECT.group]
-        expect(new Set(listed)).toEqual(new Set(["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks", "moveGroup", "archiveGroup"]))
-        expect(ACTIONS_BY_SUBJECT.task).toEqual(["moveTo", "setCompleted", "setPriority", "setColor", "completeSubtasks"])
+        expect(new Set(listed)).toEqual(new Set(["moveTo", "setCompleted", "setPriority", "setColor", "addTag", "removeTag", "completeSubtasks", "moveGroup", "archiveGroup"]))
+        expect(ACTIONS_BY_SUBJECT.task).toEqual(["moveTo", "setCompleted", "setPriority", "setColor", "addTag", "removeTag", "completeSubtasks"])
         expect(ACTIONS_BY_SUBJECT.group).toEqual(["setColor", "moveGroup", "archiveGroup"])
         expect(ACTIONS_BY_SUBJECT.section).toEqual(["setColor"])
     })

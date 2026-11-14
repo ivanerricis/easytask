@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { getErrorMessage } from "@/lib/utils"
 import type { SectionName } from "@/lib/automations/describe"
 import type { Automation } from "@/lib/automations/types"
+import type { Tag } from "@/types/types"
 import { loadDialogData, type DialogData, type GroupOption } from "./model"
 
 /**
@@ -11,6 +12,7 @@ import { loadDialogData, type DialogData, type GroupOption } from "./model"
 export function useAutomationDialogData(noteId: number, isOpen: boolean) {
     const [rules, setRules] = useState<Automation[]>([])
     const [groups, setGroups] = useState<GroupOption[]>([])
+    const [tags, setTags] = useState<Tag[]>([])
     const [loaded, setLoaded] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -20,10 +22,12 @@ export function useAutomationDialogData(noteId: number, isOpen: boolean) {
         return section?.group !== undefined ? { group: section.group } : section?.title
     }, [sections])
     const groupLabelOf = useCallback((id: number) => groups.find(group => group.id === id)?.label, [groups])
+    const tagNameOf = useCallback((id: number) => tags.find(tag => tag.id === id)?.name, [tags])
 
     const reload = useCallback(() => loadDialogData(noteId).then((data: DialogData) => {
         setRules(data.rules)
         setGroups(data.groups)
+        setTags(data.tags)
         setError(null)
     }, (err: unknown) => setError(getErrorMessage(err))), [noteId])
 
@@ -34,5 +38,5 @@ export function useAutomationDialogData(noteId: number, isOpen: boolean) {
         return () => setLoaded(false)
     }, [isOpen, reload])
 
-    return { rules, setRules, groups, loaded, error, setError, sections, titleOf, groupLabelOf, reload }
+    return { rules, setRules, groups, loaded, error, setError, sections, titleOf, groupLabelOf, tags, tagNameOf, reload }
 }

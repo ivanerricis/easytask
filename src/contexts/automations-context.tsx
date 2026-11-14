@@ -5,7 +5,7 @@ import i18n from "@/i18n"
 import type { NoteDataTree, Task } from "@/types/types"
 import { useActiveNote, useActiveNoteActions } from "@/contexts/use-active-note"
 import { useActiveNoteId } from "@/contexts/use-tabs"
-import { useWorkspaceActions } from "@/contexts/workspace-data"
+import { useWorkspaceActions, useWorkspaceTags } from "@/contexts/workspace-data"
 import { useOptionalUndo, useUndoRecorder } from "@/contexts/undo/use-undo"
 import type { UndoCommand } from "@/contexts/undo/stack"
 import { findSection } from "@/contexts/note-tree-ops"
@@ -96,6 +96,10 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
     const { noteDataTree } = useActiveNote()
     const { getCachedNoteTree, getNoteData, setNoteDataTree } = useActiveNoteActions()
     const { notifyArchiveChanged } = useWorkspaceActions()
+    // The tags of the workspace, read when a rule runs (a rule whose tag was deleted is skipped; the toast names the tags)
+    const workspaceTags = useWorkspaceTags()
+    const tagsRef = useRef(workspaceTags)
+    useEffect(() => { tagsRef.current = workspaceTags }, [workspaceTags])
     // The cached notes are read and written by id (a note open in a pane without the focus has its own entry), so no
     // path depends on which note has the focus. An automation is applied to the cached note first: when the write fails
     // the note is reloaded and the error goes on
@@ -144,7 +148,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
         const before = getCachedNoteTree(noteId)
         if (!before) return
 
-        const { tree: after, applied, touched, touchedGroups, archivedGroups } = runAutomations(before, rules, event)
+        const { tree: after, applied, touched, touchedGroups, archivedGroups } = runAutomations(before, rules, event, new Set(tagsRef.current.map(tag => tag.id)))
         if (applied.length === 0 || after === before) return
 
         // `after` plus the archived groups as they ended up: their tasks may have been changed before the archive
@@ -164,7 +168,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
             // The direct area of a group is named after the group
             return isDefaultSection(found.section) ? { group: groupLabelOf(found.groupId) ?? "" } : found.section.title
         }
-        const names = applied.map(rule => automationName(rule, titleOf, groupLabelOf))
+        const names = applied.map(rule => automationName(rule, titleOf, groupLabelOf, id => tagsRef.current.find(tag => tag.id === id)?.name))
         const command: UndoCommand = {
             label: i18n.t("automations.undoLabel", { name: names.join(", ") }),
             noteId,

@@ -25,6 +25,7 @@ import { makeGroup, makeNote, makeSection, makeTask } from "@/test/ui-fixtures"
 import type { Folder } from "@/types/types"
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
+vi.mock("@/db/queries/tag", () => ({ getDBTags: vi.fn(async () => []), getDBNoteTags: vi.fn(async () => []) }))
 vi.mock("@/db/queries/workspace", () => ({ getDBWorkspaceData: vi.fn() }))
 vi.mock("@/db/queries/note", () => ({
     updateDBNoteBackground: vi.fn(),

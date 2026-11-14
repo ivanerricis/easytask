@@ -2,11 +2,12 @@ import i18n from "@/i18n"
 import { createError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
 import { isAutomationAction, isAutomationTrigger, isValidRule, type Automation, type AutomationDraft } from "@/lib/automations/types"
-import { buildGroupIndex, buildSectionIndex, sectionOffsets, toPortable, type PortableAutomation, type PortableSectionRef } from "@/lib/automations/portable"
+import { buildGroupIndex, buildSectionIndex, sectionOffsets, toPortable, type PortableAutomation, type PortableSectionRef, type PortableTag } from "@/lib/automations/portable"
 import type { NoteTemplateContent } from "@/types/template"
 import { getDB } from "../dbManager"
 import { chunked, nextPositionSql, placeholders } from "./sql"
 import { runTransaction, type Transaction, type TxRef, type TxStatement } from "../transaction"
+import { addEnsureTag, getDBTagIndex, WORKSPACE_OF_NOTE } from "./tag"
 
 type AutomationRow = {
     id: number
@@ -71,7 +72,8 @@ export async function getDBPortableAutomations(
     noteId: number, content: NoteTemplateContent, sectionIds: readonly number[], groupIds: readonly number[],
     defaultSectionIds: readonly (number | null)[],
 ): Promise<PortableAutomation[]> {
-    return toPortableAutomations(await getDBAutomations(noteId), content, sectionIds, groupIds, defaultSectionIds)
+    const [rules, tags] = await Promise.all([getDBAutomations(noteId), getDBTagIndex([noteId])])
+    return toPortableAutomations(rules, content, sectionIds, groupIds, defaultSectionIds, tags)
 }
 
 /**
@@ -105,12 +107,12 @@ export async function getDBAutomationsByNote(noteIds: readonly number[]): Promis
  */
 export function toPortableAutomations(
     rules: readonly Automation[], content: NoteTemplateContent, sectionIds: readonly number[], groupIds: readonly number[],
-    defaultSectionIds: readonly (number | null)[],
+    defaultSectionIds: readonly (number | null)[], tags?: ReadonlyMap<number, PortableTag>,
 ): PortableAutomation[] {
     const index = buildSectionIndex(content, sectionIds, defaultSectionIds)
     const groupIndex = buildGroupIndex(content, groupIds)
     return rules
-        .map(rule => toPortable(rule, index, groupIndex))
+        .map(rule => toPortable(rule, index, groupIndex, tags))
         .filter(rule => rule !== null)
 }
 
@@ -125,6 +127,7 @@ export function toPortableAutomations(
  * @param sectionRefs References to the created sections in content order (see addNoteContent).
  * @param groupRefs References to the created groups in content order (see addNoteContent).
  * @param defaultSectionRefs References to the default sections (the direct area) of the created groups, in group order.
+ * A tag action finds (or creates) the tag of the note's workspace by name, so its id is written by SQLite as well.
  * @category Database Queries
  */
 export function addNoteAutomations(
@@ -156,16 +159,26 @@ export function addNoteAutomations(
         }
 
         const moves: [number, TxRef][] = []
+        const tagged: [number, string][] = []
         const actions = rule.actions.map((action, i) => {
+            if (action.type === "addTag" || action.type === "removeTag") {
+                addEnsureTag(tx, WORKSPACE_OF_NOTE, noteRef, action.tag)
+                tagged.push([i, action.tag.name.trim()])
+                return { type: action.type, tagId: PLACEHOLDER }
+            }
             if (action.type !== "moveTo") return action
             moves.push([i, refOf(action.sectionId)])
             return { ...action, sectionId: PLACEHOLDER }
         })
         params.push(JSON.stringify(actions))
         let actionsSql = "?"
-        if (moves.length > 0) {
-            actionsSql = `json_set(?, ${moves.map(([i]) => `'$[${i}].sectionId', CAST(? AS INTEGER)`).join(", ")})`
-            params.push(...moves.map(([, ref]) => ref))
+        if (moves.length > 0 || tagged.length > 0) {
+            const sets = [
+                ...moves.map(([i]) => `'$[${i}].sectionId', CAST(? AS INTEGER)`),
+                ...tagged.map(([i]) => `'$[${i}].tagId', (SELECT id FROM tag WHERE workspaceID = ${WORKSPACE_OF_NOTE} AND name = ?)`),
+            ]
+            actionsSql = `json_set(?, ${sets.join(", ")})`
+            params.push(...moves.map(([, ref]) => ref), ...tagged.flatMap(([, name]) => [noteRef, name]))
         }
 
         params.push(position)

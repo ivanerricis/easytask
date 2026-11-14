@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import type { Folder, WorkspaceDataTree } from "@/types/types"
 import type { DBItemType } from "@/db/queries/shared_queries"
 import { getDBWorkspaceData } from "@/db/queries/workspace"
+import { getDBTags } from "@/db/queries/tag"
 import { getDBTemplateDrafts, type TemplateDraft } from "@/db/queries/template-draft"
 import { draftToNote } from "@/lib/template-draft"
 import { reportError } from "@/lib/report-error"
@@ -20,6 +21,7 @@ import { useTaskActions } from "./tasks"
 import { useTrashActions } from "./trash"
 import { useArchiveActions } from "./archive"
 import { useTemplateActions } from "./templates"
+import { createTagsStore, useTagActions, WorkspaceTagsContext } from "./tags"
 import type { Runtime, TabsBridge, WorkspaceActionsType, WorkspaceStateType } from "./types"
 
 /** Refetches of a reload whose response was overtaken by an optimistic update. */
@@ -41,6 +43,8 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
 
     // The version counters are apart from the state: bumping one re-renders only the components that read it
     const [versions] = useState(createVersionsStore)
+    // The tags of the loaded workspace: a store of their own, so a tag that changes does not re-render the tree or the notes
+    const [tags] = useState(createTagsStore)
 
     // The flat lists follow the tree: they change identity only when the tree does
     const { folders, notes } = useMemo(
@@ -126,7 +130,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
             for (let attempt = 0; ; attempt++) {
                 const seq = optimisticSeq.current
                 // The drafts come with the tree, so the tabs saved for the workspace can be restored to them
-                const [data, workspaceDrafts] = await Promise.all([getDBWorkspaceData(workspaceID), getDBTemplateDrafts(workspaceID, true)])
+                const [data, workspaceDrafts, workspaceTags] = await Promise.all([getDBWorkspaceData(workspaceID), getDBTemplateDrafts(workspaceID, true), getDBTags(workspaceID)])
                 if (requestSeq !== reloadSeq.current) return
                 // An optimistic update of the same workspace arrived meanwhile: this response predates it, so fetch again
                 // (a bounded number of times: the last response is applied anyway, it is the freshest one)
@@ -136,6 +140,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
                 loadedWorkspaceRef.current = workspaceID
                 setTreeState(tree)
                 setDrafts(workspaceDrafts)
+                tags.set({ workspaceId: workspaceID, tags: workspaceTags })
                 setLoadedWorkspaceId(workspaceID)
                 setError(null)
                 return
@@ -144,7 +149,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
             if (requestSeq === reloadSeq.current) setError(i18n.t("errors.loadWorkspaceData"))
             throw error
         }
-    }), [withLoading])
+    }), [withLoading, tags])
 
     /** A failed refresh is reported, not thrown: the caller does not wait for it. */
     const reloadTreeInBackground = useCallback((workspaceID: number) => {
@@ -179,21 +184,23 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
         loadedWorkspaceRef.current = null
         setLoadedWorkspaceId(null)
         setDrafts([])
-    }, [])
+        tags.set({ workspaceId: null, tags: [] })
+    }, [tags])
 
     /* ------------------------------------------------------------------------------------ */
 
     // Every member is stable, so the runtime is too (the actions built on it keep their identity)
     const runtime = useMemo<Runtime>(() => ({
         tabsBridge, withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground,
-        setCurrentFolder, getWorkspaceData, getTree, applyTree,
-    }), [withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground, getWorkspaceData, getTree, applyTree])
+        tags, setCurrentFolder, getWorkspaceData, getTree, applyTree,
+    }), [tags, withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground, getWorkspaceData, getTree, applyTree])
     const treeActions = useTreeActions(runtime)
     const noteContentActions = useNoteContentActions(runtime)
     const taskActions = useTaskActions(runtime)
     const trashActions = useTrashActions(runtime)
     const archiveActions = useArchiveActions(runtime)
     const templateActions = useTemplateActions(runtime)
+    const tagActions = useTagActions(runtime)
 
     // The tabs are derived from the notes of the tree and from the drafts of the templates that are not in the trash
     const tabNotes = useMemo(() => [...notes, ...drafts.filter(draft => !draft.trashed).map(draftToNote)], [notes, drafts])
@@ -214,12 +221,14 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
         ...trashActions,
         ...archiveActions,
         ...templateActions,
+        ...tagActions,
         resetData,
-    }), [getWorkspaceData, setWorkspaceDataTree, notifyArchiveChanged, resetData, treeActions, noteContentActions, taskActions, trashActions, archiveActions, templateActions])
+    }), [getWorkspaceData, setWorkspaceDataTree, notifyArchiveChanged, resetData, treeActions, noteContentActions, taskActions, trashActions, archiveActions, templateActions, tagActions])
 
     return (
         <WorkspaceLoadingContext.Provider value={isLoading}>
             <WorkspaceVersionsContext.Provider value={versions}>
+            <WorkspaceTagsContext.Provider value={tags}>
             <WorkspaceStateContext.Provider value={state}>
                 <WorkspaceActionsContext.Provider value={actions}>
                     <TabsProvider notes={tabNotes} workspaceId={loadedWorkspaceId} bridgeRef={tabsBridge}>
@@ -231,6 +240,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
                     </TabsProvider>
                 </WorkspaceActionsContext.Provider>
             </WorkspaceStateContext.Provider>
+            </WorkspaceTagsContext.Provider>
             </WorkspaceVersionsContext.Provider>
         </WorkspaceLoadingContext.Provider>
     )

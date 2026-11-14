@@ -1,4 +1,14 @@
 /**
+ * A tag of a task in a snapshot: by name and color, since the ids belong to the workspace. Applying the snapshot reuses the
+ * tag of the target workspace with the same name (the case is ignored) or creates it with this color.
+ * @category Types
+ */
+export type TemplateTag = {
+    name: string
+    color: string | null
+}
+
+/**
  * Snapshot of a task (and, recursively, of its subtasks) stored in a template.
  * @category Types
  */
@@ -10,6 +20,8 @@ export type TemplateTask = {
     completed: boolean
     priority: boolean
     color: string | null
+    /** The tags of the task; absent when it has none (and in snapshots created before the tags existed). */
+    tags?: TemplateTag[]
     position: number
     subtasks: TemplateTask[]
 }

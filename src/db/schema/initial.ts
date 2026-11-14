@@ -10,6 +10,7 @@ import { createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigge
 import { createWorkspaceEditTriggers } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
 import { mediaFileSchema } from "./media_file";
+import { tagSchema } from "./tag";
 import { trashIndexSchema } from "./trash_index";
 import { createWorkspaceIndexes, createWorkspaceTable, createWorkspaceTrigger } from "./workspace";
 
@@ -120,7 +121,7 @@ export const customThemeSchema: string[] = [...createCustomThemeTable]
  * Migration v15: table of the images and videos linked to the groups.
  * @category Database Schema
  */
-export { mediaFileSchema }
+export { mediaFileSchema, tagSchema }
 
 /**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
@@ -128,5 +129,5 @@ export { mediaFileSchema }
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema,
 ]

@@ -22,10 +22,14 @@ type PortableTrigger =
     | { type: Exclude<AutomationTriggerType, GroupTriggerType>, sectionId: PortableSectionRef | null }
     | { type: GroupTriggerType, groupId: number | null }
 
-/** An action of a portable rule: a move targets a position in the content. */
+/** A tag of a portable rule: by name and color, since the ids belong to the workspace (the copy reuses or creates the tag by name). */
+export type PortableTag = { name: string, color: string | null }
+
+/** An action of a portable rule: a move targets a position in the content, a tag action names its tag. */
 type PortableAction =
-    | Exclude<AutomationAction, { type: "moveTo" }>
+    | Exclude<AutomationAction, { type: "moveTo" | "addTag" | "removeTag" }>
     | { type: "moveTo", sectionId: PortableSectionRef, at: "top" | "bottom" }
+    | { type: "addTag" | "removeTag", tag: PortableTag }
 
 /**
  * A rule independent of the ids of its note, to be copied or exported together with the note content
@@ -97,12 +101,14 @@ export function sectionOffsets(content: NoteTemplateContent): number[] {
  * @param rule The rule of the source note.
  * @param sectionIndex See buildSectionIndex.
  * @param groupIndex See buildGroupIndex; without it the rules of a group are left out.
+ * @param tagIndex The name and color of each tag of the workspace by id; a rule with a tag action that is not in it (or without the index) is left out.
  * @category Automations
  */
 export function toPortable(
     rule: Pick<Automation, "name" | "enabled" | "trigger" | "actions">,
     sectionIndex: ReadonlyMap<number, PortableSectionRef>,
     groupIndex?: ReadonlyMap<number, number>,
+    tagIndex?: ReadonlyMap<number, PortableTag>,
 ): PortableAutomation | null {
     const source = rule.trigger
     let trigger: PortableTrigger
@@ -124,6 +130,12 @@ export function toPortable(
 
     const actions: PortableAction[] = []
     for (const action of rule.actions) {
+        if (action.type === "addTag" || action.type === "removeTag") {
+            const tag = tagIndex?.get(action.tagId)
+            if (!tag) return null
+            actions.push({ type: action.type, tag: { name: tag.name, color: tag.color } })
+            continue
+        }
         if (action.type !== "moveTo") {
             actions.push(action)
             continue
@@ -168,6 +180,11 @@ export function isPortableAutomation(value: unknown, content: NoteTemplateConten
         if (typeof action === "object" && action !== null && (action as { type?: unknown }).type === "moveTo") {
             const { sectionId: target, at } = action as { sectionId?: unknown, at?: unknown }
             return isSectionInContent(target, content) && (at === "top" || at === "bottom")
+        }
+        if (typeof action === "object" && action !== null && ((action as { type?: unknown }).type === "addTag" || (action as { type?: unknown }).type === "removeTag")) {
+            const { tag } = action as { tag?: unknown }
+            return typeof tag === "object" && tag !== null && typeof (tag as PortableTag).name === "string" && (tag as PortableTag).name.trim().length > 0
+                && ((tag as PortableTag).color === null || typeof (tag as PortableTag).color === "string")
         }
         return isAutomationAction(action)
     })
