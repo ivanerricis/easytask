@@ -452,3 +452,39 @@ describe("direct area of a group", () => {
         expect(diffSectionStatements(before, after)).toEqual([{ sql: "UPDATE section SET color = ? WHERE id = ?", params: ["#123456", 90] }])
     })
 })
+
+describe("tags in the diff", () => {
+    it("writes the links that were added and removed, and only those", () => {
+        const before = patchTask(base(), 13, { tagIDs: [1, 2] })
+        const after = patchTask(before, 13, { tagIDs: [2, 3] })
+        expect(diffTaskStatements(before, after)).toEqual([
+            { sql: "INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT ?, id FROM tag WHERE id = ?", params: [13, 3] },
+            { sql: "DELETE FROM task_tag WHERE taskID = ? AND tagID = ?", params: [13, 1] },
+        ])
+        // The order of the ids is not a change
+        expect(diffTaskStatements(before, patchTask(before, 13, { tagIDs: [2, 1] }))).toEqual([])
+        expect(taskChanges(before, patchTask(before, 13, { tagIDs: [2, 1] }), [13])).toEqual([])
+    })
+
+    it("reports the task as changed and restores its tags on the latest note", () => {
+        const before = patchTask(base(), 13, { tagIDs: [1] })
+        const after = patchTask(before, 13, { tagIDs: [1, 4] })
+        const changes = taskChanges(before, after, [13])
+        expect(changes).toEqual([{ id: 13, place: false, completed: false, priority: false, color: false, tags: true }])
+        // Undo: back to what `before` had, on a note that changed in the meantime (another field)
+        const latest = patchTask(after, 13, { priority: true })
+        const undone = restoreTasks(latest, before, changes)
+        expect(taskOf(undone, 13).tagIDs).toEqual([1])
+        expect(taskOf(undone, 13).priority).toBe(true)
+        expect(taskOf(restoreTasks(undone, after, changes), 13).tagIDs).toEqual([1, 4])
+    })
+
+    it("a rule run by the engine produces the statements of its tag actions", () => {
+        const before = base()
+        const rule = makeRule(1, { type: "task.completed", sectionId: null }, [{ type: "addTag", tagId: 8 }])
+        const { tree } = runAutomations(patchTask(before, 13, { completed: true }), [rule], { type: "task.completed", taskId: 13 })
+        expect(diffTaskStatements(patchTask(before, 13, { completed: true }), tree)).toEqual([
+            { sql: "INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT ?, id FROM tag WHERE id = ?", params: [13, 8] },
+        ])
+    })
+})

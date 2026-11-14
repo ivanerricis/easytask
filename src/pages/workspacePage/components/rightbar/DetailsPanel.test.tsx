@@ -16,11 +16,13 @@ vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 const updateTaskPriority = vi.fn()
 const updateTaskDescription = vi.fn()
 const updateItemColor = vi.fn()
+let tagsOf: { id: number, workspaceID: number, name: string, color: string | null, position: number }[] = []
+vi.mock("@/components/tags/TagPicker", () => ({ TagPicker: ({ taskIds }: { taskIds: number[] }) => <output data-testid="tag-picker">{taskIds.join(",")}</output> }))
 const patchTask = vi.fn()
 const rollback = vi.fn()
 vi.mock("@/contexts/workspace-data", () => ({
     useWorkspaceActions: () => ({ updateTaskPriority, updateTaskDescription, updateItemColor }),
-    useTagsOf: () => [],
+    useTagsOf: () => tagsOf,
     useWorkspaceTags: () => [],
 }))
 let tree: NoteDataTree | null
@@ -94,6 +96,7 @@ const select = async (id: number | "missing") => {
 
 beforeEach(() => {
     vi.clearAllMocks()
+    tagsOf = []
     tree = buildTree()
     updateTaskPriority.mockResolvedValue(undefined)
     updateTaskDescription.mockResolvedValue(undefined)
@@ -314,5 +317,24 @@ describe("DetailsPanel with tasks directly in a group", () => {
         expect(await screen.findByText("2 task")).toBeInTheDocument()
         expect(screen.getByText("1 sezione")).toBeInTheDocument()
         expect(screen.getByText("1 di 2 task completati (50%)")).toBeInTheDocument()
+    })
+})
+
+describe("DetailsPanel tags of a task", () => {
+    it("shows 'no tags' and a button that opens the list of the tags for that task", async () => {
+        renderPanel()
+        await select(10)
+        expect(screen.getByRole("heading", { name: "Tag" })).toBeInTheDocument()
+        expect(screen.getByText("Nessun tag")).toBeInTheDocument()
+        await userEvent.click(screen.getByRole("button", { name: "Modifica i tag" }))
+        expect(await screen.findByTestId("tag-picker")).toHaveTextContent("10")
+    })
+
+    it("shows the tags of the task as pills", async () => {
+        tagsOf = [{ id: 1, workspaceID: 1, name: "Bug", color: "#e6194b", position: 0 }, { id: 2, workspaceID: 1, name: "Urgent", color: null, position: 1 }]
+        renderPanel()
+        await select(10)
+        expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Bug", "Urgent"])
+        expect(screen.queryByText("Nessun tag")).not.toBeInTheDocument()
     })
 })

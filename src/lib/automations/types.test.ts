@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-    ACTIONS_BY_SUBJECT, actionsForTrigger, isAutomationAction, isAutomationTrigger, isGroupTrigger, isStateTrigger, isValidRule, referencedGroups, referencedSections, TRIGGER_TYPES, triggerSubject,
+    ACTIONS_BY_SUBJECT, actionsForTrigger, isAutomationAction, isAutomationTrigger, isGroupTrigger, isStateTrigger, isValidRule, referencedGroups, referencedSections, referencedTags, TRIGGER_TYPES, triggerSubject,
 } from "./types"
 
 describe("isAutomationTrigger", () => {
@@ -149,5 +149,20 @@ describe("isValidRule", () => {
             expect(isValidRule(trigger, [{ type: "moveGroup", at: "top" }])).toBe(false)
             expect(isValidRule(trigger, [{ type: "setPriority", value: true }])).toBe(false)
         }
+    })
+})
+
+describe("tag actions", () => {
+    it("are valid for the task rules only, never for a state trigger", () => {
+        expect(isValidRule({ type: "task.completed", sectionId: null }, [{ type: "addTag", tagId: 1 }, { type: "removeTag", tagId: 2 }])).toBe(true)
+        expect(isValidRule({ type: "group.completed", groupId: null }, [{ type: "addTag", tagId: 1 }])).toBe(false)
+        expect(isValidRule({ type: "section.noOpenTasks", sectionId: null }, [{ type: "addTag", tagId: 1 }])).toBe(false)
+    })
+
+    it("are checked when read from JSON, and list the tags a rule refers to", () => {
+        expect(isAutomationAction({ type: "addTag", tagId: 3 })).toBe(true)
+        expect(isAutomationAction({ type: "removeTag", tagId: 3.5 })).toBe(false)
+        expect(isAutomationAction({ type: "addTag" })).toBe(false)
+        expect(referencedTags({ actions: [{ type: "addTag", tagId: 3 }, { type: "removeTag", tagId: 3 }, { type: "setPriority", value: true }, { type: "addTag", tagId: 4 }] })).toEqual([3, 4])
     })
 })

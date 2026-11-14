@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { DialogAutomations } from "./dialog-automations"
 import { createDBAutomation, deleteDBAutomation, getDBAutomations, setDBAutomationEnabled, updateDBAutomation } from "@/db/queries/automation"
 import { getDBNoteData } from "@/db/queries/note"
+import { getDBNoteTags } from "@/db/queries/tag"
 import type { Automation } from "@/lib/automations/types"
 
 vi.mock("@/db/queries/automation", () => ({
@@ -53,6 +54,7 @@ beforeEach(() => {
     vi.resetAllMocks()
     mocked(getDBNoteData).mockResolvedValue(noteData as never)
     mocked(getDBAutomations).mockResolvedValue([])
+    mocked(getDBNoteTags).mockResolvedValue([])
     mocked(createDBAutomation).mockResolvedValue(undefined as never)
     mocked(updateDBAutomation).mockResolvedValue(undefined as never)
     mocked(deleteDBAutomation).mockResolvedValue(undefined as never)
@@ -508,5 +510,56 @@ describe("DialogAutomations with the direct area of a group", () => {
         mocked(getDBNoteData).mockResolvedValue({ groups: noteData.groups, sections: [withDirect.sections[0]], tasks: [] } as never)
         renderDialog()
         expect(await screen.findByRole("button", { name: "Nuova automazione" })).toBeEnabled()
+    })
+})
+
+describe("DialogAutomations tag actions", () => {
+    const tags = [
+        { id: 5, workspaceID: 1, name: "Bug", color: "#e6194b", position: 0 },
+        { id: 6, workspaceID: 1, name: "Urgent", color: null, position: 1 },
+    ]
+
+    it("creates a rule that adds a tag of the workspace", async () => {
+        mocked(getDBNoteTags).mockResolvedValue(tags)
+        const user = userEvent.setup()
+        renderDialog()
+        await user.click(await screen.findByRole("button", { name: "Nuova automazione" }))
+        await pick(user, "In quale sezione", "Doing")
+        await click(user, "Avanti")
+        await pick(user, "Tipo di azione", "Aggiungi un tag")
+        expect(screen.getByRole("combobox", { name: "Tag" })).toHaveTextContent("Bug")
+        await pick(user, "Tag", "Urgent")
+        await click(user, "Avanti")
+        expect(screen.getByText("Quando un task viene completato in \"Doing\", aggiungi il tag \"Urgent\"")).toBeInTheDocument()
+        await user.click(screen.getByRole("button", { name: "Salva" }))
+        await waitFor(() => expect(createDBAutomation).toHaveBeenCalledWith(1, {
+            name: null, enabled: true,
+            trigger: { type: "task.completed", sectionId: 1 },
+            actions: [{ type: "addTag", tagId: 6 }],
+        }))
+    }, 30_000)
+
+    it("offers no tag action while the workspace has no tags, and says why", async () => {
+        const user = userEvent.setup()
+        renderDialog()
+        await user.click(await screen.findByRole("button", { name: "Nuova automazione" }))
+        await click(user, "Avanti")
+        expect(screen.getByText("Questo workspace non ha tag: creane uno dal menu di un task.")).toBeInTheDocument()
+        await user.click(screen.getByRole("combobox", { name: "Tipo di azione" }))
+        const options = (await screen.findAllByRole("option")).map(option => option.textContent)
+        expect(options).not.toContain("Aggiungi un tag")
+        expect(options).not.toContain("Togli un tag")
+    })
+
+    it("names the tag of a rule in the list and pauses the rule whose tag was deleted", async () => {
+        mocked(getDBNoteTags).mockResolvedValue(tags)
+        mocked(getDBAutomations).mockResolvedValue([
+            rule({ name: null, actions: [{ type: "removeTag", tagId: 5 }] }),
+            rule({ id: 11, name: null, actions: [{ type: "addTag", tagId: 99 }] }),
+        ])
+        renderDialog()
+        expect(await screen.findByText("Quando un task viene completato in \"Doing\", togli il tag \"Bug\"")).toBeInTheDocument()
+        expect(screen.getByText("Quando un task viene completato in \"Doing\", aggiungi il tag \"(tag eliminato)\"")).toBeInTheDocument()
+        expect(screen.getAllByText("In pausa: il tag di questa regola è stato eliminato.")).toHaveLength(1)
     })
 })

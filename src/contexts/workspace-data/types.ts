@@ -60,6 +60,11 @@ export type WorkspaceActionsType = {
     updateTaskPriority: (taskID: number, priority: boolean) => Promise<void>
     updateTaskCompletion: (taskID: number, isCompleted: boolean) => Promise<void>
     updateTaskDescription: (taskID: number, description?: string) => Promise<void>
+    /**
+     * Reads the tags of the open workspace again. For the writes that create tags by themselves (a template applied or opened in the
+     * editor brings its tags): a failure is reported, not thrown.
+     */
+    reloadTags: () => Promise<void>
     /** Creates a tag at the end of the list of the workspace and shows it in the list. */
     createTag: (workspaceID: number, name: string, color?: string | null) => Promise<Tag>
     renameTag: (tagID: number, name: string) => Promise<void>
@@ -151,6 +156,7 @@ export type Runtime = {
     afterItemChange: (itemType: DBItemType, forceAudio?: boolean) => void
     /** The tags of the open workspace (see useWorkspaceTags). */
     tags: WorkspaceTagsStore
+    reloadTags: WorkspaceActionsType["reloadTags"]
     /** Reloads the tree without waiting for it; a failure is reported, not thrown. */
     reloadTreeInBackground: (workspaceId: number) => void
     setCurrentFolder: Dispatch<SetStateAction<Folder | null>>

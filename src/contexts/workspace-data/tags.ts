@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useMemo } from "react"
 import type { Tag } from "@/types/types"
 import { createExternalStore, useStoreSelector, type ExternalStore } from "@/lib/external-store"
-import { createDBTag, deleteDBTag, renameDBTag, restoreDBTag, setDBTaskTag, updateDBTagColor } from "@/db/queries/tag"
+import i18n from "@/i18n"
+import { reportError } from "@/lib/report-error"
+import { createDBTag, getDBTags, deleteDBTag, renameDBTag, restoreDBTag, setDBTaskTag, updateDBTagColor } from "@/db/queries/tag"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
 /**
@@ -34,14 +36,30 @@ export const useTagsOf = (tagIDs: readonly number[] | undefined): Tag[] => {
 
 const byPosition = (a: Tag, b: Tag) => a.position - b.position || a.id - b.id
 
-type TagActions = Pick<WorkspaceActionsType, "createTag" | "renameTag" | "updateTagColor" | "deleteTag" | "restoreTag" | "setTaskTag">
+type TagActions = Pick<WorkspaceActionsType, "reloadTags" | "createTag" | "renameTag" | "updateTagColor" | "deleteTag" | "restoreTag" | "setTaskTag">
+
+/**
+ * Builds the function that reads the tags of the open workspace again (see WorkspaceActionsType.reloadTags).
+ * @category WorkspaceData Context
+ */
+export const createReloadTags = (tags: WorkspaceTagsStore) => async () => {
+    const workspaceId = tags.getState().workspaceId
+    if (workspaceId === null) return
+    try {
+        const list = await getDBTags(workspaceId)
+        // The workspace may have changed meanwhile
+        if (tags.getState().workspaceId === workspaceId) tags.set({ workspaceId, tags: list })
+    } catch (error) {
+        reportError(error, i18n.t("errors.tag.load", { message: String((error as { message?: unknown })?.message ?? error) }))
+    }
+}
 
 /**
  * The tags of the open workspace: every write goes to the database first and then updates the store (no optimistic
  * update: a tag is a small list, and a failure such as a name that is taken must leave the list as it is).
  * @category WorkspaceData Context
  */
-export function useTagActions({ withLoading, tags }: Runtime): TagActions {
+export function useTagActions({ withLoading, tags, reloadTags }: Runtime): TagActions {
     const update = useCallback((change: (list: Tag[]) => Tag[]) => {
         const state = tags.getState()
         tags.set({ ...state, tags: change(state.tags) })
@@ -77,5 +95,5 @@ export function useTagActions({ withLoading, tags }: Runtime): TagActions {
     const setTaskTag = useCallback((tagID: number, taskIds: readonly number[], assigned: boolean) =>
         withLoading(() => setDBTaskTag(tagID, taskIds, assigned)), [withLoading])
 
-    return useMemo(() => ({ createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag }), [createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag])
+    return useMemo(() => ({ reloadTags, createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag }), [reloadTags, createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag])
 }

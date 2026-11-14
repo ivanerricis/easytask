@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { groupIds, layout, makeGroups, makeRule, makeTree, taskOf, withDirectArea, type TaskSpec } from "@/test/automation-fixtures"
 import { allSubtasksCompleted, allTasksCompleted, MAX_AUTOMATION_STEPS, runAutomations, syncStateRules } from "./engine"
-import type { AutomationEvent } from "./types"
+import { patchTask } from "@/contexts/note-tree-ops"
+import type { AutomationAction, AutomationEvent } from "./types"
 
 const completed = (taskId: number): AutomationEvent => ({ type: "task.completed", taskId })
 
@@ -791,5 +792,36 @@ describe("direct area of a group (default section)", () => {
         // ... but a rule that names it does
         const named = makeRule(3, { type: "section.hasOpenTasks", sectionId: 90 }, [{ type: "setColor", color: "#0000aa" }])
         expect(syncStateRules(input, [named]).tree.groups[0].defaultSection?.color).toBe("#0000aa")
+    })
+})
+
+describe("tag actions", () => {
+    const tagged = () => patchTask(makeTree({ 1: [{ id: 10, completed: true }, { id: 11 }], 2: [] }), 10, { tagIDs: [5] })
+    const rule = (actions: AutomationAction[], id = 1) => makeRule(id, { type: "task.completed", sectionId: null }, actions)
+
+    it("adds a tag to the task, once", () => {
+        const input = tagged()
+        const { tree, applied, touched } = runAutomations(input, [rule([{ type: "addTag", tagId: 6 }])], completed(10))
+        expect(taskOf(tree, 10).tagIDs).toEqual([5, 6])
+        expect(applied).toHaveLength(1)
+        expect(touched).toEqual([10])
+        const again = runAutomations(tree, [rule([{ type: "addTag", tagId: 6 }])], completed(10))
+        expect(again.tree).toBe(tree)
+        expect(again.applied).toEqual([])
+    })
+
+    it("removes a tag the task has, and does nothing when it has not", () => {
+        const input = tagged()
+        expect(taskOf(runAutomations(input, [rule([{ type: "removeTag", tagId: 5 }])], completed(10)).tree, 10).tagIDs).toEqual([])
+        const none = runAutomations(input, [rule([{ type: "removeTag", tagId: 9 }])], completed(10))
+        expect(none.tree).toBe(input)
+    })
+
+    it("skips a rule whose tag no longer exists in the workspace, and checks nothing when the tags are not given", () => {
+        const input = tagged()
+        const add = rule([{ type: "addTag", tagId: 6 }])
+        expect(runAutomations(input, [add], completed(10), new Set([5])).tree).toBe(input)
+        expect(taskOf(runAutomations(input, [add], completed(10), new Set([5, 6])).tree, 10).tagIDs).toEqual([5, 6])
+        expect(taskOf(runAutomations(input, [add], completed(10)).tree, 10).tagIDs).toEqual([5, 6])
     })
 })

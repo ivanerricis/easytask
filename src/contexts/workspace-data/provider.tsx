@@ -21,7 +21,7 @@ import { useTaskActions } from "./tasks"
 import { useTrashActions } from "./trash"
 import { useArchiveActions } from "./archive"
 import { useTemplateActions } from "./templates"
-import { createTagsStore, useTagActions, WorkspaceTagsContext } from "./tags"
+import { createReloadTags, createTagsStore, useTagActions, WorkspaceTagsContext } from "./tags"
 import type { Runtime, TabsBridge, WorkspaceActionsType, WorkspaceStateType } from "./types"
 
 /** Refetches of a reload whose response was overtaken by an optimistic update. */
@@ -45,6 +45,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
     const [versions] = useState(createVersionsStore)
     // The tags of the loaded workspace: a store of their own, so a tag that changes does not re-render the tree or the notes
     const [tags] = useState(createTagsStore)
+    const reloadTags = useMemo(() => createReloadTags(tags), [tags])
 
     // The flat lists follow the tree: they change identity only when the tree does
     const { folders, notes } = useMemo(
@@ -192,8 +193,8 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
     // Every member is stable, so the runtime is too (the actions built on it keep their identity)
     const runtime = useMemo<Runtime>(() => ({
         tabsBridge, withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground,
-        tags, setCurrentFolder, getWorkspaceData, getTree, applyTree,
-    }), [tags, withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground, getWorkspaceData, getTree, applyTree])
+        tags, reloadTags, setCurrentFolder, getWorkspaceData, getTree, applyTree,
+    }), [tags, reloadTags, withLoading, withTrashChange, withArchiveChange, bumpAudioVersion, bumpTemplates, afterItemChange, reloadTreeInBackground, getWorkspaceData, getTree, applyTree])
     const treeActions = useTreeActions(runtime)
     const noteContentActions = useNoteContentActions(runtime)
     const taskActions = useTaskActions(runtime)
@@ -233,7 +234,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
                 <WorkspaceActionsContext.Provider value={actions}>
                     <TabsProvider notes={tabNotes} workspaceId={loadedWorkspaceId} bridgeRef={tabsBridge}>
                         <ActiveNoteProvider>
-                            <TemplateDraftsProvider workspaceId={loadedWorkspaceId} drafts={drafts} setDrafts={setDrafts} whenIdle={whenIdle}>
+                            <TemplateDraftsProvider workspaceId={loadedWorkspaceId} drafts={drafts} setDrafts={setDrafts} whenIdle={whenIdle} onTagsChanged={reloadTags}>
                                 {children}
                             </TemplateDraftsProvider>
                         </ActiveNoteProvider>

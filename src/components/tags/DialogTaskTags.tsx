@@ -16,7 +16,8 @@ export const DialogTaskTags = ({ open, onOpenChange, taskIds }: DialogTaskTagsPr
     const many = taskIds.length > 1
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md" onClick={event => event.stopPropagation()}>
+            {/* The dialog is in a portal but React events still bubble to the row and the note: keep them out (a Space or an Enter here is not the row's) */}
+            <DialogContent className="sm:max-w-md" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
                 <DialogHeader>
                     <DialogTitle>{many ? t("tags.dialogTitleMany", { count: taskIds.length }) : t("tags.dialogTitle")}</DialogTitle>
                     <DialogDescription>{many ? t("tags.dialogDescriptionMany") : t("tags.dialogDescription")}</DialogDescription>

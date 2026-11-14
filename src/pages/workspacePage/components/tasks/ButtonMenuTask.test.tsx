@@ -45,6 +45,7 @@ vi.mock("@/components/dialogs/dialog-add-color", () => ({
     ),
 }))
 vi.mock("./DialogTaskDescription", () => ({ DialogTaskDescription: () => null }))
+vi.mock("@/components/tags/DialogTaskTags", () => ({ DialogTaskTags: ({ taskIds }: { taskIds: number[] }) => <output data-testid="tags-dialog">{taskIds.join(",")}</output> }))
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -213,5 +214,15 @@ describe("ButtonMenuTask", () => {
         await user.click(screen.getByRole("menuitem", { name: "Aggiungi sottotask" }))
         expect(onAddSubtask).toHaveBeenCalledTimes(1)
         expect(screen.queryByRole("menuitem", { name: "Aggiungi sottotask" })).not.toBeInTheDocument()
+    })
+})
+
+describe("ButtonMenuTask tags", () => {
+    it("has a Tags entry in the menu of the task that opens the tag dialog for that task", async () => {
+        const user = userEvent.setup()
+        render(<ButtonMenuTask onEditDescription={vi.fn()} task={makeTask({ id: 5 })}><div data-testid="row">Task</div></ButtonMenuTask>)
+        fireEvent.contextMenu(screen.getByTestId("row"))
+        await user.click(await screen.findByRole("menuitem", { name: "Tag…" }))
+        expect(await screen.findByTestId("tags-dialog")).toHaveTextContent("5")
     })
 })

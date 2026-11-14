@@ -59,6 +59,7 @@ vi.mock("../NoteStepMoves", () => ({ TaskStepMoves: () => null }))
 vi.mock("./AddTask", () => ({ AddTask: () => null }))
 vi.mock("./DialogTaskDescription", () => ({ DialogTaskDescription: () => null }))
 vi.mock("@/components/dialogs/dialog-delete", () => ({ DialogDeleteItem: () => null }))
+vi.mock("@/components/tags/DialogTaskTags", () => ({ DialogTaskTags: ({ taskIds }: { taskIds: number[] }) => <output data-testid="tags-dialog">{taskIds.join(",")}</output> }))
 
 function OpenNote({ children }: { children: ReactNode }) {
     const { openNote } = useTabsActions()
@@ -187,6 +188,17 @@ describe("menu of a multi-selection", () => {
         select(10, 11)
         fireEvent.contextMenu(rowOf(12))
         expect(await screen.findByText("Rinomina")).toBeInTheDocument()
+    })
+})
+
+describe("tags of the selection", () => {
+    it("the menu of a multi-selection has the tags entry, which opens the dialog for the selected tasks (a subtask included when selected)", async () => {
+        const user = userEvent.setup()
+        setup()
+        select(10, 12, 13)
+        fireEvent.contextMenu(rowOf(10))
+        await user.click(await screen.findByRole("menuitem", { name: "Tag…" }))
+        expect(await screen.findByTestId("tags-dialog")).toHaveTextContent("10,12,13")
     })
 })
 

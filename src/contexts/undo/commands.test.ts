@@ -18,6 +18,7 @@ function makeDeps() {
             renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
             moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(),
             updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
+            renameTag: fn(), updateTagColor: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(),
         },
         note: {
             patchTask: vi.fn(() => rollbacks.patch), patchSection: vi.fn(() => rollbacks.patch), patchGroup: vi.fn(() => rollbacks.patch),
@@ -773,5 +774,69 @@ describe("manyCommand", () => {
         expect(reload).not.toHaveBeenCalled()
         await expect(build({ redoEach: failing, reloadRedo: reload, reloadEvenOnFailure: true }).command.redo()).rejects.toThrow("boom")
         expect(reload).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("tags", () => {
+    const tag = { id: 4, workspaceID: 7, name: "Bug", color: "#ff0000", position: 2 }
+    const treeOf = (...tasks: Parameters<typeof makeTask>[0][]): NoteDataTree => ({
+        groups: [makeGroup({ sections: [makeSection({ id: 1, tasks: tasks.map(task => makeTask(task)) })] })],
+    })
+
+    it("create: undo deletes the tag and refreshes the note, redo puts it back with the same links", async () => {
+        const command = commands.tagCreate(tag, [11, 12])
+        expect(command.label).toBe("Crea tag \"Bug\"")
+        await command.undo()
+        expect(ctx.deps.workspace.deleteTag).toHaveBeenCalledWith(4)
+        expect(ctx.deps.note.refreshActiveNote).toHaveBeenCalledTimes(1)
+        await command.redo()
+        expect(ctx.deps.workspace.restoreTag).toHaveBeenCalledWith(tag, [11, 12])
+        expect(ctx.deps.note.refreshActiveNote).toHaveBeenCalledTimes(2)
+    })
+
+    it("delete: undo restores the tag with the tasks that had it, redo deletes it again", async () => {
+        const command = commands.tagDelete(tag, [11])
+        expect(command.label).toBe("Elimina tag \"Bug\"")
+        await command.undo()
+        expect(ctx.deps.workspace.restoreTag).toHaveBeenCalledWith(tag, [11])
+        await command.redo()
+        expect(ctx.deps.workspace.deleteTag).toHaveBeenCalledWith(4)
+    })
+
+    it("rename and color go back and forward", async () => {
+        const rename = commands.tagRename(4, "Bug", "Defect")
+        expect(rename.label).toBe("Rinomina tag \"Bug\"")
+        await rename.redo()
+        expect(ctx.deps.workspace.renameTag).toHaveBeenLastCalledWith(4, "Defect")
+        await rename.undo()
+        expect(ctx.deps.workspace.renameTag).toHaveBeenLastCalledWith(4, "Bug")
+        const color = commands.tagColor(4, "Bug", null, "#00ff00")
+        await color.redo()
+        expect(ctx.deps.workspace.updateTagColor).toHaveBeenLastCalledWith(4, "#00ff00")
+        await color.undo()
+        expect(ctx.deps.workspace.updateTagColor).toHaveBeenLastCalledWith(4, null)
+    })
+
+    it("assign: redo patches the cached tasks and writes, undo takes the tag away; the label counts the tasks", async () => {
+        ctx.deps.note.getNoteTree.mockReturnValue(treeOf({ id: 11 }, { id: 12, tagIDs: [9] }))
+        const command = commands.tagAssign(tag, [11, 12], true)
+        expect(command.label).toBe("Aggiungi il tag a 2 task \"Bug\"")
+        await command.redo()
+        expect(ctx.deps.note.patchTask).toHaveBeenCalledWith(11, { tagIDs: [4] })
+        expect(ctx.deps.note.patchTask).toHaveBeenCalledWith(12, { tagIDs: [9, 4] })
+        expect(ctx.deps.workspace.setTaskTag).toHaveBeenLastCalledWith(4, [11, 12], true)
+        ctx.deps.note.getNoteTree.mockReturnValue(treeOf({ id: 11, tagIDs: [4] }, { id: 12, tagIDs: [9, 4] }))
+        await command.undo()
+        expect(ctx.deps.note.patchTask).toHaveBeenCalledWith(12, { tagIDs: [9] })
+        expect(ctx.deps.workspace.setTaskTag).toHaveBeenLastCalledWith(4, [11, 12], false)
+        expect(commands.tagAssign(tag, [11], true).label).toBe("Aggiungi il tag al task \"Bug\"")
+        expect(commands.tagAssign(tag, [11], false).label).toBe("Togli il tag dal task \"Bug\"")
+    })
+
+    it("assign: the cached tasks are put back when the write fails", async () => {
+        ctx.deps.note.getNoteTree.mockReturnValue(treeOf({ id: 11 }))
+        ctx.deps.workspace.setTaskTag.mockRejectedValueOnce(new Error("fail"))
+        await expect(commands.tagAssign(tag, [11], true).redo()).rejects.toThrow("fail")
+        expect(ctx.rollbacks.patch).toHaveBeenCalledTimes(1)
     })
 })

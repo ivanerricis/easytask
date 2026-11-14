@@ -346,6 +346,9 @@ export function addSections(tx: Transaction, sources: { groupRef: number | TxRef
     return sectionRefs
 }
 
+/** Folds the ASCII letters to lower case, like the NOCASE collation of the name of a tag. */
+const asciiFold = (name: string) => name.replace(/[A-Z]/g, letter => letter.toLowerCase())
+
 /** Rows per statement of the links (two parameters each). */
 const TAG_LINK_CHUNK = 200
 
@@ -359,11 +362,13 @@ const TAG_LINK_CHUNK = 200
  * @category Database Queries
  */
 export function addTaskTags(tx: Transaction, sectionRef: number | TxRef, tasks: readonly { taskRef: TxRef | number, tags: readonly TemplateTag[] }[]): void {
+    // The name is written as it is (trimmed) and found again with the same spelling; two names are the same tag when SQLite's NOCASE
+    // collation says so (it folds the ASCII letters only), which is what `asciiFold` does for the duplicates of the file
     const wanted = new Map<string, TemplateTag>()
     for (const { tags } of tasks)
-        for (const tag of tags) if (!wanted.has(tag.name.toLowerCase())) wanted.set(tag.name.toLowerCase(), tag)
+        for (const tag of tags) if (!wanted.has(asciiFold(tag.name.trim()))) wanted.set(asciiFold(tag.name.trim()), tag)
     for (const tag of wanted.values()) addEnsureTag(tx, WORKSPACE_OF_SECTION, sectionRef, tag)
-    const links = tasks.flatMap(({ taskRef, tags }) => [...new Set(tags.map(tag => tag.name.toLowerCase()))].map(name => [taskRef, name] as const))
+    const links = tasks.flatMap(({ taskRef, tags }) => [...new Map(tags.map(tag => [asciiFold(tag.name.trim()), tag.name.trim()])).values()].map(name => [taskRef, name] as const))
     for (let start = 0; start < links.length; start += TAG_LINK_CHUNK) {
         const chunk = links.slice(start, start + TAG_LINK_CHUNK)
         tx.add(
