@@ -30,13 +30,12 @@ const depth = (position: number, start: number, end: number): number => {
 }
 
 /** The step (px, signed) of a container for the pointer, per second of drag: 0 when it does not scroll that way. */
-export const scrollStep = (element: HTMLElement, pointer: Point, axis: "x" | "y"): number => {
-    const rect = element.getBoundingClientRect()
+export const scrollStep = (element: HTMLElement, pointer: Point, axis: "x" | "y", rect: { left: number, right: number, top: number, bottom: number } = element.getBoundingClientRect()): number => {
     const horizontal = axis === "x"
     const cross = horizontal ? pointer.y : pointer.x
     if (cross < (horizontal ? rect.top : rect.left) || cross > (horizontal ? rect.bottom : rect.right)) return 0
     const near = depth(horizontal ? pointer.x : pointer.y, horizontal ? rect.left : rect.top, horizontal ? rect.right : rect.bottom)
-    if (near === 0) return 0
+    if (near === 0) return 0 // (nothing is read from the layout until the pointer is in a band: this runs every frame, in the middle of the live shifts)
     const position = horizontal ? element.scrollLeft : element.scrollTop
     const room = horizontal ? element.scrollWidth - element.clientWidth : element.scrollHeight - element.clientHeight
     // Towards the start (positive depth) the scroll goes back; it needs something to scroll in that direction
@@ -52,17 +51,21 @@ export const scrollStep = (element: HTMLElement, pointer: Point, axis: "x" | "y"
  */
 export function startAutoScroll(containers: HTMLElement[], getPointer: () => Point | null): () => void {
     if (containers.length === 0) return () => undefined
+    // Measured once: the containers do not move while a drag goes on, and a rect read every frame would force a layout after the shifts written in it
+    const rects = containers.map(container => container.getBoundingClientRect())
     let frame = 0
     let last = performance.now()
     const tick = (now: number) => {
         frame = requestAnimationFrame(tick)
-        const elapsed = Math.min(now - last, 50)
+        // The distance follows the time of a normal frame (up to 17ms). A frame much longer than that means the page is busy: it scrolls a single
+        // step (5ms), like dnd-kit, whose interval of 5ms ticked once after a long task, so a slow page does not jump over the groups
+        const elapsed = now - last > 34 ? 5 : Math.min(now - last, 17)
         last = now
         const pointer = getPointer()
         if (!pointer || elapsed <= 0) return
-        for (const container of containers) {
-            const dy = scrollStep(container, pointer, "y")
-            const dx = scrollStep(container, pointer, "x")
+        for (const [index, container] of containers.entries()) {
+            const dy = scrollStep(container, pointer, "y", rects[index])
+            const dx = scrollStep(container, pointer, "x", rects[index])
             if (dx === 0 && dy === 0) continue
             // At least a pixel: a smaller step would be lost by the rounding of the scroll position
             const by = (speed: number) => speed === 0 ? 0 : Math.sign(speed) * Math.max(1, Math.round(Math.abs(speed) * elapsed / 1000))

@@ -88,6 +88,18 @@ describe("startAutoScroll", () => {
         expect(scrollBy).toHaveBeenCalledTimes(1)
     })
 
+    it("scrolls a single small step after a long frame (a busy page does not jump), and at most a frame of 60 Hz otherwise", () => {
+        const list = box({ "data-group-list": "" })
+        list.scrollTop = 100
+        const scrollBy = vi.fn()
+        list.scrollBy = scrollBy as unknown as typeof list.scrollBy
+        startAutoScroll([list], () => ({ x: 50, y: 100 }))
+        frame(200) // 200ms since the last frame: 5ms worth, 10px
+        expect(scrollBy).toHaveBeenLastCalledWith({ left: 0, top: 10, behavior: "instant" })
+        frame(225) // 25ms: capped at 17ms, 34px
+        expect(scrollBy).toHaveBeenLastCalledWith({ left: 0, top: 34, behavior: "instant" })
+    })
+
     it("lets the innermost container that can scroll win, and does nothing away from the edges", () => {
         const outer = box({ "data-testid": "group-scroll" })
         const inner = box({ "data-group-list": "" })
