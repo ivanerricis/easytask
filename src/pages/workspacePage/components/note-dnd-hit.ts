@@ -121,6 +121,23 @@ export function clearZones(): void {
 }
 
 /**
+ * Where a zone is now (it may have scrolled since the hit that was kept): its rect in viewport coordinates, or null if it is not measured.
+ * What keeps a place by the rect it was hit with (the few px of gap around it) must ask this, not use the old rect: with the pointer
+ * still and the content scrolling under it, the old rect is where the zone was.
+ */
+export function zoneRect(kind: NoteOverKind, id: number): HitRect | null {
+    const zone = measured.find(item => item.ref.kind === kind && item.ref.id === id)
+    if (!zone) return null
+    let left = zone.left
+    let top = zone.top
+    for (const scroller of zone.scrollers) {
+        const start = scrollAtMeasure.get(scroller)
+        if (start) { left += start.left - scroller.scrollLeft; top += start.top - scroller.scrollTop }
+    }
+    return { left, top, width: zone.width, height: zone.height, right: left + zone.width, bottom: top + zone.height }
+}
+
+/**
  * The zone under the pointer: the smallest one that contains it (a task row beats its section card, a section card beats its group), the
  * same rule the dnd-kit collision detection had. `pointer` is in viewport coordinates.
  */

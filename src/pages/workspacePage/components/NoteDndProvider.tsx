@@ -7,7 +7,7 @@ import {
     computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot } from "./note-dnd-shift"
-import { clearZones, hitTest, measureZones } from "./note-dnd-hit"
+import { clearZones, hitTest, measureZones, zoneRect } from "./note-dnd-hit"
 import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
@@ -180,6 +180,13 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         store.set({ active: { kind: data.kind, id: data.id } })
     }
 
+    /** The rect the place being shown was hit with, where it is now (the content may have scrolled since). */
+    const shownRect = (shown: { place: LivePending | null, rect: Rect | null }): Rect | null => {
+        const [kind, id] = shown.place?.over?.split("-") ?? []
+        const fresh = (kind === "group" || kind === "section") && id ? zoneRect(kind, Number(id)) : null
+        return fresh ?? shown.rect
+    }
+
     const handleDragMove = (pointer: Point) => {
         const dragged = store.getState().active
         follower.follow(pointer)
@@ -188,7 +195,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         // The few px around a column belong to no group: the columns (and the drop) keep the place of the group left behind
         if (dragged?.kind === "group" && !over && liveRef.current) {
             const shown = liveShownRef.current
-            if (shown?.place && shown.rect && isInColumnGap(shown.rect, pointer)) return
+            const rect = shown?.place ? shownRect(shown) : null
+            if (rect && isInColumnGap(rect, pointer)) return
         }
         if (!dragged || !over || !noteDataTree) {
             pendingRef.current = null
@@ -232,8 +240,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             const shown = liveShownRef.current
             const pointerY = pointer.y
             // The few px between two sections belong to the group: the rows (and the drop) keep the place of the section left behind
-            if (overRef.kind === "group" && shown?.place && shown.rect
-                && shown.place.list === groupListKey(overRef.id) && isInRowGap(shown.rect, pointerY)) return
+            const heldRect = shown?.place && overRef.kind === "group" ? shownRect(shown) : null
+            if (heldRect && shown?.place?.list === groupListKey(overRef.id) && isInRowGap(heldRect, pointerY)) return
             const liveZone = overRef.kind === "section" && shown?.place?.over === overKey && shown.place.zone
                 ? holdHalfZone(shown.place.zone, zone, over.rect, pointerY)
                 : zone

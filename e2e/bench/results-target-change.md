@@ -86,15 +86,21 @@ vitest (whole suite, 318 files / 4035 tests), tsc, eslint, e2e:typecheck; e2e on
 split-workspace (8), live-drag-sidebar (5); live-drag-tabs passed 7 of 7 on the first build of this PR and failed in the last run ("move target out of bounds", the window of this
 machine, as on earlier builds); live-drag-scroll: 9 of 10, see below.
 
-## The autoscroll regression of PR 2 (commit `fix(dnd): autoscroll only a container the pointer is over...`)
+## The autoscroll regression of PR 2, and the stale rect behind the rest of it
 
-live-drag-scroll "a group dragged to the right edge ... the drop is where expected" failed on `perf/drag-own-pointer` (nothing was saved) and passes on the
-0.24.0 baseline. Debug builds (not kept) showed the cause: the row of the groups spans x 301-899, the test then moves the pointer to x = 208 (the
-place of the *shifted* last column, outside the row, on the left of it), and the new autoscroll scrolled the row back to the start because it
-treated a pointer beside the container as being in its band: the group under the pointer went away, the hit-test returned null, no drop. The fix is
-dnd-kit's rule: the pointer has to be over the container along the axis, and a direction scrolls only once the pointer has moved that way (sticky
-intent, like dnd-kit's `useScrollIntent`), with unit tests. Now the group is dropped, **but one slot early** (G2 G3 G1 G4 instead of G2 G3 G4 G1): the last
-test of the spec still fails, 9 of 10, as it did on the build with only the first fix. What is left: the pointer crosses the left band of the row
-(x 301-421) on its way to x = 208 and the row scrolls back about 76 px (1314 -> 1238), so at x = 208 the hit is the right half of G3 (= before G4); without
-that scroll the point is over no group and the drop keeps "before G4". Why the baseline ends "after G4" was not found (its hit-test is the same, by
-pointer; its autoscroll is dnd-kit's, rect based). It is a gesture that ends outside the visible row, on a column that has been shifted out of it.
+live-drag-scroll "a group dragged to the right edge ... the drop is where expected" failed on `perf/drag-own-pointer` (nothing saved) and passed on the
+0.24.0 baseline. Two causes, both in the code (not the test):
+
+1. The new autoscroll scrolled the row of the groups back to the start when the pointer was beside it (the test moves the pointer to x = 208, left of
+   the row, x 301-899). Fixed in `fix(dnd): autoscroll only a container the pointer is over...`: dnd-kit's rule, the pointer has to be over the container
+   along the axis and a direction scrolls only once the pointer has moved that way (unit tests in note-dnd-autoscroll.test.ts).
+2. With the autoscroll fixed the group dropped one slot early. The spec's instrumentation (scroll, row, G4 and skeleton rects at the end of the stay at the
+   edge) told the difference from the baseline: at that moment the baseline has no shift at all (pointer over nothing, G4 at x 287-707, the point of the
+   test at 644, inside the row), while the new build kept the place "after G4" (columns shifted by -428, skeleton shown, G4 at x -149..271, the point at
+   208, outside the row). The place is kept for the few px of gap around a column (`isInColumnGap` of the rect the column was hit with), but that rect
+   was the one of the hit, in viewport coordinates, and the row kept scrolling under the still pointer: the old rect still contained the pointer, so
+   the place was never given back. The baseline's dnd-kit moves came at other moments (it did not re-test on every scroll event).
+   Fixed with `zoneRect(kind, id)` in note-dnd-hit.ts (where a measured zone is now, scroll included): the held place is tested against that, for the
+   groups and for the sections. Unit test for `zoneRect`.
+
+After the two fixes live-drag-scroll passes 10 of 10 on the final build, live-drag-tabs 7 of 7 and live-drag 11 of 11.

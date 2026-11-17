@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { clearZones, hitTest, measureZones, registerZone } from "./note-dnd-hit"
+import { clearZones, hitTest, measureZones, registerZone, zoneRect } from "./note-dnd-hit"
 import { ACCEPTS } from "./note-dnd"
 import type { NoteOverKind } from "./note-dnd"
 import { applyShifts, clearShifts, registerShiftNode, SHIFT_ATTR } from "./note-dnd-shift"
@@ -99,6 +99,19 @@ describe("note drag hit test", () => {
         expect(hitTest({ x: 10, y: 5 })?.ref).toEqual({ kind: "task", id: 2 })
         expect(hitTest({ x: 10, y: 5 })?.rect.top).toBe(0)
         expect(hitTest({ x: 10, y: 25 })).toBeNull()
+    })
+
+    it("tells where a zone is now, after the content scrolled under a still pointer", () => {
+        const row = document.createElement("div")
+        document.body.appendChild(row)
+        Object.defineProperty(row, "scrollWidth", { value: 900 })
+        Object.defineProperty(row, "clientWidth", { value: 300 })
+        zone("group", 4, { left: 250, top: 0, width: 400, height: 100 }, row)
+        measureZones("group")
+        expect(zoneRect("group", 4)).toMatchObject({ left: 250, right: 650 })
+        row.scrollLeft = 180
+        expect(zoneRect("group", 4)).toMatchObject({ left: 70, right: 470, top: 0, bottom: 100 })
+        expect(zoneRect("group", 9)).toBeNull()
     })
 
     it("follows the horizontal scroll and any level of scrollable ancestors", () => {

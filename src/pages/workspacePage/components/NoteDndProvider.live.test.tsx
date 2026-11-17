@@ -12,7 +12,7 @@ import type { PointerDragHandlers } from "./note-dnd-pointer"
 let hit: { ref: unknown, rect: unknown } | null = null
 // The callback the provider gives to be told when a row changes its size
 let onResize: (() => void) | undefined
-vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit, registerZone: () => undefined }))
+vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit, zoneRect: () => null, registerZone: () => undefined }))
 // The controller of the pointer is replaced by one that hands the provider's handlers to the test (the real one is tested in
 // note-dnd-pointer.test.ts); the tests speak the shape of the old dnd-kit events, turned here into the pointer the provider gets now
 let latest: PointerDragHandlers
