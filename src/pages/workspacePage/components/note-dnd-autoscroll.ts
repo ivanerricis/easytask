@@ -29,13 +29,25 @@ const depth = (position: number, start: number, end: number): number => {
     return 0
 }
 
-/** The step (px, signed) of a container for the pointer, per second of drag: 0 when it does not scroll that way. */
-export const scrollStep = (element: HTMLElement, pointer: Point, axis: "x" | "y", rect: { left: number, right: number, top: number, bottom: number } = element.getBoundingClientRect()): number => {
+/** The directions the pointer has moved in since the drag began, on one axis (toward the start of the container, toward its end). */
+export type Intent = { back: boolean, forward: boolean }
+
+/**
+ * The step (px, signed) of a container for the pointer, per second of drag: 0 when it does not scroll that way.
+ * Like dnd-kit's: the pointer has to be over the container (a pointer beside it, e.g. over the columns that stick out of the row of the
+ * groups, does not scroll it back to the start), and a direction scrolls only once the pointer has moved that way (`intent`; all by default).
+ */
+export const scrollStep = (
+    element: HTMLElement, pointer: Point, axis: "x" | "y", rect: { left: number, right: number, top: number, bottom: number } = element.getBoundingClientRect(),
+    intent: Intent = { back: true, forward: true },
+): number => {
     const horizontal = axis === "x"
     const cross = horizontal ? pointer.y : pointer.x
     if (cross < (horizontal ? rect.top : rect.left) || cross > (horizontal ? rect.bottom : rect.right)) return 0
-    const near = depth(horizontal ? pointer.x : pointer.y, horizontal ? rect.left : rect.top, horizontal ? rect.right : rect.bottom)
-    if (near === 0) return 0 // (nothing is read from the layout until the pointer is in a band: this runs every frame, in the middle of the live shifts)
+    const along = horizontal ? pointer.x : pointer.y
+    if (along < (horizontal ? rect.left : rect.top) || along > (horizontal ? rect.right : rect.bottom)) return 0
+    const near = depth(along, horizontal ? rect.left : rect.top, horizontal ? rect.right : rect.bottom)
+    if (near === 0 || (near > 0 ? !intent.back : !intent.forward)) return 0 // (nothing is read from the layout until the pointer is in a band: this runs every frame, in the middle of the live shifts)
     const position = horizontal ? element.scrollLeft : element.scrollTop
     const room = horizontal ? element.scrollWidth - element.clientWidth : element.scrollHeight - element.clientHeight
     // Towards the start (positive depth) the scroll goes back; it needs something to scroll in that direction
@@ -55,6 +67,8 @@ export function startAutoScroll(containers: HTMLElement[], getPointer: () => Poi
     const rects = containers.map(container => container.getBoundingClientRect())
     let frame = 0
     let last = performance.now()
+    let previous: Point | null = getPointer()
+    const intent = { x: { back: false, forward: false }, y: { back: false, forward: false } }
     const tick = (now: number) => {
         frame = requestAnimationFrame(tick)
         // The distance follows the time of a normal frame (up to 17ms). A frame much longer than that means the page is busy: it scrolls a single
@@ -63,9 +77,14 @@ export function startAutoScroll(containers: HTMLElement[], getPointer: () => Poi
         last = now
         const pointer = getPointer()
         if (!pointer || elapsed <= 0) return
+        if (previous) {
+            if (pointer.x !== previous.x) intent.x[pointer.x < previous.x ? "back" : "forward"] = true
+            if (pointer.y !== previous.y) intent.y[pointer.y < previous.y ? "back" : "forward"] = true
+        }
+        previous = pointer
         for (const [index, container] of containers.entries()) {
-            const dy = scrollStep(container, pointer, "y", rects[index])
-            const dx = scrollStep(container, pointer, "x", rects[index])
+            const dy = scrollStep(container, pointer, "y", rects[index], intent.y)
+            const dx = scrollStep(container, pointer, "x", rects[index], intent.x)
             if (dx === 0 && dy === 0) continue
             // At least a pixel: a smaller step would be lost by the rounding of the scroll position
             const by = (speed: number) => speed === 0 ? 0 : Math.sign(speed) * Math.max(1, Math.round(Math.abs(speed) * elapsed / 1000))
