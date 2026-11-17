@@ -67,7 +67,7 @@ Users must download and install a new build manually; that build must contain a 
 - **Manual runs (`workflow_dispatch`):** the workflow only works on version tags: started from a branch, the `verify` job fails immediately and nothing is built. To re-run a release by hand, pick the existing tag `vX.Y.Z` in the "Use workflow from" selector, so the run behaves like a tag push. Runs for the same ref are serialized (`concurrency`).
 - **Pinned actions:** every GitHub Action is pinned to a full commit SHA (the version is in the trailing comment); Dependabot (`github-actions` ecosystem) opens the update pull requests.
 - The e2e job in CI is not part of the release pipeline. On Windows it runs only by hand (`workflow_dispatch`): on the hosted runner the elevated user keeps WebView2 from opening its debug port.
-- **Security checks:** CI runs `cargo audit`, `cargo deny check` (config in `src-tauri/deny.toml`) and `npm audit`. `deny.toml` accepts the yanked `zip` 4.6.1 pulled in by `tauri-plugin-updater`: remove the exception once the plugin moves to a newer `zip`.
+- **Security checks:** CI runs `cargo audit`, `cargo deny check` (config in `src-tauri/deny.toml`) and `npm audit` (through `scripts/npm-audit.mjs`, which lists the accepted npm advisories: remove each one once a fixed version exists). `deny.toml` accepts the yanked `zip` 4.6.1 pulled in by `tauri-plugin-updater`: remove the exception once the plugin moves to a newer `zip`.
 
 ## 7. Checklist
 
