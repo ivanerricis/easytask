@@ -38,6 +38,7 @@ Environment variables:
   main criteria: on a fast quiet machine a 17 ms frame is just the vsync.
 - `LAG_WHY=<text>` (with `LAG_RENDERS=1`, best on an unminified build): for the components whose source contains the text, tells
   why they re-rendered in each commit (props / contexts that changed).
+- `LAG_TRACE=1`: saves a Chrome trace of the last run of each scenario (`trace-<scenario>-live<on>.json`: `{ syncAt, traceEvents }`, with the invalidation tracking categories) and, per run, `changeTimes` (performance.now of the moves that changed the target) in the result. `syncAt` is the `performance.now()` of the `trace-sync` user timing mark, to put the two clocks together. See results-target-change.md for how it was read.
 - `LAG_DEBUG=1`: prints the path of the `groups` scenario and saves a screenshot after every drag.
 
 The exe is found by its file name: any name works (the harness looks for the webview of `E2E_APP`), so keep one exe per
