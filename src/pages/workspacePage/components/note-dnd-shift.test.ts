@@ -455,7 +455,7 @@ describe("the skeleton in the room that opens", () => {
     }
     const room = (start: number) => ({ list: "s-1", parent: null, start, size: 20 })
     /** The frames and the skeletons are prepared once the frame of the start is on screen (a frame, then a task). */
-    const prepared = () => { flushFrame(); vi.runOnlyPendingTimers() }
+    const prepared = () => { flushFrame(); vi.runOnlyPendingTimers(); for (let i = 0; i < 10; i++) flushFrame() }
     beforeEach(() => { vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }) })
 
     it("is put in its list when the layout is read, shown with a transform and glides to the next room without being resized", () => {
@@ -486,6 +486,24 @@ describe("the skeleton in the room that opens", () => {
         expect(slot?.style.left).toBe("0px")
         expect(slot?.style.top).toBe("0px")
         expect(sizes).not.toHaveBeenCalled()
+    })
+
+    it("prepares a few lists per frame, the list of the dragged item first and then the nearest ones", () => {
+        const lists = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => list())
+        lists.forEach((container, i) => wrapper(i + 1, i + 1, container))
+        readLiveSnapshot("task", lists[2].firstElementChild as HTMLElement)
+        const ready = () => lists.map(container => container.querySelectorAll(".live-drag-slot").length)
+        expect(ready()).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0]) // not in the frame that started the drag
+        flushFrame()
+        vi.runOnlyPendingTimers()
+        expect(ready().reduce((a, b) => a + b, 0)).toBe(4) // not all of them at once
+        expect(ready()[2]).toBe(1) // the source
+        expect(ready()[1] + ready()[3]).toBe(2) // its neighbours
+        expect(ready()[8]).toBe(0) // the farthest one waits
+        flushFrame()
+        flushFrame()
+        flushFrame()
+        expect(ready()).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1])
     })
 
     it("goes with the list it is in, and away when there is no room", () => {

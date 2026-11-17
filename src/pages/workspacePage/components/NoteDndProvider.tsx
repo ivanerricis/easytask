@@ -176,7 +176,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             announce(t("tasks.keyboard.dragSingle"))
         }
         // The layout at rest, before anything moves: the sizes the shifts are computed from
-        liveRef.current = liveDrag ? { snapshot: readLiveSnapshot(data.kind), dragged: noteKey(data.kind, data.id), axis: data.kind === "group" ? "x" : "y" } : null
+        liveRef.current = liveDrag ? { snapshot: readLiveSnapshot(data.kind, node), dragged: noteKey(data.kind, data.id), axis: data.kind === "group" ? "x" : "y" } : null
         store.set({ active: { kind: data.kind, id: data.id } })
     }
 

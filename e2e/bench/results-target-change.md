@@ -30,8 +30,8 @@ differs between the builds, so this is a hint, not a cause. Both causes were alr
 - `note-dnd-shift.ts`: the shifts are `translate(...)` (2D) instead of `translate3d(...)` (a 3D transform is composited for as long as it is applied,
   a 2D one only while its 150 ms transition runs: fewer layers to build); the skeleton is created once per list and kept hidden, placed with a
   `transform` (size written only when it changes, no `left` / `top` transition), the lists are made `position: relative` once (not per change, and
-  without `getComputedStyle` in the write phase); all of that is prepared in the frame after the one that starts the drag (and, if a target changes
-  before that, `writeSlot` does it for its own list). Frames and skeletons are released by `clearShifts`.
+  without `getComputedStyle` in the write phase); all of that is prepared after the frame that starts the drag, four lists per frame, the list of the dragged item first and then the others by
+  their distance from it (and, if a target changes before a list is ready, `writeSlot` does it for that list). Frames and skeletons are released by `clearShifts`.
 - `note-dnd-state.ts`: the store has `subscribeHover(key)` and `subscribeActive`: at a change of the target only the row left and the row
   entered are woken (before, the ~600 selectors of the rows of a note ran at every change); a drag starting / ending wakes the `isDragging`
   selectors only.
@@ -42,45 +42,59 @@ one rAF loop for overlay / autoscroll / shifts (the LoAF entries show no forced 
 the autoscroll or the hidden-row opacity (no effect on layout/layerize). Preparing the lists one per frame instead of all at once: the first
 changes of the drag arrive before the lists are ready and pay the cost anyway.
 
-## 4x CPU throttle (ms), 3 alternated repetitions
+## 4x CPU throttle (ms), 3 alternated repetitions (final version)
 
 | metric | before within | after within | before between | after between | before groups | after groups |
 |---|---|---|---|---|---|---|
-| p95 frame | 403.4 | 598.8 | 472.5 | 525.9 | 533.6 | 181.6 |
-| max frame at target change | 403.4 | 231.3 | 466 | 242.5 | 431.3 | 137.4 |
-| long tasks / drag | 44 | 44 | 43 | 44 | 43 | 41 |
-| start max frame | 816.8 | 774.5 | 917.5 | 965.1 | 1095.6 | 845.6 |
-| start long tasks | 3 | 3 | 4 | 2 | 4 | 2 |
-| drop long task sum | 0 | 0 | 1149 | 1115 | 668 | 1111 |
-| drop max frame (longest task) | 0 | 0 | 667 | 731 | 370 | 776 |
+| p95 frame | 393.3 | 293.5 | 515.3 | 333.9 | 161.2 | 280 |
+| max frame at target change | 393.3 | 222.7 | 519.5 | 332.9 | 133.6 | 139 |
+| long tasks / drag | 43 | 43 | 44 | 43 | 45 | 33 |
+| start max frame | 842.4 | 773.9 | 894.7 | 859.3 | 896.3 | 828.1 |
+| start long tasks | 3 | 3 | 3 | 3 | 4 | 3 |
+| drop long task sum | 0 | 0 | 1287 | 1235 | 1159 | 681 |
+| drop max frame (longest task) | 0 | 0 | 747 | 734 | 820 | 311 |
 
-Per repetition (before / after): p95 within 443, 400, 403 / 566, 599, 645;
-between 485, 425, 473 / 532, 316, 526; groups 534, 652, 168 / 468, 145, 182. Max frame at a change after, per run: within 190-317 ms,
-between 150-312, groups 91-166; before: within 341-551, between 362-688, groups 100-740 (first repetition of groups, the quiet moment: 100-112 ms
-on both builds, the machine slowed down after that).
+Per repetition (before / after): p95 within 416, 393, 362 / 294, 279, 316; between 542, 515, 509 / 289, 342, 334; groups 161, 158, 530 / 303, 280, 276.
+Max frame at a change per run: within before 350-427, after 196-273; between before 443-571, after 170-602 (most 300-360); groups before 105-144
+(repetition 3: 401-455, the machine was slower then), after 122-160.
 
-- **Target change: -43% (within), -48% (between), -68% (groups)**, in every repetition. The `Layout` events with 15+ dirty objects in the window
-  went from 56 (5.8 s summed at 4x) to 27 (3.7 s, most of them at the start of the drag); layout per change from 40 to 3.6 ms; the store
-  fan-out is no longer in the frame.
-- **p95 of the whole drag is worse in `within` (+48%, 403 -> 599) and `between` (+11%)**: the preparation of the lists and skeletons is one more
-  long frame right after the start, inside the window the p95 is taken on. The version that did the same work in the start frame (eager) had
-  the target change at 203 / 212 / 120 ms and p95 203 / 212 / 152, but the start max frame +30-60% (1050 / 1379 / 1350); the one-frame-per-list
-  version had p95 320 / 312 (better than before, 391 / 454) but only -18% / -33% at the change. The shipped version is the trade-off in between:
-  the start frame is not worse (775 vs 817, 965 vs 918, 846 vs 1096), one extra frame is.
+- **p95 of the drag: -25% (within), -35% (between)**, no longer worse than before. **Target change: -43% (within), -36% (between), groups the same
+  (134 vs 139; the third `before` repetition was a slow one, 422).** The start frame is not worse (774 vs 842, 859 vs 895, 828 vs 896).
+- `groups`: p95 is worse (161 -> 280). Not comparable run for run: with the autoscroll fix the drag makes 4 target changes instead of 2 in two of the
+  three `before` repetitions (the old autoscroll scrolled back past the target), so more changes fall in the p95 window. All drags moved the task:
+  45 of 45 runs after, 45 of 45 before (the misses of PR 2 did not show up in these series).
 - Drop is unchanged (PR 4).
+
+### How the preparation is scheduled (the second round)
+
+The first version of this PR prepared every list in one task after the start (results: target change -43% / -48% / -68% but p95 +48% / +11% in
+`within` / `between`: one more long frame). Variants measured against the PR 2 build, all with the same machine load:
+
+| variant | p95 within / between / groups | max frame at change within / between / groups |
+|---|---|---|
+| all lists in one task after the start | 599 / 526 / 182 (before 403 / 473 / 534) | 231 / 243 / 137 (before 403 / 466 / 431) |
+| one list per frame, document order | 320 / 312 / - (before 391 / 454) | 309 / 295 / - (before 376 / 438) |
+| one list per frame, source list first then by distance | 346 / 327 / 289 (before 409 / 560 / 184) | 353 / 322 / 290 (before 402 / 594 / 132) |
+| **four lists per frame, source list first then by distance (shipped)** | **294 / 334 / 280 (before 393 / 515 / 161)** | **223 / 333 / 139 (before 393 / 520 / 134)** |
+
+Time-sliced preparation by a budget of script time would not work here: the cost is the layout of each list, which is done at the end of the
+frame, not in the script.
 
 ## Verified separately
 
-vitest (whole suite, 318 files / 4035 tests), tsc, eslint, e2e:typecheck; e2e on this build: live-drag (11), drop-feedback (8), free-order (9),
-split-workspace (8), live-drag-sidebar (5), live-drag-tabs (7). live-drag-scroll: 9 of 10, the same one fails as on the PR 2 build and not on the
-baseline 0.24.0 build (10 of 10), see below.
+vitest (whole suite, 318 files / 4035 tests), tsc, eslint, e2e:typecheck; e2e on the final build: live-drag (11), drop-feedback (8), free-order (9),
+split-workspace (8), live-drag-sidebar (5); live-drag-tabs passed 7 of 7 on the first build of this PR and failed in the last run ("move target out of bounds", the window of this
+machine, as on earlier builds); live-drag-scroll: 9 of 10, see below.
 
-## Found: a regression of PR 2 in live-drag-scroll (not fixed here)
+## The autoscroll regression of PR 2 (commit `fix(dnd): autoscroll only a container the pointer is over...`)
 
-"a group dragged to the right edge ... the drop is where expected" fails (the saved order is unchanged) on `perf/drag-own-pointer` and on this branch,
-and passes on the 0.24.0 baseline. A debug build (not kept) showed the pointer parked at x = 208 when released, inside the left band of the row of the
-groups: the new autoscroll scrolls back to the start, the group under the pointer goes away (hit-test null) and the drop has no target. dnd-kit's
-autoscroll did not do that in the same gesture. The `groups` scenario of this bench (2/15 runs of PR 2 did not move the task) is probably the same
-thing (a drag whose pointer ends in an edge band); in the alternated repetitions the drag did not move the task in 2 of 45 runs after (one `groups`,
-one `between`) and in 1 of 45 before (`between`, another series): a bench flake or this, not told apart. It needs a
-rule like dnd-kit's (scroll only towards where the pointer is moving / the dragged box, not the pointer position alone): its own change.
+live-drag-scroll "a group dragged to the right edge ... the drop is where expected" failed on `perf/drag-own-pointer` (nothing was saved) and passes on the
+0.24.0 baseline. Debug builds (not kept) showed the cause: the row of the groups spans x 301-899, the test then moves the pointer to x = 208 (the
+place of the *shifted* last column, outside the row, on the left of it), and the new autoscroll scrolled the row back to the start because it
+treated a pointer beside the container as being in its band: the group under the pointer went away, the hit-test returned null, no drop. The fix is
+dnd-kit's rule: the pointer has to be over the container along the axis, and a direction scrolls only once the pointer has moved that way (sticky
+intent, like dnd-kit's `useScrollIntent`), with unit tests. Now the group is dropped, **but one slot early** (G2 G3 G1 G4 instead of G2 G3 G4 G1): the last
+test of the spec still fails, 9 of 10, as it did on the build with only the first fix. What is left: the pointer crosses the left band of the row
+(x 301-421) on its way to x = 208 and the row scrolls back about 76 px (1314 -> 1238), so at x = 208 the hit is the right half of G3 (= before G4); without
+that scroll the point is over no group and the drop keeps "before G4". Why the baseline ends "after G4" was not found (its hit-test is the same, by
+pointer; its autoscroll is dnd-kit's, rect based). It is a gesture that ends outside the visible row, on a column that has been shifted out of it.

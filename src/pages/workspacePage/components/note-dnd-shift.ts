@@ -130,14 +130,18 @@ const frameOf = (container: HTMLElement) => {
     return pool.get(container) ?? makeSlot(container)
 }
 
+/** How many lists get their frame and skeleton in one animation frame (each one is a layout of the list). */
+const LISTS_PER_FRAME = 4
+
 let prepareTimer: ReturnType<typeof setTimeout> | null = null
 let prepareFrame = 0
 
 /**
- * Frames and skeletons of every list, once the frame that started the drag is on screen (not in it: that frame has enough to do). If a
- * target changes before this ran, `writeSlot` does the same for its own list.
+ * Frames and skeletons of every list, once the frame that started the drag is on screen (not in it: that frame has enough to do), a
+ * few lists per frame (all of them in one frame are one long frame of the layout of every list), the list of the dragged item first and then
+ * the others by their distance from it in the document. If a target changes before a list was prepared, `writeSlot` does it for it.
  */
-const prepareSlots = () => {
+const prepareSlots = (near: HTMLElement | null) => {
     if (prepareFrame) cancelAnimationFrame(prepareFrame)
     if (prepareTimer !== null) clearTimeout(prepareTimer)
     prepareTimer = null
@@ -145,14 +149,23 @@ const prepareSlots = () => {
         prepareFrame = 0
         prepareTimer = setTimeout(() => {
             prepareTimer = null
-            const containers = [...restLists.values()].map(rest => rest.container).filter(container => container.isConnected && !pool.has(container))
-            // Everything is read before anything is written
-            const unframed = containers.filter(container => !frames.has(container) && getComputedStyle(container).position === "static")
-            for (const container of unframed) {
-                frames.set(container, container.style.position)
-                container.style.position = "relative"
+            const all = [...restLists.values()].map(rest => rest.container)
+            const source = near ? all.findIndex(container => container.contains(near)) : -1
+            const queue = all
+                .map((container, index) => ({ container, distance: source < 0 ? index : Math.abs(index - source) }))
+                .sort((a, b) => a.distance - b.distance)
+                .map(item => item.container)
+            const next = () => {
+                prepareFrame = 0
+                let done = 0
+                for (let container = queue.shift(); container && done < LISTS_PER_FRAME; container = done < LISTS_PER_FRAME ? queue.shift() : undefined) {
+                    if (!container.isConnected || pool.has(container)) continue
+                    frameOf(container)
+                    done++
+                }
+                if (queue.length > 0) prepareFrame = requestAnimationFrame(next)
             }
-            for (const container of containers) makeSlot(container)
+            next()
         }, 0)
     })
 }
@@ -224,7 +237,7 @@ function writeSlot(animate: boolean) {
 }
 
 /** Measures where the lists of the wrappers are at rest (see `restLists`), on the axis the kind moves along. */
-function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis) {
+function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis, near: HTMLElement | null) {
     const next = new Map<string, RestList>()
     const shifted = isDisplaced()
     for (const [index, node] of sorted.entries()) {
@@ -240,7 +253,7 @@ function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis
             : { container, start: box.top - moved + container.clientTop, cross: rect.left - box.left - container.clientLeft, crossSize: rect.width, scroll: container.scrollTop, crossScroll: container.scrollLeft })
     }
     restLists = next
-    prepareSlots()
+    prepareSlots(near)
 }
 
 const leaving = new Set<HTMLElement>()
@@ -333,7 +346,7 @@ export function shiftNodesOf(kind: ShiftKind): HTMLElement[] {
  * its size): the shifts applied right now are taken out, so the snapshot is always of the resting layout. Only the wrappers that can be
  * moved are read: a section drag does not touch the hundreds of tasks.
  */
-export function readLiveSnapshot(kind: ShiftKind = "task"): LiveSnapshot {
+export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | null = null): LiveSnapshot {
     const shifted = isDisplaced()
     const along: ShiftAxis = kind === "tab" || kind === "group" ? "x" : "y"
     /** Where the node would be at rest: its rect minus the shift it and its ancestors carry (the one on screen, an animation in progress included, like the rect). */
@@ -382,6 +395,6 @@ export function readLiveSnapshot(kind: ShiftKind = "task"): LiveSnapshot {
             height: rect.height,
         }
     })
-    readRestLists(sorted, infos.map(info => info.list), along)
+    readRestLists(sorted, infos.map(info => info.list), along, near)
     return buildLiveSnapshot(infos)
 }
