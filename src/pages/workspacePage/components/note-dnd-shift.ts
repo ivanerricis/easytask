@@ -75,7 +75,7 @@ const write = (animate: boolean) => {
     for (const [node, dy] of wanted) {
         if (applied.get(node) === dy) continue
         node.style.transition = transition
-        node.style.transform = axis === "x" ? `translate3d(${dy}px, 0, 0)` : `translate3d(0, ${dy}px, 0)`
+        node.style.transform = axis === "x" ? `translate(${dy}px, 0)` : `translate(0, ${dy}px)`
         applied.set(node, dy)
     }
 
@@ -108,55 +108,119 @@ type RestList = { container: HTMLElement, start: number, cross: number, crossSiz
 let restLists = new Map<string, RestList>()
 let targetSlot: LiveSlot | null = null
 let slotNode: HTMLElement | null = null
-/** The container the skeleton is in, and the inline `position` it had before it was made the frame of the skeleton. */
-let slotHost: { container: HTMLElement, position: string } | null = null
+/**
+ * The skeletons, one per list, put in their container right after the drag started and kept (hidden) for the length of the drag:
+ * putting a box in a list is a layout of the whole list, so it is not done in the frame the target changes. Shown with its attribute,
+ * hidden without (the attribute is what the tests and the e2e count).
+ */
+const pool = new Map<HTMLElement, { node: HTMLElement, width: number, height: number }>()
+/**
+ * The containers that were made the frame of the skeleton (`position: relative`) for the length of the drag, with the inline `position`
+ * they had. Like the skeletons, it is done before the target changes: a change of the position of a container in the middle of the
+ * drag is a layout of the whole list in the frame the target changes.
+ */
+const frames = new Map<HTMLElement, string>()
 
-const releaseHost = () => {
-    if (!slotHost) return
-    slotHost.container.style.position = slotHost.position
-    slotHost = null
+/** Makes `container` the frame of the skeleton if it is not positioned, and puts its skeleton in (hidden). */
+const frameOf = (container: HTMLElement) => {
+    if (!frames.has(container) && getComputedStyle(container).position === "static") {
+        frames.set(container, container.style.position)
+        container.style.position = "relative"
+    }
+    return pool.get(container) ?? makeSlot(container)
+}
+
+let prepareTimer: ReturnType<typeof setTimeout> | null = null
+let prepareFrame = 0
+
+/**
+ * Frames and skeletons of every list, once the frame that started the drag is on screen (not in it: that frame has enough to do). If a
+ * target changes before this ran, `writeSlot` does the same for its own list.
+ */
+const prepareSlots = () => {
+    if (prepareFrame) cancelAnimationFrame(prepareFrame)
+    if (prepareTimer !== null) clearTimeout(prepareTimer)
+    prepareTimer = null
+    prepareFrame = requestAnimationFrame(() => {
+        prepareFrame = 0
+        prepareTimer = setTimeout(() => {
+            prepareTimer = null
+            const containers = [...restLists.values()].map(rest => rest.container).filter(container => container.isConnected && !pool.has(container))
+            // Everything is read before anything is written
+            const unframed = containers.filter(container => !frames.has(container) && getComputedStyle(container).position === "static")
+            for (const container of unframed) {
+                frames.set(container, container.style.position)
+                container.style.position = "relative"
+            }
+            for (const container of containers) makeSlot(container)
+        }, 0)
+    })
+}
+
+const releaseFrames = () => {
+    if (prepareFrame) cancelAnimationFrame(prepareFrame)
+    if (prepareTimer !== null) clearTimeout(prepareTimer)
+    prepareFrame = 0
+    prepareTimer = null
+    for (const [container, position] of frames) container.style.position = position
+    frames.clear()
+    for (const { node } of pool.values()) node.remove()
+    pool.clear()
+    slotNode = null
+}
+
+const makeSlot = (container: HTMLElement) => {
+    const node = document.createElement("div")
+    node.setAttribute("aria-hidden", "true")
+    node.className = "live-drag-slot"
+    node.style.cssText = "left:0;top:0;width:0;height:0;opacity:0;animation:none;transform:translate(0px, 0px)"
+    container.appendChild(node)
+    const entry = { node, width: 0, height: 0 }
+    pool.set(container, entry)
+    return entry
+}
+
+const hideSlot = () => {
+    if (!slotNode) return
+    slotNode.removeAttribute(LIVE_SLOT_ATTR)
+    slotNode.style.transition = "none"
+    slotNode.style.opacity = "0"
+    slotNode.style.transform = "translate(0px, 0px)"
+    slotNode = null
 }
 
 /**
- * Draws the skeleton in the room of `targetSlot`, inside the container of its list (so it scrolls and is clipped with the list, and
- * rides on the shift of a parent task), in content coordinates of the layout at rest. Removed when there is no room to show.
+ * Shows the skeleton in the room of `targetSlot`, inside the container of its list (so it scrolls and is clipped with the list, and
+ * rides on the shift of a parent task), in content coordinates of the layout at rest. Hidden when there is no room to show.
+ * It is placed with a transform (the size is written only when it changes), so that moving it from one room to the next does not lay
+ * the list out again.
  */
 function writeSlot(animate: boolean) {
     const rest = targetSlot ? restLists.get(targetSlot.list) : undefined
     if (!targetSlot || !rest || !rest.container.isConnected) {
-        slotNode?.remove()
-        slotNode = null
-        releaseHost()
+        hideSlot()
         return
     }
     const { container } = rest
-    if (slotHost?.container !== container) {
-        releaseHost()
-        slotNode?.remove()
-        slotNode = null
-        slotHost = { container, position: container.style.position }
-        if (getComputedStyle(container).position === "static") container.style.position = "relative"
-    }
+    const entry = pool.get(container) ?? frameOf(container)
+    const fresh = slotNode !== entry.node
+    if (fresh) hideSlot()
+    slotNode = entry.node
     const along = targetSlot.start - rest.start + rest.scroll
     const across = rest.cross + rest.crossScroll
     const box = axis === "x"
         ? { left: along, top: across, width: targetSlot.size, height: rest.crossSize }
         : { left: across, top: along, width: rest.crossSize, height: targetSlot.size }
-    const fresh = !slotNode
-    if (!slotNode) {
-        slotNode = document.createElement("div")
-        slotNode.setAttribute(LIVE_SLOT_ATTR, "")
-        slotNode.setAttribute("aria-hidden", "true")
-        slotNode.className = "live-drag-slot"
-        container.appendChild(slotNode)
-    }
     const style = slotNode.style
-    // A new skeleton fades in where the room opens; one that is there glides to the next room with the rows
-    style.transition = animate && !fresh ? `left ${SHIFT_DURATION}ms ease-out, top ${SHIFT_DURATION}ms ease-out` : "none"
-    style.left = `${box.left}px`
-    style.top = `${box.top}px`
-    style.width = `${box.width}px`
-    style.height = `${box.height}px`
+    // A skeleton that was hidden fades in where the room opens; one that is there glides to the next room with the rows
+    style.transition = !animate ? "none" : fresh ? `opacity ${SHIFT_DURATION}ms ease-out` : `transform ${SHIFT_DURATION}ms ease-out`
+    style.transform = `translate(${box.left}px, ${box.top}px)`
+    if (entry.width !== box.width) style.width = `${entry.width = box.width}px`
+    if (entry.height !== box.height) style.height = `${entry.height = box.height}px`
+    if (fresh) {
+        slotNode.setAttribute(LIVE_SLOT_ATTR, "")
+        style.opacity = "1"
+    }
 }
 
 /** Measures where the lists of the wrappers are at rest (see `restLists`), on the axis the kind moves along. */
@@ -176,6 +240,7 @@ function readRestLists(sorted: HTMLElement[], listOf: string[], along: ShiftAxis
             : { container, start: box.top - moved + container.clientTop, cross: rect.left - box.left - container.clientLeft, crossSize: rect.width, scroll: container.scrollTop, crossScroll: container.scrollLeft })
     }
     restLists = next
+    prepareSlots()
 }
 
 const leaving = new Set<HTMLElement>()
@@ -215,6 +280,7 @@ export function clearShifts(animate: boolean): void {
     hiddenKey = null
     targetSlot = null
     write(animate && !reducedMotion())
+    releaseFrames()
 }
 
 /** Whether something is moved (or about to be). */
@@ -234,8 +300,8 @@ const currentOffset = (node: HTMLElement, wanted: number): number => {
     const matrix3d = /^matrix3d\(([^)]*)\)$/.exec(value)
     if (matrix3d) return parseFloat(matrix3d[1].split(",")[axis === "x" ? 12 : 13]) || 0
     const translate = axis === "x"
-        ? /^translate3d\(\s*(-?[\d.]+)px/.exec(value)
-        : /^translate3d\(\s*[^,]+,\s*(-?[\d.]+)px/.exec(value)
+        ? /^translate(?:3d)?\(\s*(-?[\d.]+)px/.exec(value)
+        : /^translate(?:3d)?\(\s*[^,]+,\s*(-?[\d.]+)px/.exec(value)
     return translate ? parseFloat(translate[1]) : wanted
 }
 

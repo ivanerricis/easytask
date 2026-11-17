@@ -39,7 +39,12 @@ export const NO_HOVER: NoteHover = { overKey: null, zone: null }
  */
 export type NoteDndStore = {
     getState: () => NoteDndState
+    /** Called after every change. */
     subscribe: (listener: () => void) => () => void
+    /** Called only when the dragged item changes (a drag starts or ends). */
+    subscribeActive: (listener: () => void) => () => void
+    /** Called only when the hover moves onto or off the droppable `key`, or changes its zone while on it: a change of the target wakes the two rows it concerns, not the hundreds of the others. */
+    subscribeHover: (key: string, listener: () => void) => () => void
     /** Replaces the parts given; the listeners are called only when one of them is really different. */
     set: (next: Partial<NoteDndState>) => void
 }
@@ -47,16 +52,37 @@ export type NoteDndStore = {
 export const createNoteDndStore = (): NoteDndStore => {
     let state: NoteDndState = { active: null, hover: NO_HOVER }
     const listeners = new Set<() => void>()
+    const activeListeners = new Set<() => void>()
+    const hoverListeners = new Map<string, Set<() => void>>()
     return {
         getState: () => state,
         subscribe: listener => {
             listeners.add(listener)
             return () => { listeners.delete(listener) }
         },
+        subscribeActive: listener => {
+            activeListeners.add(listener)
+            return () => { activeListeners.delete(listener) }
+        },
+        subscribeHover: (key, listener) => {
+            const set = hoverListeners.get(key) ?? new Set()
+            set.add(listener)
+            hoverListeners.set(key, set)
+            return () => {
+                set.delete(listener)
+                if (set.size === 0 && hoverListeners.get(key) === set) hoverListeners.delete(key)
+            }
+        },
         set: next => {
+            const before = state
             const merged = { ...state, ...next }
-            if (merged.active === state.active && merged.hover === state.hover) return
+            if (merged.active === before.active && merged.hover === before.hover) return
             state = merged
+            if (merged.active !== before.active) [...activeListeners].forEach(listener => listener())
+            if (merged.hover !== before.hover) {
+                const keys = new Set([before.hover.overKey, merged.hover.overKey])
+                for (const key of keys) if (key !== null) [...(hoverListeners.get(key) ?? [])].forEach(listener => listener())
+            }
             listeners.forEach(listener => listener())
         },
     }
@@ -89,9 +115,13 @@ export function useNoteDrop(kind: NoteOverKind, id: number) {
     const key = noteKey(kind, id)
     // Not a dnd-kit droppable (see note-dnd-hit): the node only goes in the registry the drag hit-tests
     const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, ACCEPTS[kind], node), [key, kind, id])
-    const zone = useNoteDndSelector(state => state.hover.overKey === key ? state.hover.zone : null)
-    // A task row reads `active` only together with `zone`, which is null outside a drag: its value never changes, so a drag starting or ending does not re-render the rows
-    const activeKind = useNoteDndSelector(state => kind === "task" ? "task" : state.active?.kind ?? null)
+    const store = useContext(NoteDndStoreContext)
+    // Woken only when the hover goes onto or off this droppable (not at every change of the target, which would run the selector of every row of the note)
+    const subscribeZone = useCallback((listener: () => void) => store.subscribeHover(key, listener), [store, key])
+    const zone = useSyncExternalStore(subscribeZone, () => { const { hover } = store.getState(); return hover.overKey === key ? hover.zone : null })
+    // A task row reads `active` only together with `zone`, which is null outside a drag: its value never changes, so a drag starting or ending does not re-render the rows (nor wake them)
+    const subscribeKind = useCallback((listener: () => void) => kind === "task" ? () => undefined : store.subscribeActive(listener), [store, kind])
+    const activeKind = useSyncExternalStore(subscribeKind, () => kind === "task" ? "task" : store.getState().active?.kind ?? null)
     // Only the kind of the dragged item is used by the droppables
     const active = useMemo(() => activeKind ? { kind: activeKind } : null, [activeKind])
     return { setNodeRef, zone, active }
@@ -120,7 +150,9 @@ export function useNoteDrag(kind: NoteDragKind, id: number) {
         () => ({ onPointerDown: event => press(event, { kind, id }, nodeRef.current) }),
         [press, kind, id],
     )
-    const isDragging = useNoteDndSelector(state => state.active?.kind === kind && state.active.id === id)
+    const store = useContext(NoteDndStoreContext)
+    // Woken only when a drag starts or ends, not at every change of the target
+    const isDragging = useSyncExternalStore(store.subscribeActive, () => { const { active } = store.getState(); return active?.kind === kind && active.id === id })
     return { setNodeRef, dragProps, isDragging }
 }
 

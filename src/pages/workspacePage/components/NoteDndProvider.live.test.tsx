@@ -107,20 +107,20 @@ describe("NoteDndProvider live drag of the tasks", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(1)
         moveOver(1, 3, 0.9) // after task 3
-        expect(transforms()).toEqual(["", "translate3d(0, -20px, 0)", "translate3d(0, -20px, 0)"])
+        expect(transforms()).toEqual(["", "translate(0, -20px)", "translate(0, -20px)"])
         // The dragged row grows from 20 to 50 (an image finished loading). Rows 2 and 3 are at rest at 50 and 70, 20px up on screen
         const rects = { 1: { top: 0, height: 50 }, 2: { top: 30, height: 20 }, 3: { top: 50, height: 20 } } as const
         for (const id of [1, 2, 3] as const) wrappers.get(id)!.getBoundingClientRect = () => rects[id] as DOMRect
         act(() => { onResize?.() })
         flushFrame()
-        expect(transforms()).toEqual(["", "translate3d(0, -50px, 0)", "translate3d(0, -50px, 0)"])
+        expect(transforms()).toEqual(["", "translate(0, -50px)", "translate(0, -50px)"])
     })
 
     it("shifts the rows between the dragged task and the place, and hides the dragged one", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(1)
         moveOver(1, 3, 0.9) // after task 3
-        expect(transforms()).toEqual(["", "translate3d(0, -20px, 0)", "translate3d(0, -20px, 0)"])
+        expect(transforms()).toEqual(["", "translate(0, -20px)", "translate(0, -20px)"])
         expect(wrappers.get(1)!.style.opacity).toBe("0")
     })
 
@@ -128,9 +128,9 @@ describe("NoteDndProvider live drag of the tasks", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(3)
         moveOver(3, 1, 0.1) // before task 1
-        expect(transforms()).toEqual(["translate3d(0, 20px, 0)", "translate3d(0, 20px, 0)", ""])
+        expect(transforms()).toEqual(["translate(0, 20px)", "translate(0, 20px)", ""])
         moveOver(3, 2, 0.1) // before task 2
-        expect(transforms()).toEqual(["", "translate3d(0, 20px, 0)", ""])
+        expect(transforms()).toEqual(["", "translate(0, 20px)", ""])
     })
 
     it("moves nothing in the middle of a row (it becomes a subtask), nor over the task itself", () => {
@@ -156,7 +156,7 @@ describe("NoteDndProvider live drag of the tasks", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         start(1)
         moveOver(1, 3, 0.9)
-        expect(transforms()[1]).toBe("translate3d(0, -20px, 0)")
+        expect(transforms()[1]).toBe("translate(0, -20px)")
     })
 
     it("a cancelled drag brings the rows back", () => {
@@ -183,7 +183,7 @@ describe("NoteDndProvider live drag of the tasks", () => {
         moveOver(1, 3, 0.9)
         await act(async () => { await handlers.onDragEnd() })
         expect(moveTaskTo).toHaveBeenCalledWith(1, { sectionId: 10, parentTaskId: null, index: 2 })
-        expect(transforms()[1]).toBe("translate3d(0, -20px, 0)")
+        expect(transforms()[1]).toBe("translate(0, -20px)")
 
         tree = makeTree([2, 3, 1])
         rerender(<NoteDndProvider>{null}</NoteDndProvider>)
@@ -289,7 +289,7 @@ describe("NoteDndProvider live drag of the sections", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startSection(10)
         over(10, 12, 0.9) // after C
-        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        expect(shiftsOfCards()).toEqual({ 11: "translate(0, -44px)", 12: "translate(0, -44px)" })
         expect(cards.get(10)!.style.opacity).toBe("0")
     })
 
@@ -298,7 +298,7 @@ describe("NoteDndProvider live drag of the sections", () => {
         startSection(11)
         over(11, 20, 0.1) // before X
         expect(shiftsOfCards()).toEqual({
-            12: "translate3d(0, -104px, 0)", 20: "translate3d(0, 104px, 0)", 21: "translate3d(0, 104px, 0)",
+            12: "translate(0, -104px)", 20: "translate(0, 104px)", 21: "translate(0, 104px)",
         })
     })
 
@@ -306,7 +306,7 @@ describe("NoteDndProvider live drag of the sections", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startSection(10)
         over(10, 21, 0.9) // after Y
-        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        expect(shiftsOfCards()).toEqual({ 11: "translate(0, -44px)", 12: "translate(0, -44px)" })
     })
 
     it("follows the pointer from a section to another one", () => {
@@ -323,9 +323,9 @@ describe("NoteDndProvider live drag of the sections", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startSection(10)
         moveTo(10, "group", 2, { top: 0, height: 400 }, 300)
-        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        expect(shiftsOfCards()).toEqual({ 11: "translate(0, -44px)", 12: "translate(0, -44px)" })
         moveTo(10, "group", 1, { top: 0, height: 400 }, 300)
-        expect(shiftsOfCards()).toEqual({ 11: "translate3d(0, -44px, 0)", 12: "translate3d(0, -44px, 0)" })
+        expect(shiftsOfCards()).toEqual({ 11: "translate(0, -44px)", 12: "translate(0, -44px)" })
     })
 
     it("in the gap between two sections (over the group) the rows keep the place of the section left behind", () => {
@@ -333,7 +333,7 @@ describe("NoteDndProvider live drag of the sections", () => {
         startSection(10)
         over(10, 11, 0.9) // after B
         const shown = shiftsOfCards()
-        expect(shown).toEqual({ 11: "translate3d(0, -44px, 0)" })
+        expect(shown).toEqual({ 11: "translate(0, -44px)" })
         // 4px under B, over the group: not the end of the group
         moveTo(10, "group", 1, { top: 0, height: 400 }, 148)
         expect(shiftsOfCards()).toEqual(shown)
@@ -395,7 +395,7 @@ describe("NoteDndProvider live drag of the sections", () => {
         over(11, 20, 0.1)
         await act(async () => { await handlers.onDragEnd() })
         expect(moveSectionTo).toHaveBeenCalledWith(11, { type: "group", groupId: 2, index: 0 })
-        expect(shiftsOfCards()[20]).toBe("translate3d(0, 104px, 0)")
+        expect(shiftsOfCards()[20]).toBe("translate(0, 104px)")
 
         tree = sectionTree()
         rerender(<NoteDndProvider>{null}</NoteDndProvider>)
@@ -453,7 +453,7 @@ describe("NoteDndProvider live drag of the groups", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startGroup(1)
         moveTo(1, 3, 250) // right half of g3: after it
-        expect(shiftsOfColumns()).toEqual({ 2: "translate3d(-108px, 0, 0)", 3: "translate3d(-108px, 0, 0)" })
+        expect(shiftsOfColumns()).toEqual({ 2: "translate(-108px, 0)", 3: "translate(-108px, 0)" })
         expect(columns.get(1)!.style.opacity).toBe("0")
     })
 
@@ -461,7 +461,7 @@ describe("NoteDndProvider live drag of the groups", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startGroup(3)
         moveTo(3, 1, 10) // left half of g1: before it
-        expect(shiftsOfColumns()).toEqual({ 1: "translate3d(88px, 0, 0)", 2: "translate3d(88px, 0, 0)" })
+        expect(shiftsOfColumns()).toEqual({ 1: "translate(88px, 0)", 2: "translate(88px, 0)" })
     })
 
     it("keeps the side a few px past the middle (hysteresis) and moves nothing where the order does not change", () => {
@@ -472,7 +472,7 @@ describe("NoteDndProvider live drag of the groups", () => {
         moveTo(1, 3, 214) // 2px left of the middle of g3: still after
         expect(shiftsOfColumns()).toEqual(after)
         moveTo(1, 3, 180) // clearly before g3: the dragged one goes between g2 and g3
-        expect(shiftsOfColumns()).toEqual({ 2: "translate3d(-108px, 0, 0)" })
+        expect(shiftsOfColumns()).toEqual({ 2: "translate(-108px, 0)" })
         moveTo(1, 1, 90)
         expect(shiftsOfColumns()).toEqual({})
         expect(columns.get(1)!.style.opacity).toBe("")
@@ -503,7 +503,7 @@ describe("NoteDndProvider live drag of the groups", () => {
         moveTo(1, 3, 250)
         await act(async () => { await handlers.onDragEnd() })
         expect(moveGroupMock).toHaveBeenCalledWith(1, 2)
-        expect(shiftsOfColumns()[3]).toBe("translate3d(-108px, 0, 0)")
+        expect(shiftsOfColumns()[3]).toBe("translate(-108px, 0)")
         tree = groupTree()
         rerender(<NoteDndProvider>{null}</NoteDndProvider>)
         expect(shiftsOfColumns()).toEqual({})

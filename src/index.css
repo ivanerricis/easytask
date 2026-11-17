@@ -272,6 +272,12 @@ html[data-font="opendyslexic"] { --app-font: "OpenDyslexic", ui-sans-serif, syst
 html[data-font]:not([data-font="system"]),
 html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-font); }
 
+/* The wrapper of a task always has a transform (an identity one at rest). The live drag moves the wrappers with a transform
+   (note-dnd-shift), and a transform that appears or goes away changes what the element is the frame of for the fixed and absolute
+   boxes inside it, which is a layout of the element: with the identity there is nothing to change, so a task that steps aside (or comes
+   back) is only a repaint of the transform. Measured at a change of the target: the layout of ~20 wrappers (tens of ms at 4x CPU). */
+[data-task-wrap] { transform: translate(0, 0); }
+
 /* The skeleton in the room that opens while an item is dragged live (note-dnd-shift): where the item would land. */
 .live-drag-slot {
   position: absolute;
