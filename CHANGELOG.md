@@ -21,6 +21,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Without an internet connection, **Check for updates** and **Update now** say "No internet connection: try again when you are online." with the technical error in small text below, instead of only the technical error.
 - Right click anywhere on a group, also on its padding, opens the group menu; the **+** (new section) in the group header shows only when you point at the group; the resize handle of a group covers the full height of the column; **New task** in a group is a light row, always visible, like the one of the sections.
 - A click on an empty area outside the tasks clears the multiple selection of tasks.
+- While dragging, the rows that step aside follow the **Animations** setting of the app instead of the one of the system: they are slower with **Slow** and do not animate with **Off**.
+- Dragging a group sideways, the groups swap as soon as the pointer enters the column of the next group, without reaching its middle.
+- A task or a section can be dropped on the whole height of a group's column, also in the empty space below a short group: it lands at the end of that group.
 - Appearance polish: the tab bar and the borders of the tabs use the normal border color (the accent stays only on the active split pane); the **...** menu buttons are smaller and follow the density of the sidebar; the shortcuts **?** button sits next to the search; the segmented controls in Settings have the same height and width; the tag dialogs are tidier; the audio speed button no longer changes width.
 - The **Automatic (progress)** color of a group is not read by versions before 0.26.0: if you export a workspace that uses it, or share a file with an older version, the group appears there without that color.
 

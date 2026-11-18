@@ -19,6 +19,9 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 - Senza connessione a internet, **Controlla aggiornamenti** e **Aggiorna ora** dicono "Nessuna connessione a internet: riprova quando sei online." con l'errore tecnico in piccolo sotto, invece del solo errore tecnico.
 - Il clic destro in qualsiasi punto di un gruppo, anche sui margini, apre il menu del gruppo; il **+** (nuova sezione) nell'intestazione del gruppo compare solo quando ci passi il mouse; la maniglia di larghezza di un gruppo copre tutta l'altezza della colonna; **Nuovo task** in un gruppo è una riga leggera, sempre visibile, come quella delle sezioni.
 - Un clic su un'area vuota fuori dai task toglie la selezione multipla dei task.
+- Durante il trascinamento, le righe che si scostano seguono l'impostazione **Animazioni** dell'app invece di quella del sistema: con **Lente** sono più lente e con **Assenti** non si animano.
+- Trascinando un gruppo di lato, i gruppi si scambiano appena il puntatore entra nella colonna del gruppo vicino, senza arrivare a metà.
+- Un task o una sezione si possono rilasciare su tutta l'altezza della colonna di un gruppo, anche nello spazio vuoto sotto un gruppo corto: finiscono in fondo a quel gruppo.
 - Rifinitura dell'aspetto: la barra dei tab e i bordi dei tab usano il normale colore del bordo (l'accento resta solo sul riquadro attivo della vista divisa); i pulsanti del menu **...** sono più piccoli e seguono la densità della barra laterale; il pulsante **?** delle scorciatoie sta accanto alla ricerca; i controlli segmentati nelle Impostazioni hanno la stessa altezza e larghezza; le finestre dei tag sono più ordinate; il pulsante della velocità audio non cambia più larghezza.
 - Il colore **Automatico (avanzamento)** di un gruppo non viene letto dalle versioni precedenti alla 0.26.0: se esporti un workspace che lo usa, o condividi un file con una versione più vecchia, lì il gruppo appare senza quel colore.
 
