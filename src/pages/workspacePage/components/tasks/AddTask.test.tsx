@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useEffect } from "react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { AddTask } from "./AddTask"
+import { AddTask, GROUP_ADD_TASK_VARIANT } from "./AddTask"
 import { toast } from "sonner"
 import { deferred } from "@/test/ui-render"
 import { TaskInsertProvider, useTaskInsertStore } from "./task-insert-state"
@@ -45,6 +45,14 @@ describe("AddTask", () => {
         spy.mockRestore()
     })
 
+    it("in a group the closed control is always visible (not only on hover) and left aligned, like the row of a section", () => {
+        render(<AddTask sectionId={12} inGroup />)
+        const button = screen.getByRole("button", { name: "Nuovo task" })
+        expect(button).not.toHaveClass("opacity-0")
+        expect(button).toHaveClass("w-full", "justify-start")
+        expect(GROUP_ADD_TASK_VARIANT).toBe("row")
+    })
+
     it("starts collapsed and opens the input on click", async () => {
         const user = userEvent.setup()
         render(<AddTask sectionId={3} />)
@@ -54,7 +62,7 @@ describe("AddTask", () => {
         expect(screen.getByPlaceholderText("Nuovo task…")).toHaveFocus()
     })
 
-    it("in a group starts as a dashed 'Nuovo task' button and creates the task in the given (default) section", async () => {
+    it("in a group starts as a 'Nuovo task' button and creates the task in the given (default) section", async () => {
         const user = userEvent.setup()
         render(<AddTask sectionId={12} inGroup />)
         const button = screen.getByRole("button", { name: "Nuovo task" })

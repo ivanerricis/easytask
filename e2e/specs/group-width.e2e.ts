@@ -29,10 +29,10 @@ const cardWidth = async (): Promise<number> => {
     const card = (await groupCard(GROUP).getElement()) as unknown as HTMLElement
     return browser.execute((el: HTMLElement) => el.getBoundingClientRect().width, card)
 }
-/** Rendered width of the group: the handle is the last child of its root element. */
+/** Rendered width of the group: the handle is drawn in the column of the group, next to the card. */
 const renderedWidth = async (): Promise<number> => {
     const handle = await byLabel(await tr("groups.width.handle"))
-    return browser.execute((el: HTMLElement) => el.parentElement!.getBoundingClientRect().width, handle as unknown as HTMLElement)
+    return browser.execute((el: HTMLElement) => el.parentElement!.querySelector<HTMLElement>("[data-group-card]")!.getBoundingClientRect().width, handle as unknown as HTMLElement)
 }
 
 /**

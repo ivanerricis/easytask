@@ -215,7 +215,8 @@ describe("Feedback of the drag at the edges of a group", () => {
                 .find(el => getComputedStyle(el).overflowY === "auto" && el.scrollHeight > el.clientHeight + 1)!
             const box = area.getBoundingClientRect()
             const bar = area.offsetWidth - area.clientWidth
-            const handle = group.querySelector<HTMLElement>('[data-testid="group-resize-handle"]')!.getBoundingClientRect()
+            // The handle is drawn in the column of the group (the parent of the card), not inside the card
+            const handle = group.parentElement!.querySelector<HTMLElement>('[data-testid="group-resize-handle"]')!.getBoundingClientRect()
             return { barWidth: bar, barLeft: box.right - bar, barRight: box.right, handleLeft: handle.left, handleRight: handle.right }
         }, await groupEl())
         expect(rects.barWidth).toBeGreaterThan(0)

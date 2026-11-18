@@ -393,7 +393,7 @@ export const newSectionInGroup = async (group: ChainablePromiseElement | Webdriv
 /** The area of the tasks created directly in a group (the list sits among its sections where the user placed it, on top by default). */
 export const directTasks = (group: ChainablePromiseElement | WebdriverIO.Element) => group.$("[data-direct-tasks]")
 
-/** The dashed "Nuovo task" button of a group: it adds a task to the direct area (found by its visible text, it has no aria-label). */
+/** The "Nuovo task" row of a group (always visible): it adds a task to the direct area (found by its visible text, it has no aria-label). */
 export const groupAddTaskButton = async (group: ChainablePromiseElement | WebdriverIO.Element) =>
     directTasks(group).$(`.//button[normalize-space()=${xpathString(await tr("groups.addTask"))}]`)
 

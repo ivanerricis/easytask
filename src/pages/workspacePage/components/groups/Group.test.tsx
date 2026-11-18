@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Group } from "./Group"
+import { GroupColumnContext } from "./group-column-context"
 import { makeDefaultSection, makeGroup, makeSection } from "@/test/ui-fixtures"
 import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 
@@ -12,9 +13,17 @@ vi.mock("../note-dnd-state", () => ({
     useNoteDrag: () => ({ setNodeRef: vi.fn(), setActivatorNodeRef: vi.fn(), attributes: {}, listeners: {}, isDragging: false }),
 }))
 // The header is a sibling of the button that stands for the "Nuova sezione" entry of its menu
+const renamed = vi.fn()
+// The menu of the group wraps the whole card: its "Rename" entry is a button that calls onRename
+vi.mock("./ButtonMenuGroup", () => ({
+    ButtonMenuGroup: ({ children, onRename }: { children: React.ReactNode, onRename?: () => void }) =>
+        <div data-testid="menu-wrapper">{children}<button onClick={onRename}>menu rinomina</button></div>,
+}))
 vi.mock("./GroupHeader", () => ({
-    GroupHeader: ({ compact, onAddSection }: { compact?: boolean, onAddSection?: () => void }) =>
-        <><div data-compact={String(!!compact)}>header</div><button onClick={onAddSection}>menu nuova sezione</button></>,
+    GroupHeader: ({ compact, onAddSection, renameRef }: { compact?: boolean, onAddSection?: () => void, renameRef?: { current: (() => void) | null } }) => {
+        if (renameRef) renameRef.current = renamed
+        return <><div data-compact={String(!!compact)}>header</div><button onClick={onAddSection}>menu nuova sezione</button></>
+    },
 }))
 const setGroupWidth = vi.fn()
 const patchGroup = vi.fn()
@@ -236,6 +245,29 @@ describe("Group explicit width", () => {
         render(<div onPointerDown={onPointerDown}><Group group={makeGroup({ id: 207 })} /></div>)
         fireEvent.pointerDown(handle())
         expect(onPointerDown).not.toHaveBeenCalled()
+    })
+})
+
+describe("Group menu and resize handle", () => {
+    it("wraps the whole card in the menu of the group, so its padding answers the right click too", () => {
+        render(<Group group={makeGroup({ id: 301 })} />)
+        expect(screen.getByTestId("menu-wrapper")).toContainElement(root())
+    })
+
+    it("renames through the inline edit of the header", () => {
+        renamed.mockClear()
+        render(<Group group={makeGroup({ id: 302 })} />)
+        fireEvent.click(screen.getByText("menu rinomina"))
+        expect(renamed).toHaveBeenCalledTimes(1)
+    })
+
+    it("draws the resize handle in the column of the group, not in the card, when there is one", () => {
+        const column = document.createElement("div")
+        document.body.appendChild(column)
+        render(<GroupColumnContext.Provider value={column}><Group group={makeGroup({ id: 303 })} /></GroupColumnContext.Provider>)
+        expect(column.querySelector("[role=separator]")).not.toBeNull()
+        expect(root().querySelector("[role=separator]")).toBeNull()
+        column.remove()
     })
 })
 

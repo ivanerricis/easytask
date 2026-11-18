@@ -12,6 +12,7 @@ import type { Group } from "@/types/types"
 vi.mock("@/hooks/use-automations", () => ({ useAutomations: () => ({ dispatch: vi.fn() }) }))
 vi.mock("@/contexts/undo/use-undo", async () => (await import("@/test/mocks")).undoModuleMock())
 vi.mock("./GroupHeader", () => ({ GroupHeader: () => <div>header</div> }))
+vi.mock("./ButtonMenuGroup", () => ({ ButtonMenuGroup: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock("./GroupAudioFiles", () => ({ GroupAudioFiles: () => null }))
 vi.mock("./GroupMediaFiles", () => ({ GroupMediaFiles: () => null }))
 vi.mock("../section/Section", () => ({ Section: () => null }))
