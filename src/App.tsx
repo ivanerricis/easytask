@@ -14,6 +14,7 @@ import { ShortcutsProvider } from './contexts/shortcuts-context'
 import { DialogShortcuts } from './components/dialogs/dialog-shortcuts'
 import { DialogUpdate } from './components/dialogs/dialog-update'
 import { TextContextMenu } from './components/text-context-menu'
+import { CloseBackupOverlay } from './components/close-backup-overlay'
 import { getEditableTarget } from './lib/editable-target'
 import { useCloseToTray } from './lib/use-close-to-tray'
 
@@ -85,6 +86,7 @@ function App() {
             <Toaster closeButton position='top-center' toastOptions={{ closeButtonAriaLabel: t('common.close') }} />
             <DialogShortcuts />
             <DialogUpdate />
+            <CloseBackupOverlay />
             <TextContextMenu />
           </WorkspaceDataProvider>
         </WorkspaceProvider>

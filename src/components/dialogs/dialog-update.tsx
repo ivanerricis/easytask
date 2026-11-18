@@ -24,7 +24,7 @@ export const DialogUpdate = () => {
     const { t } = useTranslation()
     const [pending, setPending] = useState<UpdateAvailableDetail | null>(null)
     const [open, setOpen] = useState(false)
-    const { progress, percent, label, error: installError, install } = useUpdateInstall()
+    const { progress, percent, label, error: installError, errorDetail: installErrorDetail, install } = useUpdateInstall()
     const openReleases = useOpenReleasesPage()
     const updateButton = useRef<HTMLButtonElement>(null)
     const installing = progress !== null
@@ -111,7 +111,10 @@ export const DialogUpdate = () => {
                     {installing && <UpdateInstallProgress percent={percent} label={label} />}
                 </div>
                 {installError && !installing && (
-                    <FormError>{installError}</FormError>
+                    <div className="flex flex-col gap-1">
+                        <FormError>{installError}</FormError>
+                        {installErrorDetail && <p className="text-xs text-muted-foreground break-words">{installErrorDetail}</p>}
+                    </div>
                 )}
 
                 <DialogFooter>

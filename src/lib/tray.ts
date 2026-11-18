@@ -2,6 +2,7 @@ import { defaultWindowIcon } from "@tauri-apps/api/app"
 import { Menu } from "@tauri-apps/api/menu"
 import { TrayIcon } from "@tauri-apps/api/tray"
 import { getCurrentWindow } from "@tauri-apps/api/window"
+import { backupBeforeQuit } from "@/lib/close-backup"
 import { flushStore } from "@/lib/store/save-soon"
 import { reportError } from "@/lib/report-error"
 import { createWindowEvent } from "@/lib/window-event"
@@ -46,9 +47,14 @@ export async function hideMainWindow(): Promise<void> {
     await getCurrentWindow().hide()
 }
 
-/** Really quits: pending store changes (preferences, tabs, shortcuts) are saved first, then the window is destroyed (the last window ends the app). */
+/**
+ * Really quits: pending store changes (preferences, tabs, shortcuts) are saved first, then the backup of the closing
+ * (when the mode asks for it; the hidden window is shown so its overlay can be seen), then the window is destroyed
+ * (the last window ends the app).
+ */
 async function quitApp(): Promise<void> {
     await flushStore().catch(error => reportError(error))
+    await backupBeforeQuit(() => { void getCurrentWindow().show().catch(reportError) })
     await getCurrentWindow().destroy()
 }
 

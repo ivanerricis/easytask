@@ -125,6 +125,7 @@ export const AppMenu = ({ page }: AppMenuProps) => {
     const docs = () => { openDocs(i18n.language).catch(error => reportError(error)) }
 
     useShortcut("open-docs", docs, { allowInInputs: true })
+    useShortcut("open-settings", openSettings, { allowInInputs: true })
 
     const { textZoom, setTextZoom } = usePreferences()
     const zoomIn = () => setTextZoom(stepTextZoom(textZoom, 1))
@@ -162,7 +163,7 @@ export const AppMenu = ({ page }: AppMenuProps) => {
                         </>
                     )}
                     <MenubarSeparator />
-                    <ActionItem action={openSettings} icon={Settings} label={t("appMenu.settings")} />
+                    <ShortcutItem id="open-settings" icon={Settings} label={t("appMenu.settings")} />
                     <MenubarSeparator />
                     <ActionItem action={exit} icon={LogOut} label={t("appMenu.exit")} />
                 </MenubarContent>

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { store } from "./initStore"
-import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getAccentOverride, saveAccentOverride, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition } from "./preferences"
+import { getAllPrefs, flushPreferences, getPref, savePref, normalizePref, UI_PREFS, APP_PREFS, clearLastWorkspaceId, getLastWorkspaceId, saveLastWorkspaceId, getReopenLastWorkspace, getAccentOverride, saveAccentOverride, getAudioPlayerPosition, savePrimaryColor, saveAudioPlayerPosition, resetAudioPlayerPosition, getAutoBackupMode, saveAutoBackupMode } from "./preferences"
 
 vi.mock("./initStore", () => ({
     store: { get: vi.fn(), set: vi.fn(), save: vi.fn(), delete: vi.fn() },
@@ -583,7 +583,7 @@ describe("preference table", () => {
 
     it("keeps the keys saved on disk", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
-            "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "backupFolder",
+            "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "autoBackupMode", "backupFolder",
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
             "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount",
             "showGroupProgressBar", "showGroupSeparators", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
@@ -760,5 +760,46 @@ describe("theme preferences", () => {
         await vi.advanceTimersByTimeAsync(500)
         await removed
         expect(store.delete).toHaveBeenCalledWith("primaryColor")
+    })
+})
+
+describe("automatic backup mode preference", () => {
+    const stored = (values: Record<string, unknown>) => {
+        vi.mocked(store.get).mockImplementation((async (key: string) => values[key]) as never)
+    }
+
+    beforeEach(() => {
+        vi.resetAllMocks()
+        vi.useFakeTimers()
+    })
+
+    it("defaults to the backup at close", async () => {
+        stored({})
+        expect(await getAutoBackupMode()).toBe("close")
+    })
+
+    it.each(["off", "startup", "close", "both"])("returns the stored mode %s, whatever the old switch says", async mode => {
+        stored({ autoBackupMode: mode, autoBackup: mode === "off" })
+        expect(await getAutoBackupMode()).toBe(mode)
+    })
+
+    it("migrates the old switch: off stays off, on gives the default", async () => {
+        stored({ autoBackup: false })
+        expect(await getAutoBackupMode()).toBe("off")
+        stored({ autoBackup: true })
+        expect(await getAutoBackupMode()).toBe("close")
+    })
+
+    it("ignores an invalid stored mode and falls back to the old switch", async () => {
+        stored({ autoBackupMode: "weekly", autoBackup: false })
+        expect(await getAutoBackupMode()).toBe("off")
+        expect(normalizePref("autoBackupMode", "weekly")).toBe("close")
+    })
+
+    it("saves the mode", async () => {
+        const saving = saveAutoBackupMode("both")
+        await vi.advanceTimersByTimeAsync(500)
+        await saving
+        expect(store.set).toHaveBeenCalledWith("autoBackupMode", "both")
     })
 })

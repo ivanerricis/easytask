@@ -37,11 +37,32 @@ describe("UpdateSection", () => {
     })
 
     it("shows a handled error when the check fails", async () => {
-        check.mockRejectedValue(new Error("offline"))
+        check.mockRejectedValue(new Error("boom"))
         render(<UpdateSection />)
         await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
-        expect(await screen.findByText(/Impossibile controllare gli aggiornamenti: offline/)).toBeInTheDocument()
+        expect(await screen.findByText(/Impossibile controllare gli aggiornamenti: boom/)).toBeInTheDocument()
         expect(screen.getByRole("button", { name: "Controlla aggiornamenti" })).toBeEnabled()
+    })
+
+    it("says there is no internet connection, with the technical error in small print", async () => {
+        const technical = "error sending request for url (https://github.com/x/releases/latest/download/latest.json)"
+        check.mockRejectedValue(new Error(technical))
+        render(<UpdateSection />)
+        await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
+        expect(await screen.findByText("Nessuna connessione a internet: riprova quando sei online.")).toBeInTheDocument()
+        expect(screen.getByText(technical)).toHaveClass("text-xs", "text-muted-foreground")
+        expect(screen.queryByText(/Impossibile controllare gli aggiornamenti/)).not.toBeInTheDocument()
+    })
+
+    it("says there is no internet connection when the install fails for the network", async () => {
+        const technical = "error sending request for url (https://github.com/x/releases/download/app.exe)"
+        check.mockResolvedValue(fakeUpdate(vi.fn(async () => { throw new Error(technical) })))
+        render(<UpdateSection />)
+        await userEvent.click(screen.getByRole("button", { name: "Controlla aggiornamenti" }))
+        await userEvent.click(await screen.findByRole("button", { name: "Aggiorna ora" }))
+        expect((await screen.findAllByText("Nessuna connessione a internet: riprova quando sei online.")).length).toBeGreaterThan(0)
+        expect(screen.getByText(technical)).toBeInTheDocument()
+        expect(screen.queryByText(/Impossibile installare/)).not.toBeInTheDocument()
     })
 
     it("downloads, installs and relaunches when installed", async () => {

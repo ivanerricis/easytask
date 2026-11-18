@@ -11,7 +11,7 @@ const listBackups = vi.fn()
 const restoreBackup = vi.fn()
 const listPreMigrationBackups = vi.fn()
 const saveBackupKeep = vi.fn()
-const saveAutoBackup = vi.fn()
+const saveAutoBackupMode = vi.fn()
 const invoke = vi.fn()
 const saveBackupFolder = vi.fn()
 const saveBackupFrequency = vi.fn()
@@ -46,9 +46,11 @@ vi.mock("@/lib/store/preferences", () => ({
     MAX_BACKUP_KEEP: 100,
     clampBackupKeep: (v: number) => Math.min(100, Math.max(1, Math.round(v))),
     getBackupKeep: async () => 5,
-    getAutoBackup: async () => true,
+    AUTO_BACKUP_MODES: ["off", "startup", "close", "both"],
+    DEFAULT_AUTO_BACKUP_MODE: "close",
+    getAutoBackupMode: async () => "close",
     saveBackupKeep: (...a: unknown[]) => saveBackupKeep(...a),
-    saveAutoBackup: (...a: unknown[]) => saveAutoBackup(...a),
+    saveAutoBackupMode: (...a: unknown[]) => saveAutoBackupMode(...a),
 }))
 
 const backup = (name: string, size: number, preRestore = false): BackupInfo => ({
@@ -66,7 +68,7 @@ beforeEach(() => {
     deleteBackup.mockResolvedValue(undefined)
     restoreBackup.mockResolvedValue(undefined)
     saveBackupKeep.mockResolvedValue(undefined)
-    saveAutoBackup.mockResolvedValue(undefined)
+    saveAutoBackupMode.mockResolvedValue(undefined)
     invoke.mockResolvedValue(undefined)
     storedFolder = null
     saveBackupFolder.mockResolvedValue(undefined)
@@ -82,7 +84,7 @@ describe("BackupSettings", () => {
         expect(screen.getByText("3.0 MB")).toBeInTheDocument()
         expect(screen.getByText("(prima del ripristino)")).toBeInTheDocument()
         await waitFor(() => expect(screen.getByRole("spinbutton", { name: "Backup da conservare" })).toHaveValue(5))
-        expect(screen.getByRole("switch", { name: "Backup automatico" })).toBeChecked()
+        await waitFor(() => expect(screen.getByRole("combobox", { name: "Backup automatico" })).toHaveTextContent("Solo alla chiusura"))
     })
 
     it("shows the pre-migration copies only when there are some", async () => {
@@ -162,8 +164,9 @@ describe("BackupSettings", () => {
         const user = userEvent.setup()
         render(<BackupSettings />)
         await screen.findByText("2 KB")
-        await user.click(screen.getByRole("switch", { name: "Backup automatico" }))
-        expect(saveAutoBackup).toHaveBeenCalledWith(false)
+        await user.click(screen.getByRole("combobox", { name: "Backup automatico" }))
+        await user.click(screen.getByRole("option", { name: "All'avvio e alla chiusura" }))
+        expect(saveAutoBackupMode).toHaveBeenCalledWith("both")
         const input = screen.getByRole("spinbutton", { name: "Backup da conservare" })
         await user.clear(input)
         await user.type(input, "12")
@@ -178,8 +181,13 @@ describe("BackupSettings", () => {
         const frequency = screen.getByRole("combobox", { name: "Frequenza del backup automatico" })
         await waitFor(() => expect(frequency).toHaveTextContent("Ogni settimana"))
         expect(frequency).toBeEnabled()
-        await user.click(screen.getByRole("switch", { name: "Backup automatico" }))
+        const keep = screen.getByRole("spinbutton", { name: "Backup da conservare" })
+        expect(keep).toBeEnabled()
+        await user.click(screen.getByRole("combobox", { name: "Backup automatico" }))
+        await user.click(screen.getByRole("option", { name: "Disattivato" }))
+        expect(saveAutoBackupMode).toHaveBeenCalledWith("off")
         expect(frequency).toBeDisabled()
+        expect(keep).toBeDisabled()
     })
 
     it("chooses a writable folder, saves it and can go back to the default one", async () => {

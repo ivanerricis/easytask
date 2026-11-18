@@ -112,6 +112,19 @@ describe("AppMenu", () => {
         expect(screen.getByRole("menuitem", { name: /Esporta/ })).toHaveAttribute("data-disabled")
     })
 
+    it("opens the settings with Ctrl+, and shows the shortcut in the File menu", async () => {
+        const user = userEvent.setup()
+        const categories: (string | undefined)[] = []
+        const listener = (event: Event) => categories.push((event as CustomEvent<{ category?: string }>).detail?.category)
+        window.addEventListener(OPEN_SETTINGS_EVENT, listener)
+        render(<ShortcutsProvider><AppMenu page="workspace" /></ShortcutsProvider>)
+        await user.keyboard("{Control>},{/Control}")
+        await waitFor(() => expect(categories).toEqual([undefined]))
+        await openMenu(user, "File")
+        expect(await screen.findByRole("menuitem", { name: /^Impostazioni….*Ctrl\+,/ })).toBeInTheDocument()
+        window.removeEventListener(OPEN_SETTINGS_EVENT, listener)
+    })
+
     it("opens the settings, the about page and closes the window", async () => {
         const user = userEvent.setup()
         const categories: (string | undefined)[] = []
@@ -119,7 +132,7 @@ describe("AppMenu", () => {
         window.addEventListener(OPEN_SETTINGS_EVENT, listener)
         render(<ShortcutsProvider><AppMenu page="home" /></ShortcutsProvider>)
         await openMenu(user, "File")
-        await user.click(await screen.findByRole("menuitem", { name: "Impostazioni…" }))
+        await user.click(await screen.findByRole("menuitem", { name: /^Impostazioni…/ }))
         await openMenu(user, "Aiuto")
         await user.click(await screen.findByRole("menuitem", { name: "Informazioni e aggiornamenti…" }))
         await waitFor(() => expect(categories).toEqual([undefined, "about"]))
