@@ -457,6 +457,18 @@ describe("backup file writing", () => {
         expect(files.size).toBe(0)
     })
 
+    it("deletes the temporary files left by earlier interrupted copies, and only those", async () => {
+        seed("easytask-20200101-100000.db.tmp")
+        seed("easytask-pre-restore-20200102-100000.db.tmp")
+        seed("easytask-20200103-100000.db")
+        seed("notes.tmp")
+        await createBackup("manual")
+        expect(files.has("/data/backups/easytask-20200101-100000.db.tmp")).toBe(false)
+        expect(files.has("/data/backups/easytask-pre-restore-20200102-100000.db.tmp")).toBe(false)
+        expect(files.has("/data/backups/easytask-20200103-100000.db")).toBe(true)
+        expect(files.has("/data/backups/notes.tmp")).toBe(true)
+    })
+
     it("a leftover temporary file of an interrupted copy is not listed and is replaced", async () => {
         seed("easytask-20260102-100000.db.tmp")
         expect(await listBackups()).toEqual([])

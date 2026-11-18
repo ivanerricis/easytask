@@ -142,12 +142,16 @@ export async function createBackup(kind: BackupKind = "manual", database?: Datab
     const temp = `${path}.tmp`
     if (await exists(temp)) await remove(temp)
     const db = database ?? await getDB()
+    activeTemps.add(temp)
     try {
+        await removeStaleTemps(folder)
         await vacuumInto(db, temp)
         await rename(temp, path)
     } catch (error) {
         await remove(temp).catch(() => undefined)
         throw error
+    } finally {
+        activeTemps.delete(temp)
     }
 
     if (preRestore) {
@@ -163,6 +167,24 @@ export async function createBackup(kind: BackupKind = "manual", database?: Datab
     }
     const size = await stat(path).then(info => info.size, () => 0)
     return { name, path, size, date, preRestore }
+}
+
+/** Temporary files of the backups being written right now (they must not be taken for leftovers). */
+const activeTemps = new Set<string>()
+
+const TEMP_PATTERN = /^easytask-(?:pre-restore-)?\d{8}-\d{6}(?:-\d+)?\.db\.tmp$/
+
+/** Deletes the temporary files left by a backup that was cut short (e.g. the closing timeout won), except the ones being written. Best effort. */
+async function removeStaleTemps(folder: string): Promise<void> {
+    try {
+        for (const entry of await readDir(folder)) {
+            if (!entry.isFile || !TEMP_PATTERN.test(entry.name)) continue
+            const path = await join(folder, entry.name)
+            if (!activeTemps.has(path)) await remove(path).catch(() => undefined)
+        }
+    } catch (error) {
+        reportError(error)
+    }
 }
 
 export type PreMigrationBackupInfo = {
