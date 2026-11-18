@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot } from "./note-dnd-shift"
 import { clearZones, hitTest, measureZones, zoneRect } from "./note-dnd-hit"
@@ -56,8 +56,11 @@ const SETTLE_TIMEOUT = 500
 /**
  * Drag & drop of groups, sections and tasks inside the open note, driven by its own pointer controller (see note-dnd-pointer), not by dnd-kit.
  * Drop zones, from the pointer position on the hovered element:
- * - group (dragged by its header) over another group: left half = before, right half = after,
- *   persisted with an optimistic update of the group positions;
+ * - group (dragged by its header) over another group: as soon as the pointer is in its column it takes its place: after it when it
+ *   stands later in the resting order, before it when earlier (no half to pass), persisted with an optimistic update of the
+ *   group positions;
+ * - the drop zone of a group is its whole column (the full height of the note), not only its card: a section, a task or a group
+ *   dropped in the empty space under a short card counts as dropped on the group;
  * - section dragged over a section card: top half = before, bottom half = after (any group);
  * - section dragged over the empty area of a group (or its header): appended to the group;
  * - section dragged over a slot between two groups / the "Nuovo gruppo" column at the end: new group;
@@ -211,7 +214,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const overRef: NoteOverRef = { kind: overData.kind, id: overData.id }
         let zone: DropZone = "inside"
         if (dragged.kind === "group") {
-            zone = computeGroupDropZone(over.rect, pointer.x)
+            // Entering the column of another group is enough (no half to pass): the side is the one of the resting order
+            zone = overRef.kind === "group" ? computeGroupDropZone(noteDataTree, dragged.id, overRef.id) : "after"
         } else if (overRef.kind === "task" || overRef.kind === "section") {
             const pointerY = pointer.y
             const overTask = overRef.kind === "task" ? findTask(noteDataTree, overRef.id) : undefined
@@ -263,14 +267,11 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 const overKey = noteKey("group", overRef.id)
                 const shown = liveShownRef.current
-                const pointerX = pointer.x
-                const liveZone = shown?.place?.over === overKey && shown.place.zone
-                    ? holdHalfZoneX(shown.place.zone, zone, over.rect, pointerX)
-                    : zone
-                const key = `${overKey}|${liveZone}`
+                // One side per column (the resting order), so nothing flickers: no hysteresis needed
+                const key = `${overKey}|${zone}`
                 if (!(shown && shown.key === key && shown.tree === noteDataTree)) {
-                    const target = computeGroupTarget(noteDataTree, dragged.id, overRef, liveZone)
-                    syncLive(target ? { over: overKey, zone: liveZone, list: GROUPS_LIST } : null, { key, tree: noteDataTree, rect: target ? over.rect : null })
+                    const target = computeGroupTarget(noteDataTree, dragged.id, overRef, zone)
+                    syncLive(target ? { over: overKey, zone, list: GROUPS_LIST } : null, { key, tree: noteDataTree, rect: target ? over.rect : null })
                 }
             }
         }

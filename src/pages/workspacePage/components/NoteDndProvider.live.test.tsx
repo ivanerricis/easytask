@@ -464,18 +464,35 @@ describe("NoteDndProvider live drag of the groups", () => {
         expect(shiftsOfColumns()).toEqual({ 1: "translate(88px, 0)", 2: "translate(88px, 0)" })
     })
 
-    it("keeps the side a few px past the middle (hysteresis) and moves nothing where the order does not change", () => {
+    it("the swap starts as soon as the pointer enters the neighbour column, going right", () => {
         render(<NoteDndProvider>{null}</NoteDndProvider>)
         startGroup(1)
-        moveTo(1, 3, 250)
-        const after = shiftsOfColumns()
-        moveTo(1, 3, 214) // 2px left of the middle of g3: still after
-        expect(shiftsOfColumns()).toEqual(after)
-        moveTo(1, 3, 180) // clearly before g3: the dragged one goes between g2 and g3
+        moveTo(1, 2, 110) // 2px into g2, far from its middle: already after it
         expect(shiftsOfColumns()).toEqual({ 2: "translate(-108px, 0)" })
-        moveTo(1, 1, 90)
+        moveTo(1, 2, 160) // anywhere in g2: the same
+        expect(shiftsOfColumns()).toEqual({ 2: "translate(-108px, 0)" })
+        moveTo(1, 3, 178) // 2px into g3: after it
+        expect(shiftsOfColumns()).toEqual({ 2: "translate(-108px, 0)", 3: "translate(-108px, 0)" })
+        moveTo(1, 1, 90) // back in its own column: nothing moves
         expect(shiftsOfColumns()).toEqual({})
         expect(columns.get(1)!.style.opacity).toBe("")
+    })
+
+    it("the swap starts as soon as the pointer enters the neighbour column, going left", () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(3)
+        moveTo(3, 2, 165) // 3px into g2 from the right: before it
+        expect(shiftsOfColumns()).toEqual({ 2: "translate(88px, 0)" })
+        moveTo(3, 1, 98)
+        expect(shiftsOfColumns()).toEqual({ 1: "translate(88px, 0)", 2: "translate(88px, 0)" })
+    })
+
+    it("a drop after entering the column uses the same side", async () => {
+        render(<NoteDndProvider>{null}</NoteDndProvider>)
+        startGroup(1)
+        moveTo(1, 2, 110)
+        await act(async () => { await handlers.onDragEnd() })
+        expect(moveGroupMock).toHaveBeenCalledWith(1, 1)
     })
 
     it("in the gap around the column the columns keep the place, farther away they go back", () => {

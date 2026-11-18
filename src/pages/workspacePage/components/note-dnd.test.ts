@@ -226,9 +226,27 @@ describe("getTaskMoveDestinations", () => {
 describe("group reorder", () => {
     const ids = (groups: NoteDataTree["groups"]) => groups.map(group => group.id)
 
-    it("splits a group horizontally in before / after", () => {
-        expect(computeGroupDropZone({ left: 100, width: 200 }, 120)).toBe("before")
-        expect(computeGroupDropZone({ left: 100, width: 200 }, 250)).toBe("after")
+    it("the side of a group is its place in the resting order: after a later group, before an earlier one", () => {
+        const tree = buildTree()
+        expect(computeGroupDropZone(tree, 1, 2)).toBe("after")
+        expect(computeGroupDropZone(tree, 1, 3)).toBe("after")
+        expect(computeGroupDropZone(tree, 3, 2)).toBe("before")
+        expect(computeGroupDropZone(tree, 3, 1)).toBe("before")
+        // The positions decide, not the order of the array
+        const shuffled = { groups: [...tree.groups].reverse() }
+        expect(computeGroupDropZone(shuffled, 1, 3)).toBe("after")
+        expect(computeGroupDropZone(shuffled, 3, 1)).toBe("before")
+    })
+
+    it("entering the neighbour column swaps with it, in both directions", () => {
+        const tree = buildTree()
+        const swap = (active: number, over: number) => computeGroupTarget(tree, active, { kind: "group", id: over }, computeGroupDropZone(tree, active, over))
+        expect(swap(1, 2)).toEqual({ index: 1 })
+        expect(swap(2, 1)).toEqual({ index: 0 })
+        expect(swap(2, 3)).toEqual({ index: 2 })
+        expect(swap(3, 2)).toEqual({ index: 1 })
+        expect(swap(1, 3)).toEqual({ index: 2 })
+        expect(swap(3, 1)).toEqual({ index: 0 })
     })
 
     it("computes the final index before / after another group", () => {
