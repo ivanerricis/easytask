@@ -47,8 +47,9 @@ The theme gallery shows a preview of each theme; move between them with the arro
 | Show names of unnamed groups and sections | On / Off | Off |
 | Colored task background | On / Off | On |
 | Hide completed tasks | On / Off | Off |
-| Completed tasks at the bottom | On / Off | Off |
+| Completed tasks at the bottom (each section can override it from its menu, see [Task order of a section](./groups-sections-tasks#task-order-of-a-section)) | On / Off | Off |
 | Collapsed groups (a narrow vertical strip, or a horizontal bar that keeps the width of the open group) | Vertical, Horizontal | Vertical |
+| Files of a collapsed group (show the audio files, images and videos also when the group is collapsed: as rows under its header, or as small buttons in its strip) | On / Off | On |
 | Task density | Compact, Normal, Roomy | Normal |
 | **Behavior**: Rename by clicking the name | On / Off | On |
 | Keep adding tasks (the field stays open after creating a task) | On / Off | On |
@@ -79,7 +80,7 @@ When **Show the floating player** is off, audio files are not played. The playba
 
 ## Shortcuts
 
-Lists every shortcut you can change, grouped as in the shortcuts dialog. See [Keyboard shortcuts](./shortcuts#change-a-shortcut).
+Lists every shortcut you can change, grouped as in the shortcuts dialog. `Ctrl+,` opens the settings, from anywhere. See [Keyboard shortcuts](./shortcuts#change-a-shortcut).
 
 ![Shortcut settings with the list of shortcuts and their Edit buttons](../screenshots/en/settings-shortcuts-light.png)
 
@@ -93,7 +94,7 @@ Lists every shortcut you can change, grouped as in the shortcuts dialog. See [Ke
 | Import / Export | Export current workspace | Button (only inside a workspace) | |
 | Data folder | Open data folder | Button | |
 | Backup | Back up now | Button | |
-| Backup | Automatic backup | On / Off | On |
+| Backup | Automatic backup | Off, At startup only, On close only, At startup and on close | On close only |
 | Backup | Automatic backup frequency | Every day, Every week, Every month | Every day |
 | Backup | Backups to keep | 1 to 100 | 5 |
 | Backup | Open backups folder | Button | |
@@ -101,7 +102,7 @@ Lists every shortcut you can change, grouped as in the shortcuts dialog. See [Ke
 | Trash | Empty the trash automatically | Never, After 7 days, After 30 days, After 90 days | Never |
 | History | Undoable actions | 25, 50, 100, 200, 500 | 50 |
 
-Backups, restore and the data folder are explained in [Data and backups](./data-and-backups). The history limit is explained in [Undo and history](./undo-and-history).
+With **Off**, **Automatic backup frequency** and **Backups to keep** are disabled. Backups, restore and the data folder are explained in [Data and backups](./data-and-backups). The history limit is explained in [Undo and history](./undo-and-history).
 
 ## System
 

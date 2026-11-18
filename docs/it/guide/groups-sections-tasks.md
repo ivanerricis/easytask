@@ -10,13 +10,13 @@ Il contenuto di una nota è organizzato su tre livelli. Una nota contiene dei **
 ### Aggiungerli
 
 - Fai clic sul pulsante **+** (**Nuovo gruppo**), il primo a sinistra dei pulsanti nella barra sopra la nota, oppure premi `Alt+N`: si apre un campo in fondo ai gruppi. Scrivi un nome e premi `Invio`. `Esc` chiude il campo.
-- Dentro un gruppo apri il suo menu (il pulsante del menu del gruppo, o il clic destro sull'intestazione), scegli **Nuova sezione**, scrivi un titolo e premi `Invio`. Il campo si apre in fondo al gruppo.
+- Dentro un gruppo fai clic sul pulsante **+** (**Nuova sezione**) nella sua intestazione (compare quando ci passi il mouse o ci porti il focus da tastiera), oppure apri il suo menu e scegli **Nuova sezione**. Scrivi un titolo e premi `Invio`. Il campo si apre in fondo al gruppo.
 
 Il nome è facoltativo: premi `Invio` su un campo vuoto e il gruppo o la sezione viene creato senza nome. EasyTask mostra allora **Gruppo 1**, **Gruppo 2**… o **Sezione senza titolo** in grigio. Puoi nascondere queste etichette con **Impostazioni > Note e sezioni > Mostra il nome dei gruppi e delle sezioni senza nome**.
 
 ### Rinominare, colorare e gestire
 
-Fai clic sul nome per rinominarlo sul posto (`Invio` salva, `Esc` annulla), oppure apri il menu del gruppo o della sezione con il suo pulsante o con il clic destro.
+Fai clic sul nome per rinominarlo sul posto (`Invio` salva, `Esc` annulla), oppure apri il menu del gruppo o della sezione con il suo pulsante o con il clic destro. Per un gruppo il clic destro funziona in qualsiasi punto del gruppo, anche sullo spazio vuoto e sui margini attorno alle sezioni; il clic destro su un task, una sezione o un file apre comunque il suo menu.
 
 Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre un piccolo menu con **Nuovo gruppo**, **Nascondi task completati** / **Mostra task completati** e **Sfondo della nota** (vedi [Colori](./colors#sfondo-della-nota)).
 
@@ -28,7 +28,8 @@ Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre
 | **Nuova sezione**                      | sì     |         | Apre il campo per il titolo di una nuova sezione nel gruppo.     |
 | **Duplica**                            |        | sì      | Copia la sezione, con i suoi task, subito dopo l'originale.      |
 | **Rinomina**                           | sì     | sì      | Modifica il nome.                                                |
-| **Cambia colore**                      | sì     | sì      | Imposta o toglie il colore.                                      |
+| **Cambia colore**                      | sì     | sì      | Imposta o toglie il colore. Un gruppo ha anche **Automatico (avanzamento)**, vedi [Colori](./colors#colore-automatico-di-un-gruppo). |
+| **Ordine dei task**                    |        | sì      | Sceglie in che ordine si vedono i task della sezione. Vedi [Ordine dei task di una sezione](#ordine-dei-task-di-una-sezione). |
 | **Sposta a sinistra**, **Sposta a destra** | sì |         | Sposta il gruppo di un passo nella riga.                         |
 | **Sposta su**, **Sposta giù**          |        | sì      | Sposta la sezione di un passo nel suo gruppo, anche oltre la lista dei task del gruppo. |
 | **Sposta lista task su**, **Sposta lista task giù** | sì |  | Sposta la lista dei task del gruppo di un passo tra le sue sezioni. |
@@ -52,13 +53,13 @@ Ogni gruppo e ogni sezione ha un pulsante per comprimerlo (**Comprimi gruppo**, 
 
 ### Ridimensionare un gruppo
 
-Trascina il bordo destro di un gruppo per allargarlo o restringerlo. Da tastiera, porta il focus sul bordo e usa `Sinistra` e `Destra` (con `Maiusc` i passi sono più grandi), `Home` per la larghezza minima e `Fine` per quella massima. Con un doppio clic sul bordo torni alla larghezza automatica. La barra di avanzamento del gruppo sparisce quando il gruppo è troppo stretto per mostrarla.
+Trascina il bordo destro di un gruppo per allargarlo o restringerlo. Il bordo copre tutta l'altezza della colonna, anche accanto a un gruppo basso. Da tastiera, porta il focus sul bordo e usa `Sinistra` e `Destra` (con `Maiusc` i passi sono più grandi), `Home` per la larghezza minima e `Fine` per quella massima. Con un doppio clic sul bordo torni alla larghezza automatica. La barra di avanzamento del gruppo sparisce quando il gruppo è troppo stretto per mostrarla.
 
 ## Task e sottotask
 
 ### Aggiungere un task
 
-1. In fondo a una sezione fai clic sul pulsante **+** (**Aggiungi task**). Per aggiungere un task a un gruppo senza sezione, fai clic sul pulsante tratteggiato **Nuovo task** del gruppo: si trova subito sotto i task del gruppo, ovunque sia quella lista tra le sezioni, e il nuovo task viene creato in quella lista.
+1. In fondo a una sezione fai clic sul pulsante **+** (**Aggiungi task**). Per aggiungere un task a un gruppo senza sezione, fai clic sulla riga **Nuovo task** del gruppo: è sempre visibile, come il pulsante di aggiunta di una sezione, e si trova subito sotto i task del gruppo, ovunque sia quella lista tra le sezioni. Il nuovo task viene creato in quella lista.
 2. Scrivi il testo in **Nuovo task…** e conferma con `Invio` (il campo non ha pulsanti). `Esc` lo chiude scartando il testo.
 
 I task di un gruppo contano nella barra di avanzamento e nel numero di task del gruppo. Trascinane uno in una sezione, o il contrario, oppure usa **Sposta in…** (il gruppo compare nell'elenco come **Task del gruppo**). **Sposta su** e **Sposta giù** di un task restano dentro la stessa lista.
@@ -104,7 +105,7 @@ Apri il menu del task (pulsante del menu o clic destro):
 | **Sposta su**, **Sposta giù**                | Sposta il task di un passo tra i suoi fratelli.                      |
 | **Sposta in…**                               | Sposta il task in un'altra sezione, o sotto un altro task come sottotask. |
 | **Mostra dettagli**                          | Seleziona il task nel pannello dei dettagli.                         |
-| **Archivia**, **Elimina**                    | Lo nascondono o lo spostano nel cestino, con i suoi sottotask.       |
+| **Archivia**, **Elimina**                    | Lo nascondono o lo spostano nel cestino, con i suoi sottotask. **Elimina** dal menu chiede prima conferma.       |
 
 ![Un task con una descrizione, mostrata nel pannello dei dettagli a destra](../../screenshots/it/task-description-light.png)
 
@@ -134,7 +135,7 @@ Trascina un task dalla sua riga. Mentre trascini, gli altri task si scostano per
 - al centro di un task, per renderlo un sottotask di quel task (il task mostra un anello invece di aprire uno spazio);
 - su una sezione, per farne l'ultimo task di quella sezione.
 
-Con **Task, sezioni, gruppi, note, cartelle e tab che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo.
+Con **Task, sezioni, gruppi, note, cartelle e tab che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo. I task di una sezione impostata su **Prima i task aperti** o **Prima i task completati** (vedi [ordine dei task](#ordine-dei-task-di-una-sezione)) non si possono trascinare: usa **Sposta in…**.
 
 ### Usare la tastiera
 
@@ -151,15 +152,21 @@ Il task che prende il focus diventa anche quello selezionato, come quando lo cli
 
 ### Selezionare più task
 
-Tieni premuto **Ctrl** (**Cmd** su macOS) e clicca per aggiungere un task alla selezione o toglierlo. Clicca un task con **Maiusc** per selezionare tutti i task visibili tra l'ultimo cliccato e questo, anche tra sezioni e gruppi. **Esc** annulla la selezione, come un normale clic.
+Tieni premuto **Ctrl** (**Cmd** su macOS) e clicca per aggiungere un task alla selezione o toglierlo. Clicca un task con **Maiusc** per selezionare tutti i task visibili tra l'ultimo cliccato e questo, anche tra sezioni e gruppi. **Esc** annulla la selezione, come un normale clic o un clic su qualsiasi spazio vuoto fuori dai task (lo sfondo della nota, la barra laterale o il pannello dei dettagli). Un clic sul contatore, su un menu o su un messaggio non la annulla.
 
 Da tastiera, porta il focus su un task e premi **Maiusc+Giù** o **Maiusc+Su** per estendere la selezione di un task alla volta (**Maiusc+End** e **Maiusc+Home** vanno all'ultimo e al primo task della lista); tornando verso il primo task la selezione si restringe. **Ctrl+Spazio** (**Cmd+Spazio** su macOS) aggiunge alla selezione il task con il focus o lo toglie, così puoi scegliere task non vicini: spostati con le frecce semplici, che mantengono la selezione, e premilo su ciascuno. Questi tasti non cambiano il task mostrato nel pannello dei dettagli. Quando la selezione scende a un solo task o a nessuno, uno screen reader lo annuncia; con due o più legge il contatore.
 
 Fai clic destro su un task selezionato (o apri il suo menu) per agire su tutti insieme: **Elimina N task**, **Archivia N task**, **Colora**, **Tag…** e **Sposta in…** (in fondo a una sezione, o tra i task diretti di un gruppo). Un task selezionato vale anche per i suoi sottotask, che vengono eliminati, archiviati e spostati con lui. Ogni azione è un solo passo nella [cronologia di annullamento](./undo-and-history). Il trascinamento sposta sempre un task alla volta.
 
+Per spostare nel cestino senza che ti venga chiesto, porta il focus su un task (o selezionane più d'uno) e premi `Canc`: i task vanno subito nel cestino, con un messaggio con **Annulla**, e il focus passa al task successivo. La voce **Elimina** del menu chiede ancora conferma.
+
 I task selezionati hanno un contorno tratteggiato (oltre alla tinta) e gli screen reader li annunciano come "selezionato"; con due o più task selezionati, in basso nella nota compare un contatore, ad esempio "3 selezionati".
 
 ![Tre task selezionati con il contorno tratteggiato e il contatore "3 selezionati" in basso](../../screenshots/it/task-selection-light.png)
+
+### Copiare e incollare i task
+
+Porta il focus su un task, o selezionane più d'uno, e premi `Ctrl+C` (`Cmd+C` su macOS) per copiarli; poi porta il focus su un altro task, in qualsiasi nota, e premi `Ctrl+V` (`Cmd+V`) per incollare le copie subito sotto. Le copie mantengono sottotask, tag e colore. L'incolla è un solo passo nella [cronologia di annullamento](./undo-and-history). La copia mette anche il testo dei task negli appunti del sistema, così puoi incollarlo in un'altra app; ma l'incolla funziona solo per task copiati da EasyTask, e solo finché gli appunti li contengono ancora: se nel frattempo hai copiato altro, `Ctrl+V` non fa nulla. I tasti agiscono sul task con il focus, non mentre scrivi in un campo.
 
 ## Cercare in una nota
 
@@ -171,7 +178,20 @@ Premi `Ctrl+Maiusc+H`, usa il pulsante a forma di occhio nella barra del percors
 
 ## Task completati in fondo
 
-Attiva **Impostazioni > Note e sezioni > Task completati in fondo** per vedere i task completati dopo quelli da fare in ogni elenco: i task di una sezione, i task messi direttamente in un gruppo e i sottotask di un task. È solo una vista: ogni blocco mantiene il suo ordine, l'ordine salvato nella nota non cambia e non si sposta nulla quando completi o riapri un task (cambia solo posto sullo schermo). Funziona insieme a **Nascondi task completati**.
+Attiva **Impostazioni > Note e sezioni > Task completati in fondo** per vedere i task completati dopo quelli da fare in ogni elenco: i task di una sezione, i task messi direttamente in un gruppo e i sottotask di un task. È solo una vista: ogni blocco mantiene il suo ordine, l'ordine salvato nella nota non cambia e non si sposta nulla quando completi o riapri un task (cambia solo posto sullo schermo). Funziona insieme a **Nascondi task completati**. Una singola sezione può ignorare questa impostazione, vedi sotto.
+
+### Ordine dei task di una sezione
+
+Ogni sezione ha nel suo menu (pulsante del menu o clic destro) la voce **Ordine dei task** per scegliere come si vedono i suoi task, qualunque cosa dica l'impostazione generale:
+
+| Scelta | Cosa fa |
+| --- | --- |
+| **Come nelle impostazioni** | Il predefinito. La sezione segue **Task completati in fondo**. |
+| **Manuale** | I task si vedono nell'ordine salvato nella nota, con i completati dove sono, anche se l'impostazione è attiva. |
+| **Prima i task aperti** | Prima i task aperti, poi i completati. |
+| **Prima i task completati** | Prima i task completati, poi quelli aperti. |
+
+La scelta si applica subito, vale solo per quella sezione e non è un passo di annulla. Come l'impostazione, è solo una vista: l'ordine salvato nella nota non cambia, e la selezione, la ricerca, le righe **+** e **Sposta su** / **Sposta giù** seguono ciò che vedi. I task di una sezione impostata su **Prima i task aperti** o **Prima i task completati** non si possono trascinare (possono comunque ricevere task rilasciati sopra): per spostarne uno usa **Sposta in…**, oppure scegli di nuovo **Manuale** o **Come nelle impostazioni**. Un nuovo task è sempre aperto, quindi in una sezione che mostra prima i completati non c'è la riga **+** dove non potrebbe restare. I task messi direttamente in un gruppo seguono l'impostazione. La scelta viene copiata quando duplichi una sezione o una nota, dai template e da esportazione e importazione.
 
 Con l'opzione attiva, la selezione dei task, la ricerca e la tastiera seguono l'ordine che vedi. **Sposta su** e **Sposta giù** (e `Alt+↑` / `Alt+↓`) spostano un task tra i task dello stesso tipo e si fermano al bordo dei task da fare o di quelli completati. La riga **+** sopra il primo task completato aggiunge un nuovo task dopo l'ultimo da fare, e tra i task completati non c'è nessuna riga **+**. Quando trascini un task, viene messo dove lo rilasci, poi l'elenco è mostrato di nuovo con i completati in fondo.
 

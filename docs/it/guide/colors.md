@@ -29,6 +29,20 @@ L'ultimo quadrato, con il simbolo **+**, ti fa scegliere **qualsiasi altro color
 
 Apri la stessa tavolozza e fai clic su **Nessun colore**.
 
+## Colore automatico di un gruppo
+
+Il menu del colore di un gruppo (non quello degli altri elementi) comincia con **Automatico (avanzamento)**. Il gruppo prende il colore dal suo avanzamento e lo cambia da solo mentre completi i task:
+
+- **rosso** quando nessun task è completato;
+- **giallo** quando almeno uno è completato, ma non tutti;
+- **verde** quando tutti sono completati, o quando il gruppo non ha task.
+
+Task e sottotask contano come nella barra d'avanzamento del gruppo. Finché è attivo, nessun campione della tavolozza è segnato; scegli un colore fisso o **Nessun colore** per spegnerlo. Il colore automatico viene mantenuto da duplicati, template, annulla e ripeti, ed esportazioni.
+
+::: warning Versioni precedenti di EasyTask
+Le versioni precedenti alla 0.26.0 non conoscono il colore automatico. Se importi un workspace con un gruppo automatico in una di esse, il gruppo si vede senza quel colore. Scegli un colore fisso prima di esportare se ti serve il workspace in una versione precedente.
+:::
+
 ## Sfondo della nota
 
 Puoi dare un colore a tutto lo sfondo di una nota.

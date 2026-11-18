@@ -56,6 +56,15 @@ They are listed one under the other, right under the audio files, each with a sm
 
 Each file has a menu with **Rename**, **Update path** and **Delete**, which works like it does for audio files. The number of images and videos is shown in the header of the group next to the number of audio files, and both follow the setting **Show number of audio files, images and videos**.
 
+## Files of a collapsed group
+
+When you collapse a group, its audio files, images and videos stay visible:
+
+- in the horizontal layout (the bar) they stay as rows under the header;
+- in the vertical strip they are small buttons, with the icon of the file or the thumbnail, audio first. The strip shows up to 5; the others are a **+N** button that opens the group. Click an audio button to play it, a thumbnail to open the viewer, or right-click a button for the menu of the file.
+
+To see them only when the group is open, turn off **Settings > Notes and sections > Files of a collapsed group**. The layout of a collapsed group is chosen with **Collapsed groups** in the same page.
+
 ## Missing files
 
 When a group is shown, EasyTask checks that its audio files, images and videos are still at their saved path. A file that is not found has a warning icon (and a grey thumbnail for images and videos), and **Update path** is highlighted in its menu.

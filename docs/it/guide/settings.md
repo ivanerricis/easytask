@@ -47,8 +47,9 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 | Mostra il nome dei gruppi e delle sezioni senza nome | Sì / No | No |
 | Sfondo colorato dei task | Sì / No | Sì |
 | Nascondi task completati | Sì / No | No |
-| Task completati in fondo | Sì / No | No |
+| Task completati in fondo (ogni sezione può ignorarlo dal suo menu, vedi [Ordine dei task di una sezione](./groups-sections-tasks#ordine-dei-task-di-una-sezione)) | Sì / No | No |
 | Gruppi chiusi (una striscia stretta in verticale, oppure una barra orizzontale che mantiene la larghezza del gruppo aperto) | Verticale, Orizzontale | Verticale |
+| File di un gruppo chiuso (mostra i file audio, le immagini e i video anche quando il gruppo è chiuso: come righe sotto l'intestazione, o come piccoli pulsanti nella striscia) | Sì / No | Sì |
 | Densità dei task | Compatta, Normale, Ampia | Normale |
 | **Comportamento**: Rinomina cliccando sul nome | Sì / No | Sì |
 | Continua ad aggiungere task (il campo resta aperto dopo aver creato un task) | Sì / No | Sì |
@@ -79,7 +80,7 @@ Quando **Mostra il player flottante** è disattivato, i file audio non vengono r
 
 ## Scorciatoie
 
-Elenca tutte le scorciatoie che puoi cambiare, raggruppate come nella finestra delle scorciatoie. Vedi [Scorciatoie da tastiera](./shortcuts#cambiare-una-scorciatoia).
+Elenca tutte le scorciatoie che puoi cambiare, raggruppate come nella finestra delle scorciatoie. `Ctrl+,` apre le impostazioni, da qualsiasi punto. Vedi [Scorciatoie da tastiera](./shortcuts#cambiare-una-scorciatoia).
 
 ![Impostazioni delle scorciatoie con l'elenco delle scorciatoie e i pulsanti Modifica](../../screenshots/it/settings-shortcuts-light.png)
 
@@ -93,7 +94,7 @@ Elenca tutte le scorciatoie che puoi cambiare, raggruppate come nella finestra d
 | Importa / Esporta | Esporta workspace corrente | Pulsante (solo dentro un workspace) | |
 | Cartella dati | Apri cartella dati | Pulsante | |
 | Backup | Esegui backup ora | Pulsante | |
-| Backup | Backup automatico | Sì / No | Sì |
+| Backup | Backup automatico | Disattivato, Solo all'avvio, Solo alla chiusura, All'avvio e alla chiusura | Solo alla chiusura |
 | Backup | Frequenza del backup automatico | Ogni giorno, Ogni settimana, Ogni mese | Ogni giorno |
 | Backup | Backup da conservare | Da 1 a 100 | 5 |
 | Backup | Apri cartella backup | Pulsante | |
@@ -101,7 +102,7 @@ Elenca tutte le scorciatoie che puoi cambiare, raggruppate come nella finestra d
 | Cestino | Svuota automaticamente il cestino | Mai, Dopo 7 giorni, Dopo 30 giorni, Dopo 90 giorni | Mai |
 | Cronologia | Azioni annullabili | 25, 50, 100, 200, 500 | 50 |
 
-Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-backups). Il limite della cronologia è spiegato in [Annulla e cronologia](./undo-and-history).
+Con **Disattivato**, **Frequenza del backup automatico** e **Backup da conservare** sono disattivati. Backup, ripristino e cartella dati sono spiegati in [Dati e backup](./data-and-backups). Il limite della cronologia è spiegato in [Annulla e cronologia](./undo-and-history).
 
 ## Sistema
 

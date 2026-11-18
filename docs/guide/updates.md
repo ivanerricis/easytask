@@ -28,6 +28,10 @@ If the check fails (for example you are offline), the startup check shows nothin
 
 If you are up to date, the app says "EasyTask is up to date."
 
+## When you are offline
+
+If you check manually, or click **Update now**, without an internet connection, EasyTask says **No internet connection: try again when you are online.** with the technical error in small muted text under it, so you can report it if the problem is something else. The message appears in **Settings > About** and in the update dialog. Nothing is changed: try again when you are online.
+
 ## What's new after an update
 
 The first time you open a workspace after an update, a **What's new** tab opens with the release notes of the version you are now using, in the language of the app.

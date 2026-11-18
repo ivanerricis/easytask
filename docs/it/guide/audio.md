@@ -56,6 +56,15 @@ Sono elencati uno sotto l'altro, subito sotto i file audio, ciascuno con una pic
 
 Ogni file ha un menu con **Rinomina**, **Aggiorna percorso** ed **Elimina**, che funziona come per i file audio. Il numero di immagini e video compare nell'intestazione del gruppo accanto al numero di file audio, ed entrambi seguono l'impostazione **Mostra il numero di file audio, immagini e video**.
 
+## File di un gruppo chiuso
+
+Quando comprimi un gruppo, i suoi file audio, le immagini e i video restano visibili:
+
+- nel layout orizzontale (la barra) restano come righe sotto l'intestazione;
+- nella striscia verticale sono piccoli pulsanti, con l'icona del file o l'anteprima, prima l'audio. La striscia ne mostra fino a 5; gli altri sono un pulsante **+N** che apre il gruppo. Clicca un pulsante audio per riprodurlo, un'anteprima per aprire il visualizzatore, oppure fai clic destro su un pulsante per il menu del file.
+
+Per vederli solo quando il gruppo è aperto, spegni **Impostazioni > Note e sezioni > File di un gruppo chiuso**. Il layout di un gruppo chiuso si sceglie con **Gruppi chiusi** nella stessa pagina.
+
 ## File mancanti
 
 Quando un gruppo viene mostrato, EasyTask controlla che i suoi file audio, le immagini e i video siano ancora nel percorso salvato. Un file che non si trova ha un'icona di avviso (e un'anteprima grigia per immagini e video), e **Aggiorna percorso** è evidenziato nel suo menu.
