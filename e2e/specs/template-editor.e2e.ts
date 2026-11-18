@@ -214,10 +214,12 @@ describe("Template editor", () => {
 
     it("renames a template by clicking its name in the list", async () => {
         const templates = await openTemplatesDialog()
-        await templates.$(`[aria-label=${JSON.stringify(await tr("dialogs.templates.renameAria", { name: EMPTY_TEMPLATE }))}]`).click()
+        // The click goes through the DOM (no pointer events needed); the field opens focused with the name selected: type without clicking it
+        await domClick(templates.$(`[aria-label=${JSON.stringify(await tr("dialogs.templates.renameAria", { name: EMPTY_TEMPLATE }))}]`))
         const input = templates.$(`input[aria-label=${JSON.stringify(await tr("common.name"))}]`)
-        await input.waitForDisplayed()
-        await typeInto(input, RENAMED_TEMPLATE)
+        await input.waitForDisplayed({ timeoutMsg: "the name did not become editable" })
+        await browser.waitUntil(async () => await input.isFocused(), { timeoutMsg: "the name field is not focused" })
+        await browser.keys([...RENAMED_TEMPLATE])
         await browser.keys("Enter")
         await browser.waitUntil(
             async () => (await sql<{ n: number }[]>("select", "SELECT COUNT(*) AS n FROM note_template WHERE name = ? AND deleted_at IS NULL", [RENAMED_TEMPLATE]))[0].n === 1,
