@@ -481,3 +481,82 @@ describe("Live drag of the groups", () => {
         }
     })
 })
+
+/**
+ * The drop zone of a group is its whole column (the full height of the note), not only its card: a task dropped under a short group
+ * lands in that group. And a group swaps with the neighbour as soon as the pointer enters its column (no half to pass).
+ */
+describe("Whole column drop zones of the groups", () => {
+    /** Texts of the direct tasks of a group. */
+    const directTexts = async (group: string) => browser.execute((el: HTMLElement) =>
+        Array.from(el.querySelectorAll<HTMLElement>("[data-direct-tasks] [role=treeitem]")).map(row => row.getAttribute("aria-label") ?? ""),
+    (await groupCard(group).getElement()) as unknown as HTMLElement)
+
+    it("a task dropped in the empty space under a short group lands in that group", async function () {
+        if (process.platform === "linux") return this.skip()
+        // The last test above leaves the first group at the end: undo it
+        await waitForGroupOrder([SECOND_GROUP, THIRD_GROUP, GROUP])
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+        const points = await browser.execute((from: string, to: string) => {
+            const row = document.querySelector<HTMLElement>(`[role=treeitem][aria-label="${from}"]`)!.getBoundingClientRect()
+            const wrap = Array.from(document.querySelectorAll<HTMLElement>("[data-group-wrap]"))
+                .find(el => el.querySelector<HTMLElement>("button[title]")?.title === to)!
+            const card = wrap.querySelector<HTMLElement>("[data-group-card]")!.getBoundingClientRect()
+            const column = wrap.getBoundingClientRect()
+            return {
+                a: { x: Math.round(row.left + row.width / 2), y: Math.round(row.top + row.height / 2) },
+                b: { x: Math.round(card.left + card.width / 2), y: Math.round((card.bottom + column.bottom) / 2) },
+                room: column.bottom - card.bottom,
+            }
+        }, TASKS[0], SECOND_GROUP)
+        // There must be real space under the card for the test to mean something
+        expect(points.room).toBeGreaterThan(60)
+        const steps = 24
+        const at = (i: number) => ({ x: Math.round(points.a.x + ((points.b.x - points.a.x) * i) / steps), y: Math.round(points.a.y + ((points.b.y - points.a.y) * i) / steps) })
+        const first = browser.action("pointer", { parameters: { pointerType: "mouse" } })
+        first.move({ ...at(0), origin: "viewport" }).down()
+        for (let i = 1; i <= 6; i++) first.move({ ...at(i), origin: "viewport", duration: 20 })
+        await first.perform(true)
+        for (let i = 7; i <= steps; i++) await browser.action("pointer", { parameters: { pointerType: "mouse" } }).move({ ...at(i), origin: "viewport", duration: 20 }).perform(true)
+        try {
+            await browser.pause(300)
+        } finally {
+            await browser.releaseActions()
+        }
+        await browser.waitUntil(async () => (await directTexts(SECOND_GROUP)).includes(TASKS[0]), {
+            timeoutMsg: `the task did not land in ${SECOND_GROUP}: ${JSON.stringify(await directTexts(SECOND_GROUP))}`,
+        })
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await browser.waitUntil(async () => !(await directTexts(SECOND_GROUP)).includes(TASKS[0]), { timeoutMsg: "the undo did not bring the task back" })
+        // Back in its section (the exact place is not checked here: the undo of a move across sections is not what this spec is about)
+        await browser.waitUntil(async () => [...(await savedOrder())].sort().join() === [...TASKS].sort().join(), { timeoutMsg: "the task is not back in its section" })
+    })
+
+    it("a group swaps with the neighbour on entering its column, going right and going left", async function () {
+        if (process.platform === "linux") return this.skip()
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+        // Just inside the left edge of the next column (0.1: the left half, where the old rule said "before" = no move)
+        await dragGroup(GROUP, SECOND_GROUP, 0.1, async () => {
+            expect((await groupBox(GROUP)).opacity).toBe("0")
+            expect((await groupBox(SECOND_GROUP)).transform).not.toBe("")
+        })
+        await waitForGroupOrder([SECOND_GROUP, GROUP, THIRD_GROUP])
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+
+        // Going left: just inside the right edge of the previous column (0.9: the right half, the old rule said "after" = no move)
+        await dragGroup(THIRD_GROUP, SECOND_GROUP, 0.9, async () => {
+            expect((await groupBox(THIRD_GROUP)).opacity).toBe("0")
+            expect((await groupBox(SECOND_GROUP)).transform).not.toBe("")
+        })
+        await waitForGroupOrder([GROUP, THIRD_GROUP, SECOND_GROUP])
+        expect(await strayColumnTransforms()).toBe(0)
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+    })
+})

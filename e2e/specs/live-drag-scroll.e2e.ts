@@ -131,12 +131,14 @@ const feedbackIn = (paneIndex: 0 | 1) => browser.execute((index: number) => {
  */
 const resizeWindow = async (width: number, height: number) => {
     const margin = 40
-    await browser.setWindowSize(width, height)
-    await browser.pause(500) // the page can stop answering for a moment while the window changes state
     let seen = { width: 0, height: 0 }
     let failure = ""
     await browser.waitUntil(async () => {
         try {
+            // Asked again on every poll: on Windows the first request on a maximized window is lost (the window only leaves the maximized
+            // state and goes back to its default size). The position is set too, or every call moves the window farther to the right.
+            await browser.setWindowRect(0, 0, width, height)
+            await browser.pause(500) // the page can stop answering for a moment while the window changes state
             seen = await browser.execute(() => ({ width: window.innerWidth, height: window.innerHeight }))
         } catch (error) {
             failure = String(error)
