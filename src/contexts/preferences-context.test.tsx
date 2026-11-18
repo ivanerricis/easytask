@@ -139,6 +139,14 @@ describe("PreferencesContext", () => {
         expect(prefs.savePref).toHaveBeenCalledWith("collapsedGroupLayout", "horizontal")
     })
 
+    it("shows the files of a collapsed group by default and saves the change", async () => {
+        const { result } = renderHook(() => usePreferences(), { wrapper })
+        expect(result.current.showMediaWhenCollapsed).toBe(true)
+        act(() => result.current.setShowMediaWhenCollapsed(false))
+        expect(result.current.showMediaWhenCollapsed).toBe(false)
+        expect(prefs.savePref).toHaveBeenCalledWith("showMediaWhenCollapsed", false)
+    })
+
     it("sets the spellcheck of the document from the preference", async () => {
         const { result } = renderHook(() => usePreferences(), { wrapper })
         expect(document.documentElement.spellcheck).toBe(true)

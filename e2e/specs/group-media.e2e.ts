@@ -171,4 +171,21 @@ describe("Images and videos in a group", () => {
         const trashed = await sql<{ deleted_at: string | null }[]>("select", "SELECT deleted_at FROM media_file WHERE name = ?", [MISSING])
         expect(trashed[0].deleted_at).not.toBeNull()
     })
+
+    it("keeps the files of a closed group as small buttons in its strip, and the viewer opens from them", async () => {
+        await domClick(byLabel(await tr("groups.collapse")))
+        const strip = await $("[data-group-strip-files]")
+        await strip.waitForDisplayed({ timeoutMsg: "the strip of the closed group does not show its files" })
+        expect((await strip.$$("button")).length).toBe(FILES.length)
+        await domClick(strip.$(`button[aria-label=${JSON.stringify(await tr("media.open", { name: FILES[0] }))}]`))
+        const dialog = await viewer()
+        await dialog.waitForDisplayed({ timeoutMsg: "the viewer did not open from the strip" })
+        await expect(dialog.$(`img[alt=${JSON.stringify(FILES[0])}]`)).toBeDisplayed()
+        await browser.keys("Escape")
+        await dialog.waitForExist({ reverse: true })
+
+        // Open again: the rows are back
+        await domClick(byLabel(await tr("groups.expand")))
+        await (await mediaRow(FILES[0])).waitForDisplayed({ timeoutMsg: "the rows did not come back with the open group" })
+    })
 })

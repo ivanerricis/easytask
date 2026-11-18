@@ -6,6 +6,12 @@ export const PALETTE_COLORS = [
     '#9a6324', '#c4bf8f', '#000075',
 ] as const
 
+/**
+ * Value of `section_group.color` for the "Automatic" color of a group: not a color but a rule, the color follows the progress of the group
+ * (see `resolveGroupColor`). Versions of the app before this one would read it as an invalid color.
+ */
+export const GROUP_COLOR_PROGRESS = "progress"
+
 export const isPaletteColor = (color: string | null | undefined): boolean =>
     !!color && (PALETTE_COLORS as readonly string[]).includes(color.toLowerCase())
 

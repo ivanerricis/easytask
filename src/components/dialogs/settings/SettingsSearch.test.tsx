@@ -67,6 +67,7 @@ vi.mock("@/contexts/use-preferences", () => ({
         sidebarItemSize: "normal", setSidebarItemSize: (value: string) => setSidebarItemSize(value),
         newTaskPosition: "bottom", setNewTaskPosition: vi.fn(),
         collapsedGroupLayout: "vertical", setCollapsedGroupLayout: vi.fn(),
+        showMediaWhenCollapsed: true, setShowMediaWhenCollapsed: vi.fn(),
         taskDensity: "normal", setTaskDensity: vi.fn(),
         spellcheck: true, setSpellcheck: vi.fn(),
         trashAutoEmptyDays: 0, setTrashAutoEmptyDays: vi.fn(),

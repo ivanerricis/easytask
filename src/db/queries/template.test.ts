@@ -510,3 +510,12 @@ describe("the place of the list of the direct tasks among the sections", () => {
         }
     })
 })
+
+describe("automatic group color", () => {
+    it("goes into the template and comes back in the note made from it", async () => {
+        sqlite.exec("UPDATE section_group SET color = 'progress' WHERE id = 1")
+        const id = await createDBTemplateFromNote(1, "T")
+        const noteId = await createDBNoteFromTemplate(id, 1, null, "Copia")
+        expect(rows(`SELECT color FROM section_group WHERE noteID = ${noteId} ORDER BY position`)).toEqual([{ color: "progress" }, { color: null }])
+    })
+})

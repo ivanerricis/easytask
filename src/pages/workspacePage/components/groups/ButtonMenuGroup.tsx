@@ -5,7 +5,13 @@ import { useDeleteRequest } from "@/components/dialogs/use-delete-item";
 import { getDBGroupAudioFiles } from "@/db/queries/audio";
 import { getDBGroupMediaFiles } from "@/db/queries/media";
 import { groupHasContent } from "@/lib/delete-content";
-import { MenuGroup } from "@/components/menu-kind";
+import { MenuGroup, MenuItem } from "@/components/menu-kind";
+import { Check, Gauge } from "lucide-react";
+import { GROUP_COLOR_PROGRESS } from "@/lib/colors";
+import { useUndoRecorder } from "@/contexts/undo/use-undo";
+import { getItemName } from "@/contexts/undo/commands";
+import { reportError } from "@/lib/report-error";
+import { getErrorMessage } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ColorSubmenu } from "../ColorSubmenu";
 import { ItemMenu } from "@/components/item-menu";
@@ -50,6 +56,19 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
     const { patchGroup, removeGroup } = useActiveNoteActions()
     const { addFiles, addMediaFiles } = useAudioActions()
     const { addColorItem, archive } = useItemMutations("section_group", patchGroup, removeGroup)
+    const recorder = useUndoRecorder()
+    const isAutoColor = group.color === GROUP_COLOR_PROGRESS
+    // "Automatic": the color follows the progress of the group until a fixed color (or none) is picked
+    const pickAutoColor = async () => {
+        menu.close()
+        if (isAutoColor) return
+        try {
+            await addColorItem("section_group", group.id, GROUP_COLOR_PROGRESS)
+            recorder.color("section_group", group.id, getItemName(group), group.color ?? null, GROUP_COLOR_PROGRESS)
+        } catch (err) {
+            reportError(err, getErrorMessage(err))
+        }
+    }
     const { request: requestDelete } = useDeleteRequest({
         item: group,
         itemType: "section_group",
@@ -107,6 +126,14 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                 itemType="section_group"
                 addColorItem={addColorItem}
                 onDone={menu.close}
+                header={<>
+                    <MenuItem onSelect={() => { void pickAutoColor() }}>
+                        <Gauge />
+                        {t("groups.progressColor.auto")}
+                        {isAutoColor && <Check className="ml-auto" role="img" aria-label={t("groups.progressColor.active")} />}
+                    </MenuItem>
+                    <Separator />
+                </>}
             />
             <Separator />
             <GroupStepMoves groupId={group.id} onDone={menu.close} />

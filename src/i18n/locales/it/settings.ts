@@ -390,6 +390,10 @@ export const settings = {
             vertical: "Verticale",
             horizontal: "Orizzontale",
         },
+        mediaWhenCollapsed: {
+            label: "File di un gruppo chiuso",
+            description: "Mostra i file audio, le immagini e i video anche quando il gruppo è chiuso: come righe sotto l'intestazione, o come piccoli pulsanti nella striscia. Se disattivato si vedono solo aprendo il gruppo.",
+        },
         taskDensity: {
             label: "Densità dei task",
             description: "Spazio tra i task e dimensione del testo nelle note.",

@@ -294,3 +294,11 @@ describe("duplicateDBNote automations", () => {
         expect(await getDBAutomations(1)).toHaveLength(3)
     })
 })
+
+describe("automatic group color", () => {
+    it("is copied with the note", async () => {
+        sqlite.exec("UPDATE section_group SET color = 'progress' WHERE id = 1")
+        const id = await duplicateDBNote(1)
+        expect(rows(`SELECT color FROM section_group WHERE noteID = ${id} ORDER BY position`)).toEqual([{ color: "progress" }, { color: null }])
+    })
+})
