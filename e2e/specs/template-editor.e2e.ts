@@ -220,6 +220,15 @@ describe("Template editor", () => {
         await input.waitForDisplayed({ timeoutMsg: "the name did not become editable" })
         await browser.waitUntil(async () => await input.isFocused(), { timeoutMsg: "the name field is not focused" })
         await browser.keys([...RENAMED_TEMPLATE])
+        // WebKitWebDriver (Linux) sometimes drops the Shift of the first key ("Tpl" arrives as "tpl"): set the value through
+        // the native setter plus an input event, which React picks up like typing (same fallback as typeInto)
+        if (await input.getValue() !== RENAMED_TEMPLATE) {
+            const element = await input
+            await browser.execute((el: HTMLInputElement, text: string) => {
+                Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value")?.set?.call(el, text)
+                el.dispatchEvent(new Event("input", { bubbles: true }))
+            }, element as unknown as HTMLInputElement, RENAMED_TEMPLATE)
+        }
         await browser.keys("Enter")
         await browser.waitUntil(
             async () => (await sql<{ n: number }[]>("select", "SELECT COUNT(*) AS n FROM note_template WHERE name = ? AND deleted_at IS NULL", [RENAMED_TEMPLATE]))[0].n === 1,
