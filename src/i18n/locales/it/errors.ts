@@ -34,6 +34,7 @@ export const errors = {
     section: {
         unique: "Esiste già una sezione con questo nome.",
         check: "Il nome della sezione non può essere vuoto.",
+        taskOrder: "Impossibile salvare l'ordine dei task: {{message}}",
     },
     task: {
         unique: "Esiste già un task con questo nome.",

@@ -36,6 +36,7 @@ export const errors: Translation["errors"] = {
     section: {
         unique: "A section with this name already exists.",
         check: "The section name cannot be empty.",
+        taskOrder: "Could not save the order of the tasks: {{message}}",
     },
     task: {
         unique: "A task with this name already exists.",

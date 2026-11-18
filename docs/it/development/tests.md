@@ -56,6 +56,7 @@ Gli spec in `e2e/specs` (un file per area) comprendono:
 | `collapsed-state` | Stato aperto e chiuso di gruppi, sezioni e sottotask |
 | `drop-feedback` | Feedback del trascinamento ai bordi di un gruppo |
 | `free-order` | Ordine libero di task e sezioni in un gruppo |
+| `section-order` | Ordine dei task di una sezione (manuale, prima aperti, prima completati) |
 | `group-tasks` | Task direttamente in un gruppo |
 | `group-width` | Larghezza dei gruppi |
 | `live-drag` | Trascinamento in tempo reale di task e sezioni |

@@ -10,7 +10,7 @@ import { updateDBGroupPositions, updateDBGroupWidth } from "@/db/queries/group"
 import { setDBCollapsed } from "@/db/queries/collapsed"
 import { createDBTask } from "@/db/queries/task"
 import { deleteDBItem, renameDBItem, updateDBColor } from "@/db/queries/shared_queries"
-import { createDBSection } from "@/db/queries/section"
+import { createDBSection, setDBSectionTaskOrder } from "@/db/queries/section"
 import { createDBNoteInFolder, createDBWorkspaceNote } from "@/db/queries/note"
 import { createDBSubFolder, createDBWorkspaceFolder, updateDBFolderColorContent } from "@/db/queries/folder"
 import { moveDBTreeItem } from "@/db/queries/tree"
@@ -41,6 +41,7 @@ vi.mock("@/db/queries/folder", () => ({
 vi.mock("@/db/queries/section", () => ({
     createDBSection: vi.fn(),
     createDBSectionInGroup: vi.fn(),
+    setDBSectionTaskOrder: vi.fn(),
 }))
 vi.mock("@/db/queries/task", () => ({
     createDBSubTask: vi.fn(),
@@ -973,6 +974,28 @@ describe("WorkspaceDataContext", () => {
 
             await act(async () => {
                 await expect(result.current.setGroupWidth(1, 300)).rejects.toThrow("fail")
+            })
+            expect(result.current.isLoading).toBe(false)
+        })
+    })
+
+    describe("setSectionTaskOrder", () => {
+        it("persists the order of the tasks of a section, or null for the preference", async () => {
+            const { result } = renderHook(() => useAll(), { wrapper })
+
+            await act(() => result.current.setSectionTaskOrder(3, "done-first"))
+            await act(() => result.current.setSectionTaskOrder(3, null))
+
+            expect(setDBSectionTaskOrder).toHaveBeenNthCalledWith(1, 3, "done-first")
+            expect(setDBSectionTaskOrder).toHaveBeenNthCalledWith(2, 3, null)
+        })
+
+        it("rejects when the db update fails", async () => {
+            vi.mocked(setDBSectionTaskOrder).mockRejectedValue(new Error("fail"))
+            const { result } = renderHook(() => useAll(), { wrapper })
+
+            await act(async () => {
+                await expect(result.current.setSectionTaskOrder(1, "manual")).rejects.toThrow("fail")
             })
             expect(result.current.isLoading).toBe(false)
         })

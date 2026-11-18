@@ -170,3 +170,14 @@ export const addSectionSharedOrder: string[] = [`
     ${triggersFor("section")[1]}
     COMMIT;
 `]
+
+/**
+ * Migration v17: how the tasks of a section are ordered on screen (`manual`, `open-first` or `done-first`; NULL = follow
+ * the preference "completed tasks last"). A state of the view, like `collapsed`: the column is not in WORKSPACE_EDIT_COLUMNS,
+ * so the update trigger of the workspace (which lists the other columns) ignores it. Existing sections stay NULL, so
+ * nothing changes for them. The ADD COLUMN is retried safely by initDb.
+ * @category Database Schema
+ */
+export const addSectionTaskOrder: string[] = [
+    `ALTER TABLE section ADD COLUMN task_order TEXT CHECK (task_order IS NULL OR task_order IN ('manual', 'open-first', 'done-first')) DEFAULT NULL;`,
+]

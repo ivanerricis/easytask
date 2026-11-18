@@ -20,6 +20,7 @@ import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import { getErrorMessage } from "@/lib/utils"
 import { reportError } from "@/lib/report-error"
 import { toast } from "sonner"
+import { SectionTaskOrderSubmenu } from "./SectionTaskOrderSubmenu"
 import { LazyDialogAutomations } from "./LazyDialogAutomations"
 import { LazyMount } from "@/components/lazy-mount"
 import { useActiveNoteId } from "@/contexts/use-tabs"
@@ -95,6 +96,7 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
                 addColorItem={addColorItem}
                 onDone={menu.close}
             />
+            <SectionTaskOrderSubmenu section={section} onDone={menu.close} />
             <Separator />
             <SectionStepMoves sectionId={section.id} onDone={menu.close} />
             <SectionMoveSubmenu sectionId={section.id} onDone={menu.close} />

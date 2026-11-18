@@ -23,6 +23,7 @@ vi.mock("@/contexts/workspace-data", () => ({
     }),
 }))
 const patchTask = vi.fn(() => () => { })
+const pointerDown = vi.fn()
 const setCollapsed = vi.fn().mockResolvedValue(undefined)
 // The tree of the active note as the open/closed hooks read it: the ids in this set are saved as closed
 const closedTasks = new Set<number>()
@@ -38,7 +39,7 @@ vi.mock("../note-dnd-state", () => ({
     useNoteDndSelector: (select: (state: unknown) => unknown) => select({ active: null }),
     useNoteDrop: vi.fn(() => ({ setNodeRef: () => { }, zone: null, active: null })),
     useNoteDrag: () => ({
-        setNodeRef: () => { }, setActivatorNodeRef: () => { },
+        setNodeRef: () => { }, setActivatorNodeRef: () => { }, dragProps: { onPointerDown: pointerDown },
         attributes: { role: "button", "aria-roledescription": "draggable", tabIndex: 0 }, listeners: {}, isDragging: false,
     }),
 }))
@@ -87,6 +88,38 @@ const renderTasks = (ui: ReactNode, withPanel = true) => render(
 )
 
 beforeEach(() => { vi.clearAllMocks(); closedTasks.clear() })
+
+describe("Task drag", () => {
+    const rowOf = (id: number) => document.querySelector(`[data-task-id="${id}"]`) as HTMLElement
+    const subtasks = [makeTask({ id: 11, text: "Figlio" })]
+
+    it("starts the drag from the row, and from a subtask", () => {
+        renderTasks(<Task task={makeTask({ id: 10, text: "Primo", subtasks })} />)
+        fireEvent.pointerDown(rowOf(10))
+        fireEvent.pointerDown(rowOf(11))
+        expect(pointerDown).toHaveBeenCalledTimes(2)
+    })
+
+    it("does not start it in a section with an order of its own that is not the manual one, nor from its subtasks", () => {
+        renderTasks(<Task task={makeTask({ id: 10, text: "Primo", subtasks })} order="done-first" orderLocked />)
+        fireEvent.pointerDown(rowOf(10))
+        fireEvent.pointerDown(rowOf(11))
+        expect(pointerDown).not.toHaveBeenCalled()
+    })
+
+    it("keeps the drag when the sorting only comes from the preference (the section made no choice)", () => {
+        renderTasks(<Task task={makeTask({ id: 10, text: "Primo" })} order="open-first" />)
+        fireEvent.pointerDown(rowOf(10))
+        expect(pointerDown).toHaveBeenCalledTimes(1)
+    })
+
+    it("draws the subtasks in the order of the section", () => {
+        const mixed = [makeTask({ id: 11, text: "Fatto", completed: true }), makeTask({ id: 12, text: "Aperto" })]
+        renderTasks(<Task task={makeTask({ id: 10, text: "Primo", subtasks: mixed })} order="open-first" />)
+        const ids = () => [...document.querySelectorAll("[data-task-id]")].map(node => node.getAttribute("data-task-id"))
+        expect(ids()).toEqual(["10", "12", "11"])
+    })
+})
 
 describe("Task selection", () => {
     const tasks = (

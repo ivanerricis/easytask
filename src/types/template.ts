@@ -1,3 +1,5 @@
+import type { TaskOrder } from "@/lib/task-order"
+
 /**
  * A tag of a task in a snapshot: by name and color, since the ids belong to the workspace. Applying the snapshot reuses the
  * tag of the target workspace with the same name (the case is ignored) or creates it with this color.
@@ -36,6 +38,8 @@ export type TemplateSection = {
     /** Archive date: only in the export files (a template never contains archived items). */
     archived_at?: string | null
     position: number
+    /** How the tasks of the section are ordered on screen; absent in templates and export files created before this choice (= follow the preference). */
+    task_order?: TaskOrder | null
     tasks: TemplateTask[]
 }
 

@@ -6,6 +6,7 @@ import { Task } from "./Task"
 import { TaskTree } from "./TaskTree"
 import { useTaskDensity } from "./task-density"
 import { taskRowsWithInsert } from "./task-insert-rows"
+import { effectiveTaskOrder, isTaskOrderLocked, type TaskOrder } from "@/lib/task-order"
 import { countHiddenCompleted, orderedVisibleTasks } from "../section/hide-completed"
 
 type TaskListProps = {
@@ -15,6 +16,8 @@ type TaskListProps = {
     listKey: string
     /** The section that holds the tasks (a primitive, so the memo holds). */
     sectionId: number
+    /** The order chosen for the section (null: follow the preference "completed tasks last"; the direct tasks of a group have none). */
+    sectionOrder?: TaskOrder | null
     /** The list is the first thing of a box that clips its content (the line above the first task stays inside). */
     clipped?: boolean
     /** Accessible name of the list ("Tasks of <section>"). */
@@ -28,7 +31,7 @@ type TaskListProps = {
  * same rule. The Task still receives the full task (its progress counts every subtask).
  * @category Note
  */
-export const TaskList = memo(({ tasks, listKey, sectionId, clipped, label }: TaskListProps) => {
+export const TaskList = memo(({ tasks, listKey, sectionId, sectionOrder, clipped, label }: TaskListProps) => {
     const { t } = useTranslation()
     const hideCompletedTasks = usePreference(p => p.hideCompletedTasks)
     const completedTasksLast = usePreference(p => p.completedTasksLast) ?? false
@@ -36,7 +39,9 @@ export const TaskList = memo(({ tasks, listKey, sectionId, clipped, label }: Tas
     const renameOnClick = usePreference(p => p.renameOnClick) ?? true
     const density = useTaskDensity()
     const hiddenCount = hideCompletedTasks ? countHiddenCompleted(tasks) : 0
-    const visible = orderedVisibleTasks(tasks, { hideCompleted: hideCompletedTasks, completedLast: completedTasksLast })
+    const order = effectiveTaskOrder(sectionOrder, completedTasksLast)
+    const orderLocked = isTaskOrderLocked(sectionOrder)
+    const visible = orderedVisibleTasks(tasks, { hideCompleted: hideCompletedTasks, order })
 
     return (
         <>
@@ -48,8 +53,8 @@ export const TaskList = memo(({ tasks, listKey, sectionId, clipped, label }: Tas
                 parent: { sectionId },
                 depth: 0,
                 clipped,
-                completedLast: completedTasksLast,
-                renderTask: task => <Task key={task.id} task={task} treeKey={listKey} isFirst={task === visible[0]} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompletedTasks} completedLast={completedTasksLast} renameOnClick={renameOnClick} density={density} />,
+                order,
+                renderTask: task => <Task key={task.id} task={task} treeKey={listKey} isFirst={task === visible[0]} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompletedTasks} order={order} orderLocked={orderLocked} renameOnClick={renameOnClick} density={density} />,
                 })}
             </TaskTree>}
             {hiddenCount > 0 &&

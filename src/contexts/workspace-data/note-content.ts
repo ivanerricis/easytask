@@ -1,14 +1,16 @@
 import { useCallback, useMemo } from "react"
 import type { Group } from "@/types/types"
+import type { TaskOrder } from "@/lib/task-order"
 import { createDBSection, createDBSectionInGroup } from "@/db/queries/section"
 import { createDBGroup, updateDBGroupPositions, updateDBGroupWidth } from "@/db/queries/group"
 import { moveDBDirectSection, moveDBSection, moveDBSectionToNewGroup } from "@/db/queries/move"
+import { setDBSectionTaskOrder } from "@/db/queries/section"
 import { setDBCollapsed, type CollapsibleKind } from "@/db/queries/collapsed"
 import { duplicateDBSection } from "@/db/queries/duplicate"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
 type NoteContentActions = Pick<WorkspaceActionsType,
-    "createGroup" | "createSection" | "createSectionInGroup" | "updateGroupsPositions" | "setGroupWidth" | "setCollapsed" | "moveSection" | "moveDirectSection" | "moveSectionToNewGroup" | "duplicateSection">
+    "createGroup" | "createSection" | "createSectionInGroup" | "updateGroupsPositions" | "setGroupWidth" | "setCollapsed" | "setSectionTaskOrder" | "moveSection" | "moveDirectSection" | "moveSectionToNewGroup" | "duplicateSection">
 
 /**
  * Groups and sections of the open note. The creations resolve with the ids of the new rows (the callers build
@@ -55,6 +57,15 @@ export function useNoteContentActions({ withLoading }: Runtime): NoteContentActi
         withLoading(() => setDBCollapsed(kind, id, collapsed)), [withLoading])
 
     /**
+     * Saves how the tasks of a section are ordered on screen (a state of the view, not an undo step). The caller applies it to
+     * the open note first: `withRollback(patchSection(id, { task_order }), () => setSectionTaskOrder(id, order))`.
+     * @throws Will throw an error if the order cannot be saved.
+     * @category Workspace Data Context
+     */
+    const setSectionTaskOrder = useCallback((sectionID: number, order: TaskOrder | null) =>
+        withLoading(() => setDBSectionTaskOrder(sectionID, order)), [withLoading])
+
+    /**
      * Moves a section to a group of the open note at the given index among its sections. The section keeps all
      * its tasks. A source group left empty is kept. It does NOT reload the data: the caller updates the active note.
      * @param sectionID - The ID of the section to move.
@@ -99,5 +110,5 @@ export function useNoteContentActions({ withLoading }: Runtime): NoteContentActi
     const duplicateSection = useCallback((sectionID: number) =>
         withLoading(() => duplicateDBSection(sectionID)), [withLoading])
 
-    return useMemo(() => ({ createGroup, createSection, createSectionInGroup, updateGroupsPositions, setGroupWidth, setCollapsed, moveSection, moveDirectSection, moveSectionToNewGroup, duplicateSection }), [ createGroup, createSection, createSectionInGroup, updateGroupsPositions, setGroupWidth, setCollapsed, moveSection, moveDirectSection, moveSectionToNewGroup, duplicateSection ])
+    return useMemo(() => ({ createGroup, createSection, createSectionInGroup, updateGroupsPositions, setGroupWidth, setCollapsed, setSectionTaskOrder, moveSection, moveDirectSection, moveSectionToNewGroup, duplicateSection }), [ createGroup, createSection, createSectionInGroup, updateGroupsPositions, setGroupWidth, setCollapsed, setSectionTaskOrder, moveSection, moveDirectSection, moveSectionToNewGroup, duplicateSection ])
 }
