@@ -19,6 +19,11 @@ const mockReducedMotion = (reduced: boolean) => {
     window.matchMedia = globalThis.matchMedia
 }
 
+const setMotion = (motion: string | null) => {
+    if (motion === null) delete document.documentElement.dataset.motion
+    else document.documentElement.dataset.motion = motion
+}
+
 beforeEach(() => {
     frames = []
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length })
@@ -33,6 +38,7 @@ afterEach(() => {
     document.body.innerHTML = ""
     vi.unstubAllGlobals()
     vi.useRealTimers()
+    setMotion(null)
 })
 
 describe("applyShifts", () => {
@@ -126,6 +132,38 @@ describe("applyShifts", () => {
         expect(a.style.transition).toBe("none")
     })
 
+    it("follows the speed of the animations of the app, read when the drag starts", () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+        const a = wrapper(1, 1)
+        const transitionAt = (motion: string | null, reduced = false) => {
+            mockReducedMotion(reduced)
+            setMotion(motion)
+            applyShifts(new Map([["task-1", 20]]))
+            flushFrame()
+            const transition = a.style.transition
+            clearShifts(false)
+            return transition
+        }
+        expect(transitionAt("none")).toBe("none")
+        expect(transitionAt("normal")).toBe("transform 150ms ease-out")
+        expect(transitionAt("slow")).toBe("transform 250ms ease-out")
+        // The setting of the app wins over the one of the system, in both ways
+        expect(transitionAt("normal", true)).toBe("transform 150ms ease-out")
+        expect(transitionAt("none", false)).toBe("none")
+        // Without it (not applied yet) the system decides
+        expect(transitionAt(null, true)).toBe("none")
+        expect(transitionAt(null, false)).toBe("transform 150ms ease-out")
+
+        // A change in the middle of a drag waits for the next one
+        setMotion("normal")
+        applyShifts(new Map([["task-1", 20]]))
+        flushFrame()
+        setMotion("none")
+        applyShifts(new Map([["task-1", 30]]))
+        flushFrame()
+        expect(a.style.transition).toBe("transform 150ms ease-out")
+    })
+
     it("copes with a browser without matchMedia", () => {
         vi.stubGlobal("matchMedia", undefined)
         window.matchMedia = undefined as unknown as typeof window.matchMedia
@@ -160,9 +198,11 @@ describe("clearShifts", () => {
         expect(a.style.transform).toBe("")
         expect(a.style.transition).toBe(`transform ${SHIFT_DURATION}ms ease-out`)
 
+        clearShifts(false)
+
+        setMotion("none")
         applyShifts(new Map([["task-1", 20]]))
         flushFrame()
-        mockReducedMotion(true)
         clearShifts(true)
         expect(a.style.transition).toBe("")
     })

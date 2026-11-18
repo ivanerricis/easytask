@@ -85,6 +85,27 @@ describe("applyTreeShifts", () => {
         expect(hasTreeShifts()).toBe(false)
     })
 
+    it("follows the speed of the animations of the app, not the one of the system", () => {
+        const a = row("note-1", tree())
+        const transitionAt = (motion: string | null, reduced: boolean) => {
+            vi.stubGlobal("matchMedia", (query: string) => ({ matches: reduced && query.includes("reduce"), media: query }))
+            window.matchMedia = globalThis.matchMedia
+            if (motion === null) delete document.documentElement.dataset.motion
+            else document.documentElement.dataset.motion = motion
+            applyTreeShifts(shifts({ "note-1": 32 }))
+            flushFrame()
+            const transition = a.style.transition
+            clearTreeShifts(false)
+            return transition
+        }
+        expect(transitionAt("none", false)).toBe("none")
+        expect(transitionAt("normal", true)).toBe("transform 150ms ease-out, opacity 150ms ease-out")
+        expect(transitionAt("slow", false)).toBe("transform 250ms ease-out, opacity 250ms ease-out")
+        expect(transitionAt(null, true)).toBe("none")
+        expect(transitionAt(null, false)).toBe("transform 150ms ease-out, opacity 150ms ease-out")
+        delete document.documentElement.dataset.motion
+    })
+
     it("moves nothing in the same frame with reduced motion (no transition)", () => {
         vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("reduce"), media: query }))
         window.matchMedia = globalThis.matchMedia
