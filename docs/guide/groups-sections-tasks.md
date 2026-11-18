@@ -10,13 +10,13 @@ The content of a note is organized in three levels. A note holds **groups**, sho
 ### Add them
 
 - Click the **+** button (**New group**) at the left of the buttons in the bar above the note, or press `Alt+N`: a field opens at the end of the groups. Type a name and press `Enter`. `Esc` closes the field.
-- Inside a group, open its menu (the menu button of the group, or a right-click on its header), choose **New section**, type a title and press `Enter`. The field opens at the end of the group.
+- Inside a group, click the **+** button (**New section**) in its header (it shows when you point at the group or move the keyboard focus to it), or open its menu and choose **New section**. Type a title and press `Enter`. The field opens at the end of the group.
 
 The name is optional: press `Enter` on an empty field and the group or section is created without a name. EasyTask then shows **Group 1**, **Group 2**… or **Untitled section** in muted text. You can hide those labels with **Settings > Notes and sections > Show names of unnamed groups and sections**.
 
 ### Rename, color and manage
 
-Click the name to rename it in place (`Enter` saves, `Esc` cancels), or open the menu of the group or section with its menu button or a right-click.
+Click the name to rename it in place (`Enter` saves, `Esc` cancels), or open the menu of the group or section with its menu button or a right-click. For a group the right-click works anywhere on the group, also on its empty space and padding around the sections; a right-click on a task, a section or a file still opens its own menu.
 
 A right-click on the empty area of the note (outside any group, section or task) opens a small menu with **New group**, **Hide completed tasks** / **Show completed tasks** and **Note background** (see [Colors](./colors#note-background)).
 
@@ -28,7 +28,8 @@ A right-click on the empty area of the note (outside any group, section or task)
 | **New section**                        | yes   |         | Opens the field for the title of a new section in the group.    |
 | **Duplicate**                          |       | yes     | Copies the section, with its tasks, right after the original.   |
 | **Rename**                             | yes   | yes     | Edits the name.                                                 |
-| **Change color**                       | yes   | yes     | Sets or removes the color.                                      |
+| **Change color**                       | yes   | yes     | Sets or removes the color. A group also has **Automatic (progress)**, see [Colors](./colors#automatic-color-of-a-group). |
+| **Task order**                         |       | yes     | Chooses how the tasks of the section are ordered on screen. See [Task order of a section](#task-order-of-a-section). |
 | **Move left**, **Move right**          | yes   |         | Moves the group one step in the row.                            |
 | **Move up**, **Move down**             |       | yes     | Moves the section one step in its group, also past the list of the group tasks. |
 | **Move task list up**, **Move task list down** | yes |   | Moves the list of the tasks of the group one step among its sections. |
@@ -52,13 +53,13 @@ Each group and section has a button to collapse it (**Collapse group**, **Collap
 
 ### Resize a group
 
-Drag the right edge of a group to make it wider or narrower. With the keyboard, focus the edge and use `Left` and `Right` (hold `Shift` for bigger steps), `Home` for the narrowest width and `End` for the widest. Double-click the edge to restore the automatic width. The progress bar of a group disappears when the group gets too narrow to show it.
+Drag the right edge of a group to make it wider or narrower. The edge covers the whole height of the column, also beside a short group. With the keyboard, focus the edge and use `Left` and `Right` (hold `Shift` for bigger steps), `Home` for the narrowest width and `End` for the widest. Double-click the edge to restore the automatic width. The progress bar of a group disappears when the group gets too narrow to show it.
 
 ## Tasks and subtasks
 
 ### Add a task
 
-1. At the bottom of a section click the **+** button (**Add task**). To add a task to a group without a section, click the dashed **New task** button of the group: it sits right under the tasks of the group, wherever that list is among the sections, and the new task is created in that list.
+1. At the bottom of a section click the **+** button (**Add task**). To add a task to a group without a section, click the **New task** row of the group: it is always visible, like the add button of a section, and sits right under the tasks of the group, wherever that list is among the sections. The new task is created in that list.
 2. Type the text in **New task…** and confirm with `Enter` (the field has no buttons). `Esc` closes it and discards the text.
 
 Tasks of a group count in its progress bar and in its task count. Drag one into a section, or the other way round, or use **Move to…** (the group appears in the list as **Group tasks**). **Move up** and **Move down** of a task stay inside the same list.
@@ -104,7 +105,7 @@ Open the menu of the task (menu button or right-click):
 | **Move up**, **Move down**                 | Moves the task one step among its siblings.                           |
 | **Move to…**                               | Moves the task to another section, or under another task as a subtask.|
 | **Show details**                           | Selects the task in the details panel.                                |
-| **Archive**, **Delete**                    | Hide it or move it to the trash, with its subtasks.                   |
+| **Archive**, **Delete**                    | Hide it or move it to the trash, with its subtasks. **Delete** from the menu asks for confirmation first.                   |
 
 ![A task with a description, shown in the details panel on the right](../screenshots/en/task-description-light.png)
 
@@ -134,7 +135,7 @@ Drag a task by its row. While you drag, the other tasks step aside to open the r
 - on the middle of a task, to make it a subtask of that task (the task shows a ring instead of opening a gap);
 - on a section, to make it the last task of that section.
 
-With **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last.
+With **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last. The tasks of a section set to **Open tasks first** or **Completed tasks first** (see [task order](#task-order-of-a-section)) cannot be dragged: use **Move to…**.
 
 ### Use the keyboard
 
@@ -151,15 +152,21 @@ The task that takes the focus becomes the selected one, as when you click it. Wh
 
 ### Select several tasks
 
-Hold **Ctrl** (**Cmd** on macOS) and click to add a task to the selection or remove it. Click a task with **Shift** to select every visible task between the last one you clicked and this one, across sections and groups. **Esc** clears the selection, and so does a plain click.
+Hold **Ctrl** (**Cmd** on macOS) and click to add a task to the selection or remove it. Click a task with **Shift** to select every visible task between the last one you clicked and this one, across sections and groups. **Esc** clears the selection, and so does a plain click, or a click on any empty space outside the tasks (the background of the note, the sidebar or the details panel). A click on the counter, on a menu or on a message does not clear it.
 
 With the keyboard, focus a task and press **Shift+Down** or **Shift+Up** to extend the selection one task at a time (**Shift+End** and **Shift+Home** go to the last and first task of the list); going back toward the first task shrinks it again. **Ctrl+Space** (**Cmd+Space** on macOS) adds the focused task to the selection or removes it, so you can pick tasks that are not next to each other: move with the plain arrows, which keep the selection, and press it on each one. These keys do not change the task shown in the details panel. When the selection shrinks to one task or to none, a screen reader announces it; with two or more, it reads the counter.
 
 Right click a selected task (or open its menu) to act on all of them at once: **Delete N tasks**, **Archive N tasks**, **Color**, **Tags…** and **Move to…** (the end of a section, or the tasks directly in a group). A selected task stands for its subtasks too, so they are deleted, archived and moved with it. Each action is a single step in the [undo history](./undo-and-history). Dragging still moves one task at a time.
 
+To move to the trash without being asked, focus a task (or select several) and press `Delete`: the tasks go to the trash at once, with a message with **Undo**, and the focus passes to the next task. The **Delete** entry of the menu still asks for confirmation.
+
 Selected tasks get a dashed outline (not only a tint) and are announced as "selected" by screen readers; with two or more selected, a counter such as "3 selected" appears at the bottom of the note.
 
 ![Three selected tasks with a dashed outline and the "3 selected" counter at the bottom](../screenshots/en/task-selection-light.png)
+
+### Copy and paste tasks
+
+Focus a task, or select several, and press `Ctrl+C` (`Cmd+C` on macOS) to copy them, then focus another task, in any note, and press `Ctrl+V` (`Cmd+V`) to paste the copies right below it. The copies keep their subtasks, tags and color. The paste is a single step in the [undo history](./undo-and-history). Copying also puts the text of the tasks in the clipboard of the system, so you can paste it into another app; but pasting works only for tasks copied from EasyTask, and only while the clipboard still holds them: if you copied something else in the meantime, `Ctrl+V` does nothing. The keys work on the focused task, not while you type in a field.
 
 ## Search in a note
 
@@ -171,7 +178,20 @@ Press `Ctrl+Shift+H`, use the eye button in the path bar above the groups, or ch
 
 ## Completed tasks at the bottom
 
-Turn on **Settings > Notes and sections > Completed tasks at the bottom** to see the completed tasks after the open ones in every list: the tasks of a section, the tasks directly in a group and the subtasks of a task. It is only a view: each block keeps its order, the order saved in the note does not change and nothing is moved when you complete or reopen a task (it just changes place on screen). It works together with **Hide completed tasks**.
+Turn on **Settings > Notes and sections > Completed tasks at the bottom** to see the completed tasks after the open ones in every list: the tasks of a section, the tasks directly in a group and the subtasks of a task. It is only a view: each block keeps its order, the order saved in the note does not change and nothing is moved when you complete or reopen a task (it just changes place on screen). It works together with **Hide completed tasks**. A single section can ignore this setting, see below.
+
+### Task order of a section
+
+Every section has a **Task order** entry in its menu (menu button or right-click) to choose how its tasks are shown, whatever the global setting says:
+
+| Choice | What it does |
+| --- | --- |
+| **As in the settings** | The default. The section follows **Completed tasks at the bottom**. |
+| **Manual** | The tasks are shown in the order saved in the note, with the completed ones where they are, even if the setting is on. |
+| **Open tasks first** | The open tasks come first, then the completed ones. |
+| **Completed tasks first** | The completed tasks come first, then the open ones. |
+
+The choice is applied at once, belongs to that section only and is not an undo step. Like the setting, it is only a view: the order saved in the note does not change, and the selection, the search, the **+** lines and **Move up** / **Move down** follow what you see. The tasks of a section set to **Open tasks first** or **Completed tasks first** cannot be dragged (they can still receive tasks dropped on them): to move one use **Move to…**, or choose **Manual** or **As in the settings** again. A new task is always open, so in a section that shows the completed tasks first there is no **+** line where it would not stay. The tasks put directly in a group follow the setting. The choice is copied when you duplicate a section or a note, by templates, and by export and import.
 
 With it on, the task selection, the search and the keyboard follow the order you see. **Move up** and **Move down** (and `Alt+↑` / `Alt+↓`) move a task among the tasks of the same kind, and stop at the edge of the open tasks or of the completed ones. The **+** line above the first completed task adds a new task after the last open one, and there is no **+** line between completed tasks. When you drag a task, it is placed where you drop it, then the list is shown again with the completed tasks last.
 

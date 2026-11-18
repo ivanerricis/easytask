@@ -4,7 +4,7 @@ EasyTask ha scorciatoie da tastiera per le azioni più comuni. Premi `?` per ved
 
 ![La finestra delle scorciatoie da tastiera con le scorciatoie Generali, ognuna con i suoi tasti, e l'inizio della sezione Note e tab](../../screenshots/it/shortcuts-light.png)
 
-Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per i tab, barre laterali, ricerca, torna alla home, task completati, nuovo gruppo, documentazione, dimensione del testo, vista divisa e nuovo workspace funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
+Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quelle per i tab, barre laterali, ricerca, torna alla home, task completati, nuovo gruppo, documentazione, impostazioni, dimensione del testo, vista divisa e nuovo workspace funzionano anche dentro i campi di testo. `Ctrl+Z` e `Ctrl+Y` no, perché il campo ha il suo annulla.
 
 ## Generale
 
@@ -12,6 +12,7 @@ Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quell
 | --- | --- | --- |
 | Mostra le scorciatoie | `?` | No |
 | Apri la documentazione | `F1` | Sì |
+| Apri le impostazioni | `Ctrl+,` | Sì |
 | Ingrandisci il testo dell'app | `Ctrl+Più` | No |
 | Ingrandisci il testo dell'app (alternativa) | `Ctrl+=` | No |
 | Riduci il testo dell'app | `Ctrl+Meno` | No |
@@ -70,8 +71,11 @@ Questi tasti funzionano quando una riga di task ha il focus (clicca un task o ra
 | Estendere la selezione al task precedente o successivo | `Maiusc+↑` / `Maiusc+↓` |
 | Estendere la selezione al primo o all'ultimo task | `Maiusc+Home` / `Maiusc+End` |
 | Aggiungere il task alla selezione, o toglierlo | `Ctrl+Spazio` (`Cmd+Spazio` su macOS) |
+| Spostare nel cestino il task, o i task selezionati (senza conferma) | `Canc` |
+| Copiare il task, o i task selezionati | `Ctrl+C` (`Cmd+C` su macOS) |
+| Incollare i task copiati sotto il task | `Ctrl+V` (`Cmd+V` su macOS) |
 
-Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo): non saltano alla sezione successiva. Dopo `Alt+↑` o `Alt+↓` il focus resta sul task e uno screen reader annuncia la nuova posizione ("Spostato in posizione 2 di 5"). I tasti di selezione non cambiano il task mostrato nel pannello dei dettagli. Vedi [Usare la tastiera](./groups-sections-tasks#usare-la-tastiera).
+Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo): non saltano alla sezione successiva. Dopo `Alt+↑` o `Alt+↓` il focus resta sul task e uno screen reader annuncia la nuova posizione ("Spostato in posizione 2 di 5"). I tasti di selezione non cambiano il task mostrato nel pannello dei dettagli. `Canc` sposta subito il task nel cestino, senza chiedere, e mostra un messaggio con **Annulla** (funziona anche `Ctrl+Z`). `Ctrl+C` e `Ctrl+V` copiano e incollano i task dentro EasyTask, vedi [Copiare e incollare i task](./groups-sections-tasks#copiare-e-incollare-i-task). Vedi [Usare la tastiera](./groups-sections-tasks#usare-la-tastiera).
 
 ## Pagina iniziale
 

@@ -29,6 +29,20 @@ The last square of the palette, with a **+**, lets you pick **any other color** 
 
 Open the same palette and click **No color**.
 
+## Automatic color of a group
+
+The color menu of a group (not of the other items) starts with **Automatic (progress)**. The group takes its color from its progress, and changes it by itself as you complete tasks:
+
+- **red** when none of its tasks is completed;
+- **yellow** when at least one is completed, but not all;
+- **green** when all are completed, or when the group has no tasks.
+
+Tasks and subtasks count as in the progress bar of the group. While it is on, no swatch of the palette is marked; choose a fixed color or **No color** to turn it off. The automatic color is kept by duplicates, templates, undo and redo, and exports.
+
+::: warning Older versions of EasyTask
+Versions before 0.26.0 do not know the automatic color. If you import a workspace with an automatic group in one of them, the group is shown without that color. Choose a fixed color before exporting if you need the workspace in an older version.
+:::
+
 ## Note background
 
 You can give a color to the whole background of a note.

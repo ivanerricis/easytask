@@ -4,6 +4,29 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- Il backup automatico ha quattro modalità in Impostazioni > Dati: **Disattivato**, **Solo all'avvio**, **Solo alla chiusura** e **All'avvio e alla chiusura**. Il valore predefinito ora è **Solo alla chiusura**: EasyTask fa il backup (se ne è dovuto uno per la frequenza scelta) mentre l'app si chiude, mostrando "Backup in corso…" solo mentre una copia viene scritta. Chi aveva il backup automatico spento lo ritrova spento; gli altri passano al nuovo valore predefinito.
+- `Ctrl+,` apre le Impostazioni da qualsiasi punto; puoi cambiarla in Impostazioni > Scorciatoie.
+- Task: `Canc` sposta subito nel cestino il task con il focus (o i task selezionati), senza chiedere, con un messaggio con **Annulla**; `Ctrl+C` e `Ctrl+V` copiano i task e li incollano sotto il task con il focus, con sottotask, tag e colore.
+- Ogni sezione ha nel suo menu la voce **Ordine dei task**: come nelle impostazioni, manuale, prima i task aperti o prima i task completati. Cambia solo come si vedono i task, per quella sezione ha la precedenza su **Task completati in fondo**, e in una sezione con un ordine esplicito i task non si possono trascinare. La scelta viene copiata da duplicati, template ed esportazioni. Il database viene aggiornato alla versione 17 all'avvio dell'app; una versione più vecchia dell'app non può aprire il database aggiornato.
+- Il menu del colore di un gruppo ha **Automatico (avanzamento)**: il gruppo è rosso se nessun task è completato, giallo mentre il lavoro avanza e verde quando tutto è completato (o il gruppo non ha task).
+- Un'impostazione in Impostazioni > Note e sezioni, **File di un gruppo chiuso** (attiva di default), tiene visibili i file audio, le immagini e i video di un gruppo chiuso: come righe sotto l'intestazione della barra, o come piccoli pulsanti nella striscia verticale (i primi 5, poi un pulsante **+N** che apre il gruppo).
+- Template: **Nuovo** ora offre **Template vuoto** (si apre subito nell'editor dei template) e **Da una nota**; un template si rinomina cliccando sul suo nome.
+
+### Modificato
+
+- Senza connessione a internet, **Controlla aggiornamenti** e **Aggiorna ora** dicono "Nessuna connessione a internet: riprova quando sei online." con l'errore tecnico in piccolo sotto, invece del solo errore tecnico.
+- Il clic destro in qualsiasi punto di un gruppo, anche sui margini, apre il menu del gruppo; il **+** (nuova sezione) nell'intestazione del gruppo compare solo quando ci passi il mouse; la maniglia di larghezza di un gruppo copre tutta l'altezza della colonna; **Nuovo task** in un gruppo è una riga leggera, sempre visibile, come quella delle sezioni.
+- Un clic su un'area vuota fuori dai task toglie la selezione multipla dei task.
+- Rifinitura dell'aspetto: la barra dei tab e i bordi dei tab usano il normale colore del bordo (l'accento resta solo sul riquadro attivo della vista divisa); i pulsanti del menu **...** sono più piccoli e seguono la densità della barra laterale; il pulsante **?** delle scorciatoie sta accanto alla ricerca; i controlli segmentati nelle Impostazioni hanno la stessa altezza e larghezza; le finestre dei tag sono più ordinate; il pulsante della velocità audio non cambia più larghezza.
+- Il colore **Automatico (avanzamento)** di un gruppo non viene letto dalle versioni precedenti alla 0.26.0: se esporti un workspace che lo usa, o condividi un file con una versione più vecchia, lì il gruppo appare senza quel colore.
+
+### Corretto
+
+- Il clic destro sul testo di un task non lo fa più sembrare modificabile per un attimo.
+- Se la copia di un backup non può essere completata, nella cartella dei backup non resta nessun file parziale.
+
 ## [0.25.0] - 2026-11-18
 
 ### Modificato

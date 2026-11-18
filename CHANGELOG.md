@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Automatic backup has four modes in Settings > Data: **Off**, **At startup only**, **On close only** and **At startup and on close**. The default is now **On close only**: EasyTask makes the backup (when one is due for the chosen frequency) while the app closes, showing "Backing up…" only while a copy is being written. Whoever had the automatic backup turned off keeps it off; the others move to the new default.
+- `Ctrl+,` opens the Settings from anywhere; you can change it in Settings > Shortcuts.
+- Tasks: `Delete` moves the focused task (or the selected tasks) to the trash at once, without asking, with a toast with **Undo**; `Ctrl+C` and `Ctrl+V` copy tasks and paste them below the focused task, with subtasks, tags and color.
+- Each section has a **Task order** entry in its menu: as in the settings, manual, open tasks first or completed tasks first. It only changes how the tasks are shown, it overrides **Completed tasks at the bottom** for that section, and in a section with an explicit order the tasks cannot be dragged. The choice is copied by duplicates, templates and exports. The database is upgraded to version 17 when the app starts, and an older version of the app cannot open the upgraded database.
+- The color menu of a group has **Automatic (progress)**: the group is red when no task is completed, yellow while the work is going on and green when everything is completed (or the group has no tasks).
+- A setting in Settings > Notes and sections, **Files of a collapsed group** (on by default), keeps the audio files, images and videos of a collapsed group visible: as rows under the header of the bar, or as small buttons in the vertical strip (the first 5, then a **+N** button that opens the group).
+- Templates: **New** now offers **Empty template** (it opens straight in the template editor) and **From a note**; a template is renamed by clicking its name.
+
+### Changed
+
+- Without an internet connection, **Check for updates** and **Update now** say "No internet connection: try again when you are online." with the technical error in small text below, instead of only the technical error.
+- Right click anywhere on a group, also on its padding, opens the group menu; the **+** (new section) in the group header shows only when you point at the group; the resize handle of a group covers the full height of the column; **New task** in a group is a light row, always visible, like the one of the sections.
+- A click on an empty area outside the tasks clears the multiple selection of tasks.
+- Appearance polish: the tab bar and the borders of the tabs use the normal border color (the accent stays only on the active split pane); the **...** menu buttons are smaller and follow the density of the sidebar; the shortcuts **?** button sits next to the search; the segmented controls in Settings have the same height and width; the tag dialogs are tidier; the audio speed button no longer changes width.
+- The **Automatic (progress)** color of a group is not read by versions before 0.26.0: if you export a workspace that uses it, or share a file with an older version, the group appears there without that color.
+
+### Fixed
+
+- A right click on the text of a task no longer makes it look editable for a moment.
+- If a backup copy cannot be completed, no partial file is left in the backups folder.
+
 ## [0.25.0] - 2026-11-18
 
 ### Changed

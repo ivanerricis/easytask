@@ -6,6 +6,8 @@ When you delete something, it goes to the trash first, so you can bring it back.
 
 Open the menu of an item and choose **Delete**. The app asks "Move to trash?" and you confirm with **Move to trash**. The exception is notes, sections and groups: with the default setting [Confirm deleting only when there is content](./settings#notes-and-sections) an empty one goes straight to the trash with **Undo**. You can delete workspaces, folders, notes, groups, sections, tasks, audio files and [templates](./templates).
 
+Tasks also have a faster way: focus a task (or select several) and press `Delete`. They go to the trash at once, with no confirmation and a toast with **Undo**. See [Copy and paste tasks](./groups-sections-tasks#copy-and-paste-tasks) and [Keyboard shortcuts](./shortcuts#tasks-with-the-keyboard).
+
 To delete several folders and notes at once, select them in the sidebar (`Ctrl+click` adds an item, `Shift+click` selects a range), open the menu of one of them and choose **Delete N items**.
 
 Deleting is always reversible while the item is in the trash. You can also undo it with `Ctrl+Z`, see [Undo and history](./undo-and-history).

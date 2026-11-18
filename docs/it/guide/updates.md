@@ -28,6 +28,10 @@ Se il controllo fallisce (per esempio sei offline), quello all'avvio non mostra 
 
 Se sei aggiornato, l'app mostra "EasyTask è aggiornato."
 
+## Quando sei offline
+
+Se controlli a mano, o fai clic su **Aggiorna ora**, senza connessione a internet, EasyTask dice **Nessuna connessione a internet: riprova quando sei online.** con l'errore tecnico in piccolo, in grigio, sotto: così puoi segnalarlo se il problema è un altro. Il messaggio compare in **Impostazioni > Informazioni** e nella finestra dell'aggiornamento. Non cambia nulla: riprova quando sei online.
+
 ## Novità dopo un aggiornamento
 
 La prima volta che apri un workspace dopo un aggiornamento si apre un tab **Novità** con le note della versione che stai usando, nella lingua dell'app.

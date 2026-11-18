@@ -10,7 +10,12 @@ I template appartengono a un workspace: ogni workspace ha i suoi e non sono cond
 2. Scegli **Crea template**.
 3. Scrivi un **Nome del template** e conferma.
 
-Puoi anche aprire la finestra dei template e fare clic su **Nuovo template**: ti chiede di scegliere una nota e poi il nome. Il nome deve essere unico nel workspace.
+Puoi anche aprire la finestra dei template e fare clic su **Nuovo**, che offre due scelte:
+
+- **Da una nota**: ti chiede di scegliere una nota e poi il nome. È disattivato se il workspace non ha note.
+- **Template vuoto**: ti chiede solo il nome e crea un template senza gruppi, che si apre subito nell'[editor dei template](#modificare-un-template) così lo costruisci da zero.
+
+Il nome deve essere unico nel workspace.
 
 ![La finestra per creare un template](../../screenshots/it/create-template-light.png)
 
@@ -40,20 +45,18 @@ La finestra **Nuova nota da template** chiede un **Nome** e una **Destinazione**
 
 Aprila dal pulsante **Template** in fondo alla barra laterale (mostra quanti template hai) oppure da **File > Template…**.
 
-![La finestra Template con un template e i suoi pulsanti per creare una nota, modificare, rinominare, aggiornare, altre azioni ed eliminare, più il pulsante Nuovo template](../../screenshots/it/templates-light.png)
+![La finestra Template con un template e i suoi pulsanti per creare una nota, modificare, altre azioni ed eliminare, più il pulsante Nuovo](../../screenshots/it/templates-light.png)
 
-Con più di 8 template compare in alto una casella di ricerca: usala per trovarne uno. Ogni template mostra la nota da cui è stato creato e la data di creazione. I pulsanti di un template sono:
+Con più di 8 template compare in alto una casella di ricerca: usala per trovarne uno. Ogni template mostra la nota da cui è stato creato e la data di creazione. Per rinominare un template, clicca sul suo nome: `Invio` salva, `Esc` annulla (senza chiudere la finestra). Se il nome è già usato, l'errore compare nella riga. I pulsanti di un template sono:
 
 | Pulsante | Cosa fa |
 | --- | --- |
 | **Crea nota** | Crea una nota dal template |
 | **Modifica** | Apre il template in un tab per modificarlo (vedi [Modificare un template](#modificare-un-template)) |
-| Rinomina | Cambia il nome del template |
-| **Aggiorna dalla nota** | Sostituisce il contenuto del template con quello attuale della nota di origine. L'app chiede conferma con **Sovrascrivi template**. Le note già create dal template non cambiano |
-| **Altre azioni** (**...**) | **Duplica** crea una copia del template. **Aggiorna da un'altra nota** sostituisce il contenuto con quello di una nota che scegli, che diventa la nota di origine (l'app chiede conferma) |
+| **Altre azioni** (**...**) | **Rinomina** mette il nome in modifica. **Aggiorna dalla nota sorgente** sostituisce il contenuto del template con quello attuale della nota da cui è stato creato (l'app chiede conferma con **Sovrascrivi template**; le note già create dal template non cambiano). **Aggiorna da un'altra nota…** sostituisce il contenuto con quello di una nota che scegli, che diventa la nota di origine (l'app chiede conferma). **Duplica** crea una copia del template |
 | **Elimina** | Sposta il template nel cestino |
 
-**Aggiorna dalla nota** è disattivato quando la nota di origine non esiste più o è nel cestino ("La nota di origine non esiste più"), e anche mentre il template è aperto nel suo editor (chiudi prima l'editor).
+**Aggiorna dalla nota sorgente** è disattivato, con il motivo scritto sotto, quando la nota di origine non esiste più o è nel cestino ("La nota di origine non esiste più"), e anche mentre il template è aperto nel suo editor (chiudi prima l'editor).
 
 ## Modificare un template
 

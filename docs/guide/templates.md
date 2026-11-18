@@ -10,7 +10,12 @@ Templates belong to a workspace: each workspace has its own, and they are not sh
 2. Choose **Create template**.
 3. Type a **Template name** and confirm.
 
-You can also open the templates dialog and click **New template**: it asks you to choose a note, then the name. The name must be unique in the workspace.
+You can also open the templates dialog and click **New**, which offers two choices:
+
+- **From a note**: it asks you to choose a note, then the name. It is disabled when the workspace has no notes.
+- **Empty template**: it asks only for the name and creates a template with no groups, which opens at once in the [template editor](#edit-a-template) so you can build it from scratch.
+
+The name must be unique in the workspace.
 
 ![The dialog to create a template](../screenshots/en/create-template-light.png)
 
@@ -40,20 +45,18 @@ The **New note from template** dialog asks for a **Name** and a **Destination**:
 
 Open it from the **Templates** button at the bottom of the sidebar (it shows how many templates you have), or from **File > Templates…**.
 
-![The Templates dialog with one template and its buttons to create a note, edit, rename, refresh, more actions and delete, plus the New template button](../screenshots/en/templates-light.png)
+![The Templates dialog with one template and its buttons to create a note, edit, more actions and delete, plus the New button](../screenshots/en/templates-light.png)
 
-With more than 8 templates a search box appears at the top: use it to find one. Each template shows the note it was made from and its creation date. The buttons of a template are:
+With more than 8 templates a search box appears at the top: use it to find one. Each template shows the note it was made from and its creation date. To rename a template, click its name: `Enter` saves and `Esc` cancels (without closing the dialog). If the name is already used, the error shows in the row. The buttons of a template are:
 
 | Button | What it does |
 | --- | --- |
 | **Create note** | Creates a note from the template |
 | **Edit** | Opens the template in a tab to edit it (see [Edit a template](#edit-a-template)) |
-| Rename | Changes the name of the template |
-| **Update from note** | Replaces the content of the template with the current content of the source note. The app asks you to confirm with **Overwrite template**. Notes already created from the template do not change |
-| **More actions** (**...**) | **Duplicate** makes a copy of the template. **Refresh from another note** replaces its content with that of a note you choose, which becomes the source note (the app asks you to confirm) |
+| **More actions** (**...**) | **Rename** puts the name in edit mode. **Update from the source note** replaces the content of the template with the current content of the note it was made from (the app asks you to confirm with **Overwrite template**; notes already created from the template do not change). **Refresh from another note…** replaces its content with that of a note you choose, which becomes the source note (the app asks you to confirm). **Duplicate** makes a copy of the template |
 | **Delete** | Moves the template to the trash |
 
-**Update from note** is disabled when the source note no longer exists or is in the trash ("The source note no longer exists"), and also while the template is open in its editor (close the editor first).
+**Update from the source note** is disabled, with the reason written under it, when the source note no longer exists or is in the trash ("The source note no longer exists"), and also while the template is open in its editor (close the editor first).
 
 ## Edit a template
 

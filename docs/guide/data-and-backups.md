@@ -34,18 +34,28 @@ Audio files, images and videos are not stored here. EasyTask keeps only their pa
 
 ## Automatic backups
 
-EasyTask makes a backup of the database when it starts. The options are in **Settings > Data > Backup**:
+EasyTask can make a backup of the database by itself, when it starts, when it closes or both. The options are in **Settings > Data > Backup**:
 
 | Option | Default |
 | --- | --- |
-| **Automatic backup** | On |
+| **Automatic backup**: **Off**, **At startup only**, **On close only** or **At startup and on close** | On close only |
 | **Automatic backup frequency**: every day, every week or every month | Every day |
 | **Backups to keep** (1 to 100) | 5 |
 | **Backup folder** | `backups` in the data folder |
 
-The frequency decides when a backup is due. "Every day" makes one if none was taken today. "Every week" and "Every month" make one if none was taken in the last 7 or 30 days.
+The mode decides when EasyTask looks at whether a backup is due. The frequency decides when a backup is due. "Every day" makes one if none was taken today. "Every week" and "Every month" make one if none was taken in the last 7 or 30 days.
 
-When there are more backups than **Backups to keep**, the oldest are deleted. A failed automatic backup is only written to the log; it never stops the app.
+When there are more backups than **Backups to keep**, the oldest are deleted. A failed automatic backup is only written to the log; it never stops the app. With **Off**, the frequency and the number of backups to keep are disabled.
+
+### Backup when the app closes
+
+With **On close only** or **At startup and on close**, EasyTask makes the backup while it closes, if one is due for the chosen frequency. A small **Backing up…** message covers the window only while a copy is really being written; if no backup is due, the app closes at once. Closing never waits for long: if the copy takes too long, or fails, the app closes anyway and the error goes to the log.
+
+If **Minimize to the notification area** is on, closing the window only hides it, so no backup is made then: it is made when you choose **Quit** in the menu of the icon (the window shows for a moment with the message). In every mode except **Off**, EasyTask also checks from time to time while it stays open in the notification area, so a backup is still made when it is due.
+
+### If you used an older version
+
+Before, **Automatic backup** was only an on/off switch and the backup was made at startup. The first time you start the new version, if the switch was off it stays **Off**; otherwise the mode is the default, **On close only**. If you also want the backup at startup, choose **At startup and on close**.
 
 ### Choose another folder
 

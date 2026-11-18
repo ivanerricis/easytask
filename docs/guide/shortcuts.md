@@ -4,7 +4,7 @@ EasyTask has keyboard shortcuts for the most common actions. Press `?` to see th
 
 ![The Keyboard shortcuts dialog with the General shortcuts, each with its keys, and the start of the Notes and tabs section](../screenshots/en/shortcuts-light.png)
 
-The shortcuts work when you are not typing, with a few exceptions: the shortcuts for tabs, sidebars, search, back to home, hiding completed tasks, new group, the documentation, text size, split view and new workspace also work inside text fields. `Ctrl+Z` and `Ctrl+Y` do not, because the field has its own undo.
+The shortcuts work when you are not typing, with a few exceptions: the shortcuts for tabs, sidebars, search, back to home, hiding completed tasks, new group, the documentation, the settings, text size, split view and new workspace also work inside text fields. `Ctrl+Z` and `Ctrl+Y` do not, because the field has its own undo.
 
 ## General
 
@@ -12,6 +12,7 @@ The shortcuts work when you are not typing, with a few exceptions: the shortcuts
 | --- | --- | --- |
 | Show shortcuts | `?` | No |
 | Open the documentation | `F1` | Yes |
+| Open the settings | `Ctrl+,` | Yes |
 | Make the app text bigger | `Ctrl+Plus` | No |
 | Make the app text bigger (alternative) | `Ctrl+=` | No |
 | Make the app text smaller | `Ctrl+Minus` | No |
@@ -70,8 +71,11 @@ These keys work when a task row has the focus (click a task or reach it with `Ta
 | Extend the selection to the previous or next task | `Shift+↑` / `Shift+↓` |
 | Extend the selection to the first or last task | `Shift+Home` / `Shift+End` |
 | Add the task to the selection, or remove it | `Ctrl+Space` (`Cmd+Space` on macOS) |
+| Move the task, or the selected tasks, to the trash (no confirmation) | `Delete` |
+| Copy the task, or the selected tasks | `Ctrl+C` (`Cmd+C` on macOS) |
+| Paste the copied tasks below the task | `Ctrl+V` (`Cmd+V` on macOS) |
 
-The arrows stay inside the list of the section (or of the tasks directly in a group): they do not jump to the next section. After `Alt+↑` or `Alt+↓` the focus stays on the task and a screen reader announces its new position ("Moved to position 2 of 5"). The selection keys do not change the task shown in the details panel. See [Use the keyboard](./groups-sections-tasks#use-the-keyboard).
+The arrows stay inside the list of the section (or of the tasks directly in a group): they do not jump to the next section. After `Alt+↑` or `Alt+↓` the focus stays on the task and a screen reader announces its new position ("Moved to position 2 of 5"). The selection keys do not change the task shown in the details panel. `Delete` moves the task to the trash at once, without asking, and shows a toast with **Undo** (`Ctrl+Z` also works). `Ctrl+C` and `Ctrl+V` copy and paste tasks inside EasyTask, see [Copy and paste tasks](./groups-sections-tasks#copy-and-paste-tasks). See [Use the keyboard](./groups-sections-tasks#use-the-keyboard).
 
 ## Home page
 

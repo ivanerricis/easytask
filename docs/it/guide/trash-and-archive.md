@@ -6,6 +6,8 @@ Quando elimini qualcosa, finisce prima nel cestino, così puoi riportarlo indiet
 
 Apri il menu di un elemento e scegli **Elimina**. L'app chiede "Spostare nel cestino?" e confermi con **Sposta nel cestino**. Fanno eccezione note, sezioni e gruppi: con l'impostazione predefinita [Conferma l'eliminazione solo se c'è contenuto](./settings#note-e-sezioni) uno vuoto va subito nel cestino con **Annulla**. Puoi eliminare workspace, cartelle, note, gruppi, sezioni, task, file audio e [template](./templates).
 
+Per i task c'è anche un modo più rapido: porta il focus su un task (o selezionane più d'uno) e premi `Canc`. Vanno subito nel cestino, senza conferma e con un messaggio con **Annulla**. Vedi [Copiare e incollare i task](./groups-sections-tasks#copiare-e-incollare-i-task) e [Scorciatoie da tastiera](./shortcuts#task-da-tastiera).
+
 Per eliminare più cartelle e note insieme, selezionale nella barra laterale (`Ctrl+clic` aggiunge un elemento, `Maiusc+clic` seleziona un intervallo), apri il menu di una di esse e scegli **Elimina N elementi**.
 
 Finché l'elemento è nel cestino, l'eliminazione è sempre reversibile. Puoi anche annullarla con `Ctrl+Z`, vedi [Annulla e cronologia](./undo-and-history).

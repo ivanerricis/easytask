@@ -34,18 +34,28 @@ I file audio, le immagini e i video non sono qui. EasyTask conserva solo il loro
 
 ## Backup automatici
 
-EasyTask fa un backup del database quando si avvia. Le opzioni sono in **Impostazioni > Dati > Backup**:
+EasyTask può fare da solo un backup del database, all'avvio, alla chiusura o in entrambi i momenti. Le opzioni sono in **Impostazioni > Dati > Backup**:
 
 | Opzione | Predefinito |
 | --- | --- |
-| **Backup automatico** | Sì |
+| **Backup automatico**: **Disattivato**, **Solo all'avvio**, **Solo alla chiusura** o **All'avvio e alla chiusura** | Solo alla chiusura |
 | **Frequenza del backup automatico**: ogni giorno, ogni settimana o ogni mese | Ogni giorno |
 | **Backup da conservare** (da 1 a 100) | 5 |
 | **Cartella dei backup** | `backups` nella cartella dati |
 
-La frequenza decide quando un backup è dovuto. "Ogni giorno" ne fa uno se oggi non ne è stato fatto nessuno. "Ogni settimana" e "Ogni mese" ne fanno uno se negli ultimi 7 o 30 giorni non ce n'è nessuno.
+La modalità decide quando EasyTask controlla se un backup è dovuto. La frequenza decide quando un backup è dovuto. "Ogni giorno" ne fa uno se oggi non ne è stato fatto nessuno. "Ogni settimana" e "Ogni mese" ne fanno uno se negli ultimi 7 o 30 giorni non ce n'è nessuno.
 
-Quando i backup superano **Backup da conservare**, i più vecchi vengono eliminati. Un backup automatico fallito viene solo scritto nel log; non ferma mai l'app.
+Quando i backup superano **Backup da conservare**, i più vecchi vengono eliminati. Un backup automatico fallito viene solo scritto nel log; non ferma mai l'app. Con **Disattivato**, la frequenza e il numero di backup da conservare sono disattivati.
+
+### Backup alla chiusura dell'app
+
+Con **Solo alla chiusura** o **All'avvio e alla chiusura**, EasyTask fa il backup mentre si chiude, se ne è dovuto uno per la frequenza scelta. Un piccolo messaggio **Backup in corso…** copre la finestra solo mentre una copia viene davvero scritta; se non serve nessun backup, l'app si chiude subito. La chiusura non aspetta mai a lungo: se la copia impiega troppo, o fallisce, l'app si chiude comunque e l'errore va nel log.
+
+Se **Riduci nell'area di notifica** è attivo, chiudere la finestra la nasconde soltanto, quindi in quel momento non si fa nessun backup: lo si fa quando scegli **Esci** nel menu dell'icona (la finestra compare per un attimo con il messaggio). In ogni modalità tranne **Disattivato**, EasyTask controlla anche ogni tanto mentre resta aperto nell'area di notifica, così un backup viene comunque fatto quando è dovuto.
+
+### Se usavi una versione precedente
+
+Prima, **Backup automatico** era solo un interruttore Sì/No e il backup si faceva all'avvio. La prima volta che avvii la nuova versione, se l'interruttore era spento resta su **Disattivato**; altrimenti la modalità è quella predefinita, **Solo alla chiusura**. Se vuoi il backup anche all'avvio, scegli **All'avvio e alla chiusura**.
 
 ### Scegliere un'altra cartella
 
