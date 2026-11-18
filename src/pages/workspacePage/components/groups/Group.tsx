@@ -46,9 +46,8 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
     const nodeRef = useRef<HTMLElement | null>(null)
     const setRef = useCallback((node: HTMLElement | null) => {
         nodeRef.current = node
-        setDropRef(node)
         setDragRef(node)
-    }, [setDropRef, setDragRef])
+    }, [setDragRef])
     const draggingGroup = active?.kind === "group"
     // With the live drag the other groups step aside instead of the line
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
@@ -89,6 +88,13 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
     const rename = useCallback(() => renameRef.current?.(), [])
     // The resize handle spans the whole column (also under a short group), so it is drawn in the column element
     const column = useGroupColumn()
+
+    // The drop zone of the group is its whole column (the full height of the note), not only the card: the space under a short group
+    // takes the drop too. The ring of the zone is still drawn on the card. Without a column (outside a note) the card is the zone.
+    useLayoutEffect(() => {
+        setDropRef(column ?? nodeRef.current)
+        return () => setDropRef(null)
+    }, [column, setDropRef])
 
     // While open, follow the width of the group (its content can grow or shrink); the cleanup runs before the
     // sections are removed from the DOM, so the width of the collapsed group is never recorded

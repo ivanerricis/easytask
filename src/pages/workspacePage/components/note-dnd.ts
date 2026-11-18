@@ -1,7 +1,6 @@
 import { getSectionLabel } from "./section/section-label"
 import { getGroupLabel } from "./groups/group-label"
 import type { Group, NoteDataTree, Section, Task } from "@/types/types"
-import { halfZone } from "@/lib/drop-zone"
 import i18n from "@/i18n"
 import { directIndexOf, isDefaultSection, orderedItems, taskSections } from "@/lib/group-sections"
 
@@ -81,11 +80,16 @@ export function computeDropZone(
 }
 
 /**
- * Drop zone of a group dragged over another group: left half = before, right half = after.
+ * Drop zone of a group dragged over another group: entering the column of the other group is enough, no half to pass. The side
+ * is the one the dragged group comes from: "after" the other group when that one stands later in the row than the dragged
+ * group at rest, "before" it when it stands earlier. The same rule is used while hovering and on the drop.
  * @category Note DnD
  */
-export function computeGroupDropZone(rect: { left: number, width: number }, pointerX: number): DropZone {
-    return halfZone(rect, pointerX)
+export function computeGroupDropZone(tree: NoteDataTree, activeId: number, overId: number): DropZone {
+    const sorted = sortGroups(tree.groups)
+    const activeIndex = sorted.findIndex(group => group.id === activeId)
+    const overIndex = sorted.findIndex(group => group.id === overId)
+    return overIndex >= 0 && activeIndex >= 0 && overIndex < activeIndex ? "before" : "after"
 }
 
 type TaskInfo = { task: Task, sectionId: number, parentId: number | null }

@@ -4,7 +4,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { usePreference } from "@/contexts/use-preference"
 import {
-    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdHalfZoneX, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
+    computeLiveShifts, computeLiveSlot, GROUPS_LIST, groupListKey, holdHalfZone, holdLiveZone, isInColumnGap, isInRowGap, taskListKey, type LivePending, type LiveSnapshot,
 } from "./note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot } from "./note-dnd-shift"
 import { clearZones, hitTest, measureZones, zoneRect } from "./note-dnd-hit"
@@ -211,7 +211,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const overRef: NoteOverRef = { kind: overData.kind, id: overData.id }
         let zone: DropZone = "inside"
         if (dragged.kind === "group") {
-            zone = computeGroupDropZone(over.rect, pointer.x)
+            // Entering the column of another group is enough (no half to pass): the side is the one of the resting order
+            zone = overRef.kind === "group" ? computeGroupDropZone(noteDataTree, dragged.id, overRef.id) : "after"
         } else if (overRef.kind === "task" || overRef.kind === "section") {
             const pointerY = pointer.y
             const overTask = overRef.kind === "task" ? findTask(noteDataTree, overRef.id) : undefined
@@ -263,14 +264,11 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 const overKey = noteKey("group", overRef.id)
                 const shown = liveShownRef.current
-                const pointerX = pointer.x
-                const liveZone = shown?.place?.over === overKey && shown.place.zone
-                    ? holdHalfZoneX(shown.place.zone, zone, over.rect, pointerX)
-                    : zone
-                const key = `${overKey}|${liveZone}`
+                // One side per column (the resting order), so nothing flickers: no hysteresis needed
+                const key = `${overKey}|${zone}`
                 if (!(shown && shown.key === key && shown.tree === noteDataTree)) {
-                    const target = computeGroupTarget(noteDataTree, dragged.id, overRef, liveZone)
-                    syncLive(target ? { over: overKey, zone: liveZone, list: GROUPS_LIST } : null, { key, tree: noteDataTree, rect: target ? over.rect : null })
+                    const target = computeGroupTarget(noteDataTree, dragged.id, overRef, zone)
+                    syncLive(target ? { over: overKey, zone, list: GROUPS_LIST } : null, { key, tree: noteDataTree, rect: target ? over.rect : null })
                 }
             }
         }

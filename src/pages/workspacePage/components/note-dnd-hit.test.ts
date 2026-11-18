@@ -69,6 +69,25 @@ describe("note drag hit test", () => {
         expect(hitTest({ x: 250, y: 250 })?.ref).toEqual({ kind: "group", id: 1 })
     })
 
+    it("the zone of a group is its whole column: the space under a short card takes the drop of a group, a section and a task", () => {
+        // The column is as tall as the note (500), the card in it only 100: the zone is registered on the column
+        zone("group", 1, { left: 0, top: 0, width: 200, height: 500 })
+        zone("section", 5, { left: 0, top: 0, width: 200, height: 80 })
+        zone("task", 9, { left: 0, top: 0, width: 200, height: 20 })
+        for (const kind of ["group", "section", "task"] as const) {
+            measureZones(kind)
+            expect(hitTest({ x: 100, y: 400 })?.ref).toEqual({ kind: "group", id: 1 })
+        }
+        // Inside the card the inner zones still win over the column
+        measureZones("task")
+        expect(hitTest({ x: 100, y: 10 })?.ref).toEqual({ kind: "task", id: 9 })
+        expect(hitTest({ x: 100, y: 60 })?.ref).toEqual({ kind: "section", id: 5 })
+        // Another column has its own zone
+        zone("group", 2, { left: 208, top: 0, width: 100, height: 500 })
+        measureZones("section")
+        expect(hitTest({ x: 250, y: 450 })?.ref).toEqual({ kind: "group", id: 2 })
+    })
+
     it("only the zones that accept the dragged kind take part", () => {
         zone("group", 1, { left: 0, top: 0, width: 300, height: 300 })
         zone("task", 9, { left: 0, top: 0, width: 100, height: 20 })
