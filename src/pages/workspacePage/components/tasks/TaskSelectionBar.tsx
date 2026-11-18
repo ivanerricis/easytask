@@ -15,7 +15,7 @@ export function TaskSelectionBar() {
     return (
         <div role="status" aria-live="polite" className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center">
             {count >= 2 &&
-                <Badge data-testid="selection-count" variant="default" className="px-3 py-1 text-sm tabular-nums shadow-md">
+                <Badge data-testid="selection-count" data-task-selection-bar="" variant="default" className="pointer-events-auto px-3 py-1 text-sm tabular-nums shadow-md">
                     {t("tasks.selection.count", { count })}
                 </Badge>}
         </div>

@@ -14,6 +14,13 @@ import { TaskSelectionContext } from "./use-task-selection"
 import { TaskSelectionActionsProvider } from "./task-selection-actions"
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
+const clipboard = vi.hoisted(() => ({ text: "" }))
+vi.mock("@tauri-apps/plugin-clipboard-manager", () => ({
+    writeText: vi.fn(async (text: string) => { clipboard.text = text }),
+    readText: vi.fn(async () => clipboard.text),
+}))
+const insertDBTasksAfter = vi.hoisted(() => vi.fn())
+vi.mock("@/db/queries/task-paste", () => ({ insertDBTasksAfter }))
 const sub = makeTask({ id: 13, sectionID: 10, taskID: 12, text: "Sotto" })
 const tasks = [
     makeTask({ id: 10, text: "Primo" }),
@@ -35,16 +42,19 @@ const patchTask = vi.fn(() => () => { })
 const removeTask = vi.fn(() => () => { })
 const applyTaskMove = vi.fn(() => () => { })
 const dispatch = vi.fn()
+const refreshActiveNote = vi.fn()
+const reloadTags = vi.fn()
 const recorder = makeUndoRecorderMock()
 vi.mock("@/contexts/workspace-data", () => ({
     useWorkspaceActions: () => ({
         updateTaskCompletion: vi.fn(), renameItem: vi.fn(), updateTaskPriority: vi.fn(), updateTaskDescription: vi.fn(),
-        updateItemColor, deleteItem, archiveItem, moveTask,
+        updateItemColor, deleteItem, archiveItem, moveTask, reloadTags,
     }),
+    useWorkspaceTags: () => [],
 }))
 vi.mock("@/contexts/use-active-note", () => ({
     useActiveNote: () => ({ noteDataTree: tree }),
-    useActiveNoteActions: () => ({ patchTask, removeTask, applyTaskMove, getNoteTree: () => tree, getCachedNoteTree: () => tree, subscribeNoteTree: () => () => { } }),
+    useActiveNoteActions: () => ({ patchTask, removeTask, applyTaskMove, getNoteTree: () => tree, refreshActiveNote, getCachedNoteTree: () => tree, subscribeNoteTree: () => () => { } }),
 }))
 vi.mock("@/contexts/workspace-data/context", () => ({ useWorkspaceActions: () => ({ setCollapsed: vi.fn() }) }))
 vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder, useOptionalUndo: () => null }))
@@ -80,7 +90,7 @@ const setup = () => render(
             <PreferencesContext.Provider value={{ showTaskInsertLine: true, taskDensity: "normal" } as never}>
                 <TaskSelectionContext.Provider value={store}>
                     <TaskSelectionActionsProvider>
-                        {tasks.map(task => <Task key={task.id} task={task} />)}
+                        <div role="tree">{tasks.map(task => <Task key={task.id} task={task} />)}</div>
                     </TaskSelectionActionsProvider>
                 </TaskSelectionContext.Provider>
             </PreferencesContext.Provider>
@@ -99,6 +109,8 @@ beforeEach(() => {
     deleteItem.mockResolvedValue(undefined)
     archiveItem.mockResolvedValue(undefined)
     moveTask.mockResolvedValue(undefined)
+    refreshActiveNote.mockResolvedValue(undefined)
+    clipboard.text = ""
     store = createSelectionStore()
     store.sync(["task-10", "task-11", "task-12", "task-13"])
 })
@@ -242,6 +254,64 @@ describe("actions (one undo step each)", () => {
         expect(recorder.removeMany).toHaveBeenCalledWith([
             { itemType: "task", id: 10, name: "Primo" }, { itemType: "task", id: 12, name: "Terzo" },
         ])
+    })
+
+    it("Delete trashes the focused task at once, with no confirmation, in ONE undo step", async () => {
+        setup()
+        fireEvent.keyDown(rowOf(11), { key: "Delete" })
+        await waitFor(() => expect(recorder.removeMany).toHaveBeenCalledTimes(1))
+        expect(screen.queryByRole("button", { name: /nel cestino/ })).not.toBeInTheDocument()
+        expect(deleteItem.mock.calls).toEqual([["task", 11]])
+        expect(recorder.removeMany).toHaveBeenCalledWith([{ itemType: "task", id: 11, name: "Secondo" }])
+    })
+
+    it("Delete on a task of the selection trashes the whole selection (top-most tasks), on a task outside it only that task", async () => {
+        setup()
+        select(10, 12, 13)
+        fireEvent.keyDown(rowOf(12), { key: "Delete" })
+        await waitFor(() => expect(recorder.removeMany).toHaveBeenCalledTimes(1))
+        expect(deleteItem.mock.calls).toEqual([["task", 10], ["task", 12]])
+
+        deleteItem.mockClear()
+        fireEvent.keyDown(rowOf(11), { key: "Delete" })
+        await waitFor(() => expect(recorder.removeMany).toHaveBeenCalledTimes(2))
+        expect(deleteItem.mock.calls).toEqual([["task", 11]])
+    })
+
+    it("Ctrl+C copies the selection and Ctrl+V pastes it below the focused task as ONE undo step", async () => {
+        setup()
+        select(10, 12)
+        insertDBTasksAfter.mockResolvedValue([101, 102])
+        fireEvent.keyDown(rowOf(12), { key: "c", ctrlKey: true })
+        await waitFor(() => expect(clipboard.text).toBe("Primo\nTerzo\n  Sotto"))
+        fireEvent.keyDown(rowOf(11), { key: "v", ctrlKey: true })
+        await waitFor(() => expect(recorder.createMany).toHaveBeenCalledTimes(1))
+        const [afterId, pasted] = insertDBTasksAfter.mock.calls[0]
+        expect(afterId).toBe(11)
+        expect(pasted.map((task: { text: string, subtasks: { text: string }[] }) => [task.text, task.subtasks.map(sub => sub.text)])).toEqual([["Primo", []], ["Terzo", ["Sotto"]]])
+        expect(refreshActiveNote).toHaveBeenCalledTimes(1)
+        expect(recorder.createMany).toHaveBeenCalledWith([
+            { itemType: "task", id: 101, name: "Primo" }, { itemType: "task", id: 102, name: "Terzo" },
+        ])
+        expect(recorder.track).toHaveBeenCalled()
+    })
+
+    it("Ctrl+C on a task outside the selection copies only that task", async () => {
+        setup()
+        select(10, 12)
+        fireEvent.keyDown(rowOf(11), { key: "c", ctrlKey: true })
+        await waitFor(() => expect(clipboard.text).toBe("Secondo"))
+    })
+
+    it("Ctrl+V pastes nothing when the clipboard has other text than the copy", async () => {
+        setup()
+        fireEvent.keyDown(rowOf(10), { key: "c", ctrlKey: true })
+        await waitFor(() => expect(clipboard.text).toBe("Primo"))
+        clipboard.text = "something else"
+        fireEvent.keyDown(rowOf(11), { key: "v", ctrlKey: true })
+        await act(async () => { await Promise.resolve() })
+        expect(insertDBTasksAfter).not.toHaveBeenCalled()
+        expect(recorder.createMany).not.toHaveBeenCalled()
     })
 
     it("colors every selected task (also a selected subtask) with ONE step, skipping the ones that already have the color", async () => {

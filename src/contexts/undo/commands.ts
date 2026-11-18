@@ -295,7 +295,7 @@ export function createUndoCommands(deps: UndoDeps) {
         i18n.t("undo.named", { label: i18n.t(`undo.labels.${key}`), name: shorten(name) })
 
     /** The same label for every multi-selection action: the translated count ("Delete 3 items"). */
-    const manyLabel = (key: "deleteMany" | "colorMany" | "moveMany" | "archiveMany", count: number) => i18n.t(`undo.labels.${key}`, { count })
+    const manyLabel = (key: "deleteMany" | "colorMany" | "moveMany" | "archiveMany" | "pasteMany", count: number) => i18n.t(`undo.labels.${key}`, { count })
 
     return {
         /** Rename of a folder, note, group, section or task. */
@@ -389,6 +389,18 @@ export function createUndoCommands(deps: UndoDeps) {
             undoEach: item => workspace.restoreItem(item.itemType, item.id),
             redoEach: item => removeItem(item.itemType, item.id),
             reloadUndo: () => reloadFor(items),
+        }),
+
+        /**
+         * Creation of several tasks at once (a paste) as ONE step: undone by moving the new tasks to the trash (from the last to the
+         * first), redone by restoring them (the ids never change); the open note is reloaded once at the end.
+         */
+        createMany: (items: ManyItemRef[]): UndoCommand => manyCommand({
+            label: manyLabel("pasteMany", items.length),
+            items,
+            undoEach: item => removeItem(item.itemType as UndoItemType, item.id),
+            redoEach: item => workspace.restoreItem(item.itemType, item.id),
+            reloadRedo: () => reloadFor(items),
         }),
 
         /** Archive of a folder, note, group or section: undone by unarchiving it (same id, same position). */
@@ -574,5 +586,5 @@ export function createUndoRecorder(commands: UndoCommands, record: (command: Und
 const noop = () => {}
 export const NOOP_RECORDER: UndoRecorder = {
     rename: noop, color: noop, background: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
-    archive: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagAssign: noop, record: noop, track: write => write,
+    archive: noop, createMany: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagAssign: noop, record: noop, track: write => write,
 }

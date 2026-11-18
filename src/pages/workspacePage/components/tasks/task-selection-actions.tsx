@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Trash2 } from "lucide-react"
-import { useWorkspaceActions } from "@/contexts/workspace-data"
+import { useWorkspaceActions, useWorkspaceTags } from "@/contexts/workspace-data"
+import { toast } from "sonner"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
 import { useOptionalUndo, useUndoRecorder } from "@/contexts/undo/use-undo"
 import { captureTaskPlace, type ColorChange, type ManyItemRef, type TaskMoveStep } from "@/contexts/undo/commands"
@@ -14,9 +15,11 @@ import { reportError } from "@/lib/report-error"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { toastTrashed } from "@/lib/toast-trashed"
 import { getErrorMessage } from "@/lib/utils"
+import { copyTasks, readCopiedTasks, snapshotTasks, usesTags } from "@/lib/task-clipboard"
+import { insertDBTasksAfter } from "@/db/queries/task-paste"
 import { END_INDEX } from "../note-dnd"
 import { TaskSelectionActionsContext, useTaskSelectionStore, type TaskSelectionActions } from "./use-task-selection"
-import { getSelectedTasks, getTopMostTasks, parseTaskKey } from "./task-selection"
+import { getSelectedTasks, getTopMostTasks, parseTaskKey, taskKey } from "./task-selection"
 
 /**
  * Implements what the menu of a multi-selection of tasks does (delete, archive, color, move) and renders the delete
@@ -26,8 +29,9 @@ import { getSelectedTasks, getTopMostTasks, parseTaskKey } from "./task-selectio
 export function TaskSelectionActionsProvider({ children }: { children: ReactNode }) {
     const { t } = useTranslation()
     const store = useTaskSelectionStore()
-    const { deleteItem, archiveItem, updateItemColor, moveTask } = useWorkspaceActions()
-    const { patchTask, removeTask, applyTaskMove, getNoteTree } = useActiveNoteActions()
+    const { deleteItem, archiveItem, updateItemColor, moveTask, reloadTags } = useWorkspaceActions()
+    const { patchTask, removeTask, applyTaskMove, getNoteTree, refreshActiveNote } = useActiveNoteActions()
+    const workspaceTags = useWorkspaceTags()
     const recorder = useUndoRecorder()
     const { dispatch } = useAutomations()
     const undo = useOptionalUndo()?.undo
@@ -54,11 +58,14 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         if (items.length > 0) setDeleting({ items, open: true })
     }, [getTargets])
 
-    const handleDelete = async () => {
-        setError(null)
+    /**
+     * Moves the tasks to the trash as ONE undo step, with the toast that undoes it. Throws when a write fails: the tasks
+     * trashed so far are recorded (and remembered in `trashed`, so that a second attempt of the same list skips them).
+     */
+    const trashItems = useCallback(async (items: ManyItemRef[]) => {
         const done: ManyItemRef[] = []
         try {
-            for (const item of deleting.items) {
+            for (const item of items) {
                 if (trashed.current.has(item.id)) continue
                 // Removed from the open note at once (with its subtasks), put back if the write fails
                 await withRollback(removeTask(item.id), () => deleteItem("task", item.id))
@@ -66,14 +73,62 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
                 done.push(item)
             }
             trashed.current.clear()
-            toastTrashed(deleting.items.length, undo, isDraft)
-            setDeleting(prev => ({ ...prev, open: false }))
-        } catch (err) {
-            setError(t("tasks.selection.deleteError", { done: trashed.current.size, total: deleting.items.length, message: getErrorMessage(err) }))
+            toastTrashed(items.length, undo, isDraft)
         } finally {
             if (done.length > 0) recorder.removeMany(done)
         }
+    }, [removeTask, deleteItem, undo, isDraft, recorder])
+
+    const handleDelete = async () => {
+        setError(null)
+        try {
+            await trashItems(deleting.items)
+            setDeleting(prev => ({ ...prev, open: false }))
+        } catch (err) {
+            setError(t("tasks.selection.deleteError", { done: trashed.current.size, total: deleting.items.length, message: getErrorMessage(err) }))
+        }
     }
+
+    /** The tasks an action of the keyboard applies to: the selection when the focused task is in it, otherwise the focused task alone. */
+    const keyboardTargets = useCallback((focused: ManyItemRef): ManyItemRef[] => {
+        const targets = store?.has(taskKey(focused.id)) ? getTargets() : []
+        return targets.length > 0 ? targets : [focused]
+    }, [store, getTargets])
+
+    // The Delete key: no confirmation (like the archive), the toast and Ctrl+Z bring the tasks back
+    const deleteNow = useCallback(async (focused: ManyItemRef) => {
+        const items = keyboardTargets(focused)
+        try {
+            await trashItems(items)
+        } catch (err) {
+            reportError(err, t("tasks.selection.deleteError", { done: trashed.current.size, total: items.length, message: getErrorMessage(err) }))
+        } finally {
+            trashed.current.clear()
+        }
+    }, [keyboardTargets, trashItems, t])
+
+    const copy = useCallback(async (focused: ManyItemRef) => {
+        const tree = getNoteTree()
+        if (!tree) return
+        const ids = keyboardTargets(focused).map(item => item.id)
+        const snapshots = snapshotTasks(getTopMostTasks(tree, ids), workspaceTags)
+        if (await copyTasks(snapshots)) toast.success(t("tasks.clipboard.copied", { count: snapshots.length }))
+    }, [getNoteTree, keyboardTargets, workspaceTags, t])
+
+    // Tracked: an undo asked right after the paste waits for the write and for the command to be recorded
+    const paste = useCallback((afterTaskId: number) => recorder.track((async () => {
+        const snapshots = await readCopiedTasks()
+        if (!snapshots) return
+        try {
+            const ids = await insertDBTasksAfter(afterTaskId, snapshots)
+            // New tasks come from the database (ids, positions, tags): the open note is read again
+            await refreshActiveNote()
+            if (usesTags(snapshots)) await reloadTags()
+            recorder.createMany(ids.map((id, i) => ({ itemType: "task", id, name: snapshots[i].text })))
+        } catch (err) {
+            reportError(err, getErrorMessage(err))
+        }
+    })()), [recorder, refreshActiveNote, reloadTags])
 
     const archiveSelection = useCallback(async () => {
         // A template draft has no archive
@@ -134,8 +189,8 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
     })()), [recorder, getTargets, getNoteTree, applyTaskMove, moveTask, dispatch])
 
     const value = useMemo<TaskSelectionActions>(
-        () => ({ getTargets, requestDelete, archiveSelection, applyColor, requestTags, moveTo }),
-        [getTargets, requestDelete, archiveSelection, applyColor, requestTags, moveTo],
+        () => ({ getTargets, requestDelete, deleteNow, copy, paste, archiveSelection, applyColor, requestTags, moveTo }),
+        [getTargets, requestDelete, deleteNow, copy, paste, archiveSelection, applyColor, requestTags, moveTo],
     )
 
     return (

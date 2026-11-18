@@ -1,4 +1,4 @@
-import { $, $$, browser } from "@wdio/globals"
+import { $, $$, browser, expect } from "@wdio/globals"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, openContextMenu, openSubmenu, openWorkspace, sectionCard, sql, tr, treeRow, typeInto,
     waitForApp,
@@ -95,5 +95,27 @@ describe("Multi-selection of tasks", () => {
         await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
         await browser.keys(["Control", "z"])
         await waitForColors([null, null, null])
+    })
+
+    it("a left click outside the tasks clears the selection (card 143)", async () => {
+        await ctrlClick(TASKS[0])
+        await ctrlClick(TASKS[1])
+        await browser.waitUntil(async () => (await $$("[data-multi-selected='true']").length) === 2, { timeoutMsg: "two tasks are not selected" })
+        await treeRow(NOTE).click()
+        await browser.waitUntil(async () => (await $$("[data-multi-selected='true']").length) === 0, { timeoutMsg: "the click outside the tasks did not clear the selection" })
+    })
+
+    it("Delete moves the focused task to the trash at once and the toast brings it back (card 163)", async () => {
+        const row = (await (await rowOf(TASKS[1])).getElement()) as unknown as HTMLElement
+        await browser.execute((el: HTMLElement) => el.focus(), row)
+        await browser.keys("Delete")
+        const deletedAt = async () => (await sql<{ deleted_at: string | null }[]>("select", "SELECT deleted_at FROM task WHERE text = ?", [TASKS[1]]))[0]?.deleted_at ?? null
+        await browser.waitUntil(async () => (await deletedAt()) !== null, { timeoutMsg: "Delete did not move the task to the trash" })
+        // No confirmation dialog, the toast has the undo
+        await expect($('[role="alertdialog"]')).not.toBeExisting()
+        const undo = byText(await tr("undo.undo"))
+        await undo.waitForDisplayed({ timeoutMsg: "the toast with the undo did not appear" })
+        await undo.click()
+        await browser.waitUntil(async () => (await deletedAt()) === null, { timeoutMsg: "the toast undo did not bring the task back" })
     })
 })

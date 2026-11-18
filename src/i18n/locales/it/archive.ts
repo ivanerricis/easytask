@@ -38,6 +38,8 @@ export const undo = {
         create: "Crea {{type}}",
         move: "Sposta {{type}}",
         moveDirect: "Sposta lista task",
+        pasteMany_one: "Incolla {{count}} task",
+        pasteMany_other: "Incolla {{count}} task",
         deleteMany_one: "Elimina {{count}} elemento",
         deleteMany_other: "Elimina {{count}} elementi",
         colorContent: "Colora contenuto di {{type}}",

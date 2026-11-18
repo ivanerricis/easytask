@@ -48,6 +48,10 @@ export const tasks = {
         deleteConfirm: "Sposta {{count}} task nel cestino",
         deleteError: "Impossibile spostare tutti i task nel cestino ({{done}} su {{total}} spostati): {{message}}",
     },
+    clipboard: {
+        copied_one: "{{count}} task copiato",
+        copied_other: "{{count}} task copiati",
+    },
     editText: "Modifica il testo del task",
     list: "Task",
     listOf: "Task di {{name}}",

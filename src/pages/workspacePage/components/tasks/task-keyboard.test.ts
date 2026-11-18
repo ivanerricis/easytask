@@ -92,6 +92,18 @@ describe("taskKeyAction", () => {
         expect(act("b", "End", { shiftKey: true })).toEqual({ type: "extend", key: "d" })
     })
 
+    it("Delete trashes, Ctrl/Cmd+C copies and Ctrl/Cmd+V pastes (only with exactly that modifier)", () => {
+        expect(act("a", "Delete")).toEqual({ type: "delete" })
+        expect(act("a", "c", { ctrlKey: true })).toEqual({ type: "copy" })
+        expect(act("a", "C", { metaKey: true })).toEqual({ type: "copy" })
+        expect(act("a", "v", { ctrlKey: true })).toEqual({ type: "paste" })
+        expect(act("a", "c")).toBeNull()
+        expect(act("a", "v", { ctrlKey: true, shiftKey: true })).toBeNull()
+        expect(act("a", "c", { ctrlKey: true, altKey: true })).toBeNull()
+        expect(act("a", "Delete", { shiftKey: true })).toBeNull()
+        expect(act("a", "Delete", { ctrlKey: true })).toBeNull()
+    })
+
     it("Ctrl+Space and Cmd+Space toggle the selection of the row", () => {
         expect(act("b", " ", { ctrlKey: true })).toEqual({ type: "toggleSelect" })
         expect(act("b", " ", { metaKey: true })).toEqual({ type: "toggleSelect" })
