@@ -11,22 +11,25 @@ const WAKE_MIN_GAP_MS = 60 * 1000
  * Schedules the automatic backup: a check shortly after the start, then every hour and whenever the window becomes
  * visible or gets the focus again (after a stay in the tray, or a sleep of the computer, the timer alone may be late).
  * Each check is {@link runAutoBackup}, which skips when no backup is due and never runs two backups at once.
+ * Which checks do something depends on the backup mode and on "close to the notification area" (see
+ * isAutoBackupAllowed), read at every check: the hourly and window-back ones only act while the app stays in the tray,
+ * so a change of those settings needs no re-scheduling.
  * @returns A function that stops the schedule.
  * @category Database
  */
 export function scheduleAutoBackup(): () => void {
     let lastCheck = -Infinity
-    const check = () => {
+    const check = (trigger: "startup" | "periodic") => {
         lastCheck = Date.now()
-        void runAutoBackup()
+        void runAutoBackup(trigger)
     }
     const onWake = () => {
         if (document.visibilityState === "hidden") return
         if (Date.now() - lastCheck < WAKE_MIN_GAP_MS) return
-        check()
+        check("periodic")
     }
-    const first = setTimeout(check, FIRST_CHECK_DELAY_MS)
-    const interval = setInterval(check, CHECK_INTERVAL_MS)
+    const first = setTimeout(() => check("startup"), FIRST_CHECK_DELAY_MS)
+    const interval = setInterval(() => check("periodic"), CHECK_INTERVAL_MS)
     document.addEventListener("visibilitychange", onWake)
     window.addEventListener("focus", onWake)
     return () => {

@@ -9,6 +9,7 @@ import { isPortable } from "@/db/appPaths"
 import { useUpdateInstall } from "@/hooks/use-update-install"
 import { reportError } from "@/lib/report-error"
 import { getCheckUpdatesOnStartup, saveCheckUpdatesOnStartup } from "@/lib/store/preferences"
+import { isNetworkError } from "@/lib/update-errors"
 import { checkForUpdate } from "@/lib/updater"
 import { getErrorMessage } from "@/lib/utils"
 import { SettingsCard, SettingsRow, SettingsSwitchRow } from "./SettingsRow"
@@ -19,7 +20,7 @@ type Status =
     | { kind: "checking" }
     | { kind: "upToDate" }
     | { kind: "available", update: Update }
-    | { kind: "error", message: string }
+    | { kind: "error", message: string, detail?: string }
 
 /** Update controls of the About page: manual check, install (installed app) or link to the Releases (portable). */
 export const UpdateSection = () => {
@@ -31,7 +32,7 @@ export const UpdateSection = () => {
         onError: error => reportError(error, getErrorMessage(error)),
     })
     const handleOpenReleases = useOpenReleasesPage()
-    const { progress, percent, label: installLabel, install } = useUpdateInstall()
+    const { progress, percent, label: installLabel, error: installError, errorDetail: installErrorDetail, install } = useUpdateInstall()
 
     useEffect(() => {
         let cancelled = false
@@ -47,7 +48,10 @@ export const UpdateSection = () => {
         } catch (error) {
             // The plugin reports a missing or unreachable latest.json (no published release, or offline) in English
             const message = getErrorMessage(error)
-            setStatus({ kind: "error", message: /valid release json/i.test(message) ? t("settings.about.update.noRelease") : message })
+            if (/valid release json/i.test(message)) setStatus({ kind: "error", message: t("settings.about.update.error", { message: t("settings.about.update.noRelease") }) })
+            // Offline: a plain sentence, the technical error stays below in small print
+            else if (isNetworkError(message)) setStatus({ kind: "error", message: t("settings.about.update.offline"), detail: message })
+            else setStatus({ kind: "error", message: t("settings.about.update.error", { message }) })
         }
     }
 
@@ -78,9 +82,16 @@ export const UpdateSection = () => {
                         <p className="text-muted-foreground">{t("settings.about.update.upToDate")}</p>
                     )}
                     {status.kind === "error" && (
-                        <p className="text-destructive break-words">
-                            {t("settings.about.update.error", { message: status.message })}
-                        </p>
+                        <>
+                            <p className="text-destructive break-words">{status.message}</p>
+                            {status.detail && <p className="text-xs text-muted-foreground break-words">{status.detail}</p>}
+                        </>
+                    )}
+                    {installError && !installing && (
+                        <>
+                            <p className="text-destructive break-words">{installError}</p>
+                            {installErrorDetail && <p className="text-xs text-muted-foreground break-words">{installErrorDetail}</p>}
+                        </>
                     )}
                     {status.kind === "available" && !installing && (
                         <>

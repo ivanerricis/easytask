@@ -4,7 +4,7 @@ import { relaunch } from "@tauri-apps/plugin-process"
 import Database from "@tauri-apps/plugin-sql"
 import i18n from "@/i18n"
 import { reportError } from "@/lib/report-error"
-import { getAutoBackup, getBackupFolder, getBackupFrequency, getBackupKeep, type BackupFrequency } from "@/lib/store/preferences"
+import { getAutoBackupMode, getBackupFolder, getBackupFrequency, getBackupKeep, getCloseToTray, type AutoBackupMode, type BackupFrequency } from "@/lib/store/preferences"
 import { createError, isAppError } from "@/types/error"
 import { ensureAppFolder } from "./appPaths"
 import { closeDB, DB_FILE, getDB, setRestoring } from "./dbManager"
@@ -138,8 +138,21 @@ export async function createBackup(kind: BackupKind = "manual", database?: Datab
         path = await join(folder, name)
     }
 
+    // Written to a temporary name and renamed, so a copy cut short (the app closing, a full disk) is never taken for a good backup
+    const temp = `${path}.tmp`
+    if (await exists(temp)) await remove(temp)
     const db = database ?? await getDB()
-    await vacuumInto(db, path)
+    activeTemps.add(temp)
+    try {
+        await removeStaleTemps(folder)
+        await vacuumInto(db, temp)
+        await rename(temp, path)
+    } catch (error) {
+        await remove(temp).catch(() => undefined)
+        throw error
+    } finally {
+        activeTemps.delete(temp)
+    }
 
     if (preRestore) {
         const previous = (await listBackups()).filter(backup => backup.preRestore && backup.name !== name)
@@ -154,6 +167,24 @@ export async function createBackup(kind: BackupKind = "manual", database?: Datab
     }
     const size = await stat(path).then(info => info.size, () => 0)
     return { name, path, size, date, preRestore }
+}
+
+/** Temporary files of the backups being written right now (they must not be taken for leftovers). */
+const activeTemps = new Set<string>()
+
+const TEMP_PATTERN = /^easytask-(?:pre-restore-)?\d{8}-\d{6}(?:-\d+)?\.db\.tmp$/
+
+/** Deletes the temporary files left by a backup that was cut short (e.g. the closing timeout won), except the ones being written. Best effort. */
+async function removeStaleTemps(folder: string): Promise<void> {
+    try {
+        for (const entry of await readDir(folder)) {
+            if (!entry.isFile || !TEMP_PATTERN.test(entry.name)) continue
+            const path = await join(folder, entry.name)
+            if (!activeTemps.has(path)) await remove(path).catch(() => undefined)
+        }
+    } catch (error) {
+        reportError(error)
+    }
 }
 
 export type PreMigrationBackupInfo = {
@@ -250,30 +281,62 @@ function isBackupDue(frequency: BackupFrequency, backups: readonly BackupInfo[],
 }
 
 /**
- * Backup at startup: skipped when disabled or when a regular backup is recent enough for the chosen frequency
- * (see {@link isBackupDue}). Best effort: a failure is only logged, never shown or thrown.
+ * What starts an automatic backup: the check after the start, the closing of the app, or a periodic check (hourly, or
+ * the window coming back) of an app that stays in the notification area.
+ */
+export type AutoBackupTrigger = "startup" | "close" | "periodic"
+
+/**
+ * Whether the mode lets a trigger take a backup. With "close to the notification area" on, the app is hardly ever
+ * closed, so there the first check and the periodic ones run in every mode but "off".
+ */
+export function isAutoBackupAllowed(mode: AutoBackupMode, trigger: AutoBackupTrigger, closeToTray: boolean): boolean {
+    if (mode === "off") return false
+    if (trigger === "close") return mode === "close" || mode === "both"
+    if (trigger === "startup") return mode === "startup" || mode === "both" || closeToTray
+    return closeToTray
+}
+
+type AutoBackupOptions = {
+    /** Called right before the copy is written (the closing overlay uses it): not called when nothing is due. */
+    onWriting?: () => void
+}
+
+/**
+ * Automatic backup: skipped when the mode does not allow the trigger (see {@link isAutoBackupAllowed}) or when a
+ * regular backup is recent enough for the chosen frequency (see {@link isBackupDue}). Best effort: a failure is only
+ * logged, never shown or thrown.
  * Never runs two at once: a call made while another one is still checking or writing returns false (the scheduler in
- * src/lib/auto-backup-schedule.ts calls it again later).
+ * src/lib/auto-backup-schedule.ts calls it again later); the one at closing waits for the running one instead.
  * @returns True when a backup was created.
  * @category Database
  */
-export async function runAutoBackup(): Promise<boolean> {
-    if (autoBackupRunning) return false
-    autoBackupRunning = true
-    try {
-        if (!(await getAutoBackup())) return false
-        if (!isBackupDue(await getBackupFrequency(), await listBackups())) return false
-        await createBackup("auto")
-        return true
-    } catch (error) {
-        reportError(error)
+export async function runAutoBackup(trigger: AutoBackupTrigger = "startup", options: AutoBackupOptions = {}): Promise<boolean> {
+    if (autoBackupRunning) {
+        if (trigger === "close") await autoBackupRunning.catch(() => undefined)
         return false
+    }
+    const run = (async () => {
+        try {
+            if (!isAutoBackupAllowed(await getAutoBackupMode(), trigger, await getCloseToTray())) return false
+            if (!isBackupDue(await getBackupFrequency(), await listBackups())) return false
+            options.onWriting?.()
+            await createBackup("auto")
+            return true
+        } catch (error) {
+            reportError(error)
+            return false
+        }
+    })()
+    autoBackupRunning = run
+    try {
+        return await run
     } finally {
-        autoBackupRunning = false
+        autoBackupRunning = null
     }
 }
 
-let autoBackupRunning = false
+let autoBackupRunning: Promise<boolean> | null = null
 
 function assertBackupName(name: string): void {
     if (!parseBackupName(name)) throw createError("BACKUP_INVALID_NAME", i18n.t("errors.backup.invalidName"))

@@ -85,6 +85,7 @@ export function TagPicker({ taskIds }: TagPickerProps) {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     autoComplete="off"
+                    className="h-8"
                     onChange={event => { setName(event.target.value); setError(null) }}
                 />
                 <Button type="submit" size="sm" disabled={!name.trim() || busy}>
@@ -112,7 +113,7 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
     const some = coverage.with > 0 && !all
 
     return (
-        <li className="flex min-w-0 items-center gap-2" data-testid="tag-row">
+        <li className="flex h-8 min-w-0 items-center gap-2" data-testid="tag-row">
             <Checkbox
                 checked={all}
                 aria-label={tag.name}
@@ -125,7 +126,7 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
             </span>
             <Popover open={menuOpen} onOpenChange={setMenuOpen}>
                 <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-7 shrink-0" aria-label={t("tags.manage", { name: tag.name })}>
+                    <Button variant="ghost" size="icon-sm" className="shrink-0" aria-label={t("tags.manage", { name: tag.name })}>
                         <MoreHorizontal />
                     </Button>
                 </PopoverTrigger>
@@ -192,19 +193,22 @@ function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     autoComplete="off"
+                    className="h-8"
                     onChange={event => { setName(event.target.value); setError(null) }}
                 />
                 <Button type="submit" size="sm" disabled={!name.trim() || name.trim() === tag.name}>{t("tags.save")}</Button>
             </form>
             <FormError id={errorId}>{error}</FormError>
             <ColorPalette value={tag.color} onPick={color => { void pickColor(color) }} />
-            <Button variant="ghost" size="sm" className="justify-start" disabled={!tag.color} onClick={() => { void pickColor(null) }}>
-                {t("tags.noColor")}
-            </Button>
-            <Button variant="ghost" size="sm" className="justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onDelete}>
-                <Trash2 />
-                {t("tags.delete")}
-            </Button>
+            <div className="flex items-center justify-between gap-2 border-t pt-2">
+                <Button variant="ghost" size="sm" disabled={!tag.color} onClick={() => { void pickColor(null) }}>
+                    {t("tags.noColor")}
+                </Button>
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={onDelete}>
+                    <Trash2 />
+                    {t("tags.delete")}
+                </Button>
+            </div>
         </div>
     )
 }

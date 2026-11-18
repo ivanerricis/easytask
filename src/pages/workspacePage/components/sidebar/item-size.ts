@@ -17,8 +17,8 @@ export type ItemSizeClasses = {
     text: string
     /** The chevron of a folder row. */
     icon: string
-    /** Resizes the icon of the hover menu button. */
-    menu: string
+    /** Size of the hover menu button ("..."): fits the row, its icon scales with it. */
+    menu: "icon-sm" | "icon-xs"
     /** Vertical indent guide of an open folder (aligned with the chevron). */
     guide: string
     /** Horizontal position in px of the guide inside the indent of a level (matches `guide`: the center of the chevron). */
@@ -34,7 +34,7 @@ export const ITEM_SIZES: Record<SidebarItemSize, ItemSizeClasses> = {
         indentPx: 18,
         text: "text-xs",
         icon: "size-3.5",
-        menu: "[&_svg]:size-3.5",
+        menu: "icon-xs",
         guide: "left-[11px]",
         guidePx: 11,
         indent: "ml-[18px]",
@@ -45,7 +45,7 @@ export const ITEM_SIZES: Record<SidebarItemSize, ItemSizeClasses> = {
         indentPx: 20,
         text: "text-sm",
         icon: "size-4",
-        menu: "",
+        menu: "icon-sm",
         guide: "left-[12px]",
         guidePx: 12,
         indent: "ml-[20px]",
@@ -56,7 +56,7 @@ export const ITEM_SIZES: Record<SidebarItemSize, ItemSizeClasses> = {
         indentPx: 24,
         text: "text-base",
         icon: "size-5",
-        menu: "[&_svg]:size-5",
+        menu: "icon-sm",
         guide: "left-[14px]",
         guidePx: 14,
         indent: "ml-[24px]",

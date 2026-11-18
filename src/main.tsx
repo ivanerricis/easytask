@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { getLanguage } from './lib/store/preferences'
 import { runBeforeClose } from './lib/before-close'
 import { isCloseToTrayActive } from './lib/tray'
+import { backupBeforeQuit } from './lib/close-backup'
 import { initI18n } from './i18n'
 import { prepareTheme } from './lib/theme-startup'
 import { reportError } from './lib/report-error'
@@ -25,7 +26,12 @@ try {
     await runBeforeClose(error => reportError(error))
     await flushStoreReporting()
     // Close to the notification area: the window is hidden by useCloseToTray (src/lib/use-close-to-tray.ts), not destroyed
-    if (isCloseToTrayActive()) event.preventDefault()
+    if (isCloseToTrayActive()) {
+      event.preventDefault()
+      return
+    }
+    // The app really quits: backup first, never blocking (20 s at most, no error escapes)
+    await backupBeforeQuit()
   }).catch(error => reportError(error))
 } catch (e) {
   reportError(e)

@@ -27,6 +27,16 @@ describe("Language setting and shortcuts dialog", () => {
         await dialog.waitForExist({ reverse: true })
     })
 
+    it("opens the settings with Ctrl+, and closes them with Escape", async () => {
+        await browser.keys(["Control", ","])
+        const dialog = $('[role="dialog"]')
+        await dialog.waitForDisplayed({ timeoutMsg: "Ctrl+, did not open the settings" })
+        await expect(dialog.$(`h2=${await tr("settings.title")}`)).toBeDisplayed()
+
+        await browser.keys("Escape")
+        await dialog.waitForExist({ reverse: true })
+    })
+
     it("opens the keyboard shortcuts dialog with ? and closes it with Escape", async () => {
         await browser.keys("?")
         const dialog = $('[role="dialog"]')

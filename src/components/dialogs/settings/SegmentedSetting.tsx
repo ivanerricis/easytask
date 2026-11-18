@@ -1,4 +1,6 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { segmentedGroupClass, segmentedItemClass } from "@/components/ui/toggle-variants"
+import { cn } from "@/lib/utils"
 import { SettingsRow } from "./SettingsRow"
 
 type SegmentedSettingProps<T extends string> = {
@@ -7,7 +9,7 @@ type SegmentedSettingProps<T extends string> = {
     value: T
     options: readonly { value: T, label: string }[]
     onChange: (value: T) => void
-    /** Classes of the segmented control, e.g. a fixed width (its options then share it equally with `[&>*]:flex-1`). */
+    /** Classes of the segmented control, e.g. a fixed width (its options always share it equally). */
     className?: string
 }
 
@@ -26,10 +28,10 @@ export function SegmentedSetting<T extends string>({ label, description, value, 
                     onValueChange={next => { if (next) onChange(next as T) }}
                     aria-labelledby={labelId}
                     aria-describedby={descriptionId}
-                    className={className}
+                    className={cn(segmentedGroupClass, className)}
                 >
                     {options.map(option => (
-                        <ToggleGroupItem key={option.value} value={option.value} className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground">
+                        <ToggleGroupItem key={option.value} value={option.value} className={segmentedItemClass}>
                             {option.label}
                         </ToggleGroupItem>
                     ))}

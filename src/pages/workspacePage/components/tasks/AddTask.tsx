@@ -10,10 +10,17 @@ import { Plus } from "lucide-react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useAutomations } from "@/hooks/use-automations"
 import { TASK_DENSITIES, useTaskDensity } from "./task-density"
-import { AddButton } from "../section/AddButton"
 import { NewTaskCheckbox } from "./NewTaskCheckbox"
 import { useNewTaskField } from "./use-new-task-field"
 import { useEndFieldReplaced, useTaskInsertStore } from "./task-insert-state"
+
+/**
+ * Look of the "New task" control closed in a group: "row" is the light row of the sections (always visible), "button" a full width
+ * secondary button. Both are kept so the choice can be tried and changed here, in one place.
+ */
+export const GROUP_ADD_TASK_VARIANT: "row" | "button" = "row"
+// Compared as a string so the type checker does not fold the branch of the variant that is not selected
+const GROUP_AS_BUTTON = (GROUP_ADD_TASK_VARIANT as string) === "button"
 
 type AddTaskProps = {
     /** Section of the new task; ignored for subtasks, which inherit the section of their parent. */
@@ -22,7 +29,7 @@ type AddTaskProps = {
     parentTaskId?: number
     /** Called when the input is dismissed (only meaningful with parentTaskId). */
     onClose?: () => void
-    /** The task goes directly in a group: the closed state is a dashed "New task" button instead of the "+" of a section. */
+    /** The task goes directly in a group: the closed state is the always visible "New task" row (see GROUP_ADD_TASK_VARIANT) instead of the hover row of a section. */
     inGroup?: boolean
     /** The section has no task yet: its "New task" row is always shown instead of only on hover. */
     emptySection?: boolean
@@ -162,7 +169,21 @@ const TopLevelAddTask = ({ sectionId, inGroup, emptySection }: { sectionId: numb
     return (
         !isOpen ? (
             inGroup ? (
-                <AddButton onClick={handleOpen} label={t("groups.addTask")} />
+                <Button
+                    type="button"
+                    variant={GROUP_AS_BUTTON ? "secondary" : "ghost"}
+                    onClick={handleOpen}
+                    className={cn(
+                        "w-full rounded-xs gap-1.5",
+                        // "row": the light row of a section (same classes), but always shown; "button": a full width secondary button
+                        GROUP_AS_BUTTON
+                            ? "h-9"
+                            : "h-8 justify-start px-2.5 font-normal text-xs text-muted-foreground hover:text-foreground",
+                    )}
+                >
+                    <Plus className={GROUP_AS_BUTTON ? undefined : "size-3.5"} />
+                    <span className="text-nowrap">{t("groups.addTask")}</span>
+                </Button>
             ) : (
                 <Button
                     type="button"

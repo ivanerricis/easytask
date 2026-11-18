@@ -13,7 +13,8 @@ const loadValidation = vi.fn()
 let validation: MockDb
 let validationRows: { application_id: number, user_version: number, integrity: string }
 let keep = 7
-let auto = true
+let mode: "off" | "startup" | "close" | "both" = "startup"
+let closeToTray = false
 let frequency: "daily" | "weekly" | "monthly" = "daily"
 let folder: string | null = null
 
@@ -48,7 +49,8 @@ vi.mock("@/lib/report-error", () => ({
 }))
 vi.mock("@/lib/store/preferences", () => ({
     getBackupKeep: async () => keep,
-    getAutoBackup: async () => auto,
+    getAutoBackupMode: async () => mode,
+    getCloseToTray: async () => closeToTray,
     getBackupFrequency: async () => frequency,
     getBackupFolder: async () => folder,
 }))
@@ -64,6 +66,7 @@ import {
     parseBackupName,
     restoreBackup,
     rotateBackups,
+    isAutoBackupAllowed,
     runAutoBackup,
 } from "./backup"
 import { APPLICATION_ID, LATEST_SCHEMA_VERSION } from "./initDb"
@@ -95,7 +98,8 @@ beforeEach(() => {
     relaunch.mockReset().mockResolvedValue(undefined)
     reportError.mockReset()
     keep = 7
-    auto = true
+    mode = "startup"
+    closeToTray = false
     frequency = "daily"
     folder = null
     vi.useRealTimers()
@@ -139,7 +143,7 @@ describe("createBackup", () => {
     it("runs VACUUM INTO on the database, in the backups folder", async () => {
         const backup = await createBackup("manual")
         expect(db.execute).toHaveBeenCalledTimes(1)
-        expect(String(db.execute.mock.calls[0][0])).toMatch(/^VACUUM INTO '\/data\/backups\/easytask-\d{8}-\d{6}\.db'$/)
+        expect(String(db.execute.mock.calls[0][0])).toMatch(/^VACUUM INTO '\/data\/backups\/easytask-\d{8}-\d{6}\.db.tmp'$/)
         expect(backup.size).toBe(1234)
         expect(files.has(backup.path)).toBe(true)
     })
@@ -148,7 +152,7 @@ describe("createBackup", () => {
         const other = createMockDb()
         const backup = await createBackup("manual", other as never)
         expect(other.execute).toHaveBeenCalledTimes(1)
-        expect(String(other.execute.mock.calls[0][0])).toMatch(/^VACUUM INTO '\/data\/backups\/easytask-\d{8}-\d{6}\.db'$/)
+        expect(String(other.execute.mock.calls[0][0])).toMatch(/^VACUUM INTO '\/data\/backups\/easytask-\d{8}-\d{6}\.db.tmp'$/)
         expect(db.execute).not.toHaveBeenCalled()
         expect(backup.preRestore).toBe(false)
     })
@@ -157,7 +161,7 @@ describe("createBackup", () => {
         const { join } = await import("@tauri-apps/api/path")
         vi.mocked(join).mockImplementationOnce(async () => BACKUPS).mockImplementationOnce(async () => "/da'ta/x.db")
         await createBackup("manual")
-        expect(String(db.execute.mock.calls[0][0])).toBe("VACUUM INTO '/da''ta/x.db'")
+        expect(String(db.execute.mock.calls[0][0])).toBe("VACUUM INTO '/da''ta/x.db.tmp'")
     })
 
     it("refuses a path with a NUL character and never runs the statement", async () => {
@@ -315,7 +319,7 @@ describe("runAutoBackup", () => {
     })
 
     it("does nothing when disabled", async () => {
-        auto = false
+        mode = "off"
         expect(await runAutoBackup()).toBe(false)
         expect(db.execute).not.toHaveBeenCalled()
     })
@@ -353,6 +357,126 @@ describe("runAutoBackup", () => {
         await expect(runAutoBackup()).resolves.toBe(false)
         expect(reportError).toHaveBeenCalledTimes(1)
         expect(reportError.mock.calls[0]).toHaveLength(1)
+    })
+})
+
+describe("automatic backup modes", () => {
+    it.each([
+        // mode, trigger, closeToTray, allowed
+        ["off", "startup", false, false],
+        ["off", "close", false, false],
+        ["off", "startup", true, false],
+        ["off", "periodic", true, false],
+        ["startup", "startup", false, true],
+        ["startup", "close", false, false],
+        ["startup", "periodic", false, false],
+        ["startup", "periodic", true, true],
+        ["close", "startup", false, false],
+        ["close", "close", false, true],
+        ["close", "periodic", false, false],
+        ["close", "startup", true, true],
+        ["close", "periodic", true, true],
+        ["both", "startup", false, true],
+        ["both", "close", false, true],
+        ["both", "periodic", false, false],
+        ["both", "periodic", true, true],
+    ] as const)("mode %s, trigger %s, close to tray %s: %s", (autoMode, trigger, tray, allowed) => {
+        expect(isAutoBackupAllowed(autoMode, trigger, tray)).toBe(allowed)
+    })
+
+    it("takes the backup of the closing in close mode, and none at startup", async () => {
+        mode = "close"
+        expect(await runAutoBackup("startup")).toBe(false)
+        expect(db.execute).not.toHaveBeenCalled()
+        expect(await runAutoBackup("close")).toBe(true)
+        expect(db.execute).toHaveBeenCalledTimes(1)
+    })
+
+    it("keeps checking in the tray: the periodic check runs only with close to tray on", async () => {
+        mode = "close"
+        expect(await runAutoBackup("periodic")).toBe(false)
+        closeToTray = true
+        expect(await runAutoBackup("periodic")).toBe(true)
+    })
+
+    it("still skips the closing backup when one is not due yet", async () => {
+        mode = "both"
+        await createBackup("manual")
+        db.execute.mockClear()
+        expect(await runAutoBackup("close")).toBe(false)
+        expect(db.execute).not.toHaveBeenCalled()
+    })
+
+    it("tells the caller right before writing, and not when nothing is due", async () => {
+        mode = "close"
+        const onWriting = vi.fn()
+        await createBackup("manual")
+        await runAutoBackup("close", { onWriting })
+        expect(onWriting).not.toHaveBeenCalled()
+        files.clear()
+        await runAutoBackup("close", { onWriting })
+        expect(onWriting).toHaveBeenCalledTimes(1)
+    })
+
+    it("the closing backup waits for a running one instead of starting another", async () => {
+        mode = "both"
+        let release: () => void = () => undefined
+        db.execute.mockImplementationOnce(async (sql: unknown) => {
+            await new Promise<void>(resolve => { release = resolve })
+            files.set(/INTO '(.*)'/.exec(String(sql))![1], 1234)
+            return { rowsAffected: 0, lastInsertId: 0 }
+        })
+        const first = runAutoBackup("startup")
+        await vi.waitFor(() => expect(db.execute).toHaveBeenCalledTimes(1))
+        let closed = false
+        const closing = runAutoBackup("close").then(value => { closed = true; return value })
+        await Promise.resolve()
+        expect(closed).toBe(false)
+        release()
+        await first
+        await expect(closing).resolves.toBe(false)
+        expect(db.execute).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("backup file writing", () => {
+    it("writes to a temporary file and renames it, so no half-written backup is ever listed", async () => {
+        const { rename } = await import("@tauri-apps/plugin-fs")
+        const backup = await createBackup("manual")
+        expect(rename).toHaveBeenCalledWith(`${backup.path}.tmp`, backup.path)
+        expect([...files.keys()].some(path => path.endsWith(".tmp"))).toBe(false)
+        expect(files.has(backup.path)).toBe(true)
+    })
+
+    it("a copy that fails leaves no temporary file and no backup", async () => {
+        db.execute.mockImplementationOnce(async (sql: unknown) => {
+            files.set(/INTO '(.*)'/.exec(String(sql))![1], 10)
+            throw new Error("disk full")
+        })
+        await expect(createBackup("manual")).rejects.toThrow("disk full")
+        expect(files.size).toBe(0)
+    })
+
+    it("deletes the temporary files left by earlier interrupted copies, and only those", async () => {
+        seed("easytask-20200101-100000.db.tmp")
+        seed("easytask-pre-restore-20200102-100000.db.tmp")
+        seed("easytask-20200103-100000.db")
+        seed("notes.tmp")
+        await createBackup("manual")
+        expect(files.has("/data/backups/easytask-20200101-100000.db.tmp")).toBe(false)
+        expect(files.has("/data/backups/easytask-pre-restore-20200102-100000.db.tmp")).toBe(false)
+        expect(files.has("/data/backups/easytask-20200103-100000.db")).toBe(true)
+        expect(files.has("/data/backups/notes.tmp")).toBe(true)
+    })
+
+    it("a leftover temporary file of an interrupted copy is not listed and is replaced", async () => {
+        seed("easytask-20260102-100000.db.tmp")
+        expect(await listBackups()).toEqual([])
+        vi.useFakeTimers()
+        vi.setSystemTime(at(2026, 1, 2, 10, 0, 0))
+        await createBackup("manual")
+        expect(files.has("/data/backups/easytask-20260102-100000.db")).toBe(true)
+        expect(files.has("/data/backups/easytask-20260102-100000.db.tmp")).toBe(false)
     })
 })
 

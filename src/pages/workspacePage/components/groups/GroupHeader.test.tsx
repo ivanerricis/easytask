@@ -1,5 +1,5 @@
 import { MAX_NAME_LENGTH } from "@/lib/names"
-import { render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { GroupHeader } from "./GroupHeader"
@@ -14,7 +14,6 @@ const renameItem = vi.fn()
 const patchGroup = vi.fn()
 const rollback = vi.fn()
 
-vi.mock("./ButtonMenuGroup", () => ({ ButtonMenuGroup: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock("@/contexts/workspace-data", () => ({
     useWorkspaceActions: () => ({ renameItem }),
 }))
@@ -57,6 +56,21 @@ describe("GroupHeader color", () => {
         render(<GroupHeader group={group} />)
         const arc = screen.getByRole("progressbar").querySelectorAll("circle")[1]
         expect(arc).toHaveAttribute("stroke", "#ff0000")
+    })
+})
+describe("GroupHeader add section button and rename handle", () => {
+    it("shows the + only on hover or with the focus, like the menu button", () => {
+        render(<GroupHeader group={makeGroup({ name: "G" })} onAddSection={vi.fn()} />)
+        const plus = screen.getByRole("button", { name: "Nuova sezione" })
+        expect(plus).toHaveClass("opacity-0", "group-hover:opacity-100", "focus-visible:opacity-100")
+    })
+
+    it("hands its inline edit to the menu of the group through renameRef", async () => {
+        const renameRef = { current: null as (() => void) | null }
+        render(<GroupHeader group={makeGroup({ name: "G" })} renameRef={renameRef} />)
+        expect(renameRef.current).toBeTypeOf("function")
+        act(() => renameRef.current!())
+        expect(await screen.findByRole("textbox", { name: "Nome del gruppo" })).toBeInTheDocument()
     })
 })
 describe("GroupHeader unnamed label and rename on click", () => {

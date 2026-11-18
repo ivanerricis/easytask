@@ -1,6 +1,6 @@
 import { browser, $, expect } from "@wdio/globals"
 import {
-    byLabel, createFromSidebar, createWorkspace, cssColor, openContextMenu, openSubmenu, openWorkspace, sql, tr, treeRow, waitForApp,
+    byLabel, byText, createFromSidebar, createWorkspace, cssColor, openContextMenu, openSubmenu, groupCard, openWorkspace, sql, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
 /**
@@ -78,5 +78,24 @@ describe("Note background", () => {
         await openSubmenu(menu, await tr("menu.noteBackground"), none)
         await none.click()
         await browser.waitUntil(async () => (await savedBackground()) === null, { timeoutMsg: "the background was not removed" })
+    })
+
+    it("opens the menu of the group with a right click on the padding of the group, not the one of the note", async () => {
+        const GROUP = "Padding Group"
+        await byLabel(await tr("menu.newGroup")).click()
+        await typeInto(byLabel(await tr("groups.nameLabel")), GROUP)
+        await browser.keys("Enter")
+        await byText(GROUP).waitForDisplayed({ timeoutMsg: "the group was not created" })
+
+        // A point of the padding of the card: 3px from its left edge, halfway down
+        const card = (await groupCard(GROUP).getElement()) as unknown as HTMLElement
+        const size = await browser.execute((el: HTMLElement) => ({ w: el.offsetWidth, h: el.offsetHeight }), card)
+        await groupCard(GROUP).click({ button: "right", x: 3 - Math.round(size.w / 2), y: 0 })
+        const menu = $('[role="menu"]')
+        await menu.waitForDisplayed({ timeoutMsg: "the menu of the group did not open" })
+        // Entries of the menu of a group, not the background of the note
+        await byText(await tr("sections.new"), menu).waitForDisplayed({ timeoutMsg: "this is not the menu of the group" })
+        expect(await byText(await tr("menu.noteBackground"), menu).isExisting()).toBe(false)
+        await browser.keys("Escape")
     })
 })

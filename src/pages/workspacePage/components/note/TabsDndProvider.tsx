@@ -240,7 +240,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                     {draggedNote && (
                         <div
                             data-testid="tab-drag-overlay"
-                            className="relative flex min-h-[42px] min-w-28 max-w-60 items-center border border-primary bg-background px-2 text-sm font-medium shadow-md"
+                            className="relative flex min-h-[42px] min-w-28 max-w-60 items-center border border-border bg-background px-2 text-sm font-medium shadow-md"
                         >
                             {draggedNote.color && <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: draggedNote.color }} />}
                             <span className="block truncate">{draggedNote.name}</span>

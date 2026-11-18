@@ -375,6 +375,9 @@ describe("AudioPlayer", () => {
             const { audio } = setup()
             const speed = () => screen.getByRole("button", { name: /Velocità di riproduzione/ })
             expect(speed()).toHaveTextContent("1×")
+            // fixed width (the label never moves the buttons), regular weight, accent only when it is not the normal speed
+            expect(speed()).toHaveClass("w-12", "justify-center", "tabular-nums", "text-foreground")
+            expect(speed()).not.toHaveClass("font-medium")
 
             const seen: string[] = []
             for (let i = 0; i < 5; i++) {
@@ -388,6 +391,7 @@ describe("AudioPlayer", () => {
             expect(audio.playbackRate).toBe(1.5)
             expect(audio.defaultPlaybackRate).toBe(1.5)
             expect(speed()).toHaveAccessibleName("Velocità di riproduzione: 1.5×")
+            expect(speed()).toHaveClass("text-primary-text")
         })
     })
 

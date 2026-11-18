@@ -21,3 +21,7 @@ export const toggleVariants = cva(
     },
   }
 )
+
+/** A segmented control (settings, theme editor): the options all as wide as the widest one, one height (h-8) everywhere. */
+export const segmentedGroupClass = "inline-grid grid-flow-col auto-cols-fr"
+export const segmentedItemClass = "h-8 w-full px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground"

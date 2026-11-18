@@ -66,6 +66,14 @@ describe.each(["compact", "normal", "large"] as const)("sidebar rows at size %s"
     })
 })
 
+describe("menu button size per density", () => {
+    it("fits the row: icon-xs in compact rows, icon-sm otherwise", () => {
+        expect(ITEM_SIZES.compact.menu).toBe("icon-xs")
+        expect(ITEM_SIZES.normal.menu).toBe("icon-sm")
+        expect(ITEM_SIZES.large.menu).toBe("icon-sm")
+    })
+})
+
 describe("sidebar rows without a color", () => {
     // A removed color must clear the background: an invalid value ("undefined") would be dropped by the browser, which keeps the old one
     it("clears the background of a note when its color is removed", () => {

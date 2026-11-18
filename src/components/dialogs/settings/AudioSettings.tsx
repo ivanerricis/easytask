@@ -78,7 +78,7 @@ export const AudioSettings = () => {
                     value={String(audioPlayerScale)}
                     options={AUDIO_PLAYER_SCALES.map(value => ({ value: String(value), label: t(`settings.audio.playerSize.${SIZE_KEYS[value]}`) }))}
                     onChange={value => setAudioPlayerScale(Number(value) as AudioPlayerScale)}
-                    className={`${CONTROL_WIDTH} [&>*]:flex-1`}
+                    className={CONTROL_WIDTH}
                 />
                 <SettingsRow label={t("settings.audio.playerOpacity.label")} description={t("settings.audio.playerOpacity.description")}>
                     <PercentRange label={t("settings.audio.playerOpacity.label")} value={audioPlayerOpacity} min={MIN_AUDIO_PLAYER_OPACITY} onChange={setAudioPlayerOpacity} />

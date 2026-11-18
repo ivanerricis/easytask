@@ -9,6 +9,7 @@ export const shortcuts = {
     items: {
         "show-shortcuts": "Mostra le scorciatoie",
         "open-docs": "Apri la documentazione",
+        "open-settings": "Apri le impostazioni",
         "text-zoom-in": "Ingrandisci il testo dell'app",
         "text-zoom-in-alt": "Ingrandisci il testo dell'app (alternativa)",
         "text-zoom-out": "Riduci il testo dell'app",
