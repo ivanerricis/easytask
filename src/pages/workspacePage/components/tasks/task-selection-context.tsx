@@ -7,6 +7,7 @@ import { collapsedIds } from "@/lib/collapsed"
 import { createSelectionStore, type SelectionStore } from "../sidebar/selection"
 import { flattenVisibleTasks, taskKey } from "./task-selection"
 import { TaskSelectionContext } from "./use-task-selection"
+import { clearsTaskSelection } from "./task-selection-clear"
 
 /** True when the focus is somewhere Esc has its own meaning (a field, a dialog, a menu). */
 const escapeIsTaken = (target: EventTarget | null) =>
@@ -45,7 +46,7 @@ function TaskSelectionSync({ store }: { store: SelectionStore }) {
 }
 
 /**
- * Holds the multi-selection of the tasks of the open note (Ctrl/Cmd+click toggles, Shift+click selects a range, Esc clears).
+ * Holds the multi-selection of the tasks of the open note (Ctrl/Cmd+click toggles, Shift+click selects a range, Esc or a left click outside the tasks clears).
  * The selection belongs to the active note (it is cleared when another note becomes active) and Esc leaves it alone when
  * another handler already used the key, the pane has not the focus or the focus is in a field/dialog/menu.
  */
@@ -65,6 +66,15 @@ export function TaskSelectionProvider({ children }: { children: ReactNode }) {
         window.addEventListener("keydown", onKeyDown)
         return () => window.removeEventListener("keydown", onKeyDown)
     }, [store, isFocused])
+
+    // A left click anywhere outside the tasks clears the selection (capture: nothing under the click can stop it)
+    useEffect(() => {
+        const onPointerDown = (event: PointerEvent) => {
+            if (store.getSelected().size > 0 && clearsTaskSelection(event)) store.reset()
+        }
+        document.addEventListener("pointerdown", onPointerDown, true)
+        return () => document.removeEventListener("pointerdown", onPointerDown, true)
+    }, [store])
 
     return (
         <TaskSelectionContext.Provider value={store}>

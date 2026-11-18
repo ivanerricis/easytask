@@ -4,7 +4,7 @@ import type { Step } from "../note-steps"
 import { readTaskRows, siblingPosition } from "./task-key-rows"
 import { taskKeyAction } from "./task-keyboard"
 import { useTaskTree } from "./task-tree-context"
-import { useTaskSelectionStore } from "./use-task-selection"
+import { useTaskSelectionActions, useTaskSelectionStore } from "./use-task-selection"
 import { taskKey } from "./task-selection"
 import { focusKeepingDetails } from "./task-focus-intent"
 import { announce } from "./note-announcer-store"
@@ -41,15 +41,26 @@ function focusMoved(taskId: number, announceMoved: (position: number, total: num
     if (place) announceMoved(place.position, place.total)
 }
 
+/** After a task left the list, the focus goes to the row that took its place (when it is still there and nothing else has the focus). */
+function focusAfterRemoval(neighborId: string | undefined) {
+    if (!neighborId) return
+    const active = document.activeElement
+    if (active && active !== document.body) return
+    const row = rowOf(neighborId)
+    if (row) focusKeepingDetails(row)
+}
+
 /**
  * Keydown of a task row (only when the focus is on the row itself, not on a field, button or menu inside it): the arrows
  * move between the rows of the list, Left / Right close / open the subtasks, Space completes, Enter renames, Shift+F10 or
  * the menu key open the menu, Alt+Up / Alt+Down move the task one step, Shift+arrows / Home / End extend the multi-selection
- * and Ctrl+Space adds or removes the task (neither changes the task shown in the details).
+ * and Ctrl+Space adds or removes the task (neither changes the task shown in the details). Delete moves the task (or the selection
+ * it is part of) to the trash with no confirmation, Ctrl+C copies it and Ctrl+V pastes the copied tasks below it.
  */
 export function useTaskRowKeys({ taskId, taskText, subtasksOpen, onToggleSubtasks, onToggleCompleted, onRename }: RowKeysOptions) {
     const tree = useTaskTree()
     const selection = useTaskSelectionStore()
+    const actions = useTaskSelectionActions()
     const { t } = useTranslation()
 
     return useCallback((event: KeyboardEvent<HTMLElement>) => {
@@ -98,6 +109,22 @@ export function useTaskRowKeys({ taskId, taskText, subtasksOpen, onToggleSubtask
             case "rename":
                 onRename()
                 break
+            case "delete": {
+                if (!actions) break
+                // The row that takes the focus: the next one outside the subtasks of this task, else the previous one
+                const rows = readTaskRows(list)
+                const at = rows.findIndex(candidate => candidate.key === String(taskId))
+                const next = rows.slice(at + 1).find(candidate => candidate.level <= rows[at].level)
+                const neighbor = (next ?? rows[at - 1])?.key
+                void actions.deleteNow({ itemType: "task", id: taskId, name: taskText }).then(() => focusAfterRemoval(neighbor))
+                break
+            }
+            case "copy":
+                void actions?.copy({ itemType: "task", id: taskId, name: taskText })
+                break
+            case "paste":
+                void actions?.paste(taskId)
+                break
             case "menu": {
                 // The menu opens where a right click would: at the start of the row
                 const box = row.getBoundingClientRect()
@@ -116,5 +143,5 @@ export function useTaskRowKeys({ taskId, taskText, subtasksOpen, onToggleSubtask
                 break
             }
         }
-    }, [taskId, taskText, selection, t, subtasksOpen, onToggleSubtasks, onToggleCompleted, onRename, tree])
+    }, [taskId, taskText, selection, actions, t, subtasksOpen, onToggleSubtasks, onToggleCompleted, onRename, tree])
 }

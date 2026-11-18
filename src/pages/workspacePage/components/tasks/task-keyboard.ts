@@ -21,6 +21,9 @@ type TaskKeyAction =
     | { type: "toggle" }
     | { type: "rename" }
     | { type: "menu" }
+    | { type: "delete" }
+    | { type: "copy" }
+    | { type: "paste" }
     | { type: "move", step: -1 | 1 }
 
 /**
@@ -28,7 +31,8 @@ type TaskKeyAction =
  * Up / Down / Home / End move between the rows, Right opens a closed task with subtasks (on an open one it goes to its
  * first subtask), Left closes an open one (otherwise it goes to the parent), Space toggles, Enter renames,
  * Shift+F10 or the menu key open the menu, Shift+Up / Down / Home / End extend the selection to that row (`key`),
- * Ctrl/Cmd+Space toggles the selection of the row, Alt+Up / Alt+Down move the task one step.
+ * Ctrl/Cmd+Space toggles the selection of the row, Alt+Up / Alt+Down move the task one step, Delete trashes the task (or the
+ * selection), Ctrl/Cmd+C copies it and Ctrl/Cmd+V pastes the copied tasks below it.
  * Returns null for any other key or modifier; a handled key that cannot move (Down on the last row) focuses the same row.
  */
 export function taskKeyAction(rows: TaskKeyRow[], currentKey: string, event: TaskKeyEvent): TaskKeyAction | null {
@@ -37,7 +41,12 @@ export function taskKeyAction(rows: TaskKeyRow[], currentKey: string, event: Tas
     const current = rows[index]
     const focus = (target: TaskKeyRow | undefined): TaskKeyAction => ({ type: "focus", key: (target ?? current).key })
 
-    if (event.ctrlKey || event.metaKey) return event.key === " " && !event.shiftKey && !event.altKey ? { type: "toggleSelect" } : null
+    if (event.ctrlKey || event.metaKey) {
+        if (event.shiftKey || event.altKey) return null
+        if (event.key === " ") return { type: "toggleSelect" }
+        const letter = event.key.toLowerCase()
+        return letter === "c" ? { type: "copy" } : letter === "v" ? { type: "paste" } : null
+    }
 
     if (event.altKey) {
         if (event.shiftKey) return null
@@ -76,6 +85,7 @@ export function taskKeyAction(rows: TaskKeyRow[], currentKey: string, event: Tas
         case " ": return { type: "toggle" }
         case "Enter": return { type: "rename" }
         case "ContextMenu": return { type: "menu" }
+        case "Delete": return { type: "delete" }
         default: return null
     }
 }

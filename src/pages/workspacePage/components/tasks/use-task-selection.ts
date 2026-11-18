@@ -43,6 +43,15 @@ export type TaskSelectionActions = {
     getTargets: () => ManyItemRef[]
     /** Opens the confirmation to move the selection to the trash. */
     requestDelete: () => void
+    /**
+     * Moves to the trash at once (no confirmation; the toast has the undo): the selection when `focused` is part of it, otherwise
+     * only `focused`. One undo step.
+     */
+    deleteNow: (focused: ManyItemRef) => Promise<void>
+    /** Copies the selection when `focused` is part of it, otherwise only `focused` (the tasks keep their subtasks). */
+    copy: (focused: ManyItemRef) => Promise<void>
+    /** Pastes what was copied (if the clipboard still has it) right below a task, as ONE undo step. */
+    paste: (afterTaskId: number) => Promise<void>
     /** Archives the selection (no confirmation) in one undo step, then clears the selection. */
     archiveSelection: () => Promise<void>
     /** Sets (or, with null, removes) the color of every selected task, subtasks included; one undo step. */

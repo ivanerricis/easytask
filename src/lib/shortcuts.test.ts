@@ -120,13 +120,20 @@ describe("task keyboard entries", () => {
         expect(SHORTCUT_CATEGORIES).toContain("tasks")
     })
 
+    it("Delete, copy and paste are fixed entries of the tasks category", () => {
+        expect(SHORTCUTS.find(x => x.id === "task-delete")).toMatchObject({ category: "tasks", scope: "workspace", editable: false, keys: ["delete"] })
+        for (const [id, key] of [["task-copy", "c"], ["task-paste", "v"]]) {
+            expect(SHORTCUTS.find(x => x.id === id), id).toMatchObject({ category: "tasks", scope: "workspace", editable: false, defaultBinding: { key, ctrl: true } })
+        }
+    })
+
     it("have a name, a category and key labels in both languages", async () => {
         const { it: itLocale } = await import("@/i18n/locales/it")
         const { en } = await import("@/i18n/locales/en")
         for (const locale of [itLocale, en]) {
             const sh = locale.shortcuts as unknown as { categories: Record<string, string>, items: Record<string, string>, keys: Record<string, string> }
             expect(sh.categories.tasks).toBeTruthy()
-            for (const id of ids) {
+            for (const id of [...ids, "task-delete", "task-copy", "task-paste"]) {
                 expect(sh.items[id], id).toBeTruthy()
                 for (const k of SHORTCUTS.find(x => x.id === id)?.keys ?? []) expect(sh.keys[k], id + ":" + k).toBeTruthy()
             }

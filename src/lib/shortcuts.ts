@@ -89,6 +89,10 @@ export const SHORTCUTS: Shortcut[] = [
     { id: "task-menu", keys: ["shift", "f10"], editable: false, scope: "workspace", category: "tasks" },
     { id: "task-extend-selection", keys: ["shift", "arrowup", "arrowdown", "home", "end"], editable: false, scope: "workspace", category: "tasks" },
     { id: "task-toggle-selection", keys: ["ctrl", "space"], editable: false, scope: "workspace", category: "tasks" },
+    // Delete, copy and paste act on the focused task (or on the selection); the keys are fixed
+    { id: "task-delete", keys: ["delete"], editable: false, scope: "workspace", category: "tasks" },
+    { id: "task-copy", defaultBinding: { key: "c", ctrl: true }, editable: false, scope: "workspace", category: "tasks" },
+    { id: "task-paste", defaultBinding: { key: "v", ctrl: true }, editable: false, scope: "workspace", category: "tasks" },
     { id: "new-workspace", defaultBinding: { key: "n", ctrl: true }, editable: true, scope: "home", category: "home" },
 ]
 

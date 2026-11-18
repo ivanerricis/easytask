@@ -1,7 +1,7 @@
 import { $, browser, expect } from "@wdio/globals"
 import {
     addTaskToSection, byLabel, byText, closeTaskInput, createFromSidebar, createWorkspace, domClick, groupCard, newSectionInGroup,
-    openWorkspace, sectionCard, sql, tr, treeRow, typeInto, waitForApp,
+    openContextMenu, openWorkspace, sectionCard, sql, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
 /**
@@ -224,6 +224,29 @@ describe("Task list keyboard", () => {
         await browser.keys("Escape")
         await $('[role="menu"]').waitForExist({ reverse: true, timeoutMsg: "the menu did not close" })
         await expectFocus(A2_RENAMED)
+    })
+
+    it("a right click on the text opens the menu without focusing the text or making it editable (card 164)", async () => {
+        // Records every text field that takes the focus from now on: the read only text must never be one of them
+        await browser.execute(() => {
+            const w = window as unknown as { __focusedFields: string[] }
+            w.__focusedFields = []
+            document.addEventListener("focusin", e => {
+                if (e.target instanceof HTMLTextAreaElement) w.__focusedFields.push(e.target.readOnly ? "readonly" : "editable")
+            }, true)
+        })
+        const text = rowOf(A1).$("textarea")
+        await openContextMenu(text)
+        await browser.keys("Escape")
+        await $('[role="menu"]').waitForExist({ reverse: true, timeoutMsg: "the menu did not close" })
+        const state = await browser.execute(() => ({
+            focused: (window as unknown as { __focusedFields: string[] }).__focusedFields,
+            editable: document.querySelectorAll("[role='treeitem'] textarea:not([readonly])").length,
+            active: document.activeElement?.tagName ?? "",
+        }))
+        expect(state.focused).toEqual([])
+        expect(state.editable).toBe(0)
+        expect(state.active).not.toBe("TEXTAREA")
     })
 
     const selectedTasks = () => browser.execute(() =>

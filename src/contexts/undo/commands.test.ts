@@ -627,6 +627,20 @@ describe("multi-selection commands on tasks (one undo step, the note is reloaded
         expect(ctx.deps.note.removeTask.mock.calls).toEqual([[1], [2]])
     })
 
+    it("createMany (a paste) moves the new tasks to the trash in reverse and restores them in order, reloading the note once", async () => {
+        const command = commands.createMany([...tasks])
+        expect(command.label).toBe("Incolla 2 task")
+        await command.undo()
+        expect(ctx.deps.workspace.deleteItem.mock.calls).toEqual([["task", 2], ["task", 1]])
+        expect(ctx.deps.note.removeTask.mock.calls).toEqual([[2], [1]])
+        await command.redo()
+        expect(ctx.deps.workspace.restoreItem.mock.calls).toEqual([["task", 1], ["task", 2]])
+        expect(ctx.deps.note.refreshActiveNote).toHaveBeenCalledTimes(1)
+        const record = vi.fn()
+        createUndoRecorder(commands, record).createMany([...tasks])
+        expect(record).toHaveBeenCalledTimes(1)
+    })
+
     it("a mix of notes and tasks reloads both", async () => {
         await commands.removeMany([{ itemType: "note", id: 9, name: "n" }, tasks[0]]).undo()
         expect(ctx.deps.workspace.getWorkspaceData).toHaveBeenCalledTimes(1)

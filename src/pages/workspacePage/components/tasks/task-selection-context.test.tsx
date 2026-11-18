@@ -60,6 +60,52 @@ beforeEach(() => {
     tree = makeTree()
 })
 
+describe("a left click outside the tasks clears the selection", () => {
+    const press = (target: Element, init: PointerEventInit = {}) => fireEvent.pointerDown(target, { button: 0, ...init })
+    const selectTwo = () => { fireEvent.click(screen.getByText("t1")); fireEvent.click(screen.getByText("t3")) }
+    const menuOpen = () => {
+        const menu = document.body.appendChild(document.createElement("div"))
+        menu.setAttribute("role", "menu")
+        return menu
+    }
+
+    it("clears on the page, not on a task, the selection bar, a menu, a dialog or a toast", () => {
+        setup()
+        const task = document.body.appendChild(document.createElement("div"))
+        task.setAttribute("role", "treeitem")
+        task.setAttribute("data-task-id", "1")
+        const bar = document.body.appendChild(document.createElement("div"))
+        bar.setAttribute("data-task-selection-bar", "")
+        const toast = document.body.appendChild(document.createElement("li"))
+        toast.setAttribute("data-sonner-toast", "")
+        selectTwo()
+        for (const keep of [task, bar, toast]) {
+            press(keep)
+            expect(keys()).toBe("task-1,task-3")
+        }
+        press(screen.getByLabelText("campo"))
+        expect(keys()).toBe("")
+        for (const el of [task, bar, toast]) el.remove()
+    })
+
+    it("does nothing with Ctrl, Cmd or Shift, with the right button, or while a menu or dialog is open", () => {
+        setup()
+        selectTwo()
+        const field = screen.getByLabelText("campo")
+        press(field, { ctrlKey: true })
+        press(field, { metaKey: true })
+        press(field, { shiftKey: true })
+        fireEvent.pointerDown(field, { button: 2 })
+        expect(keys()).toBe("task-1,task-3")
+        const menu = menuOpen()
+        press(field)
+        expect(keys()).toBe("task-1,task-3")
+        menu.remove()
+        press(field)
+        expect(keys()).toBe("")
+    })
+})
+
 describe("TaskSelectionProvider", () => {
     it("tells whether a task is selected and whether it is part of a multi-selection", () => {
         setup()

@@ -50,6 +50,10 @@ export const tasks: Translation["tasks"] = {
         deleteConfirm: "Move {{count}} tasks to the trash",
         deleteError: "Could not move all the tasks to the trash ({{done}} of {{total}} moved): {{message}}",
     },
+    clipboard: {
+        copied_one: "{{count}} task copied",
+        copied_other: "{{count}} tasks copied",
+    },
     editText: "Edit the task text",
     list: "Tasks",
     listOf: "Tasks of {{name}}",

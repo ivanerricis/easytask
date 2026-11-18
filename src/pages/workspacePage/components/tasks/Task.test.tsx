@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import type { ReactNode } from "react"
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, createEvent, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { Task } from "./Task"
@@ -199,6 +199,18 @@ describe("Task selection", () => {
         expect(text).toHaveAttribute("readonly")
         fireEvent.contextMenu(text)
         expect(await screen.findByRole("menuitem", { name: "Mostra dettagli" })).toBeInTheDocument()
+    })
+
+    it("a right press on the text keeps the focus out of the text (it goes to the row); the left press does not touch it (card 164)", () => {
+        renderTasks(<Task task={makeTask({ id: 10, text: "Primo" })} />)
+        const text = screen.getByLabelText("Modifica il testo del task")
+        const right = createEvent.mouseDown(text, { button: 2 })
+        fireEvent(text, right)
+        expect(right.defaultPrevented).toBe(true)
+        expect(rowOf(10)).toHaveFocus()
+        const left = createEvent.mouseDown(text, { button: 0 })
+        fireEvent(text, left)
+        expect(left.defaultPrevented).toBe(false)
     })
 
     it("does not break the toggle of the completion", async () => {

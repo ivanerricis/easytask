@@ -285,7 +285,8 @@ export async function updateDBTemplateFromNote(templateId: number, noteId?: numb
     }
 }
 
-type PendingTask = { sectionRef: TxRef, parentRef: TxRef | null, task: TemplateTask }
+/** A task still to insert: where it goes (the section, and the parent task unless it is top level) and what it is. */
+export type PendingTask = { sectionRef: number | TxRef, parentRef: number | TxRef | null, task: TemplateTask }
 
 /**
  * Adds to a transaction the statements that insert the groups, sections and tasks of a content snapshot
@@ -315,6 +316,34 @@ export function addNoteContent(tx: Transaction, noteRef: number | TxRef, content
 }
 
 /**
+ * Adds to a transaction the statements that insert tasks with their subtasks (and their tags) level by level, one multi-row
+ * INSERT per level: the subtasks of a level reference the ids of their parents.
+ * @param tx The transaction collecting the statements.
+ * @param tagSectionRef A section (or its id) of the workspace the tags are looked up in.
+ * @param level The tasks to insert, each with the section and the parent task (null = top level) it goes into.
+ * @returns References to the inserted tasks of the first level, in the order of `level`.
+ * @category Database Queries
+ */
+export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, level: PendingTask[]): TxRef[] {
+    const tagged: { taskRef: TxRef, tags: TemplateTag[] }[] = []
+    let firstLevel: TxRef[] | null = null
+    while (level.length > 0) {
+        const refs = tx.insertRows("task",
+            ["sectionID", "taskID", "text", "description", "completed", "priority", "color", "archived_at", "position"],
+            level.map(({ sectionRef, parentRef, task }) => [
+                sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
+                task.priority ? 1 : 0, task.color ?? null, task.archived_at || null, task.position,
+            ]))
+        firstLevel ??= refs
+        level.forEach(({ task }, i) => { if (task.tags?.length) tagged.push({ taskRef: refs[i], tags: task.tags }) })
+        level = level.flatMap(({ sectionRef, task }, i) =>
+            task.subtasks.map(subtask => ({ sectionRef, parentRef: refs[i], task: subtask })))
+    }
+    if (tagged.length > 0) addTaskTags(tx, tagSectionRef, tagged)
+    return firstLevel ?? []
+}
+
+/**
  * Adds to a transaction the statements that insert sections (with their tasks and subtasks) into existing or
  * to-be-created groups, with one multi-row INSERT per level.
  * @param tx The transaction collecting the statements.
@@ -327,22 +356,8 @@ export function addSections(tx: Transaction, sources: { groupRef: number | TxRef
     const sectionRefs = tx.insertRows("section", ["groupID", "title", "color", "archived_at", "position", "is_default"],
         sources.map(({ groupRef, section, isDefault }) => [groupRef, section.title || null, section.color ?? null, section.archived_at || null, section.position, isDefault ? 1 : 0]))
 
-    // Tasks level by level: the subtasks of a level reference the ids of their parents
-    const tagged: { taskRef: TxRef, tags: TemplateTag[] }[] = []
-    let level: PendingTask[] = sources.flatMap(({ section }, i) =>
-        section.tasks.map(task => ({ sectionRef: sectionRefs[i], parentRef: null, task })))
-    while (level.length > 0) {
-        const refs = tx.insertRows("task",
-            ["sectionID", "taskID", "text", "description", "completed", "priority", "color", "archived_at", "position"],
-            level.map(({ sectionRef, parentRef, task }) => [
-                sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
-                task.priority ? 1 : 0, task.color ?? null, task.archived_at || null, task.position,
-            ]))
-        level.forEach(({ task }, i) => { if (task.tags?.length) tagged.push({ taskRef: refs[i], tags: task.tags }) })
-        level = level.flatMap(({ sectionRef, task }, i) =>
-            task.subtasks.map(subtask => ({ sectionRef, parentRef: refs[i], task: subtask })))
-    }
-    if (tagged.length > 0) addTaskTags(tx, sectionRefs[0], tagged)
+    addTaskTree(tx, sectionRefs[0], sources.flatMap(({ section }, i) =>
+        section.tasks.map(task => ({ sectionRef: sectionRefs[i], parentRef: null, task }))))
     return sectionRefs
 }
 

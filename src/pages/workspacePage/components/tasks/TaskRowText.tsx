@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { AutoTextarea } from "@/components/auto-textarea"
 import { InlineErrorTooltip } from "@/components/inline-error-tooltip"
@@ -28,6 +29,17 @@ type TaskRowTextProps = {
 }
 
 const isPlainEnter = (e: { key: string, shiftKey: boolean }) => e.key === "Enter" && !e.shiftKey
+
+/**
+ * A press of a button other than the main one (the right click that opens the menu) must not put the focus in the
+ * read only text: the field would show its caret / focus look for a moment, like an editable one. The focus goes to the
+ * row, as the click on the text does, so the task is still shown in the details.
+ */
+const keepFocusOnRow = (e: MouseEvent<HTMLTextAreaElement>) => {
+    if (e.button === 0) return
+    e.preventDefault()
+    e.currentTarget.closest<HTMLElement>("[role='treeitem']")?.focus()
+}
 
 /** The text of a task in one of its three states: highlighted by the search, read only, or being renamed. */
 export function TaskRowText({ text, completed, textClass, editing, error, inputProps, searchQuery, searchActive, renameOnClick, startEdit, inner, onEditEnd }: TaskRowTextProps) {
@@ -70,6 +82,7 @@ export function TaskRowText({ text, completed, textClass, editing, error, inputP
             onClick={onClick}
             onKeyDown={onKeyDown}
             aria-label={t("tasks.editText")}
+            onMouseDown={keepFocusOnRow}
             tabIndex={inner}
             value={text}
             // Read only until the click opens the editing: a right click here opens the menu of the task, not the one of a text field
