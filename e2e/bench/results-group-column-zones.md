@@ -43,3 +43,20 @@ often (2 instead of 4 in some rounds); the frame at the target change is not wor
 | drop: longest task (ms) | 290.0 | 282.0 | 330.0 | 321.0 | 349.0 | 357.0 | 288.0 | 349.0 |
 | target changes per drag | 4.0 | 4.0 | 2.0 | 2.0 | 2.0 | 4.0 | 4.0 | 2.0 |
 
+
+## Follow-up: groups only, 3 more alternating rounds (r4-r6)
+
+The `groups` scenario drags a TASK from group 1 to a task row of group 2 (no group reorder, same final place on both exes: a task zone, untouched by this change). The first 3 rounds showed a higher drop longest task after (349 vs 288 ms); in these rounds, run on a busier machine (everything about 2x slower), it is the other way round (612 vs 780 ms). So that difference is noise, not a cost of the column zones (the zone is registered once per group by a layout effect with stable deps: nothing runs on the tree change of a drop).
+
+
+**groups**
+
+| metric | h2 r4 | h2 r5 | h2 r6 | h1 r4 | h1 r5 | h1 r6 | h2 pooled | h1 pooled |
+|---|---|---|---|---|---|---|---|---|
+| p95 frame, drag (ms) | 510.9 | 506.8 | 552.1 | 536.9 | 584.0 | 523.2 | 522.2 | 536.9 |
+| max frame at target change (ms) | 228.0 | 440.5 | 220.1 | 483.5 | 229.4 | 442.1 | 230.6 | 404.2 |
+| long tasks per drag | 42.0 | 44.0 | 43.0 | 42.0 | 43.0 | 43.0 | 43.0 | 43.0 |
+| longest task, drag (ms) | 8626.0 | 8407.0 | 8548.0 | 9682.0 | 8923.0 | 9167.0 | 8548.0 | 9219.0 |
+| drop: longest task (ms) | 702.0 | 709.0 | 837.0 | 642.0 | 616.0 | 577.0 | 780.0 | 612.0 |
+| target changes per drag | 2.0 | 4.0 | 2.0 | 4.0 | 2.0 | 4.0 | 2.0 | 4.0 |
+
