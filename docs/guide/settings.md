@@ -29,7 +29,7 @@ Press `Esc`, click the X button or choose a category to clear the search.
 | Color intensity | Slider from 25% to 175% | 100% |
 | Animations | System, Off, Normal, Slow | System |
 
-The theme gallery shows a preview of each theme; move between them with the arrow keys. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups, sections, the note background and the light background of colored tasks, not the color bar of the tasks. With **Animations** set to System, EasyTask follows the system setting.
+The theme gallery shows a preview of each theme; move between them with the arrow keys. See [Themes](./themes). If the accent color has little contrast with the background, EasyTask warns you and suggests a close color that is easier to see. The font and the text size change the whole app: **Text size** scales text, icons and spaces together, and you can also use `Ctrl`+`Plus`, `Ctrl`+`Minus` and `Ctrl`+`0` (back to 16 px). The fonts are bundled with the app, so they work offline. Color intensity changes folders, notes, groups, sections, the note background and the light background of colored tasks, not the color bar of the tasks. With **Animations** set to System, EasyTask follows the system setting. The rows that step aside while you drag follow this setting too.
 
 ## Notes and sections
 
