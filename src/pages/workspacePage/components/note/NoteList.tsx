@@ -88,7 +88,7 @@ function useTabBar(tabs: Note[]) {
 
 // The line under the tabs: drawn by every inactive tab and, as an inset shadow, by the empty part of the bar.
 // The active tab paints over it, so it opens onto the note below.
-const BAR_CLASS = "flex shrink-0 w-full overflow-x-auto overflow-y-hidden bg-secondary divide-x-1 shadow-[inset_0_-1px_0_0_var(--color-primary)]"
+const BAR_CLASS = "flex shrink-0 w-full overflow-x-auto overflow-y-hidden bg-secondary divide-x-1 shadow-[inset_0_-1px_0_0_var(--border)]"
 
 /**
  * The tab bar of a pane, inside `TabsDndProvider`. Split: the drag and drop context is the shared one, the bar is a droppable

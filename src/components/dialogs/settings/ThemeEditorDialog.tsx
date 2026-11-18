@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { segmentedGroupClass, segmentedItemClass } from "@/components/ui/toggle-variants"
+import { cn } from "@/lib/utils"
 import { themeDisplayName } from "@/lib/theme-transfer"
 import { isHex6 } from "@/lib/themes/color"
 import { checkThemeContrast, type ThemeColorName } from "@/lib/themes/contrast-checks"
@@ -19,7 +21,6 @@ import { ThemePreview } from "./ThemePreview"
 
 const COLOR_NAMES: readonly ThemeColorName[] = [...THEME_COLOR_KEYS, "accent"]
 
-const BASE_ITEM_CLASS = "data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground"
 
 type Draft = { name: string, base: ThemeBase, colors: ThemeColors, accent: string }
 
@@ -135,10 +136,10 @@ const EditorForm = ({ theme, onClose }: EditorFormProps) => {
                             onValueChange={next => { if (next === "light" || next === "dark") setDraft(current => ({ ...current, base: next })) }}
                             aria-labelledby={`${nameId}-base`}
                             aria-describedby={`${nameId}-base-description`}
-                            className="self-start"
+                            className={cn(segmentedGroupClass, "self-start")}
                         >
-                            <ToggleGroupItem value="light" className={BASE_ITEM_CLASS}>{t("settings.themes.editor.baseLight")}</ToggleGroupItem>
-                            <ToggleGroupItem value="dark" className={BASE_ITEM_CLASS}>{t("settings.themes.editor.baseDark")}</ToggleGroupItem>
+                            <ToggleGroupItem value="light" className={segmentedItemClass}>{t("settings.themes.editor.baseLight")}</ToggleGroupItem>
+                            <ToggleGroupItem value="dark" className={segmentedItemClass}>{t("settings.themes.editor.baseDark")}</ToggleGroupItem>
                         </ToggleGroup>
                         <p id={`${nameId}-base-description`} className="text-xs text-muted-foreground">{t("settings.themes.editor.baseDescription")}</p>
                     </div>

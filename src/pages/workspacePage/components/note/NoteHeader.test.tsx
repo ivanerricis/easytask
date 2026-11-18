@@ -45,13 +45,13 @@ describe("NoteHeader active tab", () => {
     const tab = (name: string) => screen.getByRole("tab", { name }).parentElement as HTMLElement
     const tabButton = (name: string) => screen.getByRole("tab", { name })
 
-    it("marks the active tab with a primary border, bold text and aria-selected", async () => {
+    it("marks the active tab with the normal border color, bold text and aria-selected", async () => {
         setup()
         await act(async () => { })
 
         // Opened last, "Due" is the active one
         expect(tabButton("Due")).toHaveAttribute("aria-selected", "true")
-        expect(tab("Due").className).toContain("border-x-primary")
+        expect(tab("Due").className).toContain("border-x-border")
         // no line under the active tab: it opens onto the note
         expect(tab("Due").className).toContain("border-b-transparent")
         expect(screen.getByText("Due").className).toContain("font-medium")
@@ -60,7 +60,7 @@ describe("NoteHeader active tab", () => {
 
         expect(tabButton("Uno")).toHaveAttribute("aria-selected", "false")
         expect(tab("Uno").className).toContain("border-x-transparent")
-        expect(tab("Uno").className).toContain("border-b-primary")
+        expect(tab("Uno").className).toContain("border-b-border")
         expect(tab("Uno").className).toContain("border-x")
         expect(screen.getByText("Uno").className).not.toContain("font-medium")
     })

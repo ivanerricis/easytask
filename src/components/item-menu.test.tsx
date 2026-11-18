@@ -37,4 +37,13 @@ describe("ItemMenu", () => {
         rerender(<Menu tabIndex={-1} />)
         expect(screen.getByRole("button", { name: /Nota/ })).toHaveAttribute("tabindex", "-1")
     })
+
+    it("takes the box size of the size prop (icon-xs: 20px)", () => {
+        const Menu = () => {
+            const state = useItemMenuState()
+            return <ItemMenu state={state} items={<MenuItem>Voce</MenuItem>}><div><ItemMenuButton name="Nota" size="icon-xs" /></div></ItemMenu>
+        }
+        render(<Menu />)
+        expect(screen.getByRole("button", { name: /Nota/ })).toHaveClass("size-5")
+    })
 })
