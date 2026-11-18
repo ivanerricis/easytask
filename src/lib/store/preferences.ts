@@ -220,6 +220,8 @@ export const UI_PREFS = {
     completedTasksLast: def({ key: "completedTasksLast", default: false }),
     language: def<LanguagePreference>({ key: "language", default: DEFAULT_LANGUAGE_PREFERENCE, normalize: value => isLanguagePreference(value) ? value : DEFAULT_LANGUAGE_PREFERENCE }),
     newTaskPosition: def<NewTaskPosition>({ key: "newTaskPosition", default: "bottom", normalize: value => value === "top" ? "top" : "bottom" }),
+    /** On: the audio, image and video files of a closed group stay visible (rows under its header, or small buttons in its strip). */
+    showMediaWhenCollapsed: def({ key: "showMediaWhenCollapsed", default: true, normalize: value => value !== false }),
     collapsedGroupLayout: def<CollapsedGroupLayout>({ key: "collapsedGroupLayout", default: "vertical", normalize: value => value === "horizontal" ? "horizontal" : "vertical" }),
     taskDensity: def<TaskDensity>({ key: "taskDensity", default: "normal", normalize: value => value === "compact" || value === "large" ? value : "normal" }),
     spellcheck: def({ key: "spellcheck", default: true, normalize: value => value !== false }),

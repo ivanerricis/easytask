@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { getGroupProgress } from "./group-progress"
+import { PROGRESS_COLORS, getGroupProgress, resolveGroupColor } from "./group-progress"
+import { PALETTE_COLORS } from "@/lib/colors"
 import { makeDefaultSection, makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 
 describe("getGroupProgress", () => {
@@ -44,5 +45,38 @@ describe("getGroupProgress with direct tasks", () => {
         })
         expect(getGroupProgress(group)).toEqual({ done: 2, total: 3, percent: (2 / 3) * 100 })
         expect(getGroupProgress(makeGroup({ defaultSection: makeDefaultSection({ tasks: [makeTask()] }) })).total).toBe(1)
+    })
+})
+
+describe("resolveGroupColor", () => {
+    const withTasks = (...done: boolean[]) => makeGroup({ color: "progress", sections: [makeSection({ tasks: done.map((completed, index) => makeTask({ id: index + 1, completed })) })] })
+
+    it("gives a fixed color or none as it is", () => {
+        expect(resolveGroupColor(makeGroup({ color: "#112233" }))).toBe("#112233")
+        expect(resolveGroupColor(makeGroup({ color: null }))).toBeNull()
+        expect(resolveGroupColor(makeGroup({ color: undefined }))).toBeNull()
+    })
+
+    it("is green without tasks or with all of them done", () => {
+        expect(resolveGroupColor(makeGroup({ color: "progress" }))).toBe(PROGRESS_COLORS.done)
+        expect(resolveGroupColor(withTasks(true, true))).toBe(PROGRESS_COLORS.done)
+    })
+
+    it("is yellow with at least one task done and red with none", () => {
+        expect(resolveGroupColor(withTasks(true, false))).toBe(PROGRESS_COLORS.started)
+        expect(resolveGroupColor(withTasks(false, false))).toBe(PROGRESS_COLORS.none)
+    })
+
+    it("counts the subtasks like the progress of the group", () => {
+        const group = makeGroup({ color: "progress", sections: [makeSection({ tasks: [makeTask({ id: 1, completed: true, subtasks: [makeTask({ id: 2, completed: false })] })] })] })
+        expect(resolveGroupColor(group)).toBe(PROGRESS_COLORS.started)
+    })
+
+    it("uses the progress it is given", () => {
+        expect(resolveGroupColor(makeGroup({ color: "progress" }), { done: 0, total: 3 })).toBe(PROGRESS_COLORS.none)
+    })
+
+    it("always picks colors of the palette of the groups", () => {
+        for (const color of Object.values(PROGRESS_COLORS)) expect(PALETTE_COLORS).toContain(color)
     })
 })

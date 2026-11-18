@@ -105,6 +105,12 @@ export const groups = {
     audioCount_other: "{{count}} file audio",
     mediaCount_one: "{{count}} immagine o video",
     mediaCount_other: "{{count}} immagini e video",
+    moreFiles_one: "Altro file: apri il gruppo",
+    moreFiles_other: "Altri {{count}} file: apri il gruppo",
+    progressColor: {
+        active: "Colore automatico attivo",
+        auto: "Automatico (avanzamento)",
+    },
     width: {
         handle: "Ridimensiona il gruppo",
         value: "{{width}} pixel",

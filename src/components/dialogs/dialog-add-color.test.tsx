@@ -96,3 +96,14 @@ describe("DialogAddColor", () => {
         await waitFor(() => expect(toast.error).toHaveBeenCalledWith("write failed"))
     })
 })
+
+describe("DialogAddColor with the automatic color of a group", () => {
+    it("marks no swatch, not even the custom one, and still picks a color", async () => {
+        const user = userEvent.setup()
+        const { addColorItem, container } = setup({ item: { id: 4, color: "progress" } })
+        expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument()
+        expect(container.querySelector(".lucide-check")).toBeNull()
+        await user.click(screen.getAllByRole("radio")[0])
+        await waitFor(() => expect(addColorItem).toHaveBeenCalledWith("section", 4, "#e6194b"))
+    })
+})

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { useGroupOpen } from "@/contexts/use-tabs"
-import { getGroupProgress } from "./group-progress"
+import { getGroupProgress, resolveGroupColor } from "./group-progress"
 import { ItemMenuButton } from "@/components/item-menu"
 import type { Group } from "@/types/types"
 import type { HTMLAttributes } from "react"
@@ -89,7 +89,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     }, [renameRef, startEditing])
 
     const ring = showGroupProgressBar && progress.total > 0
-        ? <ProgressRing value={progress.percent} size={20} color={group.color ?? undefined} aria-label={t("groups.progress")} />
+        ? <ProgressRing value={progress.percent} size={20} color={resolveGroupColor(group, progress) ?? undefined} aria-label={t("groups.progress")} />
         : null
 
     // Closed (vertical layout): the group is a narrow strip (see Group), its header stacked: arrow, ring, name and number of tasks.

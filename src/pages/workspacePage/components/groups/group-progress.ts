@@ -1,5 +1,6 @@
 import type { Group, Task } from "@/types/types"
 import { taskSections } from "@/lib/group-sections"
+import { GROUP_COLOR_PROGRESS } from "@/lib/colors"
 
 /** Completion of a list of tasks: every task and every nested subtask counts as one unit. */
 export const countTasks = (tasks: Task[]): { done: number, total: number } => {
@@ -29,4 +30,18 @@ export const getGroupProgress = (group: Group): { done: number, total: number, p
         total += counts.total
     }
     return { done, total, percent: total === 0 ? 0 : (done / total) * 100 }
+}
+
+/** The tints of the "Automatic" color of a group, from the group palette: green, yellow, red. */
+export const PROGRESS_COLORS = { done: "#3cb44b", started: "#d9bf01", none: "#e6194b" } as const
+
+/**
+ * The color a group is drawn with: its own one, or for the "Automatic" one the tint of its progress (green: no tasks or all done,
+ * yellow: at least one done, red: none done). No color gives null. Pass `progress` when it is already computed.
+ */
+export const resolveGroupColor = (group: Group, progress?: { done: number, total: number }): string | null => {
+    if (group.color !== GROUP_COLOR_PROGRESS) return group.color ?? null
+    const { done, total } = progress ?? getGroupProgress(group)
+    if (done >= total) return PROGRESS_COLORS.done
+    return done > 0 ? PROGRESS_COLORS.started : PROGRESS_COLORS.none
 }

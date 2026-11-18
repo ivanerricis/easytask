@@ -992,3 +992,16 @@ describe("workspace import with a chosen name", () => {
         await expect(importDBWorkspace(data, { name: "Copia mia" })).rejects.toMatchObject({ message: "Esiste già un workspace con questo nome." })
     })
 })
+
+describe("automatic group color in export/import", () => {
+    it("keeps the automatic color of a group through the export and the import", async () => {
+        sqlite.exec("UPDATE section_group SET color = 'progress' WHERE id = 1")
+        const data = await exportOf()
+        const source = data.notes.find(n => n.name === "Sorgente")!
+        expect(source.content.groups.map(g => g.color)).toEqual(["progress", null])
+        expect(() => validateWorkspaceExport(JSON.parse(JSON.stringify(data)))).not.toThrow()
+        const { workspaceId } = await importDBWorkspace(JSON.parse(JSON.stringify(data)))
+        expect(rows(`SELECT g.color FROM section_group g JOIN note n ON n.id = g.noteID
+            WHERE n.workspaceID = ${workspaceId} AND n.name = 'Sorgente' ORDER BY g.position`)).toEqual([{ color: "progress" }, { color: null }])
+    })
+})

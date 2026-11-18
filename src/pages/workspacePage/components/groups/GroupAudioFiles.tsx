@@ -5,6 +5,8 @@ import { ButtonInPopover } from "@/components/button-in-popover"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
 import { DialogRenameItem } from "@/components/dialogs/dialog-rename"
 import { MenuGroup } from "@/components/menu-kind"
+import { Button } from "@/components/ui/button"
+import { TooltipCustom } from "@/components/tooltip-custom"
 import { Separator } from "@/components/ui/separator"
 import { ItemMenu, ItemMenuButton } from "@/components/item-menu"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
@@ -20,9 +22,11 @@ type AudioFileRowProps = {
     groupId: number
     /** The file is no longer at its saved path. */
     missing?: boolean
+    /** "strip": only a small square button (the icon of the state), for the strip of a closed group; the menu opens with the right click. */
+    variant?: "row" | "strip"
 }
 
-const AudioFileRow = ({ file, groupId, missing = false }: AudioFileRowProps) => {
+const AudioFileRow = ({ file, groupId, missing = false, variant = "row" }: AudioFileRowProps) => {
     const { t } = useTranslation()
     const { track, playbackState, playFile, relinkFile, refresh } = useAudio()
     const [isRenameOpen, setRenameOpen] = useState(false)
@@ -100,6 +104,26 @@ const AudioFileRow = ({ file, groupId, missing = false }: AudioFileRowProps) => 
         </>
     )
 
+    if (variant === "strip") return (
+        <ItemMenu state={menu} items={items} dialogs={dialogs} contentClassName="p-1 rounded-xs">
+            <div role="listitem" data-missing={missing ? "true" : undefined}>
+                <TooltipCustom text={file.name}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        aria-current={isCurrent ? "true" : undefined}
+                        aria-label={file.name}
+                        onClick={() => void playFile(file)}
+                        className={cn("relative size-7 shrink-0 bg-background", isCurrent && "border-primary", missing && "border-destructive")}>
+                        <StateIcon className={cn("size-4", state === "ended" && "size-3.5 fill-current", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
+                        {missing && <TriangleAlert className="absolute -right-1 -top-1 size-3 text-destructive" role="img" aria-label={t("audio.missing.title")} />}
+                    </Button>
+                </TooltipCustom>
+            </div>
+        </ItemMenu>
+    )
+
     return (
         <ItemMenu state={menu} items={items} dialogs={dialogs} contentClassName="p-1 rounded-xs">
             <div
@@ -132,22 +156,27 @@ const AudioFileRow = ({ file, groupId, missing = false }: AudioFileRowProps) => 
 
 type GroupAudioFilesProps = {
     groupId: number
+    /** "strip": small square buttons instead of rows (closed group, vertical layout). */
+    variant?: "row" | "strip"
+    /** The most files shown (all when omitted). */
+    max?: number
 }
 
 /**
  * Compact list of the audio files attached to a group. A file plays only when it is clicked.
  * @category Group
  */
-export const GroupAudioFiles = ({ groupId }: GroupAudioFilesProps) => {
+export const GroupAudioFiles = ({ groupId, variant = "row", max }: GroupAudioFilesProps) => {
     const { t } = useTranslation()
     const files = useGroupAudioFiles(groupId)
     const missing = useMissingPaths(files)
-    if (files.length === 0) return null
+    const shown = max === undefined ? files : files.slice(0, max)
+    if (shown.length === 0) return null
 
     return (
-        <div role="list" className="flex flex-col gap-1" aria-label={t("audio.files")}>
-            {files.map(file => (
-                <AudioFileRow key={file.id} file={file} groupId={groupId} missing={missing.has(file.path)} />
+        <div role="list" className={cn("flex flex-col gap-1", variant === "strip" && "items-center")} aria-label={t("audio.files")}>
+            {shown.map(file => (
+                <AudioFileRow key={file.id} file={file} groupId={groupId} missing={missing.has(file.path)} variant={variant} />
             ))}
         </div>
     )

@@ -1,5 +1,5 @@
 import type { Group as GroupType } from "@/types/types"
-import { Fragment, memo, useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from "react"
+import { Fragment, memo, useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { Section } from "../section/Section"
@@ -25,6 +25,8 @@ import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { DropLine } from "../sidebar/DropLine"
 import { directIndexOf } from "@/lib/group-sections"
 import { usePreference } from "@/contexts/use-preference"
+import { resolveGroupColor } from "./group-progress"
+import { GroupStripFiles } from "./GroupStripFiles"
 
 type GroupProps = {
     group: GroupType
@@ -107,10 +109,16 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
 
     const colorAlpha = useColorAlpha()
 
-    // The group is a panel: a light tint of its color (gray without one) with the color as a band at the top
-    const panel: CSSProperties = group.color
-        ? { backgroundColor: hexToRgba(colorAlpha.panel(), group.color), borderTopColor: group.color }
+    // The "Automatic" color follows the progress of the group; any other is used as it is
+    const color = useMemo(() => resolveGroupColor(group), [group])
+    // The panel of the group: a light tint of its color (gray without one) with the color as a band at the top
+    const panel: CSSProperties = color
+        ? { backgroundColor: hexToRgba(colorAlpha.panel(), color), borderTopColor: color }
         : {}
+
+    // The audio, image and video files of a closed group stay visible when the preference says so (never in a draft)
+    const showMediaWhenCollapsed = usePreference(preferences => preferences.showMediaWhenCollapsed) ?? true
+    const showFiles = !isDraft && (isOpen || showMediaWhenCollapsed)
 
     const resizeHandle = !strip && <GroupResizeHandle getWidth={getWidth} width={width} onResize={setLiveWidth} onCommit={commitWidth} />
 
@@ -128,7 +136,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                 className={cn(
                     // As tall as its content, at most the height of the note (then its list scrolls)
                     "relative flex flex-col max-h-full rounded-xs border border-t-4",
-                    !group.color && "bg-secondary",
+                    !color && "bg-secondary",
                     // Open: same minimum width as a section, at most 32rem so long task texts and audio names wrap or truncate.
                     // Closed as a strip: the arrow, the ring and the name written vertically
                     strip ? "w-11 items-center py-2" : "gap-2 p-2 min-w-[250px]",
@@ -148,10 +156,14 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                     onAddSection={addSection}
                     renameRef={renameRef}
                 />
+                {/* The audio files and, under them, the images and videos stay put above the scrolling area: the lists neither scroll by themselves nor with the sections.
+                    Closed they stay when the preference says so: as rows under the header, or (the strip) as small buttons one over the other */}
+                {showFiles && !strip && <>
+                    <GroupAudioFiles groupId={group.id} />
+                    <GroupMediaFiles groupId={group.id} />
+                </>}
+                {showFiles && strip && <GroupStripFiles groupId={group.id} onOpen={toggleOpen} />}
                 {isOpen && <>
-                    {/* The audio files and, under them, the images and videos stay put above the scrolling area: the lists neither scroll by themselves nor with the sections */}
-                    {!isDraft && <GroupAudioFiles groupId={group.id} />}
-                    {!isDraft && <GroupMediaFiles groupId={group.id} />}
                     {/* The list of the direct tasks (with its "New task" button) sits among the sections where the user put it;
                         it, the sections and the form of a new section scroll together */}
                     {/* The scrolling area is wider on the left (6px) and taller (4px) than the group, with the same padding inside: the drop

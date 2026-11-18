@@ -202,4 +202,34 @@ describe("ButtonMenuGroup", () => {
         expect(toast.error).toHaveBeenCalledWith("boom")
         expect(recordColor).not.toHaveBeenCalled()
     })
+
+    it("offers the automatic color above the palette and saves it with its undo step", async () => {
+        const user = userEvent.setup()
+        const row = setup("#ff0000")
+        await openColorMenu(user, row)
+        await user.click(await screen.findByRole("menuitem", { name: "Automatico (avanzamento)" }))
+        await waitFor(() => expect(updateItemColor).toHaveBeenCalledWith("section_group", 3, "progress"))
+        expect(patchGroup).toHaveBeenCalledWith(3, { color: "progress" })
+        expect(recordColor).toHaveBeenCalledWith("section_group", 3, undefined, "#ff0000", "progress")
+    })
+
+    it("marks the automatic color when it is on, and picking it again does nothing", async () => {
+        const user = userEvent.setup()
+        const row = setup("progress")
+        await openColorMenu(user, row)
+        const entry = await screen.findByRole("menuitem", { name: /Automatico \(avanzamento\)/ })
+        expect(screen.getByRole("img", { name: "Colore automatico attivo" })).toBeInTheDocument()
+        await user.click(entry)
+        expect(updateItemColor).not.toHaveBeenCalled()
+        expect(recordColor).not.toHaveBeenCalled()
+    })
+
+    it("turns the automatic color off by picking no color", async () => {
+        const user = userEvent.setup()
+        const row = setup("progress")
+        await openColorMenu(user, row)
+        await user.click(await screen.findByText("Nessun colore", { selector: "button[type=button]" }))
+        await waitFor(() => expect(updateItemColor).toHaveBeenCalledWith("section_group", 3, undefined))
+        expect(recordColor).toHaveBeenCalledWith("section_group", 3, undefined, "progress", null)
+    })
 })
