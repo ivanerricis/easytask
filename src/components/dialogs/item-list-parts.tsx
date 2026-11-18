@@ -12,6 +12,8 @@ import { FormError } from "@/components/form-error"
 type ItemRowProps = {
     icon: LucideIcon
     name: string
+    /** Replaces the plain text of the name (e.g. a name that is renamed in place); `name` stays the title and the fallback. */
+    nameSlot?: ReactNode
     /** Second line (more lines as an array): where the item was, what it contains and when. */
     details: string | readonly string[]
     /** The action buttons of the row. */
@@ -19,11 +21,11 @@ type ItemRowProps = {
 }
 
 /** A row of the trash / archive / templates lists: icon, name with details, and the actions on the right. */
-export const ItemRow = ({ icon: Icon, name, details, children }: ItemRowProps) => (
+export const ItemRow = ({ icon: Icon, name, nameSlot, details, children }: ItemRowProps) => (
     <div className="flex items-center gap-2 rounded-xs border p-2">
         <Icon className="size-4 shrink-0" />
         <div className="flex flex-col min-w-0 flex-1">
-            <span className="truncate text-sm" title={name}>{name}</span>
+            {nameSlot ?? <span className="truncate text-sm" title={name}>{name}</span>}
             {(typeof details === "string" ? [details] : details).map((line, index) => (
                 <span key={index} className="truncate text-sm text-muted-foreground" title={line}>
                     {line}

@@ -17,7 +17,7 @@ import { moveDBTreeItem } from "@/db/queries/tree"
 import { moveDBSection, moveDBSectionToNewGroup, moveDBTask } from "@/db/queries/move"
 import { getDBTemplateDrafts } from "@/db/queries/template-draft"
 import { emptyDBTrash, getDBTrash, getDBTrashCount, purgeDBItem, restoreDBItem } from "@/db/queries/trash"
-import { createDBNoteFromTemplate } from "@/db/queries/template"
+import { createDBEmptyTemplate, createDBNoteFromTemplate } from "@/db/queries/template"
 import { archiveDBItem, getDBArchive, getDBArchiveCount, unarchiveDBItem } from "@/db/queries/archive"
 import { deferred } from "@/test/ui-render"
 import { getOpenGroupWidth, setOpenGroupWidth } from "@/lib/group-widths"
@@ -69,6 +69,7 @@ vi.mock("@/db/queries/archive", () => ({
 }))
 vi.mock("@/db/queries/template", () => ({
     countDBTemplates: vi.fn(),
+    createDBEmptyTemplate: vi.fn(),
     createDBNoteFromTemplate: vi.fn(),
     createDBTemplateFromNote: vi.fn(),
     getDBTemplates: vi.fn(),
@@ -455,6 +456,17 @@ describe("WorkspaceDataContext", () => {
             expect(tree.rootFolders[0].subfolders[0].notes.map(n => n.id)).toEqual([10, 20])
             expect(tree.rootFolders[0].subfolders[0].notes[1]).toMatchObject({ name: "From tpl", color: "#abc", folderID: 2, position: 1 })
             expect(getDBWorkspaceData).not.toHaveBeenCalled()
+        })
+
+        it("creates an empty template and bumps the templates version", async () => {
+            vi.mocked(createDBEmptyTemplate).mockResolvedValue(31 as never)
+            const { result } = renderHook(() => useAll(), { wrapper })
+            const before = result.current.templatesVersion
+            await act(async () => {
+                expect(await result.current.createEmptyTemplate(1, "Vuoto")).toBe(31)
+            })
+            expect(createDBEmptyTemplate).toHaveBeenCalledWith(1, "Vuoto")
+            expect(result.current.templatesVersion).toBe(before + 1)
         })
 
         it("reloads the tree when the folder of a note created from a template is not in it", async () => {

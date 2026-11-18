@@ -348,7 +348,8 @@ describe("New features: reordering, undo, trash, templates and appearance", () =
         await $(`//button[.//span[normalize-space()='${await tr("dialogs.templates.title")}']]`).click()
         const templates = $('[role="dialog"]')
         await templates.waitForDisplayed()
-        await byText(await tr("dialogs.templates.new"), templates).click()
+        await openMenuWithButton(byText(await tr("dialogs.templates.new"), templates))
+        await byText(await tr("dialogs.templates.newFromNote")).click()
 
         // Choose the note in the search dialog
         const search = $('[role="dialog"] [cmdk-input]')
@@ -364,7 +365,7 @@ describe("New features: reordering, undo, trash, templates and appearance", () =
         const createDialog = $('//*[@role="dialog"][.//input[@name="name"]]')
         await byText(await tr("dialogs.createTemplate.title"), createDialog).click()
         await createDialog.waitForExist({ reverse: true })
-        await expect(templates.$(`span=${TEMPLATE}`)).toBeDisplayed()
+        await expect(templates.$(`button=${TEMPLATE}`)).toBeDisplayed()
 
         // Note from the template
         await templates.$(`[aria-label=${JSON.stringify(await tr("dialogs.templates.createNoteFrom", { name: TEMPLATE }))}]`).click()

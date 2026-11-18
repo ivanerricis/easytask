@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from "react"
-import { countDBTemplates, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, updateDBTemplateFromNote } from "@/db/queries/template"
+import { countDBTemplates, createDBEmptyTemplate, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, updateDBTemplateFromNote } from "@/db/queries/template"
 import { duplicateDBTemplate } from "@/db/queries/duplicate"
 import { buildNote, getFolderNotes, insertTreeItem, removeTreeItem } from "../workspace-tree-ops"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
 type TemplateActions = Pick<WorkspaceActionsType,
-    "getTemplates" | "countTemplates" | "createTemplateFromNote" | "updateTemplateFromNote" | "duplicateTemplate" | "createNoteFromTemplate">
+    "getTemplates" | "countTemplates" | "createTemplateFromNote" | "createEmptyTemplate" | "updateTemplateFromNote" | "duplicateTemplate" | "createNoteFromTemplate">
 
 /**
  * Note templates. Every write bumps the templates version.
@@ -38,6 +38,20 @@ export function useTemplateActions({ withLoading, bumpTemplates, applyTree, getW
      */
     const createTemplateFromNote = useCallback((noteID: number, name: string) => withLoading(async () => {
         const id = await createDBTemplateFromNote(noteID, name)
+        bumpTemplates()
+        return id
+    }), [withLoading, bumpTemplates])
+
+    /**
+     * Creates an empty template (no groups, sections or tasks), to be filled in the template editor.
+     * @param workspaceID - The ID of the workspace.
+     * @param name - The template name (unique in the workspace).
+     * @returns The ID of the new template.
+     * @throws Will throw an error on a name clash.
+     * @category Workspace Data Context
+     */
+    const createEmptyTemplate = useCallback((workspaceID: number, name: string) => withLoading(async () => {
+        const id = await createDBEmptyTemplate(workspaceID, name)
         bumpTemplates()
         return id
     }), [withLoading, bumpTemplates])
@@ -93,5 +107,5 @@ export function useTemplateActions({ withLoading, bumpTemplates, applyTree, getW
             return id
         }), [withLoading, applyTree, getWorkspaceData, reloadTags])
 
-    return useMemo(() => ({ getTemplates, countTemplates, createTemplateFromNote, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate }), [ getTemplates, countTemplates, createTemplateFromNote, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate ])
+    return useMemo(() => ({ getTemplates, countTemplates, createTemplateFromNote, createEmptyTemplate, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate }), [ getTemplates, countTemplates, createTemplateFromNote, createEmptyTemplate, updateTemplateFromNote, duplicateTemplate, createNoteFromTemplate ])
 }

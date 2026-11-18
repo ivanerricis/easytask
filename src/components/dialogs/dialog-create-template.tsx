@@ -8,27 +8,35 @@ import { NameField } from "@/components/name-field"
 import { useFormSubmit } from "@/components/use-form-submit"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 
+type CreatedTemplate = { id: number, name: string }
+
 type DialogCreateTemplateProps = {
     /** The source note (only id and name are used). */
     note: { id: number, name: string }
     isOpen: boolean
     onOpenChange: (open: boolean) => void
-    /** Called after the template was created (e.g. to reload a list of templates). */
-    onCreated?: () => void
+    /** Called after the template was created, with its id and name (e.g. to reload a list of templates). */
+    onCreated?: (template: CreatedTemplate) => void
 }
 
-type TemplateFormProps = Pick<DialogCreateTemplateProps, "note" | "onOpenChange" | "onCreated">
+type TemplateFormProps = {
+    /** The name the field starts with. */
+    initialName: string
+    /** Creates the template with the (trimmed) name and resolves with its id. */
+    create: (name: string) => Promise<number>
+    onOpenChange: (open: boolean) => void
+    onCreated?: (template: CreatedTemplate) => void
+}
 
-// Mounted only while the dialog is open, so the name always starts from the note name
-const TemplateForm = ({ note, onOpenChange, onCreated }: TemplateFormProps) => {
+// Mounted only while the dialog is open, so the name always starts from the initial name
+const TemplateForm = ({ initialName, create, onOpenChange, onCreated }: TemplateFormProps) => {
     const { t } = useTranslation()
-    const { createTemplateFromNote } = useWorkspaceActions()
-    const [name, setName] = useState(note.name)
+    const [name, setName] = useState(initialName)
     const { busy, error, setError, submit } = useFormSubmit(async () => {
         if (!name.trim()) return
-        await createTemplateFromNote(note.id, name.trim())
+        const id = await create(name.trim())
         toast.success(t("dialogs.createTemplate.created"))
-        onCreated?.()
+        onCreated?.({ id, name: name.trim() })
         onOpenChange(false)
     })
 
@@ -61,6 +69,7 @@ const TemplateForm = ({ note, onOpenChange, onCreated }: TemplateFormProps) => {
  */
 export const DialogCreateTemplate = ({ note, isOpen, onOpenChange, onCreated }: DialogCreateTemplateProps) => {
     const { t } = useTranslation()
+    const { createTemplateFromNote } = useWorkspaceActions()
     return (
         <DialogFormShell
             isOpen={isOpen}
@@ -68,7 +77,35 @@ export const DialogCreateTemplate = ({ note, isOpen, onOpenChange, onCreated }: 
             title={t("dialogs.createTemplate.title")}
             description={t("dialogs.createTemplate.description", { name: note.name })}
         >
-            <TemplateForm note={note} onOpenChange={onOpenChange} onCreated={onCreated} />
+            <TemplateForm initialName={note.name} create={name => createTemplateFromNote(note.id, name)} onOpenChange={onOpenChange} onCreated={onCreated} />
+        </DialogFormShell>
+    )
+}
+
+type DialogCreateEmptyTemplateProps = {
+    /** The workspace the template belongs to. */
+    workspaceId: number
+    isOpen: boolean
+    onOpenChange: (open: boolean) => void
+    /** Called after the template was created (the Templates dialog opens it in the editor). */
+    onCreated?: (template: CreatedTemplate) => void
+}
+
+/**
+ * Creates an empty template: only the name is asked, the content is added in the template editor.
+ * @category Dialogs
+ */
+export const DialogCreateEmptyTemplate = ({ workspaceId, isOpen, onOpenChange, onCreated }: DialogCreateEmptyTemplateProps) => {
+    const { t } = useTranslation()
+    const { createEmptyTemplate } = useWorkspaceActions()
+    return (
+        <DialogFormShell
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+            title={t("dialogs.createTemplate.emptyTitle")}
+            description={t("dialogs.createTemplate.emptyDescription")}
+        >
+            <TemplateForm initialName="" create={name => createEmptyTemplate(workspaceId, name)} onOpenChange={onOpenChange} onCreated={onCreated} />
         </DialogFormShell>
     )
 }
