@@ -66,6 +66,7 @@ describe("a left click outside the tasks clears the selection", () => {
     const menuOpen = () => {
         const menu = document.body.appendChild(document.createElement("div"))
         menu.setAttribute("role", "menu")
+        menu.setAttribute("data-state", "open")
         return menu
     }
 

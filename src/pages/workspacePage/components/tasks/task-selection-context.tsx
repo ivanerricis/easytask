@@ -69,11 +69,16 @@ export function TaskSelectionProvider({ children }: { children: ReactNode }) {
 
     // A left click anywhere outside the tasks clears the selection (capture: nothing under the click can stop it)
     useEffect(() => {
-        const onPointerDown = (event: PointerEvent) => {
+        const onPointerDown = (event: MouseEvent) => {
             if (store.getSelected().size > 0 && clearsTaskSelection(event)) store.reset()
         }
+        // WebKitGTK's driver sometimes sends no pointerdown for a click: the mousedown is the fallback (clearing twice is harmless)
         document.addEventListener("pointerdown", onPointerDown, true)
-        return () => document.removeEventListener("pointerdown", onPointerDown, true)
+        document.addEventListener("mousedown", onPointerDown, true)
+        return () => {
+            document.removeEventListener("pointerdown", onPointerDown, true)
+            document.removeEventListener("mousedown", onPointerDown, true)
+        }
     }, [store])
 
     return (
