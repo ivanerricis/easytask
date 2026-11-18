@@ -1,5 +1,6 @@
 import type { Group as GroupType } from "@/types/types"
 import { Fragment, memo, useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from "react"
+import { createPortal } from "react-dom"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { Section } from "../section/Section"
 import { AddSection } from "../section/AddSection"
@@ -13,6 +14,8 @@ import { reportError } from "@/lib/report-error"
 import { getOpenGroupWidth, setOpenGroupWidth } from "@/lib/group-widths"
 import { GROUP_MIN_WIDTH, GROUP_PROGRESS_MIN_WIDTH } from "@/lib/group-width"
 import { GroupResizeHandle } from "./GroupResizeHandle"
+import { ButtonMenuGroup } from "./ButtonMenuGroup"
+import { useGroupColumn } from "./group-column-context"
 import { useNoteDrag, useNoteDrop } from "../note-dnd-state"
 import { GroupAudioFiles } from "./GroupAudioFiles"
 import { GroupMediaFiles } from "./GroupMediaFiles"
@@ -79,6 +82,11 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
         if (!isOpen) toggleOpen()
         setAddingSection(true)
     }, [isOpen, toggleOpen])
+    // The menu of the group wraps the whole card; the name field lives in the header, which hands over its "start editing"
+    const renameRef = useRef<(() => void) | null>(null)
+    const rename = useCallback(() => renameRef.current?.(), [])
+    // The resize handle spans the whole column (also under a short group), so it is drawn in the column element
+    const column = useGroupColumn()
 
     // While open, follow the width of the group (its content can grow or shrink); the cleanup runs before the
     // sections are removed from the DOM, so the width of the collapsed group is never recorded
@@ -104,60 +112,68 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
         ? { backgroundColor: hexToRgba(colorAlpha.panel(), group.color), borderTopColor: group.color }
         : {}
 
+    const resizeHandle = !strip && <GroupResizeHandle getWidth={getWidth} width={width} onResize={setLiveWidth} onCommit={commitWidth} />
+
     return (
-        <div
-            ref={setRef}
-            data-group-card
-            data-collapsed={isOpen ? undefined : ""}
-            data-collapsed-layout={isOpen ? undefined : strip ? "vertical" : "horizontal"}
-            // An explicit width replaces the content-driven one; as a strip the group is narrow (its width comes back on opening),
-            // as a horizontal bar it keeps the width it had while open
-            style={{ ...panel, ...(strip ? {} : width !== null ? { width } : isOpen ? {} : { minWidth: getOpenGroupWidth(group.id) }) }}
-            className={cn(
-                // As tall as its content, at most the height of the note (then its list scrolls)
-                "relative flex flex-col max-h-full rounded-xs border border-t-4",
-                !group.color && "bg-secondary",
-                // Open: same minimum width as a section, at most 32rem so long task texts and audio names wrap or truncate.
-                // Closed as a strip: the arrow, the ring and the name written vertically
-                strip ? "w-11 items-center py-2" : "gap-2 p-2 min-w-[250px]",
-                !strip && width === null && "max-w-[32rem]",
-                isDragging && "opacity-40",
-                !draggingGroup && zone && "ring-2 ring-primary",
-            )}
-        >
-            {draggingGroup && !liveDrag && <DropLine zone={zone} vertical className={zone === "before" ? "-left-[5px] z-30" : "-right-[5px] z-30"} />}
-            <GroupHeader
-                group={group}
-                index={index}
-                audioCount={audioCount}
-                mediaCount={mediaCount}
-                dragProps={dragProps}
-                compact={compact}
-                onAddSection={addSection}
-            />
-            {isOpen && <>
-                {/* The audio files and, under them, the images and videos stay put above the scrolling area: the lists neither scroll by themselves nor with the sections */}
-                {!isDraft && <GroupAudioFiles groupId={group.id} />}
-                {!isDraft && <GroupMediaFiles groupId={group.id} />}
-                {/* The list of the direct tasks (with its "New task" button) sits among the sections where the user put it;
-                    it, the sections and the form of a new section scroll together */}
-                {/* The scrolling area is wider on the left (6px) and taller (4px) than the group, with the same padding inside: the drop
-                    rings (2px) and lines (3px) drawn outside the first/last item and at the left side are not cut. On the right it ends
-                    at the edge of the group, so its scrollbar sits entirely under the header (the resize handle is outside the group,
-                    in the gap, and does not cover it); the 2px of padding keep the drop ring of an item from being cut. The tasks get
-                    narrower only while the scrollbar is there. */}
-                <div data-group-list className="flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
-                    {group.sections.map((section, position) => (
-                        <Fragment key={section.id}>
-                            {position === directIndex && <GroupTasks group={group} />}
-                            <Section section={section} />
-                        </Fragment>
-                    ))}
-                    {directIndex >= group.sections.length && <GroupTasks group={group} />}
-                    <AddSection inGroup groupId={group.id} open={addingSection} onClose={closeSectionForm} />
-                </div>
-            </>}
-            {!strip && <GroupResizeHandle getWidth={getWidth} width={width} onResize={setLiveWidth} onCommit={commitWidth} />}
-        </div>
+        <>
+        <ButtonMenuGroup group={group} onRename={rename} onAddSection={addSection}>
+            <div
+                ref={setRef}
+                data-group-card
+                data-collapsed={isOpen ? undefined : ""}
+                data-collapsed-layout={isOpen ? undefined : strip ? "vertical" : "horizontal"}
+                // An explicit width replaces the content-driven one; as a strip the group is narrow (its width comes back on opening),
+                // as a horizontal bar it keeps the width it had while open
+                style={{ ...panel, ...(strip ? {} : width !== null ? { width } : isOpen ? {} : { minWidth: getOpenGroupWidth(group.id) }) }}
+                className={cn(
+                    // As tall as its content, at most the height of the note (then its list scrolls)
+                    "relative flex flex-col max-h-full rounded-xs border border-t-4",
+                    !group.color && "bg-secondary",
+                    // Open: same minimum width as a section, at most 32rem so long task texts and audio names wrap or truncate.
+                    // Closed as a strip: the arrow, the ring and the name written vertically
+                    strip ? "w-11 items-center py-2" : "gap-2 p-2 min-w-[250px]",
+                    !strip && width === null && "max-w-[32rem]",
+                    isDragging && "opacity-40",
+                    !draggingGroup && zone && "ring-2 ring-primary",
+                )}
+            >
+                {draggingGroup && !liveDrag && <DropLine zone={zone} vertical className={zone === "before" ? "-left-[5px] z-30" : "-right-[5px] z-30"} />}
+                <GroupHeader
+                    group={group}
+                    index={index}
+                    audioCount={audioCount}
+                    mediaCount={mediaCount}
+                    dragProps={dragProps}
+                    compact={compact}
+                    onAddSection={addSection}
+                    renameRef={renameRef}
+                />
+                {isOpen && <>
+                    {/* The audio files and, under them, the images and videos stay put above the scrolling area: the lists neither scroll by themselves nor with the sections */}
+                    {!isDraft && <GroupAudioFiles groupId={group.id} />}
+                    {!isDraft && <GroupMediaFiles groupId={group.id} />}
+                    {/* The list of the direct tasks (with its "New task" button) sits among the sections where the user put it;
+                        it, the sections and the form of a new section scroll together */}
+                    {/* The scrolling area is wider on the left (6px) and taller (4px) than the group, with the same padding inside: the drop
+                        rings (2px) and lines (3px) drawn outside the first/last item and at the left side are not cut. On the right it ends
+                        at the edge of the group, so its scrollbar sits entirely under the header (the resize handle is outside the group,
+                        in the gap, and does not cover it); the 2px of padding keep the drop ring of an item from being cut. The tasks get
+                        narrower only while the scrollbar is there. */}
+                    <div data-group-list className="flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
+                        {group.sections.map((section, position) => (
+                            <Fragment key={section.id}>
+                                {position === directIndex && <GroupTasks group={group} />}
+                                <Section section={section} />
+                            </Fragment>
+                        ))}
+                        {directIndex >= group.sections.length && <GroupTasks group={group} />}
+                        <AddSection inGroup groupId={group.id} open={addingSection} onClose={closeSectionForm} />
+                    </div>
+                </>}
+                {!column && resizeHandle}
+            </div>
+        </ButtonMenuGroup>
+        {column && resizeHandle && createPortal(resizeHandle, column)}
+        </>
     )
 })

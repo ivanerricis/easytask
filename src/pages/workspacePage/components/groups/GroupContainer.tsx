@@ -1,6 +1,7 @@
 import { AddSection } from "../section/AddSection"
-import { useCallback, useLayoutEffect, useMemo, useRef, type ReactNode } from "react"
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { Group } from "./Group"
+import { GroupColumnContext } from "./group-column-context"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
 import { NewGroupEnd, NewGroupSlot } from "./NewGroupSlot"
@@ -29,10 +30,17 @@ type GroupColumnProps = {
  * moves sideways (its sections ride on it), so it is registered with the shift registry.
  */
 const GroupColumn = ({ groupId, fixedWidth, children }: GroupColumnProps) => {
-    const setRef = useCallback((node: HTMLElement | null) => registerShiftNode(groupNodeKey(groupId), node), [groupId])
+    // The node is state (not only a ref) so the handle drawn in the column renders once it exists
+    const [column, setColumn] = useState<HTMLElement | null>(null)
+    const setRef = useCallback((node: HTMLElement | null) => {
+        setColumn(node)
+        registerShiftNode(groupNodeKey(groupId), node)
+    }, [groupId])
     return (
         <div ref={setRef} {...{ [SHIFT_ATTR.groupWrap]: groupId }} className={cn("relative h-full w-fit", fixedWidth ? "shrink-0" : "max-w-full")}>
-            {children}
+            <GroupColumnContext.Provider value={column}>
+                {children}
+            </GroupColumnContext.Provider>
         </div>
     )
 }

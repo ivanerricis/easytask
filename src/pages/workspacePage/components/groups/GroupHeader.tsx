@@ -1,5 +1,5 @@
 import { MAX_NAME_LENGTH } from "@/lib/names"
-import { memo, useMemo } from "react"
+import { memo, useEffect, useMemo, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import { usePreference } from "@/contexts/use-preference"
 import { ChevronDown, FileAudio, Images, LayoutList, Plus, SquareCheckBig, type LucideIcon } from "lucide-react"
@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { useGroupOpen } from "@/contexts/use-tabs"
 import { getGroupProgress } from "./group-progress"
-import { ButtonMenuGroup } from "./ButtonMenuGroup"
 import { ItemMenuButton } from "@/components/item-menu"
 import type { Group } from "@/types/types"
 import type { HTMLAttributes } from "react"
@@ -49,9 +48,11 @@ type GroupHeaderProps = {
     compact?: boolean
     /** Opens the form of a new section in the group (the "Nuova sezione" entry of its menu). */
     onAddSection?: () => void
+    /** Filled with the function that starts the inline edit of the name: the menu of the group (which wraps the whole card) calls it from "Rename". */
+    renameRef?: RefObject<(() => void) | null>
 }
 
-export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, mediaCount = 0, compact = false, onAddSection }: GroupHeaderProps) => {
+export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, mediaCount = 0, compact = false, onAddSection, renameRef }: GroupHeaderProps) => {
     const { t } = useTranslation()
     const showSectionCount = usePreference(p => p.showSectionCount)
     const showTaskCount = usePreference(p => p.showTaskCount)
@@ -81,6 +82,12 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
         },
     })
 
+    useEffect(() => {
+        if (!renameRef) return
+        renameRef.current = startEditing
+        return () => { renameRef.current = null }
+    }, [renameRef, startEditing])
+
     const ring = showGroupProgressBar && progress.total > 0
         ? <ProgressRing value={progress.percent} size={20} color={group.color ?? undefined} aria-label={t("groups.progress")} />
         : null
@@ -88,104 +95,100 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     // Closed (vertical layout): the group is a narrow strip (see Group), its header stacked: arrow, ring, name and number of tasks.
     // With the horizontal layout the closed group keeps the one-row header below (arrow turned, same counters).
     if (!isOpen && collapsedLayout === "vertical") return (
-        <ButtonMenuGroup group={group} onRename={startEditing} onAddSection={onAddSection}>
-            <div
-                className={`group flex flex-col items-center gap-3 py-0.5 w-full ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
-                {...dragProps}>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleOpen}
-                    aria-label={t("groups.expand")}
-                    aria-expanded={false}
-                    className="size-6 shrink-0">
-                    <ChevronDown className="-rotate-90" />
-                </Button>
-                {ring}
-                {/* Same rule as the open header: an unnamed group shows no text unless the preference asks for "Gruppo N" */}
-                {(name || showUnnamedLabels) && <span title={name || label} className={`max-h-80 truncate text-sm font-semibold [writing-mode:vertical-rl] ${!name ? "text-muted-foreground" : ""}`}>
-                    {name || label}
-                </span>}
-                {showTaskCount && <span className="text-xs text-muted-foreground tabular-nums [writing-mode:vertical-rl]">
-                    {t("common.counts.task", { count: taskCount })}
-                </span>}
-            </div>
-        </ButtonMenuGroup>
+        <div
+            className={`group flex flex-col items-center gap-3 py-0.5 w-full ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
+            {...dragProps}>
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleOpen}
+                aria-label={t("groups.expand")}
+                aria-expanded={false}
+                className="size-6 shrink-0">
+                <ChevronDown className="-rotate-90" />
+            </Button>
+            {ring}
+            {/* Same rule as the open header: an unnamed group shows no text unless the preference asks for "Gruppo N" */}
+            {(name || showUnnamedLabels) && <span title={name || label} className={`max-h-80 truncate text-sm font-semibold [writing-mode:vertical-rl] ${!name ? "text-muted-foreground" : ""}`}>
+                {name || label}
+            </span>}
+            {showTaskCount && <span className="text-xs text-muted-foreground tabular-nums [writing-mode:vertical-rl]">
+                {t("common.counts.task", { count: taskCount })}
+            </span>}
+        </div>
     )
 
     return (
-        <ButtonMenuGroup group={group} onRename={startEditing} onAddSection={onAddSection}>
-            <div
-                // Everything stays on one row: the name is truncated (full name in the tooltip). The color of the group is its panel (see Group)
-                className={`group flex items-center gap-1 px-0.5 py-0.5 w-full rounded-xs ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
-                {...dragProps}>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleOpen}
-                    aria-label={isOpen ? t("groups.collapse") : t("groups.expand")}
-                    aria-expanded={isOpen}
-                    className="size-6 shrink-0">
-                    <ChevronDown className={isOpen ? "rotate-0" : "-rotate-90"} />
-                </Button>
-                {!isEditing && <button
-                    type="button"
-                    onClick={renameOnClick ? startEditing : undefined}
-                    // Enter renames even when the click does not
-                    onKeyDown={e => { if (!renameOnClick && e.key === "Enter") { e.preventDefault(); startEditing() } }}
-                    title={name || undefined}
-                    // An unnamed group shows no text unless the preference asks for the fallback label
-                    // Says what the button does (Enter renames), not only what it is called
-                    aria-label={t("groups.renameAria", { name: label })}
-                    className={`text-sm font-semibold mr-1 min-w-[6ch] max-w-72 flex-1 h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!name ? "text-muted-foreground" : ""}`}>
-                    {search.query ? <Highlight text={name} query={search.query} active={search.active} /> : name || (showUnnamedLabels ? label : "")}
-                </button>}
-                {isEditing && <InlineErrorTooltip message={error}>
-                    <Input
-                        {...inputProps}
+        <div
+            // Everything stays on one row: the name is truncated (full name in the tooltip). The color of the group is its panel (see Group)
+            className={`group flex items-center gap-1 px-0.5 py-0.5 w-full rounded-xs ${dragProps ? "touch-none cursor-grab active:cursor-grabbing" : ""}`}
+            {...dragProps}>
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleOpen}
+                aria-label={isOpen ? t("groups.collapse") : t("groups.expand")}
+                aria-expanded={isOpen}
+                className="size-6 shrink-0">
+                <ChevronDown className={isOpen ? "rotate-0" : "-rotate-90"} />
+            </Button>
+            {!isEditing && <button
+                type="button"
+                onClick={renameOnClick ? startEditing : undefined}
+                // Enter renames even when the click does not
+                onKeyDown={e => { if (!renameOnClick && e.key === "Enter") { e.preventDefault(); startEditing() } }}
+                title={name || undefined}
+                // An unnamed group shows no text unless the preference asks for the fallback label
+                // Says what the button does (Enter renames), not only what it is called
+                aria-label={t("groups.renameAria", { name: label })}
+                className={`text-sm font-semibold mr-1 min-w-[6ch] max-w-72 flex-1 h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!name ? "text-muted-foreground" : ""}`}>
+                {search.query ? <Highlight text={name} query={search.query} active={search.active} /> : name || (showUnnamedLabels ? label : "")}
+            </button>}
+            {isEditing && <InlineErrorTooltip message={error}>
+                <Input
+                    {...inputProps}
+                    onPointerDown={e => e.stopPropagation()}
+                    type="text"
+                    placeholder={label}
+                    aria-label={t("groups.nameLabel")}
+                    maxLength={MAX_NAME_LENGTH}
+                    className="h-6 min-w-0 flex-1 mr-1 px-1 py-0 text-sm font-semibold md:text-sm border-primary"
+                />
+            </InlineErrorTooltip>}
+            {/* ml-auto: when the group is wider than the name needs, the bar, the counters and the menu stay on the right edge */}
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                <div className="flex shrink-0 gap-2 text-muted-foreground">
+                    {showSectionCount && <CountBadge icon={LayoutList} count={group.sections.length} label={t("common.counts.section", { count: group.sections.length })} />}
+                    {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={t("common.counts.task", { count: taskCount })} />}
+                    {showAudioFileCount && audioCount > 0 && <CountBadge icon={FileAudio} count={audioCount} label={t("groups.audioCount", { count: audioCount })} />}
+                    {showAudioFileCount && mediaCount > 0 && <CountBadge icon={Images} count={mediaCount} label={t("groups.mediaCount", { count: mediaCount })} />}
+                </div>
+                {ring && <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                    {ring}
+                    {/* A narrow group keeps the ring and drops the number, so the name keeps its space */}
+                    {!compact && <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
+                        {Math.round(progress.percent)}%
+                    </span>}
+                </div>}
+                {onAddSection && <TooltipCustom text={t("sections.new")}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={onAddSection}
                         onPointerDown={e => e.stopPropagation()}
-                        type="text"
-                        placeholder={label}
-                        aria-label={t("groups.nameLabel")}
-                        maxLength={MAX_NAME_LENGTH}
-                        className="h-6 min-w-0 flex-1 mr-1 px-1 py-0 text-sm font-semibold md:text-sm border-primary"
-                    />
-                </InlineErrorTooltip>}
-                {/* ml-auto: when the group is wider than the name needs, the bar, the counters and the menu stay on the right edge */}
-                <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                    <div className="flex shrink-0 gap-2 text-muted-foreground">
-                        {showSectionCount && <CountBadge icon={LayoutList} count={group.sections.length} label={t("common.counts.section", { count: group.sections.length })} />}
-                        {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={t("common.counts.task", { count: taskCount })} />}
-                        {showAudioFileCount && audioCount > 0 && <CountBadge icon={FileAudio} count={audioCount} label={t("groups.audioCount", { count: audioCount })} />}
-                        {showAudioFileCount && mediaCount > 0 && <CountBadge icon={Images} count={mediaCount} label={t("groups.mediaCount", { count: mediaCount })} />}
-                    </div>
-                    {ring && <div className="flex items-center gap-1.5 shrink-0 ml-1">
-                        {ring}
-                        {/* A narrow group keeps the ring and drops the number, so the name keeps its space */}
-                        {!compact && <span className="min-w-[3ch] text-right text-xs text-muted-foreground tabular-nums">
-                            {Math.round(progress.percent)}%
-                        </span>}
-                    </div>}
-                    {onAddSection && <TooltipCustom text={t("sections.new")}>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={onAddSection}
-                            onPointerDown={e => e.stopPropagation()}
-                            aria-label={t("sections.new")}
-                            className="size-6 shrink-0 text-muted-foreground hover:text-foreground">
-                            <Plus />
-                        </Button>
-                    </TooltipCustom>}
-                    {/* flex + leading-none: in a block wrapper the line height leaves a gap under the button, which then sits off-center */}
-                    <div className="flex items-center leading-none shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
-                        <ItemMenuButton name={label} />
-                    </div>
+                        aria-label={t("sections.new")}
+                        className="size-6 shrink-0 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100">
+                        <Plus />
+                    </Button>
+                </TooltipCustom>}
+                {/* flex + leading-none: in a block wrapper the line height leaves a gap under the button, which then sits off-center */}
+                <div className="flex items-center leading-none shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+                    <ItemMenuButton name={label} />
                 </div>
             </div>
-        </ButtonMenuGroup>
+        </div>
     )
 })
