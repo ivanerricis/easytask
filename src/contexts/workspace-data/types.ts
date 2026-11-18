@@ -120,6 +120,8 @@ export type WorkspaceActionsType = {
     getTemplates: (workspaceID: number) => Promise<NoteTemplate[]>
     countTemplates: (workspaceID: number) => Promise<number>
     createTemplateFromNote: (noteID: number, name: string) => Promise<number>
+    /** Creates an empty template (no groups); resolves with its ID. */
+    createEmptyTemplate: (workspaceID: number, name: string) => Promise<number>
     /** Refreshes the snapshot of a template from its source note, or from another note of the workspace (which becomes the source). */
     updateTemplateFromNote: (templateID: number, noteID?: number) => Promise<void>
     /** Duplicates a template; resolves with the ID of the copy. */

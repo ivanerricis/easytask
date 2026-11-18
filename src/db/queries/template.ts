@@ -188,6 +188,26 @@ export async function createDBTemplateFromNote(noteId: number, name: string): Pr
     }
 }
 
+/**
+ * Creates an empty template: no source note and no groups (the content is filled in the template editor).
+ * @param workspaceId The ID of the workspace.
+ * @param name The name of the template (unique in the workspace).
+ * @returns The ID of the new template.
+ * @throws "TEMPLATE_EXISTS" on a name clash.
+ * @category Database Queries
+ */
+export async function createDBEmptyTemplate(workspaceId: number, name: string): Promise<number> {
+    try {
+        const db = await getDB()
+        const result = await db.execute(
+            'INSERT INTO note_template (workspaceID, sourceNoteID, name, content) VALUES (?, NULL, ?, ?)',
+            [workspaceId, name.trim(), JSON.stringify(EMPTY_CONTENT)])
+        return result.lastInsertId as number
+    } catch (error: unknown) {
+        throw toAppError(error, e => handleDBError(e, "TEMPLATE", { UNIQUE: TEMPLATE_UNIQUE_MESSAGE(), CHECK: TEMPLATE_CHECK_MESSAGE() }))
+    }
+}
+
 const TEMPLATE_SELECT = `SELECT t.*, n.name AS sourceNoteName FROM note_template t
     LEFT JOIN note n ON n.id = t.sourceNoteID AND n.deleted_at IS NULL`
 

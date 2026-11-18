@@ -18,6 +18,8 @@ const GROUP = "Tpl Group"
 const TASK_A = "Tpl task saved by itself"
 const TASK_B = "Tpl task saved at restart"
 const NOTE_FROM_TEMPLATE = "Tpl Note From Template"
+const EMPTY_TEMPLATE = "Tpl Empty Template"
+const RENAMED_TEMPLATE = "Tpl Empty Renamed"
 
 const xpathString = (value: string) =>
     value.includes("'") ? `concat('${value.split("'").join(`', "'", '`)}')` : `'${value}'`
@@ -90,6 +92,7 @@ describe("Template editor", () => {
 
         const templates = await openTemplatesDialog()
         await byText(await tr("dialogs.templates.new"), templates).click()
+        await byText(await tr("dialogs.templates.newFromNote")).click()
         const search = $('[role="dialog"] [cmdk-input]')
         await search.waitForDisplayed()
         await typeInto(search, NOTE)
@@ -122,9 +125,11 @@ describe("Template editor", () => {
 
     it("does not allow refreshing from the source note while the editor is open", async () => {
         const templates = await openTemplatesDialog()
-        const refresh = templates.$(`[aria-label=${JSON.stringify(await tr("dialogs.templates.refreshAria", { name: TEMPLATE }))}]`)
+        await templates.$(`[aria-label=${JSON.stringify(await tr("templateEditor.moreAria", { name: TEMPLATE }))}]`).click()
+        const refresh = $(`//*[@role="menuitem"][contains(normalize-space(), ${xpathString(await tr("dialogs.templates.refreshFromSource"))})]`)
         await refresh.waitForDisplayed()
         await expect(refresh).toHaveAttribute("aria-disabled", "true")
+        await browser.keys("Escape")
     })
 
     it("duplicates the template", async () => {
@@ -188,5 +193,36 @@ describe("Template editor", () => {
             // The data folder is shared by the other specs: the option goes back to its default
             await setReopenNotes(true).catch(() => undefined)
         }
+    })
+
+    it("creates an empty template by name and opens it in the editor", async () => {
+        const templates = await openTemplatesDialog()
+        await byText(await tr("dialogs.templates.new"), templates).click()
+        await byText(await tr("dialogs.templates.newEmpty")).click()
+        const nameInput = $('[role="dialog"] input[name="name"]')
+        await nameInput.waitForDisplayed()
+        await typeInto(nameInput, EMPTY_TEMPLATE)
+        const createDialog = $('//*[@role="dialog"][.//input[@name="name"]]')
+        await byText(await tr("dialogs.createTemplate.title"), createDialog).click()
+        await (await templateEditorTab(EMPTY_TEMPLATE)).waitForDisplayed({ timeout: 15_000, timeoutMsg: "the empty template did not open in the editor" })
+        const rows = await sql<{ content: string, sourceNoteID: number | null }[]>(
+            "select", "SELECT content, sourceNoteID FROM note_template WHERE name = ? AND deleted_at IS NULL", [EMPTY_TEMPLATE])
+        expect(rows).toHaveLength(1)
+        expect(rows[0].sourceNoteID).toBeNull()
+        expect(JSON.parse(rows[0].content).groups).toEqual([])
+    })
+
+    it("renames a template by clicking its name in the list", async () => {
+        const templates = await openTemplatesDialog()
+        await templates.$(`[aria-label=${JSON.stringify(await tr("dialogs.templates.renameAria", { name: EMPTY_TEMPLATE }))}]`).click()
+        const input = templates.$(`input[aria-label=${JSON.stringify(await tr("common.name"))}]`)
+        await input.waitForDisplayed()
+        await typeInto(input, RENAMED_TEMPLATE)
+        await browser.keys("Enter")
+        await browser.waitUntil(
+            async () => (await sql<{ n: number }[]>("select", "SELECT COUNT(*) AS n FROM note_template WHERE name = ? AND deleted_at IS NULL", [RENAMED_TEMPLATE]))[0].n === 1,
+            { timeoutMsg: "the template was not renamed" },
+        )
+        await closeAllDialogs()
     })
 })

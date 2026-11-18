@@ -349,6 +349,7 @@ describe("New features: reordering, undo, trash, templates and appearance", () =
         const templates = $('[role="dialog"]')
         await templates.waitForDisplayed()
         await byText(await tr("dialogs.templates.new"), templates).click()
+        await byText(await tr("dialogs.templates.newFromNote")).click()
 
         // Choose the note in the search dialog
         const search = $('[role="dialog"] [cmdk-input]')

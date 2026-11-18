@@ -22,7 +22,7 @@ vi.mock("@tauri-apps/api/core", async () => {
 })
 
 import {
-    countDBTemplates, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, parseTemplateContent, renameDBTemplate, updateDBTemplateFromNote,
+    countDBTemplates, createDBEmptyTemplate, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, parseTemplateContent, renameDBTemplate, updateDBTemplateFromNote,
 } from "./template"
 import { getDBNoteData } from "./note"
 import { deleteDBItem, renameDBItem, updateDBColor } from "./shared_queries"
@@ -192,6 +192,29 @@ describe("createDBTemplateFromNote", () => {
         await createDBTemplateFromNote(1, "T")
         expect((await getDBTemplates(1)).map(t => t.name)).toEqual(["T"])
         expect((await getDBTemplates(2)).map(t => t.name)).toEqual(["T"])
+    })
+})
+
+describe("createDBEmptyTemplate", () => {
+    it("creates a template with no source note, no color and no groups", async () => {
+        const id = await createDBEmptyTemplate(1, "  Vuoto ")
+        const [row] = await getDBTemplates(1)
+        expect(row).toMatchObject({ id, workspaceID: 1, sourceNoteID: null, sourceNoteName: null, name: "Vuoto", color: null, content: { version: 1, groups: [] } })
+        expect(countTemplateContent(row.content)).toEqual({ groups: 0, sections: 0, tasks: 0 })
+        expect(await countDBTemplates(1)).toBe(1)
+    })
+
+    it("maps a name clash and an empty name, and allows the name in another workspace", async () => {
+        await createDBEmptyTemplate(1, "T")
+        expect(await thrown(createDBEmptyTemplate(1, "T"))).toEqual({ code: "TEMPLATE_EXISTS", message: "Esiste già un template con questo nome." })
+        expect(await thrown(createDBEmptyTemplate(1, "  "))).toMatchObject({ code: "TEMPLATE_CHECK_FAILED" })
+        await createDBEmptyTemplate(2, "T")
+        expect((await getDBTemplates(2)).map(t => t.name)).toEqual(["T"])
+    })
+
+    it("cannot be refreshed from a source note (it has none)", async () => {
+        const id = await createDBEmptyTemplate(1, "T")
+        expect(await thrown(updateDBTemplateFromNote(id))).toMatchObject({ code: "TEMPLATE_SOURCE_MISSING" })
     })
 })
 

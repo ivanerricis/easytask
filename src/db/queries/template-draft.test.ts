@@ -18,7 +18,7 @@ vi.mock("@tauri-apps/api/core", async () => {
     return { invoke: createSqliteInvoke(() => sqlite) }
 })
 
-import { createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, updateDBTemplateFromNote } from "./template"
+import { createDBEmptyTemplate, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplates, updateDBTemplateFromNote } from "./template"
 import {
     createDBTemplateDraft, deleteDBTemplateDraft, getDBTemplateDraft, getDBTemplateDrafts, saveDBTemplateDraft, setDBTemplateDraftColor,
 } from "./template-draft"
@@ -72,6 +72,19 @@ describe("createDBTemplateDraft", () => {
         // The position of the list among the sections (1) comes back unchanged: saving it again finds nothing to write
         expect(contentOf(templateId).groups[0].directIndex).toBe(1)
         await expect(saveDBTemplateDraft(noteId)).resolves.toBe("unchanged")
+    })
+
+    it("opens an empty template as a note with no groups, and a group added there is saved into the template", async () => {
+        const templateId = await createDBEmptyTemplate(1, "Vuoto")
+        const noteId = await createDBTemplateDraft(templateId)
+
+        expect(rows(`SELECT name, templateID FROM note WHERE id = ${noteId}`)).toEqual([{ name: "Vuoto", templateID: templateId }])
+        expect(rows(`SELECT id FROM section_group WHERE noteID = ${noteId}`)).toHaveLength(0)
+        await expect(saveDBTemplateDraft(noteId)).resolves.toBe("unchanged")
+
+        sqlite.exec(`INSERT INTO section_group (noteID, position, name) VALUES (${noteId}, 0, 'Nuovo')`)
+        await expect(saveDBTemplateDraft(noteId)).resolves.toBe("written")
+        expect(contentOf(templateId).groups).toMatchObject([{ name: "Nuovo" }])
     })
 
     it("returns the draft that already exists instead of creating another", async () => {

@@ -1,26 +1,24 @@
 import { useTranslation } from "react-i18next"
-import { useId, useState } from "react"
-import { Copy, FilePlus, LayoutTemplate, MoreHorizontal, Pencil, Plus, FileInput, SquarePen, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { FileInput, FilePlus, LayoutTemplate, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "./dialog-confirm"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormError } from "@/components/form-error"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { TooltipCustom } from "@/components/tooltip-custom"
-import { ItemRow, ListEmpty, ListError, ListSkeleton } from "./item-list-parts"
+import { ListEmpty, ListError, ListSkeleton } from "./item-list-parts"
+import { TemplateRow } from "./template-row"
 import { useOpenList } from "./use-open-list"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useTemplateDraftActions, useTemplateDrafts } from "@/contexts/use-template-drafts"
-import { DialogRenameItem } from "@/components/dialogs/dialog-rename"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
 import { DialogNoteFromTemplate } from "@/components/dialogs/dialog-note-from-template"
-import { DialogCreateTemplate } from "@/components/dialogs/dialog-create-template"
+import { DialogCreateEmptyTemplate, DialogCreateTemplate } from "@/components/dialogs/dialog-create-template"
 import { DialogPickNote } from "@/components/dialogs/dialog-pick-note"
 import { useAllNotes } from "@/hooks/use-all-notes"
-import { formatDate } from "@/lib/utils"
-import { countTemplateContent, type NoteTemplate } from "@/types/template"
+import type { NoteTemplate } from "@/types/template"
 
 // The search box is shown only when the list gets long
 const SEARCH_THRESHOLD = 8
@@ -40,7 +38,6 @@ type DialogTemplatesProps = {
  */
 export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) => {
     const { t } = useTranslation()
-    const reasonId = useId()
     const { currentWorkspace } = useWorkspace()
     const { getTemplates, updateTemplateFromNote, duplicateTemplate } = useWorkspaceActions()
     const drafts = useTemplateDrafts()
@@ -61,7 +58,6 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
     })
     const [search, setSearch] = useState("")
     const [creating, setCreating] = useState<NoteTemplate | null>(null)
-    const [renaming, setRenaming] = useState<NoteTemplate | null>(null)
     const [deleting, setDeleting] = useState<NoteTemplate | null>(null)
     // The template being refreshed; `note` is the other note chosen as the source (none = its source note)
     const [refreshing, setRefreshing] = useState<{ template: NoteTemplate, note?: { id: number, name: string } } | null>(null)
@@ -70,6 +66,8 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
     // Creating a template here: first the note is chosen, then the template gets its name
     const [picking, setPicking] = useState(false)
     const [source, setSource] = useState<{ id: number, name: string } | null>(null)
+    // Creating an empty template: its name is asked, then it opens in the editor
+    const [creatingEmpty, setCreatingEmpty] = useState(false)
 
     // The template is saved first, so what the user sees in the list is what the action works on
     const saved = async (template: NoteTemplate) => {
@@ -105,7 +103,11 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onOpenChange}>
-                <DialogContent className="flex flex-col sm:max-w-xl max-h-[min(560px,85vh)] overflow-hidden">
+                <DialogContent
+                    className="flex flex-col sm:max-w-xl max-h-[min(560px,85vh)] overflow-hidden"
+                    // Escape while a name is being edited only cancels the edit
+                    onEscapeKeyDown={e => { if ((e.target as HTMLElement | null)?.closest?.("[data-template-rename]")) e.preventDefault() }}
+                >
                     <DialogHeader>
                         <DialogTitle>{t("dialogs.templates.title")}</DialogTitle>
                         <DialogDescription>
@@ -131,113 +133,22 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
                             <ListEmpty>{t("common.noResults")}</ListEmpty>
                         ) : (
                             visible.map(template => {
-                                const counts = countTemplateContent(template.content)
                                 // While its editor is open the content of the template changes by itself: no refresh from a note
                                 const editing = drafts.some(draft => draft.templateId === template.id)
-                                const refreshReason = editing ? t("templateEditor.refreshBlocked") : template.sourceNoteName === null ? t("dialogs.templates.sourceMissing") : null
                                 return (
-                                    <ItemRow
+                                    <TemplateRow
                                         key={template.id}
-                                        icon={LayoutTemplate}
-                                        name={template.name}
-                                        details={[
-                                            `${template.sourceNoteName !== null ? t("dialogs.templates.from", { name: template.sourceNoteName }) : t("dialogs.templates.noteDeleted")} · ${t("dialogs.templates.createdOn", { date: formatDate(template.creation_date) })}`,
-                                            [
-                                                t("common.counts.group", { count: counts.groups }),
-                                                t("common.counts.section", { count: counts.sections }),
-                                                t("common.counts.task", { count: counts.tasks }),
-                                            ].join(" · "),
-                                        ]}
-                                    >
-                                        <TooltipCustom text={t("dialogs.templates.createNote")}>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                aria-label={t("dialogs.templates.createNoteFrom", { name: template.name })}
-                                                disabled={busy}
-                                                onClick={() => { void saved(template).then(ok => { if (ok) setCreating(template) }) }}
-                                            >
-                                                <FilePlus />
-                                            </Button>
-                                        </TooltipCustom>
-                                        <TooltipCustom text={t("templateEditor.edit")}>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                aria-label={t("templateEditor.editAria", { name: template.name })}
-                                                disabled={busy}
-                                                onClick={() => void handleEdit(template)}
-                                            >
-                                                <SquarePen />
-                                            </Button>
-                                        </TooltipCustom>
-                                        <TooltipCustom text={t("common.rename")}>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                aria-label={t("dialogs.templates.renameAria", { name: template.name })}
-                                                disabled={busy}
-                                                onClick={() => setRenaming(template)}
-                                            >
-                                                <Pencil />
-                                            </Button>
-                                        </TooltipCustom>
-                                        <TooltipCustom text={refreshReason ?? t("dialogs.templates.refreshTooltip")}>
-                                            {/* A disabled button gets no pointer events: the span keeps the tooltip working */}
-                                            <span>
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    aria-label={t("dialogs.templates.refreshAria", { name: template.name })}
-                                                    aria-describedby={refreshReason !== null ? `${reasonId}-source-${template.id}` : undefined}
-                                                    aria-disabled={refreshReason !== null || undefined}
-                                                    disabled={busy}
-                                                    className="aria-disabled:opacity-50 aria-disabled:pointer-events-none"
-                                                    onClick={() => { if (refreshReason === null) setRefreshing({ template }) }}
-                                                >
-                                                    <FileInput />
-                                                </Button>
-                                                {/* aria-disabled, not disabled: the button stays focusable and the reason is read aloud */}
-                                                {refreshReason !== null && <span id={`${reasonId}-source-${template.id}`} className="sr-only">{refreshReason}</span>}
-                                            </span>
-                                        </TooltipCustom>
-                                        <DropdownMenu>
-                                            <TooltipCustom text={t("templateEditor.moreTooltip")}>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        aria-label={t("templateEditor.moreAria", { name: template.name })}
-                                                        disabled={busy}
-                                                    >
-                                                        <MoreHorizontal />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                            </TooltipCustom>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => void handleDuplicate(template)}>
-                                                    <Copy />
-                                                    {t("templateEditor.duplicate")}
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem disabled={editing} onSelect={() => setPickingFor(template)}>
-                                                    <FileInput />
-                                                    {t("templateEditor.refreshFromOther")}
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                        <span aria-hidden className="mx-0.5 w-px self-stretch bg-border" />
-                                        <TooltipCustom text={t("common.delete")}>
-                                            <Button
-                                                variant="destructive"
-                                                size="icon"
-                                                aria-label={t("dialogs.templates.deleteAria", { name: template.name })}
-                                                disabled={busy}
-                                                onClick={() => setDeleting(template)}
-                                            >
-                                                <Trash2 />
-                                            </Button>
-                                        </TooltipCustom>
-                                    </ItemRow>
+                                        template={template}
+                                        busy={busy}
+                                        editing={editing}
+                                        reload={reload}
+                                        onCreateNote={() => { void saved(template).then(ok => { if (ok) setCreating(template) }) }}
+                                        onEdit={() => void handleEdit(template)}
+                                        onDelete={() => setDeleting(template)}
+                                        onDuplicate={() => void handleDuplicate(template)}
+                                        onRefresh={() => setRefreshing({ template })}
+                                        onRefreshFromOther={() => setPickingFor(template)}
+                                    />
                                 )
                             })
                         )}
@@ -250,22 +161,27 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
                         <Button variant="outline" onClick={() => onOpenChange(false)}>
                             {t("common.close")}
                         </Button>
-                        <TooltipCustom text={allNotes.length === 0 ? t("dialogs.templates.noNotes") : undefined}>
-                            {/* A disabled button gets no pointer events: the span keeps the tooltip working */}
-                            <span className="inline-flex">
-                                <Button
-                                    className="max-sm:w-full aria-disabled:opacity-50 aria-disabled:pointer-events-none"
-                                    disabled={busy}
-                                    aria-disabled={allNotes.length === 0 || undefined}
-                                    aria-describedby={allNotes.length === 0 ? `${reasonId}-no-notes` : undefined}
-                                    onClick={() => { if (allNotes.length > 0) setPicking(true) }}
-                                >
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="max-sm:w-full" disabled={busy}>
                                     <Plus />
                                     {t("dialogs.templates.new")}
                                 </Button>
-                                {allNotes.length === 0 && <span id={`${reasonId}-no-notes`} className="sr-only">{t("dialogs.templates.noNotes")}</span>}
-                            </span>
-                        </TooltipCustom>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem disabled={workspaceID === undefined} onSelect={() => setCreatingEmpty(true)}>
+                                    <LayoutTemplate />
+                                    {t("dialogs.templates.newEmpty")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem disabled={allNotes.length === 0} onSelect={() => setPicking(true)}>
+                                    <FilePlus />
+                                    <span className="flex flex-col">
+                                        {t("dialogs.templates.newFromNote")}
+                                        {allNotes.length === 0 && <span className="text-xs text-muted-foreground">{t("dialogs.templates.noNotes")}</span>}
+                                    </span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -286,6 +202,20 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
                 description={t("templateEditor.pickOther.description")}
                 placeholder={t("templateEditor.pickOther.placeholder")}
             />
+            {creatingEmpty && workspaceID !== undefined && (
+                <DialogCreateEmptyTemplate
+                    workspaceId={workspaceID}
+                    isOpen
+                    onOpenChange={open => { if (!open) setCreatingEmpty(false) }}
+                    onCreated={template => {
+                        // The new template is opened in the editor, where its content is written
+                        void run(async () => {
+                            await openTemplateEditor(template)
+                            onOpenChange(false)
+                        }, undefined, { reload: false })
+                    }}
+                />
+            )}
             {source && (
                 <DialogCreateTemplate
                     key={source.id}
@@ -302,17 +232,6 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
                     isOpen
                     onOpenChange={open => { if (!open) setCreating(null) }}
                     onCreated={() => onOpenChange(false)}
-                />
-            )}
-            {renaming && (
-                <DialogRenameItem
-                    key={renaming.id}
-                    item={renaming}
-                    itemType="note_template"
-                    isOpen
-                    onOpenChange={open => { if (!open) setRenaming(null) }}
-                    getItemId={renaming.id}
-                    getItemData={reload}
                 />
             )}
             {deleting && (

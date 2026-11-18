@@ -24,6 +24,7 @@ const data = {
     updateTemplateFromNote: vi.fn(),
     duplicateTemplate: vi.fn(),
     createTemplateFromNote: vi.fn(),
+    createEmptyTemplate: vi.fn(),
     createNoteFromTemplate: vi.fn(),
     notes: [] as unknown[],
     folders: [] as unknown[],
@@ -78,6 +79,7 @@ describe("DialogTemplates", () => {
         data.notes = []
         data.folders = []
         data.createTemplateFromNote.mockResolvedValue(77)
+        data.createEmptyTemplate.mockResolvedValue(88)
         data.getTemplates.mockResolvedValue(templates)
         data.updateTemplateFromNote.mockResolvedValue(undefined)
         data.createNoteFromTemplate.mockResolvedValue(55)
@@ -106,14 +108,35 @@ describe("DialogTemplates", () => {
     it("shows the empty state", async () => {
         data.getTemplates.mockResolvedValue([])
         render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
-        expect(await screen.findByText("Nessun template. Creane uno da una nota con il pulsante \"Nuovo template\", o dal menu della nota.")).toBeInTheDocument()
+        expect(await screen.findByText("Nessun template. Creane uno con il pulsante \"Nuovo\", o dal menu di una nota.")).toBeInTheDocument()
     })
 
-    it("disables 'Aggiorna dalla nota' when the source note no longer exists", async () => {
+    it("disables 'Aggiorna dalla nota sorgente' when the source note no longer exists", async () => {
+        const user = userEvent.setup()
         render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
         await screen.findByText("Retro")
-        expect(screen.getByRole("button", { name: "Aggiorna Retro dalla nota" })).toBeEnabled()
-        expect(screen.getByRole("button", { name: "Aggiorna Onboarding dalla nota" })).toHaveAttribute("aria-disabled", "true")
+        await user.click(screen.getByRole("button", { name: "Altre azioni per Retro" }))
+        expect(await screen.findByRole("menuitem", { name: "Aggiorna dalla nota sorgente" })).not.toHaveAttribute("aria-disabled", "true")
+        await user.keyboard("{Escape}")
+        await user.click(screen.getByRole("button", { name: "Altre azioni per Onboarding" }))
+        const item = await screen.findByRole("menuitem", { name: /Aggiorna dalla nota sorgente/ })
+        expect(item).toHaveAttribute("aria-disabled", "true")
+        expect(item).toHaveTextContent("La nota di origine non esiste più")
+    })
+
+    it("keeps only Crea nota, Modifica and Elimina outside the menu, and the other actions inside", async () => {
+        const user = userEvent.setup()
+        render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
+        await screen.findByText("Retro")
+        expect(screen.getByRole("button", { name: "Crea nota da Retro" })).toBeInTheDocument()
+        expect(screen.getByRole("button", { name: "Modifica il template Retro" })).toBeInTheDocument()
+        expect(screen.getByRole("button", { name: "Elimina Retro" })).toBeInTheDocument()
+        expect(screen.queryByRole("button", { name: /Aggiorna Retro/ })).not.toBeInTheDocument()
+
+        await user.click(screen.getByRole("button", { name: "Altre azioni per Retro" }))
+        expect((await screen.findAllByRole("menuitem")).map(item => item.textContent?.trim())).toEqual([
+            "Rinomina", "Aggiorna dalla nota sorgente", "Aggiorna da un'altra nota…", "Duplica",
+        ])
     })
 
     it("creates a note from a template in the chosen folder (the context updates the tree) and opens the note", async () => {
@@ -163,23 +186,63 @@ describe("DialogTemplates", () => {
         await waitFor(() => expect(data.getTemplates).toHaveBeenCalledTimes(2))
     })
 
-    it("renames a template", async () => {
+    it("renames a template in place: a click on the name, Enter saves", async () => {
         const user = userEvent.setup()
         render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
         await user.click(await screen.findByRole("button", { name: "Rinomina Retro" }))
         const input = await screen.findByDisplayValue("Retro")
+        expect(input).toHaveFocus()
         await user.clear(input)
-        await user.type(input, "Retrospettiva")
-        await user.click(screen.getByRole("button", { name: "Salva" }))
+        await user.type(input, "Retrospettiva{Enter}")
 
         await waitFor(() => expect(data.renameItem).toHaveBeenCalledWith("note_template", 1, "Retrospettiva"))
         await waitFor(() => expect(data.getTemplates).toHaveBeenCalledTimes(2))
     })
 
+    it("renames a template from the Rinomina entry of the menu", async () => {
+        const user = userEvent.setup()
+        render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
+        await user.click(await screen.findByRole("button", { name: "Altre azioni per Retro" }))
+        await user.click(await screen.findByRole("menuitem", { name: "Rinomina" }))
+        const input = await screen.findByDisplayValue("Retro")
+        await waitFor(() => expect(input).toHaveFocus())
+        await user.type(input, " bis{Enter}")
+
+        await waitFor(() => expect(data.renameItem).toHaveBeenCalledWith("note_template", 1, "Retro bis"))
+    })
+
+    it("Escape cancels the rename and keeps the dialog open", async () => {
+        const user = userEvent.setup()
+        const onOpenChange = vi.fn()
+        render(<DialogTemplates isOpen onOpenChange={onOpenChange} />)
+        await user.click(await screen.findByRole("button", { name: "Rinomina Retro" }))
+        const input = await screen.findByDisplayValue("Retro")
+        await user.type(input, "xyz{Escape}")
+
+        await waitFor(() => expect(screen.queryByDisplayValue("Retroxyz")).not.toBeInTheDocument())
+        expect(screen.getByRole("button", { name: "Rinomina Retro" })).toBeInTheDocument()
+        expect(data.renameItem).not.toHaveBeenCalled()
+        expect(onOpenChange).not.toHaveBeenCalled()
+    })
+
+    it("shows the clash of a name in the row and keeps the field open", async () => {
+        const user = userEvent.setup()
+        data.renameItem.mockRejectedValueOnce({ code: "TEMPLATE_EXISTS", message: "Esiste già un template con questo nome." })
+        render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
+        await user.click(await screen.findByRole("button", { name: "Rinomina Retro" }))
+        const input = await screen.findByDisplayValue("Retro")
+        await user.clear(input)
+        await user.type(input, "Onboarding{Enter}")
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("Esiste già un template con questo nome.")
+        expect(screen.getByDisplayValue("Onboarding")).toBeInTheDocument()
+    })
+
     it("asks for confirmation before overwriting the template from its note", async () => {
         const user = userEvent.setup()
         render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
-        await user.click(await screen.findByRole("button", { name: "Aggiorna Retro dalla nota" }))
+        await user.click(await screen.findByRole("button", { name: "Altre azioni per Retro" }))
+        await user.click(await screen.findByRole("menuitem", { name: "Aggiorna dalla nota sorgente" }))
         expect(await screen.findByText("Aggiornare il template dalla nota?")).toBeInTheDocument()
         expect(data.updateTemplateFromNote).not.toHaveBeenCalled()
 
@@ -192,7 +255,8 @@ describe("DialogTemplates", () => {
     it("does not overwrite when the confirmation is cancelled", async () => {
         const user = userEvent.setup()
         render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
-        await user.click(await screen.findByRole("button", { name: "Aggiorna Retro dalla nota" }))
+        await user.click(await screen.findByRole("button", { name: "Altre azioni per Retro" }))
+        await user.click(await screen.findByRole("menuitem", { name: "Aggiorna dalla nota sorgente" }))
         await user.click(await screen.findByRole("button", { name: "Annulla" }))
         expect(data.updateTemplateFromNote).not.toHaveBeenCalled()
     })
@@ -239,10 +303,12 @@ describe("DialogTemplates", () => {
             const user = userEvent.setup()
             editor.drafts = [{ noteId: 50, templateId: 1 }]
             render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
-            const refresh = await screen.findByRole("button", { name: "Aggiorna Retro dalla nota" })
+            await user.click(await screen.findByRole("button", { name: "Altre azioni per Retro" }))
 
+            const refresh = await screen.findByRole("menuitem", { name: /Aggiorna dalla nota sorgente/ })
             expect(refresh).toHaveAttribute("aria-disabled", "true")
-            expect(refresh).toHaveAccessibleDescription("Chiudi l'editor del template per aggiornarlo da una nota")
+            expect(refresh).toHaveTextContent("Chiudi l'editor del template per aggiornarlo da una nota")
+            expect(screen.getByRole("menuitem", { name: "Aggiorna da un'altra nota…" })).toHaveAttribute("aria-disabled", "true")
             await user.click(refresh)
             expect(screen.queryByText("Aggiornare il template dalla nota?")).not.toBeInTheDocument()
         })
@@ -305,16 +371,17 @@ describe("DialogTemplates", () => {
             data.folders = [{ id: 7, name: "Progetti", notes: [note(2, "Sprint")], subfolders: [] }]
         })
 
-        it("has a New template button, disabled when the workspace has no notes", async () => {
+        it("has a Nuovo menu with Template vuoto and Da una nota; the second is disabled when the workspace has no notes", async () => {
+            const user = userEvent.setup()
             data.notes = []
             data.folders = []
             render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
             await screen.findByText("Retro")
-            const button = screen.getByRole("button", { name: "Nuovo template" })
-            // aria-disabled (not disabled): it stays focusable and the reason is also read aloud\n            expect(button).toHaveAttribute("aria-disabled", "true")
-            // The reason is in a tooltip (a disabled button gets no pointer events: it hangs on the span around it)
-            await userEvent.hover(button.parentElement as HTMLElement)
-            expect(await screen.findByRole("tooltip")).toHaveTextContent("Non ci sono note da cui creare un template.")
+            await user.click(screen.getByRole("button", { name: "Nuovo" }))
+            expect(await screen.findByRole("menuitem", { name: "Template vuoto" })).not.toHaveAttribute("aria-disabled", "true")
+            const fromNote = screen.getByRole("menuitem", { name: /Da una nota/ })
+            expect(fromNote).toHaveAttribute("aria-disabled", "true")
+            expect(fromNote).toHaveTextContent("Non ci sono note da cui creare un template.")
         })
 
         it("lets the user choose a note, names the template after it and adds it to the list", async () => {
@@ -322,9 +389,10 @@ describe("DialogTemplates", () => {
             const onOpenChange = vi.fn()
             render(<DialogTemplates isOpen onOpenChange={onOpenChange} />)
             await screen.findByText("Retro")
-            expect(screen.getByRole("button", { name: "Nuovo template" })).toBeEnabled()
+            expect(screen.getByRole("button", { name: "Nuovo" })).toBeEnabled()
 
-            await user.click(screen.getByRole("button", { name: "Nuovo template" }))
+            await user.click(screen.getByRole("button", { name: "Nuovo" }))
+            await user.click(await screen.findByRole("menuitem", { name: "Da una nota" }))
             // The picker lists every note with its folder
             expect(await screen.findByPlaceholderText("Cerca la nota da cui creare il template…")).toBeInTheDocument()
             expect(screen.getByText("Appunti")).toBeInTheDocument()
@@ -351,12 +419,48 @@ describe("DialogTemplates", () => {
             const user = userEvent.setup()
             render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
             await screen.findByText("Retro")
-            await user.click(screen.getByRole("button", { name: "Nuovo template" }))
+            await user.click(screen.getByRole("button", { name: "Nuovo" }))
+            await user.click(await screen.findByRole("menuitem", { name: "Da una nota" }))
             await screen.findByPlaceholderText("Cerca la nota da cui creare il template…")
             await user.keyboard("{Escape}")
             await waitFor(() => expect(screen.queryByPlaceholderText("Cerca la nota da cui creare il template…")).not.toBeInTheDocument())
             expect(screen.queryByLabelText("Nome del template")).not.toBeInTheDocument()
             expect(data.createTemplateFromNote).not.toHaveBeenCalled()
+        })
+    })
+
+    describe("creating an empty template", () => {
+        it("asks for the name, creates the template and opens it in the editor", async () => {
+            const user = userEvent.setup()
+            const onOpenChange = vi.fn()
+            render(<DialogTemplates isOpen onOpenChange={onOpenChange} />)
+            await screen.findByText("Retro")
+            await user.click(screen.getByRole("button", { name: "Nuovo" }))
+            await user.click(await screen.findByRole("menuitem", { name: "Template vuoto" }))
+
+            const nameInput = await screen.findByLabelText("Nome del template")
+            expect(nameInput).toHaveValue("")
+            await user.type(nameInput, "  Vuoto  ")
+            await user.click(screen.getByRole("button", { name: "Crea template" }))
+
+            await waitFor(() => expect(data.createEmptyTemplate).toHaveBeenCalledWith(4, "Vuoto"))
+            await waitFor(() => expect(editor.openTemplateEditor).toHaveBeenCalledWith({ id: 88, name: "Vuoto" }))
+            expect(data.createTemplateFromNote).not.toHaveBeenCalled()
+            expect(onOpenChange).toHaveBeenCalledWith(false)
+        })
+
+        it("shows the error of a name already in use and does not open the editor", async () => {
+            const user = userEvent.setup()
+            data.createEmptyTemplate.mockRejectedValueOnce({ code: "TEMPLATE_EXISTS", message: "Esiste già un template con questo nome." })
+            render(<DialogTemplates isOpen onOpenChange={vi.fn()} />)
+            await screen.findByText("Retro")
+            await user.click(screen.getByRole("button", { name: "Nuovo" }))
+            await user.click(await screen.findByRole("menuitem", { name: "Template vuoto" }))
+            await user.type(await screen.findByLabelText("Nome del template"), "Retro")
+            await user.click(screen.getByRole("button", { name: "Crea template" }))
+
+            expect(await screen.findByText("Esiste già un template con questo nome.")).toBeInTheDocument()
+            expect(editor.openTemplateEditor).not.toHaveBeenCalled()
         })
     })
 })
