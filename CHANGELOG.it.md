@@ -4,6 +4,18 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-18
+
+### Modificato
+
+- Trascinare task, sezioni e gruppi nelle note grandi è più fluido: il trascinamento parte prima, le righe si spostano senza scatti quando cambia il punto di rilascio e il rilascio non blocca più la nota per un attimo.
+- Un trascinamento nella nota si annulla quando la finestra perde il focus o cambia dimensione.
+
+### Corretto
+
+- Durante il trascinamento i punti di rilascio e lo spazio vuoto seguono una riga che cambia altezza (per esempio un'immagine di un gruppo che finisce di caricarsi).
+- Trascinando un gruppo fino al bordo della riga, lo scorrimento va solo nella direzione in cui ti muovi e il gruppo finisce dove si vede lo spazio vuoto.
+
 ## [0.24.0] - 2026-11-14
 
 ### Aggiunto
@@ -583,7 +595,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.24.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-18
+
+### Changed
+
+- Dragging tasks, sections and groups in big notes is smoother: the drag starts faster, the rows step aside without stutter when the drop place changes, and the drop no longer freezes the note for a moment.
+- A drag in a note is cancelled when the window loses focus or is resized.
+
+### Fixed
+
+- While dragging, the drop places and the gap follow a row that changes height (for example an image of a group that finishes loading).
+- Dragging a group to the edge of the row scrolls only in the direction you are moving, and drops it where the gap shows.
+
 ## [0.24.0] - 2026-11-14
 
 ### Added
@@ -586,7 +598,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.24.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.25.0...HEAD
+[0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/ivanerricis/easytask/compare/v0.21.0...v0.22.0
