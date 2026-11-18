@@ -2,6 +2,28 @@ import { withDBErrors, SECTION_MESSAGES } from "./errors";
 import { getDB } from "../dbManager";
 import { Transaction } from "../transaction";
 import { DEFAULT_SECTION_SQL, nextPositionSql } from "./sql";
+import { createError } from "@/types/error";
+import { getErrorMessage } from "@/lib/utils";
+import i18n from "@/i18n";
+import { isTaskOrder, type TaskOrder } from "@/lib/task-order";
+
+/**
+ * Saves how the tasks of a section are ordered on screen. A state of the view: it does not change the edit dates (the
+ * triggers ignore the column) and it is not an undo step.
+ * @param sectionId The ID of the section.
+ * @param order `manual`, `open-first` or `done-first`; null = follow the preference "completed tasks last".
+ * @throws "SECTION_UPDATE_ERROR" when the order is not valid or cannot be saved.
+ * @category Database Queries
+ */
+export async function setDBSectionTaskOrder(sectionId: number, order: TaskOrder | null) {
+    try {
+        if (order !== null && !isTaskOrder(order)) throw new Error(`Unsupported order: ${String(order)}`)
+        const db = await getDB()
+        await db.execute('UPDATE section SET task_order = ? WHERE id = ?', [order, sectionId])
+    } catch (error: unknown) {
+        throw createError("SECTION_UPDATE_ERROR", i18n.t("errors.section.taskOrder", { message: getErrorMessage(error) }))
+    }
+}
 
 /**
  * Creates a new section in a specific group, appended after every other row of the group (the default section included: it shares their order).

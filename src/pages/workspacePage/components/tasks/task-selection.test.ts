@@ -66,6 +66,22 @@ describe("flattenVisibleTasks", () => {
         expect(ids(flattenVisibleTasks(mixed, { ...all, completedLast: true, hideCompleted: true }))).toEqual([2, 22, 4])
     })
 
+    it("uses the order of each section, over the preference, also for the subtasks", () => {
+        const mixed: NoteDataTree = { groups: [makeGroup({
+            id: 1, position: 0,
+            sections: [
+                makeSection({ id: 10, groupID: 1, title: "A", task_order: "done-first", tasks: [
+                    makeTask({ id: 1, sectionID: 10 }), makeTask({ id: 2, sectionID: 10, completed: true, subtasks: [makeTask({ id: 21, sectionID: 10, taskID: 2 }), makeTask({ id: 22, sectionID: 10, taskID: 2, completed: true })] }),
+                ] }),
+                makeSection({ id: 11, groupID: 1, title: "B", task_order: "manual", tasks: [makeTask({ id: 3, sectionID: 11, completed: true }), makeTask({ id: 4, sectionID: 11 })] }),
+                makeSection({ id: 12, groupID: 1, title: "C", tasks: [makeTask({ id: 5, sectionID: 12, completed: true }), makeTask({ id: 6, sectionID: 12 })] }),
+            ],
+        })] }
+        // The preference is on: A is done-first (its own choice), B stays manual, C follows the preference
+        expect(ids(flattenVisibleTasks(mixed, { ...all, completedLast: true }))).toEqual([2, 22, 21, 1, 3, 4, 6, 5])
+        expect(ids(flattenVisibleTasks(mixed, all))).toEqual([2, 22, 21, 1, 3, 4, 5, 6])
+    })
+
     it("leaves out closed groups and closed sections, but never closes the direct tasks of an open group", () => {
         expect(ids(flattenVisibleTasks(tree, { ...all, isGroupOpen: id => id !== 2 }))).toEqual([1, 2, 21, 3, 4, 5])
         expect(ids(flattenVisibleTasks(tree, { ...all, isSectionOpen: () => false }))).toEqual([1, 2, 21])

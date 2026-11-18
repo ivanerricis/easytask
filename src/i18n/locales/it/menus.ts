@@ -57,6 +57,11 @@ export const textMenu = {
 
 export const menu = {
     changeColor: "Cambia colore",
+    taskOrder: "Ordine dei task",
+    taskOrderDefault: "Come nelle impostazioni",
+    taskOrderManual: "Manuale",
+    taskOrderOpenFirst: "Prima i task aperti",
+    taskOrderDoneFirst: "Prima i task completati",
     noteBackground: "Sfondo della nota",
     export: "Esporta",
     importHere: "Importa qui",

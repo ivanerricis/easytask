@@ -1,5 +1,6 @@
 import i18n from "@/i18n"
 import type { Task } from "@/types/types"
+import type { TaskOrder } from "@/lib/task-order"
 import type { NoteTemplate } from "@/types/template"
 import { createError, handleDBError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
@@ -24,7 +25,7 @@ export function uniqueCopyName(name: string, taken: ReadonlySet<string>): string
 }
 
 type NoteRow = { workspaceID: number, folderID: number | null, name: string, color: string | null, bg_color: string | null, position: number }
-type SectionRow = { groupID: number, title: string | null, color: string | null, position: number, id: number }
+type SectionRow = { groupID: number, title: string | null, color: string | null, position: number, id: number, task_order: TaskOrder | null }
 
 /**
  * Duplicates a note in the same workspace and folder, right after the original (the following siblings shift by one).
@@ -131,7 +132,7 @@ export async function duplicateDBSection(sectionId: number): Promise<number> {
     try {
         const db = await getDB()
         const rows = await db.select<SectionRow[]>(
-            'SELECT id, groupID, title, color, position FROM section WHERE id = ? AND deleted_at IS NULL AND is_default = 0', [sectionId])
+            'SELECT id, groupID, title, color, position, task_order FROM section WHERE id = ? AND deleted_at IS NULL AND is_default = 0', [sectionId])
         if (rows.length === 0)
             throw createError("DUPLICATE_SOURCE_MISSING", i18n.t("errors.duplicate.sectionMissing"))
         source = rows[0]

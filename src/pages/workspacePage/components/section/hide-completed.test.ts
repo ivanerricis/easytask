@@ -62,34 +62,42 @@ describe("orderedVisibleTasks", () => {
     const tasks = [a, b, c, d]
 
     it("returns the same array when no option changes anything", () => {
-        expect(orderedVisibleTasks(tasks, { hideCompleted: false, completedLast: false })).toBe(tasks)
+        expect(orderedVisibleTasks(tasks, { hideCompleted: false, order: "manual" })).toBe(tasks)
     })
 
     it("puts the completed tasks after the open ones, keeping the order inside each block", () => {
-        expect(orderedVisibleTasks(tasks, { hideCompleted: false, completedLast: true }).map(t => t.id)).toEqual([1, 3, 2, 4])
+        expect(orderedVisibleTasks(tasks, { hideCompleted: false, order: "open-first" }).map(t => t.id)).toEqual([1, 3, 2, 4])
     })
 
     it("returns the same array when it is already in that order, or has only one kind", () => {
         const sorted = [a, c, b, d]
-        expect(orderedVisibleTasks(sorted, { hideCompleted: false, completedLast: true })).toBe(sorted)
+        expect(orderedVisibleTasks(sorted, { hideCompleted: false, order: "open-first" })).toBe(sorted)
         const onlyOpen = [a, c]
-        expect(orderedVisibleTasks(onlyOpen, { hideCompleted: false, completedLast: true })).toBe(onlyOpen)
+        expect(orderedVisibleTasks(onlyOpen, { hideCompleted: false, order: "open-first" })).toBe(onlyOpen)
         const onlyDone = [b, d]
-        expect(orderedVisibleTasks(onlyDone, { hideCompleted: false, completedLast: true })).toBe(onlyDone)
-        expect(orderedVisibleTasks([], { hideCompleted: false, completedLast: true }).length).toBe(0)
+        expect(orderedVisibleTasks(onlyDone, { hideCompleted: false, order: "open-first" })).toBe(onlyDone)
+        expect(orderedVisibleTasks([], { hideCompleted: false, order: "open-first" }).length).toBe(0)
     })
 
     it("combines with hide completed: the fully completed ones go away, the others are ordered", () => {
         const doneWithOpen = makeTask({ id: 5, completed: true, subtasks: [makeTask({ id: 51 })] })
         const list = [b, a, doneWithOpen, d, c]
-        expect(orderedVisibleTasks(list, { hideCompleted: true, completedLast: true }).map(t => t.id)).toEqual([1, 3, 5])
-        expect(orderedVisibleTasks(list, { hideCompleted: true, completedLast: false }).map(t => t.id)).toEqual([1, 5, 3])
-        expect(orderedVisibleTasks(tasks, { hideCompleted: true, completedLast: false }).map(t => t.id)).toEqual([1, 3])
+        expect(orderedVisibleTasks(list, { hideCompleted: true, order: "open-first" }).map(t => t.id)).toEqual([1, 3, 5])
+        expect(orderedVisibleTasks(list, { hideCompleted: true, order: "manual" }).map(t => t.id)).toEqual([1, 5, 3])
+        expect(orderedVisibleTasks(tasks, { hideCompleted: true, order: "manual" }).map(t => t.id)).toEqual([1, 3])
+    })
+
+    it("puts the completed tasks first with done-first, keeping the order inside each block", () => {
+        expect(orderedVisibleTasks(tasks, { hideCompleted: false, order: "done-first" }).map(t => t.id)).toEqual([2, 4, 1, 3])
+        const sorted = [b, d, a, c]
+        expect(orderedVisibleTasks(sorted, { hideCompleted: false, order: "done-first" })).toBe(sorted)
+        const list = [b, a, d]
+        expect(orderedVisibleTasks(list, { hideCompleted: true, order: "done-first" }).map(t => t.id)).toEqual([1])
     })
 
     it("does not change the input", () => {
         const copy = [...tasks]
-        orderedVisibleTasks(tasks, { hideCompleted: false, completedLast: true })
+        orderedVisibleTasks(tasks, { hideCompleted: false, order: "open-first" })
         expect(tasks).toEqual(copy)
     })
 })

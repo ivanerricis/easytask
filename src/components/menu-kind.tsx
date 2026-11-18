@@ -2,6 +2,8 @@ import * as React from "react"
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuSeparator,
     DropdownMenuShortcut,
     DropdownMenuSub,
@@ -11,6 +13,8 @@ import {
 import {
     ContextMenuGroup,
     ContextMenuItem,
+    ContextMenuRadioGroup,
+    ContextMenuRadioItem,
     ContextMenuSeparator,
     ContextMenuShortcut,
     ContextMenuSub,
@@ -37,6 +41,14 @@ export function MenuGroup(props: React.ComponentProps<typeof DropdownMenuGroup>)
 
 export function MenuItem(props: React.ComponentProps<typeof DropdownMenuItem>) {
     return useMenuKind() === "context" ? <ContextMenuItem {...props} /> : <DropdownMenuItem {...props} />
+}
+
+export function MenuRadioGroup(props: React.ComponentProps<typeof DropdownMenuRadioGroup>) {
+    return useMenuKind() === "context" ? <ContextMenuRadioGroup {...props} /> : <DropdownMenuRadioGroup {...props} />
+}
+
+export function MenuRadioItem(props: React.ComponentProps<typeof DropdownMenuRadioItem>) {
+    return useMenuKind() === "context" ? <ContextMenuRadioItem {...props} /> : <DropdownMenuRadioItem {...props} />
 }
 
 export function MenuSeparator(props: React.ComponentProps<typeof DropdownMenuSeparator>) {

@@ -1,3 +1,5 @@
+import type { TaskOrder } from "@/lib/task-order"
+
 export type Workspace = {
     id: number
     name: string
@@ -90,6 +92,8 @@ export type Section = {
     is_default?: boolean | number
     /** Saved state of the section: true (or 1 from the database) = closed; absent/false = open. A state of the view: undo, templates, exports and copies do not carry it. */
     collapsed?: boolean | number
+    /** How the tasks are drawn: `manual`, `open-first` or `done-first`; null/absent = follow the preference "completed tasks last". A state of the view; duplicates, templates and exports copy the choice. */
+    task_order?: TaskOrder | null
     tasks: Task[]
 }
 
