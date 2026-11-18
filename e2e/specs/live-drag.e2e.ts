@@ -499,6 +499,7 @@ describe("Whole column drop zones of the groups", () => {
         await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
         await browser.keys(["Control", "z"])
         await waitForGroupOrder([GROUP, SECOND_GROUP, THIRD_GROUP])
+        const orderBefore = await savedOrder()
         const points = await browser.execute((from: string, to: string) => {
             const row = document.querySelector<HTMLElement>(`[role=treeitem][aria-label="${from}"]`)!.getBoundingClientRect()
             const wrap = Array.from(document.querySelectorAll<HTMLElement>("[data-group-wrap]"))
@@ -531,8 +532,8 @@ describe("Whole column drop zones of the groups", () => {
         await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
         await browser.keys(["Control", "z"])
         await browser.waitUntil(async () => !(await directTexts(SECOND_GROUP)).includes(TASKS[0]), { timeoutMsg: "the undo did not bring the task back" })
-        // Back in its section (the exact place is not checked here: the undo of a move across sections is not what this spec is about)
-        await browser.waitUntil(async () => [...(await savedOrder())].sort().join() === [...TASKS].sort().join(), { timeoutMsg: "the task is not back in its section" })
+        // Back where it was (the order of the section is not TASKS anymore here: the tests above leave it as it is)
+        await waitForSaved(orderBefore)
     })
 
     it("a group swaps with the neighbour on entering its column, going right and going left", async function () {

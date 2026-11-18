@@ -202,6 +202,21 @@ describe("note drag hit test", () => {
             expect(hitTest({ x: 50, y: 60 })?.ref).toEqual({ kind: "task", id: 2 })
         })
 
+        it("takes the shift out of a zone that is itself the shifted wrapper (the column of a group is both)", () => {
+            const column = growing("group", 1, { left: 0, top: 0, width: 100, height: 400 })
+            column.node.setAttribute(SHIFT_ATTR.groupWrap, "1")
+            registerShiftNode("group-1", column.node)
+            const observer = (measureZones("group"), flushFrame(), FakeObserver.all[FakeObserver.all.length - 1])
+            applyShifts(new Map([["group-1", 50]]), null, "x")
+            flushFrame()
+            // On screen the column is 50px to the right; the zone stays where it rests (0..100) after a measure again
+            column.set({ left: 50, top: 0, width: 100, height: 400 })
+            observer.fire()
+            expect(hitTest({ x: 20, y: 200 })?.ref).toEqual({ kind: "group", id: 1 })
+            expect(hitTest({ x: 120, y: 200 })).toBeNull()
+            registerShiftNode("group-1", null)
+        })
+
         it("takes the shift that is applied out of the new measure", () => {
             const first = growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
             const second = growing("task", 2, { left: 0, top: 20, width: 100, height: 20 })

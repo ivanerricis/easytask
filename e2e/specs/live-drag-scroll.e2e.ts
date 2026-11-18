@@ -133,19 +133,24 @@ const resizeWindow = async (width: number, height: number) => {
     const margin = 40
     let seen = { width: 0, height: 0 }
     let failure = ""
-    await browser.waitUntil(async () => {
-        try {
-            // Asked again on every poll: on Windows the first request on a maximized window is lost (the window only leaves the maximized
-            // state and goes back to its default size). The position is set too, or every call moves the window farther to the right.
-            await browser.setWindowRect(0, 0, width, height)
-            await browser.pause(500) // the page can stop answering for a moment while the window changes state
-            seen = await browser.execute(() => ({ width: window.innerWidth, height: window.innerHeight }))
-        } catch (error) {
-            failure = String(error)
-            return false
-        }
-        return Math.abs(seen.width - width) <= margin && Math.abs(seen.height - height) <= margin
-    }, { timeout: 20_000, timeoutMsg: `the window did not reach ${width}x${height}: inner size ${seen.width}x${seen.height}${failure ? `, last error: ${failure}` : ""}` })
+    // (a template string for `timeoutMsg` is evaluated when waitUntil is called, so it would always say "0x0": the message is built on failure)
+    try {
+        await browser.waitUntil(async () => {
+            try {
+                // Asked again on every poll: on Windows the first request on a maximized window is lost (the window only leaves the maximized
+                // state and goes back to its default size). The position is set too, or every call moves the window farther to the right.
+                await browser.setWindowRect(0, 0, width, height)
+                await browser.pause(500) // the page can stop answering for a moment while the window changes state
+                seen = await browser.execute(() => ({ width: window.innerWidth, height: window.innerHeight }))
+            } catch (error) {
+                failure = String(error)
+                return false
+            }
+            return Math.abs(seen.width - width) <= margin && Math.abs(seen.height - height) <= margin
+        }, { timeout: 20_000 })
+    } catch {
+        throw new Error(`the window did not reach ${width}x${height}: inner size ${seen.width}x${seen.height}${failure ? `, last error: ${failure}` : ""}`)
+    }
 }
 
 /**

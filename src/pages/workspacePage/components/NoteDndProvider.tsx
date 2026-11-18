@@ -56,8 +56,11 @@ const SETTLE_TIMEOUT = 500
 /**
  * Drag & drop of groups, sections and tasks inside the open note, driven by its own pointer controller (see note-dnd-pointer), not by dnd-kit.
  * Drop zones, from the pointer position on the hovered element:
- * - group (dragged by its header) over another group: left half = before, right half = after,
- *   persisted with an optimistic update of the group positions;
+ * - group (dragged by its header) over another group: as soon as the pointer is in its column it takes its place: after it when it
+ *   stands later in the resting order, before it when earlier (no half to pass), persisted with an optimistic update of the
+ *   group positions;
+ * - the drop zone of a group is its whole column (the full height of the note), not only its card: a section, a task or a group
+ *   dropped in the empty space under a short card counts as dropped on the group;
  * - section dragged over a section card: top half = before, bottom half = after (any group);
  * - section dragged over the empty area of a group (or its header): appended to the group;
  * - section dragged over a slot between two groups / the "Nuovo gruppo" column at the end: new group;
