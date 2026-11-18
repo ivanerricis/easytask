@@ -24,21 +24,24 @@ import {
     BACKUP_FREQUENCIES,
     clampBackupKeep,
     DEFAULT_BACKUP_KEEP,
-    getAutoBackup,
+    AUTO_BACKUP_MODES,
+    DEFAULT_AUTO_BACKUP_MODE,
+    getAutoBackupMode,
     getBackupFolder,
     getBackupFrequency,
     getBackupKeep,
     MAX_BACKUP_KEEP,
     MIN_BACKUP_KEEP,
-    saveAutoBackup,
+    saveAutoBackupMode,
     saveBackupFolder,
     saveBackupFrequency,
     saveBackupKeep,
+    type AutoBackupMode,
     type BackupFrequency,
 } from "@/lib/store/preferences"
 import { formatDateTime, getErrorMessage } from "@/lib/utils"
 import { FormError } from "@/components/form-error"
-import { SettingsRow, SettingsSelectRow, SettingsSwitchRow } from "./SettingsRow"
+import { SettingsRow, SettingsSelectRow } from "./SettingsRow"
 import { useOpenDataFolder } from "./use-open-data-folder"
 
 /** "12 KB", "1.4 MB". */
@@ -60,7 +63,7 @@ export const BackupSettings = () => {
     const [backups, setBackups] = useState<BackupInfo[]>([])
     const [preMigration, setPreMigration] = useState<PreMigrationBackupInfo[]>([])
     const [keep, setKeep] = useState(String(DEFAULT_BACKUP_KEEP))
-    const [auto, setAuto] = useState(true)
+    const [mode, setMode] = useState<AutoBackupMode>(DEFAULT_AUTO_BACKUP_MODE)
     const [frequency, setFrequency] = useState<BackupFrequency>("daily")
     const [customFolder, setCustomFolder] = useState<string | null>(null)
     const [busy, setBusy] = useState(false)
@@ -88,10 +91,10 @@ export const BackupSettings = () => {
 
     useEffect(() => {
         let cancelled = false
-        void Promise.all([getBackupKeep(), getAutoBackup(), getBackupFrequency(), getBackupFolder()]).then(([storedKeep, storedAuto, storedFrequency, storedFolder]) => {
+        void Promise.all([getBackupKeep(), getAutoBackupMode(), getBackupFrequency(), getBackupFolder()]).then(([storedKeep, storedMode, storedFrequency, storedFolder]) => {
             if (cancelled) return
             setKeep(String(storedKeep))
-            setAuto(storedAuto)
+            setMode(storedMode)
             setFrequency(storedFrequency)
             setCustomFolder(storedFolder)
         }).catch(error => reportError(error))
@@ -140,9 +143,9 @@ export const BackupSettings = () => {
 
     const normalizeKeep = () => setKeep(String(clampBackupKeep(keep.trim() === "" ? DEFAULT_BACKUP_KEEP : Number(keep))))
 
-    const changeAuto = (value: boolean) => {
-        setAuto(value)
-        void saveAutoBackup(value).catch(err => fail(err, t("settings.data.backup.errors.save")))
+    const changeMode = (value: AutoBackupMode) => {
+        setMode(value)
+        void saveAutoBackupMode(value).catch(err => fail(err, t("settings.data.backup.errors.save")))
     }
 
     const changeFrequency = (value: BackupFrequency) => {
@@ -189,18 +192,23 @@ export const BackupSettings = () => {
                     {t("settings.data.backup.now.button")}
                 </Button>
             </SettingsRow>
-            <SettingsSwitchRow
+            <SettingsSelectRow
                 label={t("settings.data.backup.auto.label")}
                 description={t("settings.data.backup.auto.description")}
-                checked={auto}
-                onCheckedChange={changeAuto}
-            />
+                value={mode}
+                onValueChange={value => changeMode(value as AutoBackupMode)}
+                width="w-52"
+            >
+                {AUTO_BACKUP_MODES.map(value => (
+                    <SelectItem key={value} value={value}>{t(`settings.data.backup.auto.${value}`)}</SelectItem>
+                ))}
+            </SettingsSelectRow>
             <SettingsSelectRow
                 label={t("settings.data.backup.frequency.label")}
                 description={t("settings.data.backup.frequency.description")}
                 value={frequency}
                 onValueChange={value => changeFrequency(value as BackupFrequency)}
-                disabled={!auto}
+                disabled={mode === "off"}
                 width="w-32"
             >
                 {BACKUP_FREQUENCIES.map(value => (
@@ -214,6 +222,7 @@ export const BackupSettings = () => {
                             id={id}
                             aria-describedby={descriptionId}
                             type="number"
+                            disabled={mode === "off"}
                             className="h-8 w-20"
                             min={MIN_BACKUP_KEEP}
                             max={MAX_BACKUP_KEEP}

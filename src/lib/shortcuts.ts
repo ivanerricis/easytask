@@ -44,6 +44,8 @@ export const keyLabel = (key: ShortcutKey): string => i18n.t(`shortcuts.keys.${k
 export const SHORTCUTS: Shortcut[] = [
     { id: "show-shortcuts", defaultBinding: { key: "?" }, editable: false, scope: "global", category: "general" },
     { id: "open-docs", defaultBinding: { key: "F1" }, editable: true, scope: "global", category: "general" },
+    // Opens the settings dialog (handled in the app menu, mounted once on every page)
+    { id: "open-settings", defaultBinding: { key: ",", ctrl: true }, editable: true, scope: "global", category: "general" },
     // Ctrl+Plus also works with "=" (the Plus key of the US layout); both are fixed
     { id: "text-zoom-in", defaultBinding: { key: "+", ctrl: true }, editable: false, scope: "global", category: "general" },
     { id: "text-zoom-in-alt", defaultBinding: { key: "=", ctrl: true }, editable: false, scope: "global", category: "general" },

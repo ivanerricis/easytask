@@ -125,6 +125,11 @@ export type TrashAutoEmptyDays = typeof TRASH_AUTO_EMPTY_DAYS[number]
 /** How often the automatic backup runs at startup. */
 export const BACKUP_FREQUENCIES = ["daily", "weekly", "monthly"] as const
 export type BackupFrequency = typeof BACKUP_FREQUENCIES[number]
+/** When the automatic backup is taken: never, at startup, when the app closes, or both. */
+export const AUTO_BACKUP_MODES = ["off", "startup", "close", "both"] as const
+export type AutoBackupMode = typeof AUTO_BACKUP_MODES[number]
+export const DEFAULT_AUTO_BACKUP_MODE: AutoBackupMode = "close"
+const isAutoBackupMode = (value: unknown): value is AutoBackupMode => AUTO_BACKUP_MODES.includes(value as AutoBackupMode)
 /**
  * Speed of the animations: "slow" is the original one, "normal" is faster, "none" turns them off, "system" (default) follows
  * the setting of the operating system (animation effects off in Windows = none, otherwise normal).
@@ -273,7 +278,13 @@ export const APP_PREFS = {
     /** The version of the app whose news were last shown in a tab (null = never, i.e. a first installation). */
     lastSeenVersion: def<string | null>({ key: "lastSeenVersion", default: null, normalize: value => typeof value === "string" && value.length > 0 ? value : null }),
     checkUpdatesOnStartup: def({ key: "checkUpdatesOnStartup", default: true }),
+    /** Old on/off switch of the startup backup: only read, to migrate to `autoBackupMode` (see getAutoBackupMode). */
     autoBackup: def({ key: "autoBackup", default: true }),
+    autoBackupMode: def<AutoBackupMode>({
+        key: "autoBackupMode",
+        default: DEFAULT_AUTO_BACKUP_MODE,
+        normalize: value => isAutoBackupMode(value) ? value : DEFAULT_AUTO_BACKUP_MODE,
+    }),
     backupKeep: def<number>({ key: "backupKeep", default: DEFAULT_BACKUP_KEEP, normalize: clampBackupKeep }),
     backupFrequency: def<BackupFrequency>({
         key: "backupFrequency",
@@ -351,8 +362,17 @@ export const savePref = async <K extends PrefName>(name: K, value: PrefValue<K>)
 }
 
 // Thin wrappers for the preferences read or written outside of the provider
-export const getAutoBackup = () => getPref("autoBackup")
-export const saveAutoBackup = (value: boolean) => savePref("autoBackup", value)
+/**
+ * Gets when the automatic backup runs. Migration: while no mode is saved, the old switch decides (off = "off"), anything
+ * else gives the default ("close"); the old key is left in place and ignored once a mode is saved.
+ * @category Store
+ */
+export const getAutoBackupMode = async (): Promise<AutoBackupMode> => {
+    const stored = await store.get(APP_PREFS.autoBackupMode.key)
+    if (isAutoBackupMode(stored)) return stored
+    return (await store.get(APP_PREFS.autoBackup.key)) === false ? "off" : DEFAULT_AUTO_BACKUP_MODE
+}
+export const saveAutoBackupMode = (value: AutoBackupMode) => savePref("autoBackupMode", value)
 export const getBackupKeep = () => getPref("backupKeep")
 export const saveBackupKeep = (value: number) => savePref("backupKeep", value)
 export const getBackupFrequency = () => getPref("backupFrequency")

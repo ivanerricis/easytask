@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const runAutoBackup = vi.fn()
-vi.mock("@/db/backup", () => ({ runAutoBackup: () => runAutoBackup() }))
+vi.mock("@/db/backup", () => ({ runAutoBackup: (...a: unknown[]) => runAutoBackup(...a) }))
 
 import { CHECK_INTERVAL_MS, FIRST_CHECK_DELAY_MS, scheduleAutoBackup } from "./auto-backup-schedule"
 
@@ -25,6 +25,16 @@ describe("scheduleAutoBackup", () => {
         expect(runAutoBackup).not.toHaveBeenCalled()
         vi.advanceTimersByTime(1)
         expect(runAutoBackup).toHaveBeenCalledTimes(1)
+    })
+
+    it("tells runAutoBackup which check it is: the first one is the startup, the others are periodic", () => {
+        vi.advanceTimersByTime(FIRST_CHECK_DELAY_MS)
+        expect(runAutoBackup).toHaveBeenLastCalledWith("startup")
+        vi.advanceTimersByTime(CHECK_INTERVAL_MS)
+        expect(runAutoBackup).toHaveBeenLastCalledWith("periodic")
+        vi.advanceTimersByTime(2 * 60 * 1000)
+        window.dispatchEvent(new Event("focus"))
+        expect(runAutoBackup).toHaveBeenLastCalledWith("periodic")
     })
 
     it("checks again every hour", () => {
