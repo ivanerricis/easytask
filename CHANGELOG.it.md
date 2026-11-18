@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-11-18
+
 ### Aggiunto
 
 - Il backup automatico ha quattro modalità in Impostazioni > Dati: **Disattivato**, **Solo all'avvio**, **Solo alla chiusura** e **All'avvio e alla chiusura**. Il valore predefinito ora è **Solo alla chiusura**: EasyTask fa il backup (se ne è dovuto uno per la frequenza scelta) mentre l'app si chiude, mostrando "Backup in corso…" solo mentre una copia viene scritta. Chi aveva il backup automatico spento lo ritrova spento; gli altri passano al nuovo valore predefinito.
@@ -621,7 +623,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.26.0...HEAD
+[0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0

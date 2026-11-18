@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.26.0] - 2026-11-18
+
 ### Added
 
 - Automatic backup has four modes in Settings > Data: **Off**, **At startup only**, **On close only** and **At startup and on close**. The default is now **On close only**: EasyTask makes the backup (when one is due for the chosen frequency) while the app closes, showing "Backing up…" only while a copy is being written. Whoever had the automatic backup turned off keeps it off; the others move to the new default.
@@ -624,7 +626,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.26.0...HEAD
+[0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
 [0.23.0]: https://github.com/ivanerricis/easytask/compare/v0.22.0...v0.23.0
