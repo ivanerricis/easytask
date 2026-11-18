@@ -23,4 +23,11 @@ describe("ShortcutsHelpButton", () => {
         await user.click(screen.getByRole("button", { name: "Scorciatoie da tastiera" }))
         expect(handler).toHaveBeenCalledTimes(1)
     })
+
+    it("inline is as big as the back button of the title bar (size-7), not the window button", () => {
+        render(<ShortcutsProvider><ShortcutsHelpButton inline /></ShortcutsProvider>)
+        const button = screen.getByRole("button", { name: "Scorciatoie da tastiera" })
+        expect(button).toHaveClass("size-7")
+        expect(button).not.toHaveClass("p-2")
+    })
 })

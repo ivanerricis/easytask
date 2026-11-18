@@ -76,7 +76,8 @@ export const ItemMenu = ({ state, items, dialogs, contentClassName, onCloseAutoF
 
 type ItemMenuButtonProps = {
     className?: string
-    iconClassName?: string
+    /** Box and icon size: "icon-sm" (24px, icon 16px, default) or "icon-xs" (20px, icon 14px, for compact rows). */
+    size?: "icon-sm" | "icon-xs"
     /** Accessible name of the button (wins over `name`). */
     label?: string
     /** Name of the item: the button is called "Menu: <name>", so the buttons of a list can be told apart. */
@@ -86,18 +87,17 @@ type ItemMenuButtonProps = {
 }
 
 /** The "…" button of an item (inside an {@link ItemMenu}): opens the item menu below the button. */
-export const ItemMenuButton = ({ className, iconClassName = "size-4", label, name, tabIndex }: ItemMenuButtonProps) => {
+export const ItemMenuButton = ({ className, size = "icon-sm", label, name, tabIndex }: ItemMenuButtonProps) => {
     const { t } = useTranslation()
     const menu = React.useContext(ItemMenuContext)
     if (!menu) return null
     const { state, items, contentClassName, onCloseAutoFocus } = menu
     const accessibleName = label ?? (name?.trim() ? t("common.menuOf", { name: name.trim() }) : t("common.openMenu"))
-    const icon = <EllipsisVertical className={iconClassName} />
 
     return (
         <DropdownMenu open={state.dropdownOpen} onOpenChange={state.setDropdownOpen}>
             <DropdownMenuTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" aria-label={accessibleName} onClick={(e) => e.stopPropagation()} tabIndex={tabIndex} className={cn("relative size-6 after:absolute after:-inset-1 after:content-['']", className)}>{icon}</Button>
+                <Button type="button" variant="ghost" size={size} aria-label={accessibleName} onClick={(e) => e.stopPropagation()} tabIndex={tabIndex} className={cn("relative after:absolute after:-inset-1 after:content-['']", className)}><EllipsisVertical /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 onClick={(e) => e.stopPropagation()}

@@ -451,8 +451,8 @@ export const AudioPlayer = ({
                         onClick={cycleRate}
                         aria-label={t("audio.player.speed", { rate })}
                         className={cn(
-                            "shrink-0 h-8 min-w-10 px-1 text-[13px] tabular-nums text-foreground",
-                            rate !== 1 && "font-medium",
+                            "shrink-0 h-8 w-12 justify-center px-1 text-[13px] font-normal tabular-nums",
+                            rate !== 1 ? "text-primary-text" : "text-foreground",
                         )}
                     >
                         {rate}×

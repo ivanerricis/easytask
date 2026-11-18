@@ -39,7 +39,6 @@ export const WorkSpaceLayout = ({ children }: WorkSpaceLayoutProps) => {
         <div className="flex flex-col w-full h-full">
             <Navbar
                 leftContainer={<AppMenu page="workspace" />}
-                rightContainer={<ShortcutsHelpButton />}
                 centerContainer={
                     <div className="flex items-center gap-1">
                         <ButtonNavbar
@@ -52,6 +51,7 @@ export const WorkSpaceLayout = ({ children }: WorkSpaceLayoutProps) => {
                             <ArrowLeft className="w-5 h-5" />
                         </ButtonNavbar>
                         <CommandMenu />
+                        <ShortcutsHelpButton inline />
                     </div>
                 }
             />

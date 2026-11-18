@@ -7,7 +7,7 @@ import { X } from "lucide-react"
 import React from "react"
 import { ButtonMenuNote } from "./ButtonMenuNote"
 import { Button } from "@/components/ui/button"
-import { focusRing, ghostIconButtonClass } from "@/lib/a11y"
+import { focusRing } from "@/lib/a11y"
 import { cn } from "@/lib/utils"
 import { useInlineRename } from "@/hooks/use-inline-rename"
 import { InlineNameInput } from "@/components/inline-name-input"
@@ -43,7 +43,7 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
         <div
             className={cn(
                 "group/tab relative flex items-stretch min-h-[42px] border-x border-b",
-                isActive ? "bg-background border-x-primary border-b-transparent" : "bg-secondary border-x-transparent border-b-primary hover:bg-background/40",
+                isActive ? "bg-background border-x-border border-b-transparent" : "bg-secondary border-x-transparent border-b-border hover:bg-background/40",
             )}
         >
             {/* Color container */}
@@ -78,10 +78,10 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
                     <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
+                        size="icon-xs"
                         aria-label={isActive ? t("notes.closeCurrent") : t("notes.close")}
                         onClick={handleCloseHeader}
-                        className={cn(ghostIconButtonClass, isActive ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/tab:opacity-100 focus-visible:opacity-100")}
+                        className={cn("relative after:absolute after:-inset-1 after:content-['']", isActive ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/tab:opacity-100 focus-visible:opacity-100")}
                     >
                         <X />
                     </Button>
