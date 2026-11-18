@@ -4,6 +4,7 @@ import { useActiveNote } from "@/contexts/use-active-note"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { hexToRgba } from "@/lib/utils"
 import { getGroupLabel } from "./groups/group-label"
+import { resolveGroupColor } from "./groups/group-progress"
 import { getSectionLabel } from "./section/section-label"
 import { findGroup, findSection, findTask } from "./note-dnd"
 import { useNoteDndSelector } from "./note-dnd-state"
@@ -33,7 +34,7 @@ export const NoteDragOverlay = ({ follower }: { follower: OverlayFollower }) => 
             return found ? (
                 <div
                     className="min-w-[200px] max-w-[320px] truncate rounded-xs border bg-background p-2 text-sm font-semibold shadow-lg"
-                    style={tintOf(found.group.color, colorAlpha.header())}
+                    style={tintOf(resolveGroupColor(found.group), colorAlpha.header())}
                 >
                     {getGroupLabel(found.group, found.index)}
                 </div>

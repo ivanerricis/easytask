@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NotesSettings } from "./NotesSettings"
 
-const setters = { setCollapsedGroupLayout: vi.fn(), setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
+const setters = { setCollapsedGroupLayout: vi.fn(), setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setShowMediaWhenCollapsed: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
 let prefs: Record<string, unknown>
 const workspaces = [{ id: 1, name: "Alpha" }, { id: 2, name: "Beta" }]
 
@@ -22,6 +22,15 @@ describe("NotesSettings", () => {
         expect(screen.getByRole("radio", { name: "Verticale" })).toBeChecked()
         await userEvent.click(screen.getByRole("radio", { name: "Orizzontale" }))
         expect(setters.setCollapsedGroupLayout).toHaveBeenCalledWith("horizontal")
+    })
+
+    it("toggles the files of a collapsed group", async () => {
+        prefs.showMediaWhenCollapsed = true
+        render(<NotesSettings />)
+        const toggle = screen.getByRole("switch", { name: "File di un gruppo chiuso" })
+        expect(toggle).toBeChecked()
+        await userEvent.click(toggle)
+        expect(setters.setShowMediaWhenCollapsed).toHaveBeenCalledWith(false)
     })
 
     it("changes the task density", async () => {

@@ -20,7 +20,8 @@ vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
 const updateItemColor = vi.fn()
 const patchSection = vi.fn()
 const removeSection = vi.fn()
-vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ updateItemColor, duplicateSection, archiveItem }) }))
+const setSectionTaskOrder = vi.fn()
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ updateItemColor, duplicateSection, archiveItem, setSectionTaskOrder }) }))
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ patchSection, removeSection, refreshActiveNote }) }))
 vi.mock("../NoteMoveSubmenus", () => ({ SectionMoveSubmenu: () => null }))
 vi.mock("../NoteStepMoves", () => ({ SectionStepMoves: () => null }))
@@ -30,7 +31,7 @@ vi.mock("@/components/dialogs/dialog-delete", () => ({
 }))
 const onRename = vi.fn()
 
-const ENTRIES = ["Rinomina", "Duplica", "Cambia colore", "Archivia", "Elimina"]
+const ENTRIES = ["Rinomina", "Duplica", "Cambia colore", "Ordine dei task", "Archivia", "Elimina"]
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -40,11 +41,12 @@ beforeEach(() => {
     refreshActiveNote.mockResolvedValue(undefined)
     archiveItem.mockResolvedValue(undefined)
     removeSection.mockReturnValue(vi.fn())
+    setSectionTaskOrder.mockResolvedValue(undefined)
 })
 
-const setup = () => {
+const setup = (taskOrder?: "manual" | "open-first" | "done-first") => {
     render(
-        <ButtonMenuSection section={makeSection({ id: 7 })} onRename={onRename}>
+        <ButtonMenuSection section={makeSection({ id: 7, task_order: taskOrder })} onRename={onRename}>
             <div data-testid="row">
                 Sezione
                 <ItemMenuButton />
@@ -128,6 +130,59 @@ describe("ButtonMenuSection", () => {
         trigger.focus()
         await user.keyboard("{ArrowRight}")
         expect(await screen.findByText("Nessun colore", { selector: "button[type=button]" })).toBeInTheDocument()
+    })
+
+    const openOrderSubmenu = async (row: HTMLElement) => {
+        fireEvent.contextMenu(row)
+        const trigger = (await screen.findByText("Ordine dei task")).closest("[data-slot=context-menu-sub-trigger]") as HTMLElement
+        trigger.focus()
+        await userEvent.keyboard("{ArrowRight}")
+        await screen.findByText("Come nelle impostazioni")
+    }
+
+    it("lists the orders in a radio group with the choice of the section checked (the preference when it has none)", async () => {
+        await openOrderSubmenu(setup())
+        const checked = () => screen.getAllByRole("menuitemradio").filter(item => item.getAttribute("aria-checked") === "true").map(item => item.textContent)
+        expect(screen.getAllByRole("menuitemradio").map(item => item.textContent)).toEqual(["Come nelle impostazioni", "Manuale", "Prima i task aperti", "Prima i task completati"])
+        expect(checked()).toEqual(["Come nelle impostazioni"])
+    })
+
+    it("checks the order the section has", async () => {
+        await openOrderSubmenu(setup("open-first"))
+        expect(screen.getAllByRole("menuitemradio").filter(item => item.getAttribute("aria-checked") === "true").map(item => item.textContent)).toEqual(["Prima i task aperti"])
+    })
+
+    it("applies the order to the note at once, saves it and is no undo step", async () => {
+        await openOrderSubmenu(setup())
+        await userEvent.click(screen.getByText("Prima i task completati"))
+        expect(patchSection).toHaveBeenCalledWith(7, { task_order: "done-first" })
+        await waitFor(() => expect(setSectionTaskOrder).toHaveBeenCalledWith(7, "done-first"))
+        expect(recorder.track).not.toHaveBeenCalled()
+        expect(screen.queryByText("Come nelle impostazioni")).not.toBeInTheDocument()
+    })
+
+    it("gives the choice back to the preference with null", async () => {
+        await openOrderSubmenu(setup("manual"))
+        await userEvent.click(screen.getByText("Come nelle impostazioni"))
+        expect(patchSection).toHaveBeenCalledWith(7, { task_order: null })
+        await waitFor(() => expect(setSectionTaskOrder).toHaveBeenCalledWith(7, null))
+    })
+
+    it("does nothing when the order already chosen is picked again", async () => {
+        await openOrderSubmenu(setup("manual"))
+        await userEvent.click(screen.getByText("Manuale"))
+        expect(patchSection).not.toHaveBeenCalled()
+        expect(setSectionTaskOrder).not.toHaveBeenCalled()
+    })
+
+    it("puts the order back and shows the error when the write fails", async () => {
+        const rollback = vi.fn()
+        patchSection.mockReturnValue(rollback)
+        setSectionTaskOrder.mockRejectedValueOnce(new Error("boom"))
+        await openOrderSubmenu(setup())
+        await userEvent.click(screen.getByText("Manuale"))
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith("boom"))
+        expect(rollback).toHaveBeenCalledTimes(1)
     })
 
     it("deletes through the cached note tree, without reloading it", async () => {

@@ -59,6 +59,11 @@ export const textMenu: Translation["textMenu"] = {
 
 export const menu: Translation["menu"] = {
     changeColor: "Change color",
+    taskOrder: "Task order",
+    taskOrderDefault: "As in the settings",
+    taskOrderManual: "Manual",
+    taskOrderOpenFirst: "Open tasks first",
+    taskOrderDoneFirst: "Completed tasks first",
     noteBackground: "Note background",
     export: "Export",
     importHere: "Import here",

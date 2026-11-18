@@ -4,6 +4,7 @@ import { MAX_IMPORT_ITEMS, WORKSPACE_EXPORT_FORMAT, WORKSPACE_EXPORT_VERSION, ty
 import { createError } from "@/types/error"
 import { isPortableAutomation } from "@/lib/automations/portable"
 import { uniqueName } from "../names"
+import { isTaskOrder } from "@/lib/task-order"
 
 const INVALID_FILE_MESSAGE = () => i18n.t("errors.transfer.invalidFile")
 const MALFORMED_MESSAGE = () => i18n.t("errors.transfer.malformed")
@@ -99,6 +100,8 @@ function normalizeContent(content: NoteTemplateContent) {
             // A blank title stays blank (a section may have no title); only the others must differ
             section.title = section.title.trim() ? uniqueSibling(section.title.trim(), titles) : ""
             section.color = cleanColor(section.color)
+            // A view setting: a value this version does not know (a newer file) is dropped, the section follows the preference
+            if (!isTaskOrder(section.task_order)) delete section.task_order
             for (const task of section.tasks) normalizeTask(task)
         }
     }

@@ -105,6 +105,23 @@ describe("getTaskStep", () => {
         expect(getTaskStep(buildTree(), 3, -1, true, true)).toEqual({ sectionId: 1, parentTaskId: null, index: 0 })
     })
 
+    it("a section with its own order wins over the preference, in both directions", () => {
+        const withOrder = (task_order: "manual" | "open-first" | "done-first") => {
+            const tree = buildTree()
+            tree.groups.find(g => g.id === 1)!.sections[0].task_order = task_order
+            return tree
+        }
+        // Stored: A, B(done), C. "manual" ignores the preference "completed tasks last": A down jumps over B
+        expect(getTaskStep(withOrder("manual"), 1, 1, false, true)).toEqual({ sectionId: 1, parentTaskId: null, index: 1 })
+        // "open-first" sorts although the preference is off: A down jumps over C
+        expect(getTaskStep(withOrder("open-first"), 1, 1, false, false)).toEqual({ sectionId: 1, parentTaskId: null, index: 2 })
+        // "done-first": displayed B, A, C. B is the first and cannot cross to the open block; C up goes over A
+        expect(getTaskStep(withOrder("done-first"), 2, 1, false, false)).toBeNull()
+        expect(getTaskStep(withOrder("done-first"), 3, -1, false, false)).toEqual({ sectionId: 1, parentTaskId: null, index: 0 })
+        // Another section follows the preference
+        expect(getTaskStep(withOrder("done-first"), 4, -1, false, false)).toBeNull()
+    })
+
     it("gives the expected order once applied (the index is the final one among the siblings)", () => {
         const order = (ids: number[], id: number, index: number) => { const rest = ids.filter(x => x !== id); rest.splice(index, 0, id); return rest }
         expect(order([1, 2, 3], 1, getTaskStep(buildTree(), 1, 1, false)!.index)).toEqual([2, 1, 3])

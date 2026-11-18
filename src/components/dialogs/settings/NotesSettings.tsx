@@ -25,6 +25,7 @@ export const NotesSettings = () => {
         showTaskInsertLine, setShowTaskInsertLine,
         liveDrag, setLiveDrag,
         collapsedGroupLayout, setCollapsedGroupLayout,
+        showMediaWhenCollapsed, setShowMediaWhenCollapsed,
         taskDensity, setTaskDensity,
         newTaskPosition, setNewTaskPosition,
         spellcheck, setSpellcheck,
@@ -59,6 +60,7 @@ export const NotesSettings = () => {
                     options={COLLAPSED_GROUP_LAYOUT_OPTIONS.map(value => ({ value, label: t(`settings.notes.collapsedGroupLayout.${value}`) }))}
                     onChange={setCollapsedGroupLayout}
                 />
+                <SettingsSwitchRow label={t("settings.notes.mediaWhenCollapsed.label")} description={t("settings.notes.mediaWhenCollapsed.description")} checked={showMediaWhenCollapsed} onCheckedChange={setShowMediaWhenCollapsed} />
                 <SegmentedSetting
                     label={t("settings.notes.taskDensity.label")}
                     description={t("settings.notes.taskDensity.description")}

@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Group } from "./Group"
 import { GroupColumnContext } from "./group-column-context"
-import { makeDefaultSection, makeGroup, makeSection } from "@/test/ui-fixtures"
+import { makeDefaultSection, makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 
 const groupOpen = { value: true }
@@ -34,6 +34,7 @@ vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ pa
 vi.mock("@/lib/report-error", async importOriginal => ({ ...await importOriginal<object>(), reportError: (...args: unknown[]) => reportError(...args) }))
 vi.mock("./GroupAudioFiles", () => ({ GroupAudioFiles: () => <div data-testid="audio-files" /> }))
 vi.mock("./GroupMediaFiles", () => ({ GroupMediaFiles: () => <div data-testid="media-files" /> }))
+vi.mock("./GroupStripFiles", () => ({ GroupStripFiles: ({ onOpen }: { onOpen: () => void }) => <button data-testid="strip-files" onClick={onOpen}>file nella striscia</button> }))
 vi.mock("../section/Section", () => ({ Section: ({ section }: { section: { id: number } }) => <div data-mock={`s${section.id}`}>section</div> }))
 vi.mock("./GroupTasks", () => ({ GroupTasks: () => <div data-mock="list">direct tasks</div> }))
 vi.mock("../section/AddSection", () => ({
@@ -92,6 +93,18 @@ describe("Group panel", () => {
         expect(root().style.backgroundColor).toBe("rgba(255, 0, 0, 0.24)")
     })
 
+    it.each([
+        ["no task", [], "rgba(60, 180, 75, 0.16)"],
+        ["every task done", [true, true], "rgba(60, 180, 75, 0.16)"],
+        ["a task done", [true, false], "rgba(217, 191, 1, 0.16)"],
+        ["no task done", [false, false], "rgba(230, 25, 75, 0.16)"],
+    ])("follows the progress with the automatic color (%s)", (_name, done, background) => {
+        const tasks = done.map((completed, index) => makeTask({ id: index + 1, completed }))
+        render(<Group group={makeGroup({ id: 106, color: "progress", sections: [makeSection({ id: 1, tasks })] })} />)
+        expect(root().style.backgroundColor).toBe(background)
+        expect(root()).not.toHaveClass("bg-secondary")
+    })
+
     it("is gray without a color", () => {
         render(<Group group={makeGroup({ id: 103, color: null })} />)
         expect(root().style.backgroundColor).toBe("")
@@ -116,6 +129,44 @@ describe("Group when collapsed", () => {
         groupOpen.value = true
         rerender(<Group group={{ ...group }} />)
         expect(root().style.width).toBe("400px")
+    })
+})
+
+describe("Group files when collapsed", () => {
+    const withPrefs = (prefs: Partial<PreferencesContextType>, children: React.ReactNode) => (
+        <PreferencesContext.Provider value={prefs as PreferencesContextType}>{children}</PreferencesContext.Provider>
+    )
+
+    it("shows the audio and media rows under the header of a horizontal bar", () => {
+        groupOpen.value = false
+        render(withPrefs({ collapsedGroupLayout: "horizontal" }, <Group group={makeGroup({ id: 121 })} />))
+        expect(screen.getByTestId("audio-files")).toBeInTheDocument()
+        expect(screen.getByTestId("media-files")).toBeInTheDocument()
+        expect(screen.queryByTestId("strip-files")).not.toBeInTheDocument()
+    })
+
+    it("shows the strip of buttons in the vertical strip, and the button of the strip opens the group", () => {
+        groupOpen.value = false
+        render(<Group group={makeGroup({ id: 122 })} />)
+        expect(screen.queryByTestId("audio-files")).not.toBeInTheDocument()
+        fireEvent.click(screen.getByTestId("strip-files"))
+        expect(toggleOpen).toHaveBeenCalledTimes(1)
+    })
+
+    it("shows no file when the preference is off, in the strip and in the bar", () => {
+        groupOpen.value = false
+        const { unmount } = render(withPrefs({ showMediaWhenCollapsed: false }, <Group group={makeGroup({ id: 123 })} />))
+        expect(screen.queryByTestId("strip-files")).not.toBeInTheDocument()
+        unmount()
+        render(withPrefs({ showMediaWhenCollapsed: false, collapsedGroupLayout: "horizontal" }, <Group group={makeGroup({ id: 124 })} />))
+        expect(screen.queryByTestId("audio-files")).not.toBeInTheDocument()
+        expect(screen.queryByTestId("media-files")).not.toBeInTheDocument()
+    })
+
+    it("keeps the rows of an open group whatever the preference says", () => {
+        render(withPrefs({ showMediaWhenCollapsed: false }, <Group group={makeGroup({ id: 125 })} />))
+        expect(screen.getByTestId("audio-files")).toBeInTheDocument()
+        expect(screen.getByTestId("media-files")).toBeInTheDocument()
     })
 })
 

@@ -21,6 +21,7 @@ import { registerShiftNode, taskNodeKey } from "../note-dnd-shift"
 import type { DropZone } from "../note-dnd"
 import { useIsTaskSelected, useSubtasksOpen } from "@/contexts/use-tabs"
 import { orderedVisibleTasks } from "../section/hide-completed"
+import type { TaskOrder } from "@/lib/task-order"
 import { DropLine } from "../sidebar/DropLine"
 import { usePreference } from "@/contexts/use-preference"
 import type { TaskDensity } from "@/lib/store/preferences"
@@ -45,8 +46,10 @@ type TaskProps = {
     showSubtaskCount?: boolean
     /** Hides the fully completed subtasks (see isHiddenTask). Only primitive props: the subtasks are rendered here, so the memo holds. */
     hideCompleted?: boolean
-    /** Shows the completed subtasks after the open ones (display only). A primitive, so the memo holds. */
-    completedLast?: boolean
+    /** The order the subtasks are drawn in (display only; the order of the section the task belongs to). A primitive, so the memo holds. */
+    order?: TaskOrder
+    /** The section has a sorted order of its own (not the manual one): its tasks and subtasks are not draggable. */
+    orderLocked?: boolean
     /** Whether a click on the text starts the rename (preference "Rename on click"); otherwise only the menu does. */
     renameOnClick?: boolean
     /** Spacing and text size of the rows (preference "Task density"); a primitive prop, so the memo holds when other preferences change. */
@@ -90,10 +93,13 @@ export const Task = React.memo((props: TaskProps) => {
     const taskId = props.task.id
     const setWrapRef = useCallback((node: HTMLElement | null) => registerShiftNode(taskNodeKey(taskId), node), [taskId])
 
-    return <TaskRow {...props} setRowRef={setRowRef} setWrapRef={setWrapRef} dragProps={dragProps} isDragging={isDragging} dropZone={active?.kind === "task" ? zone : null} />
+    // In a sorted section a drop would have no visible place: the row is no draggable (it stays a drop target)
+    return <TaskRow {...props} setRowRef={setRowRef} setWrapRef={setWrapRef} dragProps={props.orderLocked ? NO_DRAG : dragProps} isDragging={isDragging} dropZone={active?.kind === "task" ? zone : null} />
 })
 
-const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideCompleted = false, completedLast = false, renameOnClick = true, density = "normal", treeKey = "", isFirst = false, setRowRef, setWrapRef, dragProps, isDragging, dropZone }: TaskRowProps) => {
+const NO_DRAG: HTMLAttributes<HTMLElement> = {}
+
+const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideCompleted = false, order = "manual", orderLocked = false, renameOnClick = true, density = "normal", treeKey = "", isFirst = false, setRowRef, setWrapRef, dragProps, isDragging, dropZone }: TaskRowProps) => {
     const { t } = useTranslation()
     // Same default as NoteDndProvider: with the live drag the tasks move aside by themselves
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
@@ -257,12 +263,12 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
             {showChildren && <div role="group" className={cn("flex flex-col self-stretch", sizes.subtasks, isSubtask ? "ml-[22px]" : "ml-6")}>
                 {taskRowsWithInsert({
                     all: task.subtasks,
-                    visible: orderedVisibleTasks(task.subtasks, { hideCompleted, completedLast }),
+                    visible: orderedVisibleTasks(task.subtasks, { hideCompleted, order }),
                     listKey: `t-${task.id}`,
                     parent: { parentTaskId: task.id },
                     depth: depth + 1,
-                    completedLast,
-                    renderTask: subtask => <Task key={subtask.id} task={subtask} depth={depth + 1} treeKey={treeKey} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompleted} completedLast={completedLast} renameOnClick={renameOnClick} density={density} />,
+                    order,
+                    renderTask: subtask => <Task key={subtask.id} task={subtask} depth={depth + 1} treeKey={treeKey} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompleted} order={order} orderLocked={orderLocked} renameOnClick={renameOnClick} density={density} />,
                 })}
                 {isAddingSubtask &&
                     <AddTask sectionId={task.sectionID} parentTaskId={task.id} onClose={closeAddSubtask} />}

@@ -392,6 +392,10 @@ export const settings: Translation["settings"] = {
             vertical: "Vertical",
             horizontal: "Horizontal",
         },
+        mediaWhenCollapsed: {
+            label: "Files of a collapsed group",
+            description: "Show the audio files, images and videos also when the group is collapsed: as rows under its header, or as small buttons in its strip. When off they only show once the group is open.",
+        },
         taskDensity: {
             label: "Task density",
             description: "Spacing between tasks and text size in the notes.",

@@ -4,6 +4,7 @@ import type { NoteDataTree, Section, Task } from "@/types/types"
 import { getGroupLabel } from "../groups/group-label"
 import { getSectionLabel } from "../section/section-label"
 import { orderedVisibleTasks } from "../section/hide-completed"
+import { effectiveTaskOrder, type TaskOrder } from "@/lib/task-order"
 
 /** Selection key of a task in the store of the task multi-selection ("task-12"). */
 export const taskKey = (id: number) => `task-${id}`
@@ -16,7 +17,7 @@ export function parseTaskKey(key: string): number | null {
 
 type FlattenOptions = {
     hideCompleted: boolean
-    /** The completed tasks follow the open ones of their list, as they are drawn ("completed tasks last"). */
+    /** The preference "completed tasks last": the order of the sections that have no choice of their own (see effectiveTaskOrder). */
     completedLast?: boolean
     isGroupOpen: (groupId: number) => boolean
     isSectionOpen: (sectionId: number) => boolean
@@ -27,16 +28,16 @@ type FlattenOptions = {
 /**
  * The tasks of the note in the order they are drawn: groups by position (closed groups leave out their tasks), in each
  * group its sections in their order, the list of the tasks put directly in the group being one of them (wherever it was placed), the closed sections leaving out their tasks; every task is followed by its subtasks (depth first), unless the task is closed.
- * Completed tasks are left out when they are hidden (see orderedVisibleTasks), and come after the open ones of their list with "completed tasks last". It is the order of the range selection.
+ * Completed tasks are left out when they are hidden (see orderedVisibleTasks), and are drawn after (or before) the open ones of their list according to the order of its section. It is the order of the range selection.
  * @category Note
  */
 export function flattenVisibleTasks(tree: NoteDataTree, { hideCompleted, completedLast = false, isGroupOpen, isSectionOpen, isTaskOpen }: FlattenOptions): Task[] {
     const result: Task[] = []
-    const visit = (list: Task[]) => {
-        for (const task of orderedVisibleTasks(list, { hideCompleted, completedLast })) {
+    const visit = (list: Task[], order: TaskOrder) => {
+        for (const task of orderedVisibleTasks(list, { hideCompleted, order })) {
             result.push(task)
             // The subtasks of a closed task are hidden: they cannot be part of a range selection
-            if (!isTaskOpen || isTaskOpen(task.id)) visit(task.subtasks ?? [])
+            if (!isTaskOpen || isTaskOpen(task.id)) visit(task.subtasks ?? [], order)
         }
     }
     for (const group of groupsByPosition(tree.groups)) {
@@ -44,7 +45,7 @@ export function flattenVisibleTasks(tree: NoteDataTree, { hideCompleted, complet
         for (const section of taskSections(group)) {
             // The default section has no header to close: it is open as long as the group is
             if (group.defaultSection?.id !== section.id && !isSectionOpen(section.id)) continue
-            visit(section.tasks ?? [])
+            visit(section.tasks ?? [], effectiveTaskOrder(section.task_order, completedLast))
         }
     }
     return result

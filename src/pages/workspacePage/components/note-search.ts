@@ -1,6 +1,7 @@
 import { taskSections } from "@/lib/group-sections"
 import type { NoteDataTree, Task } from "@/types/types"
 import { orderedVisibleTasks } from "./section/hide-completed"
+import { effectiveTaskOrder, type TaskOrder } from "@/lib/task-order"
 
 /** A range [start, end) of the original text. */
 export type MatchRange = readonly [start: number, end: number]
@@ -75,7 +76,7 @@ export type SearchMatch = {
 export type CollectOptions = {
     /** Matches inside tasks hidden by "hide completed tasks" are not counted (they are not on the screen). */
     hideCompleted: boolean
-    /** The completed tasks are listed after the open ones of their list, as they are drawn ("completed tasks last"). */
+    /** The preference "completed tasks last": the order of the sections that have no choice of their own (see effectiveTaskOrder). */
     completedLast?: boolean
 }
 
@@ -93,10 +94,10 @@ export function collectMatches(tree: NoteDataTree, query: string, { hideComplete
         for (let occurrence = 0; occurrence < count; occurrence++)
             matches.push({ id: `${key}#${occurrence}`, key, kind, itemId, groupId, sectionId, taskPath, occurrence })
     }
-    const visit = (list: Task[], groupId: number, sectionId: number, path: number[]) => {
-        for (const task of orderedVisibleTasks(list ?? [], { hideCompleted, completedLast })) {
+    const visit = (list: Task[], groupId: number, sectionId: number, path: number[], order: TaskOrder) => {
+        for (const task of orderedVisibleTasks(list ?? [], { hideCompleted, order })) {
             add("task", task.id, task.text, groupId, sectionId, path)
-            visit(task.subtasks ?? [], groupId, sectionId, [...path, task.id])
+            visit(task.subtasks ?? [], groupId, sectionId, [...path, task.id], order)
         }
     }
     for (const group of [...tree.groups].sort((a, b) => a.position - b.position)) {
@@ -104,7 +105,7 @@ export function collectMatches(tree: NoteDataTree, query: string, { hideComplete
         for (const section of taskSections(group)) {
             // The default section has no title: its tasks sit directly in the group
             if (group.defaultSection?.id !== section.id) add("section", section.id, section.title, group.id, section.id, [])
-            visit(section.tasks ?? [], group.id, section.id, [])
+            visit(section.tasks ?? [], group.id, section.id, [], effectiveTaskOrder(section.task_order, completedLast))
         }
     }
     return matches

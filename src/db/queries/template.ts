@@ -9,6 +9,7 @@ import { getDBNoteData, getDBNotesData, type NoteData } from "./note";
 import { addEnsureTag, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
+import { isTaskOrder } from "@/lib/task-order";
 
 const TEMPLATE_UNIQUE_MESSAGE = () => i18n.t("errors.template.unique")
 const TEMPLATE_CHECK_MESSAGE = () => i18n.t("errors.template.check")
@@ -46,7 +47,7 @@ const toTemplate = ({ content, ...row }: TemplateRow): NoteTemplate =>
  * @param tags The tags their `tagIDs` refer to (a tag that is not here is left out of the snapshot).
  * @category Database Queries
  */
-export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[] = []): (section: Pick<Section, "id" | "title" | "color" | "archived_at" | "position">) => TemplateSection {
+export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[] = []): (section: Pick<Section, "id" | "title" | "color" | "archived_at" | "position" | "task_order">) => TemplateSection {
     const childrenOf = new Map<number, Task[]>()
     const topOf = new Map<number, Task[]>()
     for (const task of tasks) {
@@ -78,6 +79,7 @@ export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[]
         color: section.color ?? null,
         ...(section.archived_at ? { archived_at: section.archived_at } : {}),
         position: section.position,
+        ...(isTaskOrder(section.task_order) ? { task_order: section.task_order } : {}),
         tasks: (topOf.get(section.id) ?? []).map(snapshotTask),
     })
 }
@@ -373,8 +375,8 @@ export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, leve
  * @category Database Queries
  */
 export function addSections(tx: Transaction, sources: { groupRef: number | TxRef, section: TemplateSection, isDefault?: boolean }[]): TxRef[] {
-    const sectionRefs = tx.insertRows("section", ["groupID", "title", "color", "archived_at", "position", "is_default"],
-        sources.map(({ groupRef, section, isDefault }) => [groupRef, section.title || null, section.color ?? null, section.archived_at || null, section.position, isDefault ? 1 : 0]))
+    const sectionRefs = tx.insertRows("section", ["groupID", "title", "color", "archived_at", "position", "is_default", "task_order"],
+        sources.map(({ groupRef, section, isDefault }) => [groupRef, section.title || null, section.color ?? null, section.archived_at || null, section.position, isDefault ? 1 : 0, isTaskOrder(section.task_order) ? section.task_order : null]))
 
     addTaskTree(tx, sectionRefs[0], sources.flatMap(({ section }, i) =>
         section.tasks.map(task => ({ sectionRef: sectionRefs[i], parentRef: null, task }))))

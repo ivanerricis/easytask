@@ -2,6 +2,7 @@ import type { NoteDataTree } from "@/types/types"
 import { findGroup, indexTree, type TaskTarget } from "./note-dnd"
 import { directIndexOf } from "@/lib/group-sections"
 import { isHiddenTask, orderedVisibleTasks } from "./section/hide-completed"
+import { effectiveTaskOrder } from "@/lib/task-order"
 
 /** One step of the "Sposta su / giù" menu items: towards the start (-1) or the end (+1) of the siblings. */
 export type Step = -1 | 1
@@ -28,7 +29,8 @@ function stepIndex<T extends { id: number }>(siblings: T[], id: number, step: St
  * A step never crosses a section: the first/last task of a section (the direct tasks of a group included) has no step
  * further, the "Sposta in…" menu moves it to another section or to the direct area of a group.
  * @param hideCompleted Siblings hidden by the "hide completed" rule (isHiddenTask) are not on screen, so they are jumped over.
- * @param completedLast The completed tasks are drawn after the open ones: a step goes to the neighbour in that displayed order
+ * @param completedLast The preference "completed tasks last", the order of a section with no choice of its own. With a sorted order (that
+ *   preference or the choice of the section) a step goes to the neighbour in the displayed order
  *   and never crosses from the open block to the completed one (or back). The stored order only changes between the two tasks.
  * @category Note DnD
  */
@@ -39,8 +41,9 @@ export function getTaskStep(tree: NoteDataTree, taskId: number, step: Step, hide
     const siblings = info.parentId === null
         ? sections.get(info.sectionId)?.section.tasks ?? []
         : tasks.get(info.parentId)?.task.subtasks ?? []
-    if (completedLast) {
-        const displayed = orderedVisibleTasks(siblings, { hideCompleted, completedLast })
+    const order = effectiveTaskOrder(sections.get(info.sectionId)?.section.task_order, completedLast)
+    if (order !== "manual") {
+        const displayed = orderedVisibleTasks(siblings, { hideCompleted, order })
         const neighbour = displayed[displayed.findIndex(task => task.id === taskId) + step]
         const task = displayed.find(candidate => candidate.id === taskId)
         // The neighbour is in the other block, or there is none: at the edge

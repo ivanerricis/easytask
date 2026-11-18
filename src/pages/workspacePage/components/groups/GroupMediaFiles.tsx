@@ -6,6 +6,7 @@ import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
 import { DialogRenameItem } from "@/components/dialogs/dialog-rename"
 import { MenuGroup } from "@/components/menu-kind"
 import { Button } from "@/components/ui/button"
+import { TooltipCustom } from "@/components/tooltip-custom"
 import { Separator } from "@/components/ui/separator"
 import { ItemMenu, ItemMenuButton } from "@/components/item-menu"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
@@ -24,14 +25,16 @@ type MediaFileRowProps = {
     src: string | undefined
     missing: boolean
     onOpen: () => void
+    /** "strip": only a small square thumbnail button, for the strip of a closed group; the menu opens with the right click. */
+    variant?: "row" | "strip"
 }
 
-const Thumbnail = ({ file, src, missing, unsupported, onUnsupported }: {
-    file: MediaFile, src: string | undefined, missing: boolean, unsupported: boolean, onUnsupported: () => void
+const Thumbnail = ({ file, src, missing, unsupported, onUnsupported, size = "size-9" }: {
+    file: MediaFile, src: string | undefined, missing: boolean, unsupported: boolean, onUnsupported: () => void, size?: string
 }) => {
     const { t } = useTranslation()
     const video = getMediaKind(file.name) === "video"
-    const frame = cn("relative size-9 shrink-0 overflow-hidden rounded-xs bg-muted", missing && "opacity-40 grayscale")
+    const frame = cn("relative shrink-0 overflow-hidden", size, " rounded-xs bg-muted", missing && "opacity-40 grayscale")
     if (!src || missing) return <span aria-hidden className={frame} data-testid="media-thumbnail" />
     // The file is there but the webview cannot decode it (e.g. HEVC without the codec)
     if (unsupported) return (
@@ -52,7 +55,7 @@ const Thumbnail = ({ file, src, missing, unsupported, onUnsupported }: {
     )
 }
 
-const MediaFileRow = ({ file, groupId, src, missing, onOpen }: MediaFileRowProps) => {
+const MediaFileRow = ({ file, groupId, src, missing, onOpen, variant = "row" }: MediaFileRowProps) => {
     const { t } = useTranslation()
     const { relinkMediaFile, refresh } = useAudioActions()
     const [isRenameOpen, setRenameOpen] = useState(false)
@@ -116,6 +119,23 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen }: MediaFileRowProps
         </>
     )
 
+    if (variant === "strip") return (
+        <ItemMenu state={menu} items={items} dialogs={dialogs} contentClassName="p-1 rounded-xs">
+            <div role="listitem" data-missing={missing ? "true" : undefined} className="relative">
+                <TooltipCustom text={file.name}>
+                    <button
+                        type="button"
+                        aria-label={missing ? `${t("media.open", { name: file.name })} (${t("audio.missing.title")})` : t("media.open", { name: file.name })}
+                        onClick={onOpen}
+                        className={cn(focusRing, "block size-7 shrink-0 cursor-pointer overflow-hidden rounded-xs border bg-background", missing && "border-destructive")}>
+                        <Thumbnail file={file} src={src} missing={missing} unsupported={unsupported} size="size-full" onUnsupported={() => { void fileStillExists(file.path).then(exists => { if (exists) setUnsupported(true) }) }} />
+                    </button>
+                </TooltipCustom>
+                {missing && <TriangleAlert className="pointer-events-none absolute -right-1 -top-1 size-3 text-destructive" role="img" aria-label={t("audio.missing.title")} />}
+            </div>
+        </ItemMenu>
+    )
+
     return (
         <ItemMenu state={menu} items={items} dialogs={dialogs} contentClassName="p-1 rounded-xs">
             <div
@@ -155,6 +175,10 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen }: MediaFileRowProps
 
 type GroupMediaFilesProps = {
     groupId: number
+    /** "strip": small square thumbnails instead of rows (closed group, vertical layout). */
+    variant?: "row" | "strip"
+    /** The most files shown (all when omitted); the viewer still goes through all of them. */
+    max?: number
 }
 
 /**
@@ -162,7 +186,7 @@ type GroupMediaFilesProps = {
  * A click opens the viewer (a missing file opens the "file not found" dialog instead).
  * @category Group
  */
-export const GroupMediaFiles = ({ groupId }: GroupMediaFilesProps) => {
+export const GroupMediaFiles = ({ groupId, variant = "row", max }: GroupMediaFilesProps) => {
     const { t } = useTranslation()
     const { reportMissingMedia } = useAudioActions()
     const files = useGroupMediaFiles(groupId)
@@ -178,8 +202,8 @@ export const GroupMediaFiles = ({ groupId }: GroupMediaFilesProps) => {
 
     return (
         <>
-            <div role="list" className="flex flex-col gap-1" aria-label={t("media.files")}>
-                {files.map((file, index) => (
+            {(max === undefined || max > 0) && <div role="list" className={cn("flex flex-col gap-1", variant === "strip" && "items-center")} aria-label={t("media.files")}>
+                {(max === undefined ? files : files.slice(0, max)).map((file, index) => (
                     <MediaFileRow
                         key={file.id}
                         file={file}
@@ -187,9 +211,10 @@ export const GroupMediaFiles = ({ groupId }: GroupMediaFilesProps) => {
                         src={sources[file.path]}
                         missing={missing.has(file.path)}
                         onOpen={() => open(index)}
+                        variant={variant}
                     />
                 ))}
-            </div>
+            </div>}
             <MediaViewer
                 files={files}
                 sources={sources}

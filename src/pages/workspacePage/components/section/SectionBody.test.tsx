@@ -120,7 +120,7 @@ describe("SectionBody + lines", () => {
     beforeEach(() => { prefs.hideCompletedTasks = false; vi.clearAllMocks(); ctx.insertTaskAfter.mockResolvedValue({ id: 50, index: 1 }) })
 
     const dnd = createNoteDndStore()
-    const setup = (tasks: ReturnType<typeof makeTask>[]) => {
+    const setup = (tasks: ReturnType<typeof makeTask>[], task_order?: "manual" | "open-first" | "done-first") => {
         let store!: ReturnType<typeof useTaskInsertStore>
         function Grab() {
             const current = useTaskInsertStore()
@@ -129,7 +129,7 @@ describe("SectionBody + lines", () => {
         }
         render(
             <NoteDndStoreContext.Provider value={dnd}>
-                <TaskInsertProvider><Grab /><SectionBody isOpen section={makeSection({ id: 1, tasks })} /></TaskInsertProvider>
+                <TaskInsertProvider><Grab /><SectionBody isOpen section={makeSection({ id: 1, tasks, task_order })} /></TaskInsertProvider>
             </NoteDndStoreContext.Provider>,
         )
         return () => store
@@ -199,6 +199,32 @@ describe("SectionBody + lines", () => {
         await user.type(fields()[0], "Nuovo{Enter}")
         await waitFor(() => expect(ctx.insertTaskAfter).toHaveBeenCalledWith({ sectionId: 1 }, 4, "Nuovo"))
         prefs.completedTasksLast = false
+    })
+
+    it("with the completed tasks first, has no line above a completed task and the first open one inserts before it", async () => {
+        const user = userEvent.setup()
+        setup([
+            makeTask({ id: 1, text: "Uno", completed: true }), makeTask({ id: 2, text: "Due" }),
+            makeTask({ id: 3, text: "Tre", completed: true }), makeTask({ id: 4, text: "Quattro" }),
+        ], "done-first")
+        // Drawn: Uno, Tre, Due, Quattro: lines above Due and Quattro only
+        expect(screen.getAllByTestId("task-insert-zone")).toHaveLength(2)
+        fireEvent.click(plus(0))
+        await user.type(fields()[0], "Nuovo{Enter}")
+        // Right before Due in the stored list: after Uno
+        await waitFor(() => expect(ctx.insertTaskAfter).toHaveBeenCalledWith({ sectionId: 1 }, 1, "Nuovo"))
+    })
+
+    it("the order of the section wins over the preference", () => {
+        const mixed = [makeTask({ id: 1, text: "Uno", completed: true }), makeTask({ id: 2, text: "Due" })]
+        const texts = () => screen.getAllByTestId("task").map(node => node.textContent)
+        prefs.completedTasksLast = true
+        const { unmount } = render(<SectionBody isOpen section={makeSection({ id: 5, tasks: mixed, task_order: "manual" })} />)
+        expect(texts()).toEqual(["Uno", "Due"])
+        unmount()
+        prefs.completedTasksLast = false
+        render(<SectionBody isOpen section={makeSection({ id: 5, tasks: mixed, task_order: "open-first" })} />)
+        expect(texts()).toEqual(["Due", "Uno"])
     })
 
     it("a line at the top inserts in the first place", async () => {

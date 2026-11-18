@@ -120,6 +120,22 @@ describe("collectMatches", () => {
         expect(collectMatches(mixed, "voce", { hideCompleted: false, completedLast: true }).map(m => m.id)).toEqual(["task-8#0", "task-7#0"])
     })
 
+    it("follows the order of each section, over the preference", () => {
+        const mixed: NoteDataTree = { groups: [makeGroup({
+            id: 1, position: 0, name: "x", sections: [
+                makeSection({ id: 5, groupID: 1, title: "y", task_order: "manual", tasks: [
+                    makeTask({ id: 7, sectionID: 5, completed: true, text: "voce uno" }), makeTask({ id: 8, sectionID: 5, text: "voce due" }),
+                ] }),
+                makeSection({ id: 6, groupID: 1, title: "z", task_order: "done-first", tasks: [
+                    makeTask({ id: 9, sectionID: 6, text: "voce tre" }), makeTask({ id: 10, sectionID: 6, completed: true, text: "voce quattro" }),
+                ] }),
+            ],
+        })] }
+        const ids = (completedLast: boolean) => collectMatches(mixed, "voce", { hideCompleted: false, completedLast }).map(m => m.id)
+        expect(ids(true)).toEqual(["task-7#0", "task-8#0", "task-10#0", "task-9#0"])
+        expect(ids(false)).toEqual(["task-7#0", "task-8#0", "task-10#0", "task-9#0"])
+    })
+
     it("has no matches for an empty query", () => {
         expect(summary("")).toEqual([])
         expect(summary("   ".trim())).toEqual([])
