@@ -218,9 +218,9 @@ describe("TabsDndProvider live drag", () => {
         // Left half of the first tab of the right bar: before it
         await drag(box(1), [50, 20], [410, 20], false)
         await frame()
-        expect(transformOf(10)).toBe("translate3d(100px, 0, 0)")
-        expect(transformOf(11)).toBe("translate3d(100px, 0, 0)")
-        expect(transformOf(2)).toBe("translate3d(-100px, 0, 0)")
+        expect(transformOf(10)).toBe("translate(100px, 0)")
+        expect(transformOf(11)).toBe("translate(100px, 0)")
+        expect(transformOf(2)).toBe("translate(-100px, 0)")
         expect(box(1).style.opacity).toBe("0")
         // The tabs step aside instead of the drop line
         expect(container.querySelector(".bg-primary")).toBeNull()
@@ -234,11 +234,11 @@ describe("TabsDndProvider live drag", () => {
         render(<Panes open0={[1, 2, 3]} open1={[10]} />)
         await drag(box(1), [50, 20], [280, 20], false) // after the third tab
         await frame()
-        expect([transformOf(1), transformOf(2), transformOf(3)]).toEqual(["", "translate3d(-100px, 0, 0)", "translate3d(-100px, 0, 0)"])
+        expect([transformOf(1), transformOf(2), transformOf(3)]).toEqual(["", "translate(-100px, 0)", "translate(-100px, 0)"])
         fireEvent.pointerMove(document, pointer(210, 20)) // before the third tab
         await settle()
         await frame()
-        expect([transformOf(2), transformOf(3)]).toEqual(["translate3d(-100px, 0, 0)", ""])
+        expect([transformOf(2), transformOf(3)]).toEqual(["translate(-100px, 0)", ""])
         fireEvent.pointerUp(document, pointer(210, 20))
         await settle()
         expect(reorder0).toHaveBeenCalledWith(0, 1)
@@ -268,7 +268,7 @@ describe("TabsDndProvider live drag", () => {
         await frame()
         expect(screen.getByTestId("tab-drag-overlay")).toHaveTextContent("Note 1")
         expect(box(1).style.opacity).toBe("0")
-        expect([transformOf(2), transformOf(3)]).toEqual(["translate3d(-100px, 0, 0)", "translate3d(-100px, 0, 0)"])
+        expect([transformOf(2), transformOf(3)]).toEqual(["translate(-100px, 0)", "translate(-100px, 0)"])
         expect(container.querySelector(".bg-primary")).toBeNull()
         fireEvent.pointerUp(document, pointer(680, 20))
         await settle()

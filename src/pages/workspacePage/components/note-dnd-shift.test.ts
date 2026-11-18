@@ -41,7 +41,7 @@ describe("applyShifts", () => {
         applyShifts(new Map([["task-1", 20]]))
         expect(a.style.transform).toBe("")
         flushFrame()
-        expect(a.style.transform).toBe("translate3d(0, 20px, 0)")
+        expect(a.style.transform).toBe("translate(0, 20px)")
         expect(a.style.transition).toBe(`transform ${SHIFT_DURATION}ms ease-out`)
         expect(hasShifts()).toBe(true)
     })
@@ -54,7 +54,7 @@ describe("applyShifts", () => {
         expect(frames).toHaveLength(1)
         flushFrame()
         expect(a.style.transform).toBe("")
-        expect(b.style.transform).toBe("translate3d(0, -10px, 0)")
+        expect(b.style.transform).toBe("translate(0, -10px)")
     })
 
     it("sends back the wrappers that are no longer shifted and leaves the others alone", () => {
@@ -65,7 +65,7 @@ describe("applyShifts", () => {
         applyShifts(new Map([["task-2", 20]]))
         flushFrame()
         expect(a.style.transform).toBe("")
-        expect(b.style.transform).toBe("translate3d(0, 20px, 0)")
+        expect(b.style.transform).toBe("translate(0, 20px)")
     })
 
     it("drops the transition of a wrapper that went back once the way is over", () => {
@@ -122,7 +122,7 @@ describe("applyShifts", () => {
         const a = wrapper(1, 1)
         applyShifts(new Map([["task-1", 20]]))
         flushFrame()
-        expect(a.style.transform).toBe("translate3d(0, 20px, 0)")
+        expect(a.style.transform).toBe("translate(0, 20px)")
         expect(a.style.transition).toBe("none")
     })
 
@@ -187,7 +187,7 @@ describe("registerShiftNode", () => {
         registerShiftNode("task-1", null)
         applyShifts(new Map([["task-1", 40]]))
         flushFrame()
-        expect(a.style.transform).toBe("translate3d(0, 20px, 0)")
+        expect(a.style.transform).toBe("translate(0, 20px)")
         expect(shiftOf(a)).toBe(0)
     })
 })
@@ -222,7 +222,57 @@ describe("shiftOf", () => {
     })
 })
 
+describe("shiftOf of a row gliding back", () => {
+    it("still counts what is left of the transition until it ends", () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+        const a = wrapper(1, 1)
+        applyShifts(new Map([["task-1", 20]]))
+        flushFrame()
+        applyShifts(new Map())
+        flushFrame()
+        expect(a.style.transform).toBe("")
+        expect(hasShifts()).toBe(false)
+        const spy = vi.spyOn(window, "getComputedStyle").mockReturnValue({ transform: "matrix(1, 0, 0, 1, 0, 6)" } as CSSStyleDeclaration)
+        expect(shiftOf(a)).toBe(6)
+        spy.mockRestore()
+        vi.advanceTimersByTime(SHIFT_DURATION + 60)
+        expect(shiftOf(a)).toBe(0)
+    })
+})
+
 describe("readLiveSnapshot", () => {
+    it("takes the applied shifts out: a re-read mid drag gives the layout at rest", () => {
+        const first = wrapper(1, 5)
+        const second = wrapper(2, 5)
+        const sub = wrapper(3, 5, second)
+        // task 2 and its subtask are shifted by 20 on screen, task 1 is not
+        first.getBoundingClientRect = () => ({ top: 0, height: 60 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 80, height: 40 }) as DOMRect
+        sub.getBoundingClientRect = () => ({ top: 100, height: 20 }) as DOMRect
+        applyShifts(new Map([["task-2", 20]]))
+        flushFrame()
+        const { items } = readLiveSnapshot()
+        expect(items.get("task-1")).toMatchObject({ top: 0, height: 60 })
+        expect(items.get("task-2")).toMatchObject({ top: 60, height: 40 })
+        expect(items.get("task-3")).toMatchObject({ top: 80, height: 20 }) // rides on its parent
+    })
+
+    it("sees the new size of a row that grew after the first read", () => {
+        const first = wrapper(1, 5)
+        const second = wrapper(2, 5)
+        first.getBoundingClientRect = () => ({ top: 0, height: 60 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 60, height: 40 }) as DOMRect
+        expect(readLiveSnapshot().items.get("task-1")?.height).toBe(60)
+        applyShifts(new Map([["task-2", 20]]))
+        flushFrame()
+        // The first row grows by 30 (an image finished loading): the second is pushed down, on top of its shift
+        first.getBoundingClientRect = () => ({ top: 0, height: 90 }) as DOMRect
+        second.getBoundingClientRect = () => ({ top: 110, height: 40 }) as DOMRect
+        const { items } = readLiveSnapshot()
+        expect(items.get("task-1")?.height).toBe(90)
+        expect(items.get("task-2")).toMatchObject({ top: 90, height: 40 })
+    })
+
     it("reads lists, parents and sizes in document order", () => {
         const first = wrapper(1, 5)
         const sub = wrapper(2, 5, first)
@@ -275,7 +325,7 @@ describe("sections", () => {
         const row = wrapper(1, 1, card)
         applyShifts(new Map([[sectionNodeKey(1), 30]]), null)
         flushFrame()
-        expect(card.style.transform).toBe("translate3d(0, 30px, 0)")
+        expect(card.style.transform).toBe("translate(0, 30px)")
         expect(row.style.transform).toBe("")
         // the droppables inside it are measured without the shift
         expect(shiftOf(row)).toBe(30)
@@ -319,7 +369,7 @@ describe("groups (horizontal axis)", () => {
         const b = groupWrapper(2, 108, 100)
         applyShifts(new Map([[groupNodeKey(2), -108]]), groupNodeKey(1), "x")
         flushFrame()
-        expect(b.style.transform).toBe("translate3d(-108px, 0, 0)")
+        expect(b.style.transform).toBe("translate(-108px, 0)")
         expect(a.style.opacity).toBe("0")
         clearShifts(false)
         expect(b.style.transform).toBe("")
@@ -391,7 +441,115 @@ describe("tabs (horizontal axis)", () => {
         const b = tabWrapper(0, 2, 100, 100)
         applyShifts(new Map([[tabNodeKey(0, 2), -100]]), tabNodeKey(0, 1), "x")
         flushFrame()
-        expect(b.style.transform).toBe("translate3d(-100px, 0, 0)")
+        expect(b.style.transform).toBe("translate(-100px, 0)")
         expect(a.style.opacity).toBe("0")
+    })
+})
+
+describe("the skeleton in the room that opens", () => {
+    const SLOT = "[data-live-slot]"
+    const list = () => {
+        const container = document.createElement("div")
+        document.body.appendChild(container)
+        return container
+    }
+    const room = (start: number) => ({ list: "s-1", parent: null, start, size: 20 })
+    /** The frames and the skeletons are prepared once the frame of the start is on screen (a frame, then a task). */
+    const prepared = () => { flushFrame(); vi.runOnlyPendingTimers(); for (let i = 0; i < 10; i++) flushFrame() }
+    beforeEach(() => { vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }) })
+
+    it("is put in its list when the layout is read, shown with a transform and glides to the next room without being resized", () => {
+        const container = list()
+        wrapper(1, 1, container)
+        wrapper(2, 1, container)
+        readLiveSnapshot("task")
+        prepared()
+        // Already in the list, hidden, before the target changes (adding a box to a list is a layout of the list)
+        expect(container.querySelectorAll(".live-drag-slot")).toHaveLength(1)
+        expect(container.querySelectorAll(SLOT)).toHaveLength(0)
+        applyShifts(new Map([["task-2", 20]]), "task-1", "y", room(30))
+        flushFrame()
+        const slot = container.querySelector<HTMLElement>(SLOT)
+        expect(slot).not.toBeNull()
+        expect(slot?.style.transform).toBe("translate(0px, 30px)")
+        expect(slot?.style.transition).toBe(`opacity ${SHIFT_DURATION}ms ease-out`) // it fades in, it does not glide
+        expect(slot?.style.opacity).toBe("1")
+        expect(slot?.style.height).toBe("20px")
+
+        // Another room of the same list: the same node moves by its transform, nothing else is written
+        const sizes = vi.spyOn(slot!.style, "height", "set")
+        applyShifts(new Map([["task-2", 20]]), "task-1", "y", room(60))
+        flushFrame()
+        expect(container.querySelector(SLOT)).toBe(slot)
+        expect(slot?.style.transform).toBe("translate(0px, 60px)")
+        expect(slot?.style.transition).toBe(`transform ${SHIFT_DURATION}ms ease-out`)
+        expect(slot?.style.left).toBe("0px")
+        expect(slot?.style.top).toBe("0px")
+        expect(sizes).not.toHaveBeenCalled()
+    })
+
+    it("prepares a few lists per frame, the list of the dragged item first and then the nearest ones", () => {
+        const lists = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(() => list())
+        lists.forEach((container, i) => wrapper(i + 1, i + 1, container))
+        readLiveSnapshot("task", lists[2].firstElementChild as HTMLElement)
+        const ready = () => lists.map(container => container.querySelectorAll(".live-drag-slot").length)
+        expect(ready()).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0]) // not in the frame that started the drag
+        flushFrame()
+        vi.runOnlyPendingTimers()
+        expect(ready().reduce((a, b) => a + b, 0)).toBe(4) // not all of them at once
+        expect(ready()[2]).toBe(1) // the source
+        expect(ready()[1] + ready()[3]).toBe(2) // its neighbours
+        expect(ready()[8]).toBe(0) // the farthest one waits
+        flushFrame()
+        flushFrame()
+        flushFrame()
+        expect(ready()).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1])
+    })
+
+    it("goes with the list it is in, and away when there is no room", () => {
+        const container = list()
+        wrapper(1, 1, container)
+        readLiveSnapshot("task")
+        prepared()
+        applyShifts(new Map([["task-1", 20]]), null, "y", room(10))
+        flushFrame()
+        expect(document.querySelectorAll(SLOT)).toHaveLength(1)
+        applyShifts(new Map(), null, "y", null)
+        flushFrame()
+        expect(document.querySelectorAll(SLOT)).toHaveLength(0)
+        expect(document.querySelector<HTMLElement>(".live-drag-slot")?.style.opacity).toBe("0")
+        clearShifts(false)
+        expect(document.querySelectorAll(".live-drag-slot")).toHaveLength(0)
+    })
+
+    it("a target that changes before the skeletons are prepared gets its list framed and its skeleton in the same write", () => {
+        const container = list()
+        container.style.position = "static"
+        wrapper(1, 1, container)
+        readLiveSnapshot("task")
+        applyShifts(new Map([["task-1", 20]]), null, "y", room(10))
+        flushFrame() // the frame of the write (the one of the preparation is the same stub: it runs it too)
+        expect(container.style.position).toBe("relative")
+        expect(container.querySelectorAll(SLOT)).toHaveLength(1)
+    })
+
+    it("makes a static list the frame of the skeleton right after the start (not in the frame the target changes) and gives it back at the end", () => {
+        const container = list()
+        container.style.position = "static"
+        const other = list()
+        other.style.position = "sticky"
+        wrapper(1, 1, container)
+        wrapper(2, 2, other)
+        readLiveSnapshot("task")
+        prepared()
+        expect(container.style.position).toBe("relative")
+        expect(other.style.position).toBe("sticky")
+        // Reading again (a row changed its size) keeps what the first read did
+        readLiveSnapshot("task")
+        prepared()
+        expect(container.style.position).toBe("relative")
+        clearShifts(false)
+        expect(container.style.position).toBe("static")
+        expect(other.style.position).toBe("sticky")
     })
 })

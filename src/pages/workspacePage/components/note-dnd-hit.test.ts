@@ -1,8 +1,32 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from "vitest"
-import { clearZones, hitTest, measureZones, registerZone } from "./note-dnd-hit"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { clearZones, hitTest, measureZones, registerZone, zoneRect } from "./note-dnd-hit"
 import { ACCEPTS } from "./note-dnd"
 import type { NoteOverKind } from "./note-dnd"
+import { applyShifts, clearShifts, registerShiftNode, SHIFT_ATTR } from "./note-dnd-shift"
+
+/** A ResizeObserver that tells what it watches and lets the test fire it (jsdom has none). */
+class FakeObserver {
+    static all: FakeObserver[] = []
+    observed = new Set<Element>()
+    disconnected = false
+    callback: ResizeObserverCallback
+    constructor(callback: ResizeObserverCallback) { this.callback = callback; FakeObserver.all.push(this) }
+    observe(node: Element) { this.observed.add(node) }
+    disconnect() { this.disconnected = true }
+    fire() { this.callback([], this as unknown as ResizeObserver) }
+}
+
+let frames: FrameRequestCallback[] = []
+const flushFrame = () => { const run = frames; frames = []; run.forEach(callback => callback(0)) }
+
+beforeEach(() => {
+    frames = []
+    FakeObserver.all = []
+    vi.stubGlobal("ResizeObserver", FakeObserver)
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frames.push(callback); return frames.length })
+    vi.stubGlobal("cancelAnimationFrame", () => { frames = [] })
+})
 
 const nodes: string[] = []
 
@@ -20,7 +44,9 @@ const zone = (kind: NoteOverKind, id: number, box: { left: number, top: number, 
 afterEach(() => {
     for (const key of nodes.splice(0)) registerZone(key, "task", 0, [], null)
     clearZones()
+    clearShifts(false)
     document.body.innerHTML = ""
+    vi.unstubAllGlobals()
 })
 
 describe("note drag hit test", () => {
@@ -75,6 +101,19 @@ describe("note drag hit test", () => {
         expect(hitTest({ x: 10, y: 25 })).toBeNull()
     })
 
+    it("tells where a zone is now, after the content scrolled under a still pointer", () => {
+        const row = document.createElement("div")
+        document.body.appendChild(row)
+        Object.defineProperty(row, "scrollWidth", { value: 900 })
+        Object.defineProperty(row, "clientWidth", { value: 300 })
+        zone("group", 4, { left: 250, top: 0, width: 400, height: 100 }, row)
+        measureZones("group")
+        expect(zoneRect("group", 4)).toMatchObject({ left: 250, right: 650 })
+        row.scrollLeft = 180
+        expect(zoneRect("group", 4)).toMatchObject({ left: 70, right: 470, top: 0, bottom: 100 })
+        expect(zoneRect("group", 9)).toBeNull()
+    })
+
     it("follows the horizontal scroll and any level of scrollable ancestors", () => {
         const outer = document.createElement("div")
         const inner = document.createElement("div")
@@ -103,5 +142,93 @@ describe("note drag hit test", () => {
         node.remove()
         measureZones("task")
         expect(hitTest({ x: 10, y: 10 })).toBeNull()
+    })
+
+    describe("a row changes its size during the drag", () => {
+        /** A zone whose box the test can change, like a row whose image finished loading. */
+        const growing = (kind: NoteOverKind, id: number, box: { left: number, top: number, width: number, height: number }) => {
+            const node = zone(kind, id, box)
+            const set = (next: typeof box) => { node.getBoundingClientRect = () => ({ ...next, right: next.left + next.width, bottom: next.top + next.height, x: next.left, y: next.top }) as DOMRect }
+            return { node, set }
+        }
+        const start = (onResize?: () => void) => {
+            measureZones("task", onResize)
+            flushFrame() // the first notification of the observer is over: changes count from here
+            return FakeObserver.all[FakeObserver.all.length - 1]
+        }
+
+        it("watches the zones that take part and the wrappers that are shifted", () => {
+            const row = growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
+            const group = zone("group", 1, { left: 0, top: 0, width: 300, height: 300 })
+            const wrap = document.createElement("div")
+            wrap.setAttribute(SHIFT_ATTR.task, "1")
+            document.body.appendChild(wrap)
+            registerShiftNode("task-1", wrap)
+            const observer = start()
+            expect(observer.observed.has(row.node)).toBe(true)
+            expect(observer.observed.has(group)).toBe(true)
+            expect(observer.observed.has(wrap)).toBe(true)
+            registerShiftNode("task-1", null)
+        })
+
+        it("measures again: the hit test follows the new size and the rows below", () => {
+            const first = growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
+            const second = growing("task", 2, { left: 0, top: 20, width: 100, height: 20 })
+            const observer = start()
+            expect(hitTest({ x: 50, y: 30 })?.ref).toEqual({ kind: "task", id: 2 })
+            first.set({ left: 0, top: 0, width: 100, height: 50 })
+            second.set({ left: 0, top: 50, width: 100, height: 20 })
+            observer.fire()
+            expect(hitTest({ x: 50, y: 30 })?.ref).toEqual({ kind: "task", id: 1 })
+            expect(hitTest({ x: 50, y: 60 })?.ref).toEqual({ kind: "task", id: 2 })
+        })
+
+        it("takes the shift that is applied out of the new measure", () => {
+            const first = growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
+            const second = growing("task", 2, { left: 0, top: 20, width: 100, height: 20 })
+            const wrap = document.createElement("div")
+            wrap.appendChild(second.node)
+            document.body.appendChild(wrap)
+            registerShiftNode("task-2", wrap)
+            const observer = start()
+            applyShifts(new Map([["task-2", 20]]))
+            flushFrame()
+            // the first row grew by 30 and the second is shifted by 20 on top of it: 20 + 30 + 20 = 70 on screen
+            first.set({ left: 0, top: 0, width: 100, height: 50 })
+            second.set({ left: 0, top: 70, width: 100, height: 20 })
+            observer.fire()
+            expect(hitTest({ x: 50, y: 55 })?.ref).toEqual({ kind: "task", id: 2 }) // rest: 50..70
+            expect(hitTest({ x: 50, y: 75 })).toBeNull()
+            registerShiftNode("task-2", null)
+        })
+
+        it("calls onResize once per frame, however many changes came, and ignores the first notification", () => {
+            growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
+            const onResize = vi.fn()
+            measureZones("task", onResize)
+            const observer = FakeObserver.all[FakeObserver.all.length - 1]
+            observer.fire() // the one of observe()
+            flushFrame()
+            expect(onResize).not.toHaveBeenCalled()
+            observer.fire()
+            observer.fire()
+            window.dispatchEvent(new Event("resize"))
+            flushFrame()
+            expect(onResize).toHaveBeenCalledTimes(1)
+        })
+
+        it("stops watching at the end of the drag", () => {
+            growing("task", 1, { left: 0, top: 0, width: 100, height: 20 })
+            const onResize = vi.fn()
+            const observer = start(onResize)
+            observer.fire()
+            clearZones()
+            flushFrame()
+            expect(observer.disconnected).toBe(true)
+            expect(onResize).not.toHaveBeenCalled()
+            window.dispatchEvent(new Event("resize"))
+            flushFrame()
+            expect(onResize).not.toHaveBeenCalled()
+        })
     })
 })

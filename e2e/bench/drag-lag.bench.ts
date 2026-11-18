@@ -22,6 +22,7 @@ import { execSync } from "node:child_process"
 let ws: any = null
 let seq = 0
 const pending = new Map<number, (v: any) => void>()
+const listeners = new Map<string, (params: any) => void>() // CDP events (the trace)
 const cdpConnect = async () => {
     const out = execSync("powershell -NoProfile -Command \"Get-CimInstance Win32_Process -Filter \\\"Name='msedgewebview2.exe'\\\" | ForEach-Object { $_.CommandLine }\"", { encoding: "utf8", maxBuffer: 1 << 24 })
     const line = out.split(/\r?\n/).find(l => l.includes(`webview-exe-name=${path.basename(process.env.E2E_APP ?? "EasyTask.exe")}`) && l.includes("--user-data-dir"))
@@ -32,7 +33,7 @@ const cdpConnect = async () => {
     const page = list.find(t => t.type === "page")
     ws = new WebSocket(page.webSocketDebuggerUrl)
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej })
-    ws.onmessage = (e: any) => { const d = JSON.parse(e.data); pending.get(d.id)?.(d); pending.delete(d.id) }
+    ws.onmessage = (e: any) => { const d = JSON.parse(e.data); if (d.method) listeners.get(d.method)?.(d.params); pending.get(d.id)?.(d); pending.delete(d.id) }
 }
 const cdp = async (method: string, params: any = {}) => {
     if (!ws) await cdpConnect()
@@ -152,6 +153,7 @@ const analyse = (raw: any, lay: any, profile: boolean) => {
         steady: stat(act.t + 1800, up.t),
         start1500: stat(act.t - 50, act.t + 1500),
         drop1500: stat(up.t - 20, up.t + 1500),
+        changeTimes: changes.map(c => +c.t.toFixed(1)), // performance.now() of the pointer moves that changed the target (to read a trace with)
         changeAny: winChange(null), changeSection: winChange("section"),
         inputLatencyFirst10: latency.slice(0, 10), inputLatencyMax: Math.max(...latency),
         longTasksRel: raw.long.map((l: any) => ({ at: +(l.start - act.t).toFixed(0), dur: +l.dur.toFixed(0), phase: l.start > up.t ? "drop" : "drag" })),
@@ -370,6 +372,8 @@ describe("lag benchmark", () => {
     for (const live of [true, false]) for (const name of Object.keys(scenarios)) {
         if (only.length && !only.includes(`${name}:${live}`)) continue
         it(`${name} live=${live} profile=${PROFILE}`, async () => {
+            // The throttle of the previous scenario would make the settings dialog too slow to close
+            await cdp("Emulation.setCPUThrottlingRate", { rate: 1 })
             await setLiveDrag(live)
             if (Number(process.env.LAG_THROTTLE) > 1) await cdp("Emulation.setCPUThrottlingRate", { rate: Number(process.env.LAG_THROTTLE) }) // a slower machine
             await browser.pause(800)
@@ -377,6 +381,13 @@ describe("lag benchmark", () => {
             for (let r = 0; r < RUNS + 1; r++) { // run 0 is a warm up
                 const { path: p, lay } = await scenarios[name]()
                 const CPU = process.env.LAG_CPU === "1" && r === RUNS
+                const TRACE = process.env.LAG_TRACE === "1" && r === RUNS
+                const traceEvents: any[] = []
+                if (TRACE) {
+                    listeners.set("Tracing.dataCollected", params => { traceEvents.push(...params.value) })
+                    await cdp("Tracing.start", { traceConfig: { includedCategories: ["devtools.timeline", "disabled-by-default-devtools.timeline", "blink.user_timing", "v8.execute", "disabled-by-default-devtools.timeline.invalidationTracking"] }, transferMode: "ReportEvents" })
+                    await browser.execute(() => { (window as any).__traceSync = performance.now(); performance.mark("trace-sync") })
+                }
                 if (CPU) { await cdp("Profiler.enable"); await cdp("Profiler.setSamplingInterval", { interval: 200 }); await cdp("Profiler.start") }
                 await installProbe(PROFILE)
                 await browser.pause(300)
@@ -387,6 +398,13 @@ describe("lag benchmark", () => {
                 if (process.env.LAG_DEBUG === "1") await browser.saveScreenshot(path.join(OUT, `after-${name}-${live}-${r}.png`))
                 const moved = (await order()) !== orderBefore // a drag that moved nothing would measure the wrong thing
                 const raw = await collectProbe()
+                if (TRACE) {
+                    const done = new Promise<void>(res => listeners.set("Tracing.tracingComplete", () => res()))
+                    await cdp("Tracing.end")
+                    await done
+                    const syncAt = await browser.execute(() => (window as any).__traceSync)
+                    fs.writeFileSync(path.join(OUT, `trace-${name}-live${live}.json`), JSON.stringify({ syncAt, traceEvents }))
+                }
                 if (CPU) { const { profile } = await cdp("Profiler.stop") as any; fs.writeFileSync(path.join(OUT, `cpu-${name}-live${live}.cpuprofile`), JSON.stringify(profile)) }
                 if (r > 0) runs.push({ ...analyse(raw, lay, PROFILE), moved })
                 if (r === RUNS) save(`raw-${name}-live${live}-profile${PROFILE}.json`, { raw: { ...raw, frames: raw.frames.length }, lay: { w: lay.w, h: lay.h } })
