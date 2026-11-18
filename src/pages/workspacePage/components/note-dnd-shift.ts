@@ -1,3 +1,4 @@
+import { shiftDurationMs } from "@/lib/animation-speed"
 import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNodeInfo, type LiveSlot, type LiveSnapshot } from "./note-dnd-live"
 
 /**
@@ -7,7 +8,7 @@ import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNode
  * @category Note DnD
  */
 
-/** Duration of the shift of a row, in ms. */
+/** Base duration of the shift of a row, in ms (the normal speed of the animations of the app, see shiftDurationMs). */
 export const SHIFT_DURATION = 150
 
 /**
@@ -30,7 +31,11 @@ let hiddenNode: HTMLElement | null = null
 let frame = 0
 let cleanup: ReturnType<typeof setTimeout> | null = null
 
-const reducedMotion = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+/** Duration of the shifts of the drag in progress, from the speed of the animations of the app (0: no animation). Read when a drag starts. */
+let duration = SHIFT_DURATION
+
+/** Reads the duration of the shifts again (a drag starts). */
+const readDuration = () => { duration = shiftDurationMs(SHIFT_DURATION) }
 
 /** Key of the wrapper of a task in the registry (the same as the droppable key of its row, see noteKey). */
 export const taskNodeKey = (taskId: number): string => `task-${taskId}`
@@ -57,7 +62,7 @@ export function registerShiftNode(key: string, node: HTMLElement | null): void {
 }
 
 const write = (animate: boolean) => {
-    const transition = animate ? `transform ${SHIFT_DURATION}ms ease-out` : "none"
+    const transition = animate ? `transform ${duration}ms ease-out` : "none"
     const wanted = new Map<HTMLElement, number>()
     for (const [key, dy] of target) {
         const node = nodes.get(key)
@@ -83,7 +88,7 @@ const write = (animate: boolean) => {
     // "inside" zone) does not pop: its room reopens by the same glide of the other rows
     const hidden = hiddenKey ? nodes.get(hiddenKey) ?? null : null
     /** Transition of a node that fades: its own shift (if any) plus the opacity. */
-    const fading = (node: HTMLElement) => `${applied.has(node) ? `transform ${SHIFT_DURATION}ms ease-out, ` : ""}opacity ${SHIFT_DURATION}ms ease-out`
+    const fading = (node: HTMLElement) => `${applied.has(node) ? `transform ${duration}ms ease-out, ` : ""}opacity ${duration}ms ease-out`
     if (hiddenNode && hiddenNode !== hidden) {
         const old = hiddenNode
         if (animate) {
@@ -226,7 +231,7 @@ function writeSlot(animate: boolean) {
         : { left: across, top: along, width: rest.crossSize, height: targetSlot.size }
     const style = slotNode.style
     // A skeleton that was hidden fades in where the room opens; one that is there glides to the next room with the rows
-    style.transition = !animate ? "none" : fresh ? `opacity ${SHIFT_DURATION}ms ease-out` : `transform ${SHIFT_DURATION}ms ease-out`
+    style.transition = !animate ? "none" : fresh ? `opacity ${duration}ms ease-out` : `transform ${duration}ms ease-out`
     style.transform = `translate(${box.left}px, ${box.top}px)`
     if (entry.width !== box.width) style.width = `${entry.width = box.width}px`
     if (entry.height !== box.height) style.height = `${entry.height = box.height}px`
@@ -264,7 +269,7 @@ function scheduleCleanup(node: HTMLElement) {
         cleanup = null
         for (const item of leaving) if (!applied.has(item) && item !== hiddenNode) item.style.transition = ""
         leaving.clear()
-    }, SHIFT_DURATION + 50)
+    }, duration + 50)
 }
 
 /**
@@ -272,6 +277,8 @@ function scheduleCleanup(node: HTMLElement) {
  * animation frame (a later call before that replaces this one). `hidden` is the wrapper to hide (the dragged one whose room is closed).
  */
 export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string | null = null, along: ShiftAxis = "y", slot: LiveSlot | null = null): void {
+    // The first target of a drag (nothing moved yet): the speed of the animations may have changed since the last one
+    if (!hasShifts()) readDuration()
     target = shifts
     axis = along
     hiddenKey = hidden
@@ -279,11 +286,11 @@ export function applyShifts(shifts: ReadonlyMap<string, number>, hidden: string 
     if (frame) return
     frame = requestAnimationFrame(() => {
         frame = 0
-        write(!reducedMotion())
+        write(duration > 0)
     })
 }
 
-/** Puts every wrapper back at once; with `animate` they glide back (not with reduced motion). */
+/** Puts every wrapper back at once; with `animate` they glide back (not with the animations off). */
 export function clearShifts(animate: boolean): void {
     if (frame) {
         cancelAnimationFrame(frame)
@@ -292,7 +299,7 @@ export function clearShifts(animate: boolean): void {
     target = new Map()
     hiddenKey = null
     targetSlot = null
-    write(animate && !reducedMotion())
+    write(animate && duration > 0)
     releaseFrames()
 }
 
@@ -347,6 +354,7 @@ export function shiftNodesOf(kind: ShiftKind): HTMLElement[] {
  * moved are read: a section drag does not touch the hundreds of tasks.
  */
 export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | null = null): LiveSnapshot {
+    if (!hasShifts()) readDuration()
     const shifted = isDisplaced()
     const along: ShiftAxis = kind === "tab" || kind === "group" ? "x" : "y"
     /** Where the node would be at rest: its rect minus the shift it and its ancestors carry (the one on screen, an animation in progress included, like the rect). */

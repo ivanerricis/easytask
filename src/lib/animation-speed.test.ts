@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { applyAnimationSpeed, resolveAnimationSpeed } from "./animation-speed"
+import { applyAnimationSpeed, resolveAnimationSpeed, shiftDurationMs, SLOW_MOTION_RATIO } from "./animation-speed"
 import { UI_PREFS } from "./store/preferences"
 
 describe("animation speed", () => {
@@ -56,5 +56,45 @@ describe("animation speed", () => {
         const root = document.createElement("div")
         applyAnimationSpeed("system", root)
         expect(root.dataset.motion).toBe("normal")
+    })
+
+    describe("shiftDurationMs", () => {
+        const reduced = (matches: boolean) => vi.stubGlobal("matchMedia", (query: string) => ({ matches: matches && query.includes("reduce"), media: query }))
+        const rootWith = (motion?: string) => {
+            const root = document.createElement("div")
+            if (motion) root.dataset.motion = motion
+            return root
+        }
+
+        it("is 0 with none, the base with normal and the base times the ratio of the stylesheet with slow", () => {
+            reduced(false)
+            expect(shiftDurationMs(150, rootWith("none"))).toBe(0)
+            expect(shiftDurationMs(150, rootWith("normal"))).toBe(150)
+            expect(shiftDurationMs(150, rootWith("slow"))).toBe(Math.round(150 * SLOW_MOTION_RATIO))
+            expect(shiftDurationMs(150, rootWith("slow"))).toBe(250)
+            expect(shiftDurationMs(100, rootWith("slow"))).toBe(167)
+        })
+
+        it("ignores the reduced motion of the system when the app has a speed", () => {
+            reduced(true)
+            expect(shiftDurationMs(150, rootWith("normal"))).toBe(150)
+            expect(shiftDurationMs(150, rootWith("slow"))).toBe(250)
+            reduced(false)
+            expect(shiftDurationMs(150, rootWith("none"))).toBe(0)
+        })
+
+        it("with system (or no speed applied yet) follows the reduced motion of the system", () => {
+            reduced(true)
+            expect(shiftDurationMs(150, rootWith("system"))).toBe(0)
+            expect(shiftDurationMs(150, rootWith())).toBe(0)
+            reduced(false)
+            expect(shiftDurationMs(150, rootWith("system"))).toBe(150)
+            expect(shiftDurationMs(150, rootWith())).toBe(150)
+        })
+
+        it("uses the base where the webview cannot tell, and 150 as the default base", () => {
+            vi.stubGlobal("matchMedia", undefined)
+            expect(shiftDurationMs(undefined, rootWith())).toBe(150)
+        })
     })
 })

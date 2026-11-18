@@ -295,9 +295,10 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
   to { opacity: 1; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .live-drag-slot { animation: none; }
-}
+/* The speed of the animations of the app (data-motion, see applyAnimationSpeed), not the system one: the shifts of the live drag
+   take their duration from it too (shiftDurationMs). */
+:root[data-motion="slow"] .live-drag-slot { animation-duration: 250ms; }
+:root[data-motion="none"] .live-drag-slot { animation: none; }
 
 /* Windows forced colors (high contrast mode of the system): the browser drops the backgrounds, box-shadows and rings and
    uses the system palette, so the search marks, the focus and the borders have to be drawn with system colors. */

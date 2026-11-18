@@ -1,3 +1,4 @@
+import { shiftDurationMs } from "@/lib/animation-speed"
 import { LIVE_SLOT_ATTR, SHIFT_DURATION } from "../note-dnd-shift"
 import type { TreeShifts } from "./tree-dnd-live"
 
@@ -20,7 +21,8 @@ let frame = 0
 let cleanup: ReturnType<typeof setTimeout> | null = null
 const leaving = new Set<HTMLElement>()
 
-const reducedMotion = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+/** Duration of the shifts of the drag in progress, from the speed of the animations of the app (0: no animation). Read when a drag starts. */
+let duration = SHIFT_DURATION
 
 /** Attribute of the root of the tree while rows are shifted: the folders stop clipping their rows (see index.css). */
 export const SHIFTING_ATTR = "data-tree-shifting"
@@ -61,18 +63,18 @@ function scheduleCleanup(node: HTMLElement) {
         cleanup = null
         for (const item of leaving) if (!applied.has(item)) item.style.transition = ""
         leaving.clear()
-    }, SHIFT_DURATION + 50)
+    }, duration + 50)
 }
 
 const write = (animate: boolean) => {
-    const transition = animate ? `transform ${SHIFT_DURATION}ms ease-out, opacity ${SHIFT_DURATION}ms ease-out` : "none"
+    const transition = animate ? `transform ${duration}ms ease-out, opacity ${duration}ms ease-out` : "none"
     for (const [key, node] of nodes) paint(key, node, transition)
     // Rows that are no longer registered were dropped from `applied` already
     const root = nodes.values().next().value?.closest("[role=tree]") ?? null
     if (root) {
         if (applied.size > 0) root.setAttribute(SHIFTING_ATTR, "")
         // (after the way back, when the rows glide)
-        else if (animate) setTimeout(() => { if (applied.size === 0) root.removeAttribute(SHIFTING_ATTR) }, SHIFT_DURATION + 50)
+        else if (animate) setTimeout(() => { if (applied.size === 0) root.removeAttribute(SHIFTING_ATTR) }, duration + 50)
         else root.removeAttribute(SHIFTING_ATTR)
     }
     writeSlot(animate)
@@ -83,16 +85,18 @@ const write = (animate: boolean) => {
  * this one).
  */
 export function applyTreeShifts(next: TreeShifts | null, nextSlot: TreeSlot | null = null): void {
+    // The first target of a drag (nothing moved yet): the speed of the animations may have changed since the last one
+    if (next && !hasTreeShifts()) duration = shiftDurationMs(SHIFT_DURATION)
     shifts = next
     slot = next ? nextSlot : null
     if (frame) return
     frame = requestAnimationFrame(() => {
         frame = 0
-        write(!reducedMotion())
+        write(duration > 0)
     })
 }
 
-/** Puts every row back at once; with `animate` they glide back (not with reduced motion). */
+/** Puts every row back at once; with `animate` they glide back (not with the animations off). */
 export function clearTreeShifts(animate: boolean): void {
     if (frame) {
         cancelAnimationFrame(frame)
@@ -100,7 +104,7 @@ export function clearTreeShifts(animate: boolean): void {
     }
     shifts = null
     slot = null
-    write(animate && !reducedMotion())
+    write(animate && duration > 0)
 }
 
 /**
@@ -121,6 +125,7 @@ let slotHost: { root: HTMLElement, position: string } | null = null
  */
 export function readTreeRest(indexOf: (key: string) => number | undefined, rowSize: number, gap: number, indentPx: number): void {
     rest = null
+    if (!hasTreeShifts()) duration = shiftDurationMs(SHIFT_DURATION)
     for (const [key, node] of nodes) {
         const index = indexOf(key)
         const root = node.closest<HTMLElement>("[role=tree]")
@@ -164,7 +169,7 @@ function writeSlot(animate: boolean) {
     }
     const left = slot.depth * rest.indentPx
     const style = slotNode.style
-    style.transition = animate && !fresh ? `top ${SHIFT_DURATION}ms ease-out, left ${SHIFT_DURATION}ms ease-out, height ${SHIFT_DURATION}ms ease-out` : "none"
+    style.transition = animate && !fresh ? `top ${duration}ms ease-out, left ${duration}ms ease-out, height ${duration}ms ease-out` : "none"
     style.top = `${rest.originY + slot.index * rest.rowSize}px`
     style.left = `${left}px`
     style.width = `calc(100% - ${left}px)`
