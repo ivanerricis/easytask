@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { $, $$, browser, expect } from "@wdio/globals"
 import {
-    addTaskToGroup, byLabel, byText, createFromSidebar, createWorkspace, dataDir, domClick, groupCard, openTemplatesDialog, openWorkspace,
+    addTaskToGroup, byLabel, byText, createFromSidebar, createWorkspace, dataDir, domClick, groupCard, openMenuWithButton, openTemplatesDialog, openWorkspace,
     sql, templateEditorTab, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
 
@@ -91,7 +91,7 @@ describe("Template editor", () => {
         await createFromSidebar("sidebar.addNote", "dialogs.addNote.submit", NOTE)
 
         const templates = await openTemplatesDialog()
-        await byText(await tr("dialogs.templates.new"), templates).click()
+        await openMenuWithButton(byText(await tr("dialogs.templates.new"), templates))
         await byText(await tr("dialogs.templates.newFromNote")).click()
         const search = $('[role="dialog"] [cmdk-input]')
         await search.waitForDisplayed()
@@ -103,7 +103,7 @@ describe("Template editor", () => {
         const createDialog = $('//*[@role="dialog"][.//input[@name="name"]]')
         await byText(await tr("dialogs.createTemplate.title"), createDialog).click()
         await createDialog.waitForExist({ reverse: true })
-        await expect(templates.$(`span=${TEMPLATE}`)).toBeDisplayed()
+        await expect(templates.$(`button=${TEMPLATE}`)).toBeDisplayed()
     })
 
     it("opens the template in a tab with Edit", async () => {
@@ -125,7 +125,7 @@ describe("Template editor", () => {
 
     it("does not allow refreshing from the source note while the editor is open", async () => {
         const templates = await openTemplatesDialog()
-        await templates.$(`[aria-label=${JSON.stringify(await tr("templateEditor.moreAria", { name: TEMPLATE }))}]`).click()
+        await openMenuWithButton(templates.$(`[aria-label=${JSON.stringify(await tr("templateEditor.moreAria", { name: TEMPLATE }))}]`))
         const refresh = $(`//*[@role="menuitem"][contains(normalize-space(), ${xpathString(await tr("dialogs.templates.refreshFromSource"))})]`)
         await refresh.waitForDisplayed()
         await expect(refresh).toHaveAttribute("aria-disabled", "true")
@@ -134,7 +134,7 @@ describe("Template editor", () => {
 
     it("duplicates the template", async () => {
         const templates = $('[role="dialog"]')
-        await templates.$(`[aria-label=${JSON.stringify(await tr("templateEditor.moreAria", { name: TEMPLATE }))}]`).click()
+        await openMenuWithButton(templates.$(`[aria-label=${JSON.stringify(await tr("templateEditor.moreAria", { name: TEMPLATE }))}]`))
         await byText(await tr("templateEditor.duplicate")).click()
         await browser.waitUntil(
             async () => (await sql<{ n: number }[]>("select", "SELECT COUNT(*) AS n FROM note_template WHERE deleted_at IS NULL AND name LIKE ?", [`${TEMPLATE}%`]))[0].n === 2,
@@ -197,7 +197,7 @@ describe("Template editor", () => {
 
     it("creates an empty template by name and opens it in the editor", async () => {
         const templates = await openTemplatesDialog()
-        await byText(await tr("dialogs.templates.new"), templates).click()
+        await openMenuWithButton(byText(await tr("dialogs.templates.new"), templates))
         await byText(await tr("dialogs.templates.newEmpty")).click()
         const nameInput = $('[role="dialog"] input[name="name"]')
         await nameInput.waitForDisplayed()
