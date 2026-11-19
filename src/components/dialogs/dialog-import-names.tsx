@@ -44,7 +44,7 @@ export const DialogImportNames = ({ proposed, onSubmit, onCancel }: DialogImport
                         <DialogDescription>{t("transfer.namesDescription")}</DialogDescription>
                     </DialogHeader>
                     {/* A long list (many top items) scrolls inside the dialog */}
-                    <div className="grid gap-3 max-h-[50vh] overflow-y-auto -mx-1 px-1 py-1">
+                    <div className="scroll-inset grid gap-3 max-h-[50vh] overflow-y-auto -mx-1 px-1 py-1">
                         {proposed.map((item, index) => {
                             const Icon = ICONS[item.type]
                             const id = `${baseId}-${index}`
