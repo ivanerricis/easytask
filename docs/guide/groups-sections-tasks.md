@@ -28,7 +28,7 @@ A right-click on the empty area of the note (outside any group, section or task)
 | **New section**                        | yes   |         | Opens the field for the title of a new section in the group.    |
 | **Duplicate**                          |       | yes     | Copies the section, with its tasks, right after the original.   |
 | **Rename**                             | yes   | yes     | Edits the name.                                                 |
-| **Change color**                       | yes   | yes     | Sets or removes the color. A group also has **Automatic (progress)**, see [Colors](./colors#automatic-color-of-a-group). |
+| **Change color**                       | yes   | yes     | Sets or removes the color. A group also has **Automatic**, see [Colors](./colors#automatic-color-of-a-group). |
 | **Task order**                         |       | yes     | Chooses how the tasks of the section are ordered on screen. See [Task order of a section](#task-order-of-a-section). |
 | **Move left**, **Move right**          | yes   |         | Moves the group one step in the row.                            |
 | **Move up**, **Move down**             |       | yes     | Moves the section one step in its group, also past the list of the group tasks. |

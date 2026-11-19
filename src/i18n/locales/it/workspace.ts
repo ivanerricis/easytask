@@ -1,5 +1,5 @@
 export const home = {
-    loading: "Caricamento dei workspace…",
+    loading: "Caricamento dei workspace",
     welcome: "Bentornato!",
     import: "Importa un workspace",
     recent: "Apri un workspace recente",
@@ -29,7 +29,7 @@ export const home = {
 }
 
 export const workspace = {
-    loading: "Caricamento dati del workspace…",
+    loading: "Caricamento dati del workspace",
     combobox: {
         select: "Seleziona workspace…",
         search: "Cerca un workspace…",
@@ -113,7 +113,8 @@ export const groups = {
     moreFiles_other: "Altri {{count}} file: apri il gruppo",
     progressColor: {
         active: "Colore automatico attivo",
-        auto: "Automatico (avanzamento)",
+        auto: "Automatico",
+        hint: "Il colore segue l'avanzamento dei task del gruppo",
     },
     width: {
         handle: "Ridimensiona il gruppo",

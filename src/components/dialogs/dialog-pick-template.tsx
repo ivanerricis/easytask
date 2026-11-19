@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useTranslation } from "react-i18next"
 import { LayoutTemplate } from "lucide-react"
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -40,7 +41,7 @@ export const DialogPickTemplate = ({ isOpen, onOpenChange, onPick }: DialogPickT
             <CommandInput placeholder={t("dialogs.pickTemplate.placeholder")} />
             <CommandList>
                 {error && <FormError className="px-3 py-2 text-xs">{error}</FormError>}
-                {isLoading && <p role="status" aria-busy="true" className="px-3 py-6 text-center text-sm text-muted-foreground">{t("common.loading")}</p>}
+                {isLoading && <p role="status" aria-busy="true" className="px-3 py-6 text-center text-sm text-muted-foreground">{t("common.loading")}<LoadingDots /></p>}
                 {!isLoading && !error && <CommandEmpty>{templates.length === 0 ? t("dialogs.pickTemplate.none") : t("common.noResults")}</CommandEmpty>}
                 <CommandGroup heading={t("dialogs.pickTemplate.heading")}>
                     {templates.map(template => {

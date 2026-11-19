@@ -27,7 +27,7 @@ const setup = (pane: PaneIndex, s: SplitState = state) => {
 }
 
 describe("SplitPane", () => {
-    it("dims only the note of the pane without the focus, never the tab bar", () => {
+    it("dims the note of the pane without the focus (its real tab bar has its own veil, see NoteList)", () => {
         setup(1, { open0: [1], active0: 1, open1: [2], active1: 2, focused: 0 })
         const dim = screen.getByTestId("pane-dim")
         expect(dim).toHaveAttribute("data-dimmed", "true")

@@ -106,6 +106,14 @@ describe("Split workspace", () => {
         await expect(paneTab(1, NOTE_B)).toHaveAttribute("aria-selected", "true")
     })
 
+    it("dims the note and the tab bar of the pane without the focus, never the focused one", async () => {
+        // The left pane has the focus (its tab was just clicked)
+        await expect(pane(1).$('[data-testid="tabbar-dim"]')).toHaveAttribute("data-dimmed", "true")
+        await expect(pane(1).$('[data-testid="pane-dim"]')).toHaveAttribute("data-dimmed", "true")
+        await expect(pane(0).$('[data-testid="tabbar-dim"]')).toHaveAttribute("data-dimmed", "false")
+        await expect(pane(0).$('[data-testid="pane-dim"]')).toHaveAttribute("data-dimmed", "false")
+    })
+
     it("moves note B back to the left; the empty right pane closes by itself", async () => {
         await moveFromSidebar(NOTE_B, "menu.openLeft")
         await rightGone("the right pane did not close when it became empty")

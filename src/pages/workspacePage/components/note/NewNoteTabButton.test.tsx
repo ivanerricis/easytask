@@ -9,7 +9,7 @@ const createWorkspaceNote = vi.fn()
 const openNote = vi.fn()
 const create = vi.fn()
 let rootNotes = [makeNote({ id: 1, name: "Nuova nota" })]
-let pane = 1
+let pane: number | null = 1
 
 vi.mock("@/contexts/use-workspace", () => ({ useWorkspace: () => ({ currentWorkspace: makeWorkspace({ id: 4 }) }) }))
 vi.mock("@/contexts/workspace-data", () => ({
@@ -18,7 +18,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 }))
 vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => ({ create }) }))
 vi.mock("@/contexts/use-tabs", () => ({ useTabsActions: () => ({ openNote }) }))
-vi.mock("@/contexts/use-layout", () => ({ usePane: () => ({ pane }) }))
+vi.mock("@/contexts/use-layout", () => ({ usePane: () => (pane === null ? null : { pane }), useLayout: () => ({ focused: 1 }) }))
 vi.mock("@/lib/report-error", async importOriginal => ({ ...await importOriginal<typeof import("@/lib/report-error")>(), reportError: vi.fn() }))
 // Radix tooltips measure their arrow with a ResizeObserver, which jsdom lacks
 vi.stubGlobal("ResizeObserver", class { observe() { } unobserve() { } disconnect() { } })

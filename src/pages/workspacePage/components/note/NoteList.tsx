@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect, useRef, type KeyboardEvent } from "
 import { useDraggable, useDroppable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 import { useActiveNoteId, useTabs, useTabsActions } from "@/contexts/use-tabs"
-import { usePane } from "@/contexts/use-layout"
+import { useIsFocusedPane, usePane } from "@/contexts/use-layout"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { NoteHeader } from "./NoteHeader"
@@ -102,13 +102,16 @@ function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean
     const { t } = useTranslation()
     const { tabs } = useTabs()
     const pane = usePane()?.pane ?? 0
+    // Same veil as the note of the pane (PaneBody): the pane of the split workspace without the focus is dimmed, bar included
+    const focused = useIsFocusedPane()
+    const dimmed = split && !focused
     const { listRef, handleKeyDown } = useTabBar(tabs)
     const { setNodeRef } = useDroppable({ id: barDndId(pane), disabled: !split })
     const mine = hover?.pane === pane ? hover : null
     const label = t(pane === 0 ? "notes.split.leftPane" : "notes.split.rightPane")
 
     return (
-        <div className={cn(BAR_CLASS, split && "min-h-[42px]")}>
+        <div className={cn(BAR_CLASS, "relative", split && "min-h-[42px]")}>
             <div
                 ref={node => {
                     listRef.current = node
@@ -134,6 +137,12 @@ function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean
                 {split && tabs.length === 0 && <DropLine zone={mine && mine.overId === null ? "before" : null} vertical />}
             </div>
             <NewNoteTabButton />
+            <div
+                aria-hidden
+                data-testid="tabbar-dim"
+                data-dimmed={dimmed}
+                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/45 opacity-0 transition-opacity", dimmed && "opacity-100")}
+            />
         </div>
     )
 }

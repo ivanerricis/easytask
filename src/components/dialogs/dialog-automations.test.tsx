@@ -93,7 +93,7 @@ describe("DialogAutomations", () => {
         renderDialog()
         const status = await screen.findByRole("status")
         expect(status).toHaveAttribute("aria-busy", "true")
-        expect(status).toHaveTextContent("Caricamento…")
+        expect(status).toHaveTextContent("Caricamento")
         expect(status.querySelector("svg")).toHaveClass("motion-reduce:animate-none")
     })
 

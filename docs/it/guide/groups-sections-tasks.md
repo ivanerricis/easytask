@@ -28,7 +28,7 @@ Il clic destro sull'area vuota della nota (fuori da gruppi, sezioni e task) apre
 | **Nuova sezione**                      | sì     |         | Apre il campo per il titolo di una nuova sezione nel gruppo.     |
 | **Duplica**                            |        | sì      | Copia la sezione, con i suoi task, subito dopo l'originale.      |
 | **Rinomina**                           | sì     | sì      | Modifica il nome.                                                |
-| **Cambia colore**                      | sì     | sì      | Imposta o toglie il colore. Un gruppo ha anche **Automatico (avanzamento)**, vedi [Colori](./colors#colore-automatico-di-un-gruppo). |
+| **Cambia colore**                      | sì     | sì      | Imposta o toglie il colore. Un gruppo ha anche **Automatico**, vedi [Colori](./colors#colore-automatico-di-un-gruppo). |
 | **Ordine dei task**                    |        | sì      | Sceglie in che ordine si vedono i task della sezione. Vedi [Ordine dei task di una sezione](#ordine-dei-task-di-una-sezione). |
 | **Sposta a sinistra**, **Sposta a destra** | sì |         | Sposta il gruppo di un passo nella riga.                         |
 | **Sposta su**, **Sposta giù**          |        | sì      | Sposta la sezione di un passo nel suo gruppo, anche oltre la lista dei task del gruppo. |

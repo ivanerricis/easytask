@@ -87,7 +87,7 @@ describe("DialogUpdate", () => {
         announce({ update: fakeUpdate(vi.fn(() => new Promise<void>(() => undefined))) as never })
         await userEvent.click(await screen.findByRole("button", { name: "Aggiorna ora" }))
         expect(await screen.findByText(/Non chiudere l'app/)).toBeInTheDocument()
-        expect(screen.getByRole("progressbar", { name: "Download dell'aggiornamento" })).toHaveAttribute("aria-valuetext", "Download in corso…")
+        expect(screen.getByRole("progressbar", { name: "Download dell'aggiornamento" })).toHaveAttribute("aria-valuetext", "Download in corso")
     })
 
     it("tells with a toast when another dialog is open", async () => {

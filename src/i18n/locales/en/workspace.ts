@@ -1,7 +1,7 @@
 import type { Translation } from "../it"
 
 export const home: Translation["home"] = {
-    loading: "Loading workspaces…",
+    loading: "Loading workspaces",
     welcome: "Welcome back!",
     import: "Import a workspace",
     recent: "Open a recent workspace",
@@ -31,7 +31,7 @@ export const home: Translation["home"] = {
 }
 
 export const workspace: Translation["workspace"] = {
-    loading: "Loading workspace data…",
+    loading: "Loading workspace data",
     combobox: {
         select: "Select workspace…",
         search: "Search a workspace…",
@@ -115,7 +115,8 @@ export const groups: Translation["groups"] = {
     moreFiles_other: "{{count}} more files: open the group",
     progressColor: {
         active: "Automatic color is on",
-        auto: "Automatic (progress)",
+        auto: "Automatic",
+        hint: "The color follows the progress of the group's tasks",
     },
     width: {
         handle: "Resize the group",

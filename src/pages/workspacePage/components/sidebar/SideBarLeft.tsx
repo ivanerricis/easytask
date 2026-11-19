@@ -17,6 +17,7 @@ import { DialogAddFolder } from "./DialogAddFolder"
 import { DialogAddNote } from "./DialogAddNote"
 import { ButtonNoteFromTemplate } from "./ButtonNoteFromTemplate"
 import { SidebarDialogs } from "./SidebarDialogs"
+import { ClosedSidebarShortcuts } from "./ClosedSidebarShortcuts"
 import { ButtonImportItems } from "./ButtonImportItems"
 import { ComboboxWorkspace } from "../combobox-workspace"
 import { ButtonCloseNotes } from "../ButtonCloseNotes"
@@ -128,6 +129,7 @@ export const SideBarLeft = () => {
                     </SideBarContainer>
                 </SideBar>
                 <SidebarDialogs />
+                <ClosedSidebarShortcuts sidebarOpen={open} />
             </SelectionActionsProvider>
         </SelectionProvider>
     )

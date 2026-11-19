@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Loader2 } from "lucide-react"
+import { LoadingDots } from "@/components/loading-dots"
 import { closeBackupEvent } from "@/lib/close-backup"
 
 /**
@@ -16,7 +17,7 @@ export const CloseBackupOverlay = () => {
     return (
         <div role="alertdialog" aria-modal="true" aria-label={t("settings.data.backup.closing")} className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-xs">
             <Loader2 className="animate-spin" aria-hidden="true" />
-            <p className="text-lg font-semibold">{t("settings.data.backup.closing")}</p>
+            <p className="text-lg font-semibold">{t("settings.data.backup.closing")}<LoadingDots /></p>
         </div>
     )
 }

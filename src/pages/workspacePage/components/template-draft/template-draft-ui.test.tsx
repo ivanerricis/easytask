@@ -12,7 +12,7 @@ describe("DraftSaveStatus", () => {
 
     it("shows the saving and saved states", () => {
         const { rerender } = render(<DraftSaveStatus status="saving" onRetry={vi.fn()} />)
-        expect(screen.getByRole("status")).toHaveTextContent("Salvataggio…")
+        expect(screen.getByRole("status")).toHaveTextContent("Salvataggio")
 
         rerender(<DraftSaveStatus status="saved" onRetry={vi.fn()} />)
         expect(screen.getByRole("status")).toHaveTextContent("Salvato")

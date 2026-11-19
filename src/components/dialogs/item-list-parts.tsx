@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import type { LucideIcon } from "lucide-react"
@@ -96,7 +97,7 @@ export const ListSkeleton = ({ rows = 5 }: { rows?: number }) => {
     return (
         <div role="status" aria-busy="true" className="flex flex-col gap-1">
             {/* Visible together with the skeleton rows (the same delay), read out from the start */}
-            <span className={shown ? "px-1 pb-1 text-sm text-muted-foreground" : "sr-only"}>{t("common.loading")}</span>
+            <span className={shown ? "px-1 pb-1 text-sm text-muted-foreground" : "sr-only"}>{t("common.loading")}{shown && <LoadingDots />}</span>
             {shown && Array.from({ length: rows }, (_, index) => <RowSkeleton key={index} />)}
         </div>
     )
