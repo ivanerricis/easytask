@@ -149,6 +149,7 @@ describe("GroupContainer reorder", () => {
                 expect.stringContaining("Nuovo gruppo"),
                 expect.stringContaining("Nascondi task completati"),
                 expect.stringContaining("Sfondo della nota"),
+                expect.stringContaining("Scegli immagine"),
             ])
         })
 
@@ -157,7 +158,7 @@ describe("GroupContainer reorder", () => {
             renderWithProviders(<SelectNote><GroupContainer /></SelectNote>)
             await screen.findByText("Nota vuota")
             fireEvent.contextMenu(screen.getByText("Nota vuota"))
-            expect(screen.getAllByRole("menuitem")).toHaveLength(3)
+            expect(screen.getAllByRole("menuitem")).toHaveLength(4)
         })
 
         it("saves the background chosen in the palette of the note background entry", async () => {

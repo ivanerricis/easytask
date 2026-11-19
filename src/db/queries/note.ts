@@ -214,3 +214,18 @@ export async function updateDBNoteBackground(noteId: number, color?: string | nu
         handleDBError(error, "NOTE", { CHECK: i18n.t("errors.item.colorCheck") })
     }
 }
+
+/**
+ * Sets the background image of a note (the color stays on top of it as a veil).
+ * @param noteId The ID of the note.
+ * @param path The path of the image file, null/undefined for no image.
+ * @category Database Queries
+ */
+export async function updateDBNoteBackgroundImage(noteId: number, path?: string | null) {
+    try {
+        const db = await getDB()
+        await db.execute('UPDATE note SET bg_image=? WHERE id=?', [path ?? null, noteId])
+    } catch (error: unknown) {
+        handleDBError(error, "NOTE", { CHECK: i18n.t("errors.item.colorCheck") })
+    }
+}

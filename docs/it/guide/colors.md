@@ -55,6 +55,8 @@ Puoi dare un colore a tutto lo sfondo di una nota.
 
 Il colore è uno strato leggero, leggibile sia nel tema chiaro sia in quello scuro, e segue l'**Intensità dei colori**. Scegli **Nessun colore** per toglierlo. Puoi annullarlo con `Ctrl+Z`. Lo sfondo si mantiene quando duplichi una nota, nei template e nelle esportazioni.
 
+Come sfondo di una nota puoi usare anche un'immagine. Nello stesso menu scegli **Scegli immagine…** e seleziona un file immagine (JPG, PNG, GIF, WebP, AVIF o BMP): riempie l'area della nota e il colore, se lo hai impostato, resta sopra come strato leggero, così il testo si legge in entrambi i temi. Scegli **Togli immagine** per rimuoverla. L'immagine è salvata per nota come collegamento al file (non viene copiata): se sposti o elimini il file, la nota semplicemente non mostra l'immagine. Si mantiene quando duplichi una nota, nei template e nelle esportazioni; in un'esportazione `.easytask.zip` il file dell'immagine viaggia nell'archivio come immagini e video.
+
 ## Colorare il contenuto di una cartella
 
 Il menu della cartella ha la voce **Colora contenuto**. Dà il colore della cartella a tutte le sue sottocartelle e a tutte le note che contengono. Usala quando hai cambiato il colore di una cartella e vuoi che tutto il suo contenuto sia uguale.

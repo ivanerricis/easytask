@@ -5,7 +5,7 @@ import { WorkspaceDataProvider, useWorkspaceActions, useWorkspaceLoading, useWor
 import { useActiveNote, useActiveNoteActions } from "./use-active-note"
 import { useTabs, useTabsActions } from "./use-tabs"
 import { getDBWorkspaceData } from "@/db/queries/workspace"
-import { getDBNoteData, updateDBNoteBackground } from "@/db/queries/note"
+import { getDBNoteData, updateDBNoteBackground, updateDBNoteBackgroundImage } from "@/db/queries/note"
 import { updateDBGroupPositions, updateDBGroupWidth } from "@/db/queries/group"
 import { setDBCollapsed } from "@/db/queries/collapsed"
 import { createDBTask } from "@/db/queries/task"
@@ -29,6 +29,7 @@ vi.mock("@/db/queries/tag", () => ({ getDBTags: vi.fn(async () => []), getDBNote
 vi.mock("@/db/queries/workspace", () => ({ getDBWorkspaceData: vi.fn() }))
 vi.mock("@/db/queries/note", () => ({
     updateDBNoteBackground: vi.fn(),
+    updateDBNoteBackgroundImage: vi.fn(),
     createDBNoteInFolder: vi.fn(),
     createDBWorkspaceNote: vi.fn(),
     getDBNoteData: vi.fn(),
@@ -304,6 +305,27 @@ describe("WorkspaceDataContext", () => {
             await act(() => result.current.updateNoteBackground(11))
             expect(updateDBNoteBackground).toHaveBeenLastCalledWith(11, undefined)
             expect(result.current.workspaceDataTree!.rootNotes[0].bg_color).toBeNull()
+        })
+
+        it("changes the background image of a note at once, clears it and restores it on failure", async () => {
+            vi.mocked(updateDBNoteBackgroundImage).mockRejectedValueOnce(new Error("boom"))
+            const { result } = renderHook(() => useAll(), { wrapper })
+            await load(result)
+
+            await act(async () => {
+                await expect(result.current.updateNoteBackgroundImage(11, "C:\\a.png")).rejects.toThrow("boom")
+            })
+            expect(result.current.workspaceDataTree!.rootNotes[0].bg_image ?? null).toBeNull()
+
+            await act(() => result.current.updateNoteBackgroundImage(11, "C:\\a.png"))
+            expect(updateDBNoteBackgroundImage).toHaveBeenLastCalledWith(11, "C:\\a.png")
+            expect(result.current.workspaceDataTree!.rootNotes[0].bg_image).toBe("C:\\a.png")
+            // The color is a different thing
+            expect(result.current.workspaceDataTree!.rootNotes[0].bg_color ?? null).toBeNull()
+
+            await act(() => result.current.updateNoteBackgroundImage(11))
+            expect(updateDBNoteBackgroundImage).toHaveBeenLastCalledWith(11, undefined)
+            expect(result.current.workspaceDataTree!.rootNotes[0].bg_image).toBeNull()
         })
 
         it("colors a folder with its whole content and restores the previous tree on failure", async () => {

@@ -47,6 +47,8 @@ export type Note = {
     color?: string
     /** Optional background color of the note area (hex); null/undefined = the default background. */
     bg_color?: string | null
+    /** Optional background image of the note area (path of the file, shown under the color veil); null/undefined = none. */
+    bg_image?: string | null
     /** Set on the working copy (draft) of a template while it is edited: the template it belongs to. Such a note has no workspace. */
     templateID?: number | null
     groups: Group[]

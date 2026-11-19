@@ -79,27 +79,35 @@ const entryBaseName = (path: string) => {
     return (clean.length > 100 ? clean.slice(-100) : clean) || "file"
 }
 
-/** Every linked file (audio, image, video) the export refers to, by path, in file order. */
+/** The background images (of the notes and of the templates) of an export. */
+const backgroundImages = (data: WorkspaceExport) => [...data.notes, ...(data.templates as typeof data.templates | undefined ?? [])].filter(item => item.bg_image)
+
+/** Every linked file (audio, image, video, background image) the export refers to, by path, in file order. */
 function linkedPaths(data: WorkspaceExport): string[] {
-    return [...new Set(data.notes.flatMap(note => [...note.audio, ...note.media].map(file => file.path)))]
+    return [...new Set([
+        ...data.notes.flatMap(note => [...note.audio, ...note.media].map(file => file.path)),
+        ...backgroundImages(data).map(item => item.bg_image!),
+    ])]
 }
 
 /**
  * Names, inside the archive, the files an export refers to: sets `file` (`files/<n>_<name>`, unique) on every audio and media
- * entry of `data` (a path used twice gets one entry) and returns what to put in the archive.
+ * entry of `data`, and `bg_image_file` on every background image (a path used twice gets one entry), and returns what to put
+ * in the archive.
  */
 function nameZipEntries(data: WorkspaceExport): ZipSource[] {
     const entryOf = new Map<string, string>()
-    for (const note of data.notes) {
-        for (const file of [...note.audio, ...note.media]) {
-            let entry = entryOf.get(file.path)
-            if (entry === undefined) {
-                entry = `files/${entryOf.size}_${entryBaseName(file.path)}`
-                entryOf.set(file.path, entry)
-            }
-            file.file = entry
+    const entryFor = (path: string) => {
+        let entry = entryOf.get(path)
+        if (entry === undefined) {
+            entry = `files/${entryOf.size}_${entryBaseName(path)}`
+            entryOf.set(path, entry)
         }
+        return entry
     }
+    for (const note of data.notes)
+        for (const file of [...note.audio, ...note.media]) file.file = entryFor(file.path)
+    for (const item of backgroundImages(data)) item.bg_image_file = entryFor(item.bg_image!)
     return [...entryOf].map(([path, entry]) => ({ path, entry }))
 }
 

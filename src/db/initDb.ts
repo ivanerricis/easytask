@@ -1,6 +1,6 @@
 import type Database from "@tauri-apps/plugin-sql";
 import i18n from "@/i18n";
-import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, noteBackgroundSchema, sectionOrderSchema, sectionTaskOrderSchema, sectionTitleSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
+import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, noteBackgroundImageSchema, noteBackgroundSchema, sectionOrderSchema, sectionTaskOrderSchema, sectionTitleSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
@@ -51,6 +51,8 @@ const migrations: string[][] = [
     sectionTaskOrderSchema,
     // v18: shape of the tags (NULL = pill) and the tags of the groups
     groupTagSchema,
+    // v19: background image of the notes and of the templates (path of the file)
+    noteBackgroundImageSchema,
 ];
 
 /**

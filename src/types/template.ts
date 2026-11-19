@@ -91,6 +91,8 @@ export type NoteTemplate = {
     color: string | null
     /** Background color of the note, copied by the notes created from the template. */
     bg_color?: string | null
+    /** Background image of the note (path of the file), copied by the notes created from the template. */
+    bg_image?: string | null
     content: NoteTemplateContent
     creation_date: string
     creation_time: string

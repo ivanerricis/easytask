@@ -15,7 +15,7 @@ import { SelectionBarInset, TaskSelectionBar } from "../tasks/TaskSelectionBar"
 import { NoteAnnouncer } from "../tasks/NoteAnnouncer"
 import { cn } from "@/lib/utils"
 import { groupsByPosition } from "@/lib/group-sections"
-import { useNoteBackgroundStyle } from "@/hooks/use-note-background"
+import { useNoteBackgroundCss } from "@/hooks/use-note-background"
 import { groupNodeKey, registerShiftNode, SHIFT_ATTR } from "../note-dnd-shift"
 
 type GroupColumnProps = {
@@ -59,7 +59,7 @@ export const GroupContainer = () => {
     const orderedGroups = useMemo(() => Array.isArray(groups) ? groupsByPosition(groups) : [], [groups])
     // A note opened for the first time has no data yet: its skeleton instead of an empty note with only "Nuovo gruppo"
     const isLoadingNote = activeId !== null && !hasData
-    const background = useNoteBackgroundStyle(activeId)
+    const background = useNoteBackgroundCss(activeId)
 
     // The data is loaded by the active note provider. Here the scroll position of each note is restored
     // (once its data is rendered) and saved while scrolling, so it survives tab switches.
@@ -77,7 +77,7 @@ export const GroupContainer = () => {
     }, [activeId, hasData, uiStore])
 
     if (isLoadingNote) return (
-        <div className="relative flex-1 min-h-0 w-full" style={{ background }}>
+        <div className="relative flex-1 min-h-0 w-full" style={background}>
             <NoteSkeleton />
         </div>
     )
@@ -85,7 +85,7 @@ export const GroupContainer = () => {
     return (
         <NoteProviders>
             {/* flex-1 + min-h-0: a tall note must scroll here instead of squeezing the tab bar above */}
-            <div className="relative flex-1 min-h-0 w-full" data-testid="note-background" style={{ background }}>
+            <div className="relative flex-1 min-h-0 w-full" data-testid="note-background" style={background}>
             {hasData && groups.length === 0 && <EmptyNoteHints />}
             <SelectionBarInset
                 ref={scrollRef}

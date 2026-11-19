@@ -61,6 +61,7 @@ async function buildNotesExport(db: Database, entries: ExportEntry[]): Promise<E
             name: note.name,
             color: note.color ?? null,
             ...(note.bg_color ? { bg_color: note.bg_color } : {}),
+            ...(note.bg_image ? { bg_image: note.bg_image } : {}),
             ...(note.archived_at ? { archived_at: note.archived_at } : {}),
             position: note.position,
             content,
@@ -90,8 +91,8 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
                 'SELECT * FROM folder WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY position, id', [workspaceId]),
             db.select<(Note & { color: string | null })[]>(
                 'SELECT * FROM note WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY position, id', [workspaceId]),
-            db.select<{ name: string, color: string | null, bg_color: string | null, content: string }[]>(
-                'SELECT name, color, bg_color, content FROM note_template WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY name COLLATE NOCASE, id',
+            db.select<{ name: string, color: string | null, bg_color: string | null, bg_image: string | null, content: string }[]>(
+                'SELECT name, color, bg_color, bg_image, content FROM note_template WHERE workspaceID = ? AND deleted_at IS NULL ORDER BY name COLLATE NOCASE, id',
                 [workspaceId]),
             getDBTags(workspaceId),
         ])
@@ -124,7 +125,7 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
 
         const exportTemplates: ExportTemplate[] = templates.map(template => {
             // A corrupted snapshot is exported as an empty template
-            return { name: template.name, color: template.color ?? null, ...(template.bg_color ? { bg_color: template.bg_color } : {}), content: parseTemplateContent(template.content) }
+            return { name: template.name, color: template.color ?? null, ...(template.bg_color ? { bg_color: template.bg_color } : {}), ...(template.bg_image ? { bg_image: template.bg_image } : {}), content: parseTemplateContent(template.content) }
         })
 
         return {

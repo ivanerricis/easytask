@@ -349,3 +349,36 @@ describe("background of the note", () => {
         expect(bgOf("note_template", await duplicateDBTemplate(templateId))).toBe(BG)
     })
 })
+
+describe("background image of the note", () => {
+    const imageOf = (table: "note" | "note_template", id: number) => rows(`SELECT bg_image FROM ${table} WHERE id = ${id}`)[0].bg_image
+
+    it("goes from the note to the template, to the draft, back to the template and to the notes created from it", async () => {
+        sqlite.exec("UPDATE note SET bg_image = '/img/a.png' WHERE id = 1")
+        const templateId = await createDBTemplateFromNote(1, "T")
+        expect(imageOf("note_template", templateId)).toBe("/img/a.png")
+
+        const draftId = await createDBTemplateDraft(templateId)
+        expect(imageOf("note", draftId)).toBe("/img/a.png")
+        await expect(saveDBTemplateDraft(draftId)).resolves.toBe("unchanged")
+
+        sqlite.exec(`UPDATE note SET bg_image = '/img/b.png' WHERE id = ${draftId}`)
+        await expect(saveDBTemplateDraft(draftId)).resolves.toBe("written")
+        expect(imageOf("note_template", templateId)).toBe("/img/b.png")
+
+        expect(imageOf("note", await createDBNoteFromTemplate(templateId, 1, null, "Da template"))).toBe("/img/b.png")
+        expect(imageOf("note", await createDBNoteFromTemplate(templateId, 1, null, "Altra copia"))).toBe("/img/b.png")
+    })
+
+    it("is refreshed from the source note and copied by the duplicates of a note and of a template", async () => {
+        const templateId = await createDBTemplateFromNote(1, "T")
+        expect(imageOf("note_template", templateId)).toBeNull()
+        sqlite.exec("UPDATE note SET bg_image = '/img/a.png' WHERE id = 1")
+        await updateDBTemplateFromNote(templateId)
+        expect(imageOf("note_template", templateId)).toBe("/img/a.png")
+        expect((await getDBTemplates(1))[0].bg_image).toBe("/img/a.png")
+
+        expect(imageOf("note", await duplicateDBNote(1))).toBe("/img/a.png")
+        expect(imageOf("note_template", await duplicateDBTemplate(templateId))).toBe("/img/a.png")
+    })
+})

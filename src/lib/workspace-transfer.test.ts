@@ -243,6 +243,28 @@ describe("exporting with the linked files", () => {
         expect(onProgress).toHaveBeenCalledWith({ done: 5, total: 10 })
     })
 
+    it("puts the background images of notes and templates in the list and in the archive, sharing the entry of a file already linked", async () => {
+        const data = withLinkedFiles() as { notes: Record<string, unknown>[], templates?: Record<string, unknown>[] }
+        data.notes[1].bg_image = "E:\\wall\\sky.jpg"
+        data.templates = [{ bg_image: "E:\\wall\\sky.jpg" }, { bg_image: "D:\\img\\pic.png" }, {}]
+        buildDBWorkspaceExport.mockResolvedValue(data)
+        save.mockResolvedValue("/x/out.easytask.zip")
+        invoke.mockImplementation(async (command: string) => command === "linked_files_size" ? { bytes: 1, count: 3, missing: 0 } : { added: 3, missing: 0 })
+        await exportWorkspaceToFile(workspace, { askIncludeFiles: async () => true })
+        expect(invoke).toHaveBeenCalledWith("linked_files_size", { paths: ["C:\\music\\song.mp3", "D:\\img\\pic.png", "E:\\wall\\sky.jpg"] })
+        const args = invoke.mock.calls.find(([command]) => command === "export_zip")![1] as { json: string, files: { path: string, entry: string }[] }
+        expect(args.files).toEqual([
+            { path: "C:\\music\\song.mp3", entry: "files/0_song.mp3" },
+            { path: "D:\\img\\pic.png", entry: "files/1_pic.png" },
+            { path: "E:\\wall\\sky.jpg", entry: "files/2_sky.jpg" },
+        ])
+        const json = JSON.parse(args.json)
+        expect(json.notes[1].bg_image_file).toBe("files/2_sky.jpg")
+        expect(json.templates[0].bg_image_file).toBe("files/2_sky.jpg")
+        expect(json.templates[1].bg_image_file).toBe("files/1_pic.png")
+        expect(json.templates[2]).not.toHaveProperty("bg_image_file")
+    })
+
     it("exports nothing when the question is cancelled", async () => {
         await expect(exportWorkspaceToFile(workspace, { askIncludeFiles: async () => null })).resolves.toBeNull()
         expect(save).not.toHaveBeenCalled()

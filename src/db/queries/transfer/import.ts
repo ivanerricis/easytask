@@ -7,7 +7,7 @@ import { getErrorMessage } from "@/lib/utils"
 import { toStoredShape } from "@/lib/tag-shapes"
 import { getDB } from "../../dbManager"
 import { AUDIO_EXTENSIONS } from "../audio"
-import { MEDIA_EXTENSIONS } from "../media"
+import { IMAGE_EXTENSIONS, MEDIA_EXTENSIONS } from "../media"
 import { addNoteContent } from "../template"
 import { addNoteAutomations } from "../automation"
 import { chunked } from "../sql"
@@ -51,6 +51,7 @@ const hasExtension = (path: string, extensions: readonly string[]) => {
 }
 const hasAudioExtension = (path: string) => hasExtension(path, AUDIO_EXTENSIONS)
 const hasMediaExtension = (path: string) => hasExtension(path, MEDIA_EXTENSIONS)
+const hasImageExtension = (path: string) => hasExtension(path, IMAGE_EXTENSIONS)
 
 /** What an import needs to decide about the linked files (audio, images, videos) of a file. */
 type FileChecks = {
@@ -61,7 +62,7 @@ type FileChecks = {
 }
 
 /** The path a row of the file points to: the extracted copy for an entry of a zip (undefined when the archive lacks it), else the path in the file. */
-function pathOfFile(file: ExportAudio, extractedFiles: FileChecks["extractedFiles"]): string | undefined {
+function pathOfFile(file: { path: string, file?: string }, extractedFiles: FileChecks["extractedFiles"]): string | undefined {
     if (file.file === undefined || extractedFiles === undefined) return file.path
     return Object.hasOwn(extractedFiles, file.file) ? extractedFiles[file.file] : undefined
 }
@@ -101,6 +102,26 @@ async function checkAudioPaths(paths: readonly string[], audioExists: (path: str
         batch.forEach((path, i) => result.set(path, answers[i]))
     }
     return result
+}
+
+/**
+ * The background images of notes or templates, in the order of the list: the path to store (the extracted copy for a zip), null
+ * for an item with none, or whose image is missing or is not an image (that one is counted in `skipped`).
+ */
+async function resolveBackgroundImages(
+    items: readonly { bg_image?: string | null, bg_image_file?: string }[], checks: FileChecks,
+): Promise<{ paths: (string | null)[], skipped: number }> {
+    const wanted = items.map(item => item.bg_image ? pathOfFile({ path: item.bg_image, file: item.bg_image_file }, checks.extractedFiles) : undefined)
+    const candidates = wanted.filter((path): path is string => path !== undefined && hasImageExtension(path))
+    const existing = candidates.length > 0 ? await checkAudioPaths(candidates, checks.mediaExists) : new Map<string, boolean>()
+    let skipped = 0
+    const paths = items.map((item, i) => {
+        const path = wanted[i]
+        if (path !== undefined && hasImageExtension(path) && existing.get(path) === true) return path
+        if (item.bg_image) skipped += 1
+        return null
+    })
+    return { paths, skipped }
 }
 
 type PendingFolder = { folder: ExportFolder, parentRef: TxRef | number | null }
@@ -147,10 +168,12 @@ async function insertItems(
             await checkAudioPaths(pathsOf(note => note.audio, hasAudioExtension), checks.audioExists),
             await checkAudioPaths(pathsOf(note => note.media, hasMediaExtension), checks.mediaExists),
         ]
-        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "archived_at", "position"],
-            data.notes.map(note => [
+        const images = await resolveBackgroundImages(data.notes, checks)
+        skippedFiles += images.skipped
+        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "bg_image", "archived_at", "position"],
+            data.notes.map((note, i) => [
                 workspaceRef, note.folderRef === null ? rootParent : folderRefs.get(note.folderRef) ?? null,
-                note.name.trim(), note.color ?? null, note.bg_color || null, note.archived_at || null, note.position,
+                note.name.trim(), note.color ?? null, note.bg_color || null, images.paths[i], note.archived_at || null, note.position,
             ]))
 
         for (const [i, note] of data.notes.entries()) {
@@ -222,11 +245,14 @@ export async function importDBWorkspace(
         // The tag list first (in its order): the tags of the tasks, by name, find them there
         if (data.tags?.length)
             tx.insertRows("tag", ["workspaceID", "name", "color", "shape", "position"], data.tags.map((tag, position) => [workspaceRef, tag.name.trim(), tag.color || null, toStoredShape(tag.shape), position]))
-        const { skippedFiles } = await insertItems(tx, data, workspaceRef, null, checks)
+        const inserted = await insertItems(tx, data, workspaceRef, null, checks)
+        let skippedFiles = inserted.skippedFiles
 
         if (data.templates.length > 0) {
-            tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "bg_color", "content"],
-                data.templates.map(template => [workspaceRef, null, template.name.trim(), template.color ?? null, template.bg_color || null, JSON.stringify(template.content)]))
+            const images = await resolveBackgroundImages(data.templates, checks)
+            skippedFiles += images.skipped
+            tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "bg_color", "bg_image", "content"],
+                data.templates.map((template, i) => [workspaceRef, null, template.name.trim(), template.color ?? null, template.bg_color || null, images.paths[i], JSON.stringify(template.content)]))
         }
 
         const results = await tx.run()
