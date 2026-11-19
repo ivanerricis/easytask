@@ -59,8 +59,8 @@ type Session = { ref: NoteDragRef, node: HTMLElement | null, pointerId: number, 
 
 /** Records the modifiers an event carries; true when they changed. */
 const readModifiers = (session: Session, event: { ctrlKey: boolean, altKey: boolean }): boolean => {
-    const changed = session.modifiers.ctrl !== event.ctrlKey || session.modifiers.alt !== event.altKey
-    if (changed) session.modifiers = { ctrl: event.ctrlKey, alt: event.altKey }
+    const changed = session.modifiers.ctrl !== !!event.ctrlKey || session.modifiers.alt !== !!event.altKey
+    if (changed) session.modifiers = { ctrl: !!event.ctrlKey, alt: !!event.altKey }
     return changed
 }
 
@@ -147,7 +147,7 @@ export function createPointerDrag(): PointerDrag {
         if (session?.active) return
         stop("none")
         const point = { x: event.clientX, y: event.clientY }
-        const current: Session = { ref, node, pointerId: event.pointerId, press: point, last: point, active: false, modifiers: { ctrl: event.ctrlKey, alt: event.altKey } }
+        const current: Session = { ref, node, pointerId: event.pointerId, press: point, last: point, active: false, modifiers: { ctrl: !!event.ctrlKey, alt: !!event.altKey } }
         session = current
         const offs: (() => void)[] = []
         detach = () => offs.forEach(off => off())
