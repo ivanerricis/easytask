@@ -7,10 +7,14 @@ export const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        // Three levels of red, chosen by meaning: solid for what cannot be undone, outline when there is an undo,
+        // ghost for the icons of a row and menu-like rows.
         destructive:
-          "bg-transparent border-2 border-destructive/70 shadow-xs text-destructive hover:bg-destructive/15",
+          "bg-transparent border border-destructive/70 shadow-xs text-destructive hover:bg-destructive/15",
         destructiveSolid:
           "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90",
+        destructiveGhost:
+          "text-destructive hover:bg-destructive/10 hover:text-destructive",
         outline:
           "bg-background shadow-xs hover:bg-control-hover hover:text-accent-foreground border",
         buttonIcon:

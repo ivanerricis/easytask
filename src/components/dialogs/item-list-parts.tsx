@@ -7,6 +7,8 @@ import { TooltipCustom } from "@/components/tooltip-custom"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useDelayedFlag } from "@/hooks/use-delayed-flag"
 import { ITEM_ICONS } from "./item-list-utils"
+import { NAV_TAB_TRIGGER } from "./nav-tab"
+import { cn } from "@/lib/utils"
 import { FormError } from "@/components/form-error"
 
 type ItemRowProps = {
@@ -161,7 +163,7 @@ export function TypeTabs<T extends keyof typeof ITEM_ICONS>({ types, active, onS
                                 key={type}
                                 value={type}
                                 data-type={type}
-                                className="flex-none sm:flex-1 justify-start px-3 py-2 data-[state=active]:font-medium data-[state=active]:bg-accent"
+                                className={cn("flex-none sm:flex-1", NAV_TAB_TRIGGER)}
                             >
                                 <TypeIcon />
                                 {label(type)}

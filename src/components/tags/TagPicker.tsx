@@ -250,7 +250,7 @@ function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
                     {t("tags.noColor")}
                     {!tag.color && <Check className="ml-auto" aria-hidden="true" />}
                 </Button>
-                <Button variant="ghost" className={cn(rowClass, "text-destructive hover:text-destructive hover:bg-destructive/10")} onClick={onDelete}>
+                <Button variant="destructiveGhost" className={rowClass} onClick={onDelete}>
                     <Trash2 />
                     {t("tags.delete")}
                 </Button>

@@ -139,7 +139,7 @@ export const TemplateRow = ({ template, busy, editing, onCreateNote, onEdit, onD
             <span aria-hidden className="mx-0.5 w-px self-stretch bg-border" />
             <TooltipCustom text={t("common.delete")}>
                 <Button
-                    variant="destructive"
+                    variant="destructiveGhost"
                     size="icon"
                     aria-label={t("dialogs.templates.deleteAria", { name: template.name })}
                     disabled={busy}
