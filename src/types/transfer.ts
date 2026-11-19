@@ -47,6 +47,10 @@ export type ExportNote = {
     color: string | null
     /** Background color of the note; absent in files created before it existed (and for a note without one). */
     bg_color?: string | null
+    /** Path of the background image of the note; absent in files created before it existed (and for a note without one). */
+    bg_image?: string | null
+    /** Zip exports only: entry of the archive (`files/...`) holding the background image. */
+    bg_image_file?: string
     /** Archive date; absent (or null) for a visible note and in files created before the archive existed. */
     archived_at?: string | null
     position: number
@@ -69,6 +73,9 @@ export type ExportTemplate = {
     color: string | null
     /** Background of the notes created from the template; absent in files created before it existed. */
     bg_color?: string | null
+    /** Background image of the notes created from the template (path, and the zip entry holding it); absent when none. */
+    bg_image?: string | null
+    bg_image_file?: string
     content: NoteTemplateContent
 }
 

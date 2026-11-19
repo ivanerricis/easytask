@@ -55,6 +55,8 @@ You can give a color to the whole background of a note.
 
 The color is a light layer that stays readable in both the light and the dark theme, and it follows **Color intensity**. Choose **No color** to remove it. You can undo it with `Ctrl+Z`. The background is kept when you duplicate a note, in templates and in exports.
 
+You can also use a picture as the background of a note. In the same menu choose **Choose image…** and pick an image file (JPG, PNG, GIF, WebP, AVIF or BMP); it fills the note area and the color, if you set one, stays on top of it as a light layer, so the text stays readable in both themes. Choose **Remove image** to take it away. The picture is saved per note as a link to the file (it is not copied), so if you move or delete the file the note simply shows no picture. It is kept when you duplicate a note, in templates and in exports; in a `.easytask.zip` export the image file travels with the archive like images and videos.
+
 ## Color the content of a folder
 
 The folder menu has **Color content**. It gives the color of the folder to all its subfolders and to all the notes inside them. Use it when you changed the color of a folder and want everything in it to match.

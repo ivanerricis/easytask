@@ -82,3 +82,13 @@ export const addNoteBackground: string[] = [
     `ALTER TABLE note ADD COLUMN bg_color TEXT CHECK (LENGTH(bg_color) > 0) DEFAULT NULL;`,
     `ALTER TABLE note_template ADD COLUMN bg_color TEXT CHECK (LENGTH(bg_color) > 0) DEFAULT NULL;`,
 ]
+
+/**
+ * Migration v19: adds the optional background image of a note (the path of the file; NULL = none). The color stays on top
+ * of it as a veil. Like the color, the edit trigger ignores it.
+ * @category Database Schema
+ */
+export const addNoteBackgroundImage: string[] = [
+    `ALTER TABLE note ADD COLUMN bg_image TEXT CHECK (LENGTH(bg_image) > 0) DEFAULT NULL;`,
+    `ALTER TABLE note_template ADD COLUMN bg_image TEXT CHECK (LENGTH(bg_image) > 0) DEFAULT NULL;`,
+]

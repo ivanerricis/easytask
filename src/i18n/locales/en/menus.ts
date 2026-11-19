@@ -65,6 +65,8 @@ export const menu: Translation["menu"] = {
     taskOrderOpenFirst: "Open tasks first",
     taskOrderDoneFirst: "Completed tasks first",
     noteBackground: "Note background",
+    chooseBackgroundImage: "Choose image…",
+    removeBackgroundImage: "Remove image",
     export: "Export",
     importHere: "Import here",
     moveUp: "Move up",

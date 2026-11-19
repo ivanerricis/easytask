@@ -11,7 +11,7 @@ vi.mock("../dbManager", async () => {
     return { getDB: vi.fn(async () => createSqliteDb(() => sqlite)) }
 })
 
-import { getDBNoteData, getDBNotesData, noteHasContent, updateDBNoteBackground } from "./note"
+import { getDBNoteData, getDBNotesData, noteHasContent, updateDBNoteBackground, updateDBNoteBackgroundImage } from "./note"
 
 beforeEach(() => {
     sqlite = new DatabaseSync(":memory:")
@@ -82,5 +82,22 @@ describe("updateDBNoteBackground", () => {
     it("is returned with the other columns by the plain select of the notes", async () => {
         await updateDBNoteBackground(2, "#3cb44b")
         expect(sqlite.prepare("SELECT * FROM note WHERE id = 2").get()).toMatchObject({ bg_color: "#3cb44b" })
+    })
+})
+
+describe("updateDBNoteBackgroundImage", () => {
+    it("sets and clears the image without touching the color or the edit date, and refuses an empty path", async () => {
+        sqlite.exec("UPDATE note SET edit_date = '2020-01-01', edit_time = '10:00', bg_color = '#e6194b' WHERE id = 1")
+        await updateDBNoteBackgroundImage(1, "C:\\img\\a.png")
+        expect(sqlite.prepare("SELECT bg_color, bg_image, edit_date, edit_time FROM note WHERE id = 1").get())
+            .toEqual({ bg_color: "#e6194b", bg_image: "C:\\img\\a.png", edit_date: "2020-01-01", edit_time: "10:00" })
+        await updateDBNoteBackgroundImage(1)
+        expect(sqlite.prepare("SELECT bg_image FROM note WHERE id = 1").get()).toEqual({ bg_image: null })
+        await expect(updateDBNoteBackgroundImage(1, "")).rejects.toBeDefined()
+    })
+
+    it("is returned with the other columns by the plain select of the notes", async () => {
+        await updateDBNoteBackgroundImage(2, "/img/b.jpg")
+        expect(sqlite.prepare("SELECT * FROM note WHERE id = 2").get()).toMatchObject({ bg_image: "/img/b.jpg" })
     })
 })

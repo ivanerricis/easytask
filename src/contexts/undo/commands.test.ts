@@ -15,7 +15,7 @@ function makeDeps() {
     const deps = {
         getWorkspaceId: vi.fn(() => 7 as number | null),
         workspace: {
-            renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
+            renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), updateNoteBackgroundImage: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
             moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(),
             updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
             renameTag: fn(), updateTagColor: fn(), updateTagShape: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(), setGroupTag: fn(),
@@ -101,6 +101,19 @@ describe("rename", () => {
         ctx.deps.workspace.renameItem.mockRejectedValueOnce(new Error("UNIQUE"))
         await expect(commands.rename("task", 5, "old", "new").undo()).rejects.toThrow("UNIQUE")
         expect(ctx.rollbacks.patch).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("backgroundImage", () => {
+    it("restores the previous image (none meaning null) and applies the new one again, with the label of the background", async () => {
+        const command = commands.backgroundImage(3, "Spesa", null, "C:\\a.png")
+        expect(command.label).toBe(makeLabel("background", "note", "Spesa"))
+        await command.undo()
+        expect(ctx.deps.workspace.updateNoteBackgroundImage).toHaveBeenLastCalledWith(3, undefined)
+        await command.redo()
+        expect(ctx.deps.workspace.updateNoteBackgroundImage).toHaveBeenLastCalledWith(3, "C:\\a.png")
+        await commands.backgroundImage(3, "Spesa", "C:\\a.png", undefined).undo()
+        expect(ctx.deps.workspace.updateNoteBackgroundImage).toHaveBeenLastCalledWith(3, "C:\\a.png")
     })
 })
 

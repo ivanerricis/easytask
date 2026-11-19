@@ -162,7 +162,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {
         if (!isObject(note) || !isNonEmpty(note.ref) || !isNonEmpty(note.name) || !isNumber(note.position)
-            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.archived_at) || !Array.isArray(note.audio) || !Array.isArray(note.media)
+            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.bg_image) || !isNullableString(note.bg_image_file) || !isNullableString(note.archived_at) || !Array.isArray(note.audio) || !Array.isArray(note.media)
             || !(note.folderRef === null || (isString(note.folderRef) && folderRefs.has(note.folderRef)))) malformed()
         if (noteRefs.has(note.ref)) malformed()
         noteRefs.add(note.ref)
@@ -180,7 +180,8 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
         }
     }
     for (const template of templates as unknown[]) {
-        if (!isObject(template) || !isNonEmpty(template.name) || !isNullableString(template.color) || !isNullableString(template.bg_color)) malformed()
+        if (!isObject(template) || !isNonEmpty(template.name) || !isNullableString(template.color) || !isNullableString(template.bg_color)
+            || !isNullableString(template.bg_image) || !isNullableString(template.bg_image_file)) malformed()
         checkContent(template.content, counter)
     }
 

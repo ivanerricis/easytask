@@ -22,7 +22,7 @@ export type UndoDeps = {
     /** The workspace the history belongs to (null outside a workspace). */
     getWorkspaceId: () => number | null
     workspace: Pick<WorkspaceActionsType,
-        "renameItem" | "updateItemColor" | "updateNoteBackground" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
+        "renameItem" | "updateItemColor" | "updateNoteBackground" | "updateNoteBackgroundImage" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
         "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData" |
         "renameTag" | "updateTagColor" | "updateTagShape" | "deleteTag" | "restoreTag" | "setTaskTag" | "setGroupTag">
     note: Pick<ActiveNoteActionsType,
@@ -247,6 +247,8 @@ export function createUndoCommands(deps: UndoDeps) {
 
     const setBackground = (id: number) => (color: string | null) => workspace.updateNoteBackground(id, color ?? undefined)
 
+    const setBackgroundImage = (id: number) => (path: string | null) => workspace.updateNoteBackgroundImage(id, path ?? undefined)
+
     const moveTreeTo = (itemType: TreeItemType, id: number) => async (place: TreePlace) => {
         await workspace.moveTreeItem(itemType, id, place.folderId, place.index)
         await reloadTree()
@@ -340,6 +342,16 @@ export function createUndoCommands(deps: UndoDeps) {
         /** Background color of a note (null = default background). */
         background: (noteId: number, name: string | null | undefined, before: string | null | undefined, after: string | null | undefined): UndoCommand => {
             const apply = setBackground(noteId)
+            return {
+                label: makeLabel("background", "note", name),
+                undo: () => apply(before ?? null),
+                redo: () => apply(after ?? null),
+            }
+        },
+
+        /** Background image of a note (null = no image); it has the same label as the color. */
+        backgroundImage: (noteId: number, name: string | null | undefined, before: string | null | undefined, after: string | null | undefined): UndoCommand => {
+            const apply = setBackgroundImage(noteId)
             return {
                 label: makeLabel("background", "note", name),
                 undo: () => apply(before ?? null),
@@ -617,6 +629,6 @@ export function createUndoRecorder(commands: UndoCommands, record: (command: Und
 /** A recorder that does nothing (outside an UndoProvider, e.g. in isolated component tests). */
 const noop = () => {}
 export const NOOP_RECORDER: UndoRecorder = {
-    rename: noop, color: noop, background: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
+    rename: noop, color: noop, background: noop, backgroundImage: noop, taskCompletion: noop, taskPriority: noop, taskDescription: noop, remove: noop, create: noop,
     archive: noop, createMany: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagShape: noop, tagAssign: noop, tagAssignGroups: noop, record: noop, track: write => write,
 }

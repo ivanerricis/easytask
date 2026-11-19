@@ -1005,3 +1005,59 @@ describe("automatic group color in export/import", () => {
             WHERE n.workspaceID = ${workspaceId} AND n.name = 'Sorgente' ORDER BY g.position`)).toEqual([{ color: "progress" }, { color: null }])
     })
 })
+
+describe("background image of the notes in export/import", () => {
+    const images = (workspaceId: number) => rows(`SELECT name, bg_image FROM note WHERE workspaceID = ${workspaceId} ORDER BY name`)
+    const templateImages = (workspaceId: number) => rows(`SELECT name, bg_image FROM note_template WHERE workspaceID = ${workspaceId} ORDER BY name`)
+    const seed = () => sqlite.exec(`UPDATE note SET bg_image = '/img/a.png' WHERE id = 1;
+        INSERT INTO note_template (workspaceID, name, bg_image, content) VALUES (1, 'T', '/img/t.jpg', '{"version":1,"groups":[]}'), (1, 'Senza', NULL, '{"version":1,"groups":[]}')`)
+
+    it("exports the image of notes and templates (only when set) and imports it back", async () => {
+        seed()
+        const data = await exportOf()
+        expect(data.notes.find(n => n.name === "Sorgente")!.bg_image).toBe("/img/a.png")
+        expect(data.notes.find(n => n.name === "Nella cartella")).not.toHaveProperty("bg_image")
+        expect(data.templates.find(t => t.name === "Senza")).not.toHaveProperty("bg_image")
+        const { workspaceId, skippedFiles } = await importDBWorkspace(JSON.parse(JSON.stringify(data)), { mediaExists: async () => true })
+        expect(skippedFiles).toBe(0)
+        expect(images(workspaceId)).toEqual([{ name: "Nella cartella", bg_image: null }, { name: "Sorgente", bg_image: "/img/a.png" }])
+        expect(templateImages(workspaceId)).toEqual([{ name: "Senza", bg_image: null }, { name: "T", bg_image: "/img/t.jpg" }])
+    })
+
+    it("exports the image of a single note", async () => {
+        seed()
+        expect((await buildDBItemExport("note", 1)).notes[0].bg_image).toBe("/img/a.png")
+    })
+
+    it("drops an image whose file is missing (counted as skipped) and one that is not an image", async () => {
+        seed()
+        const data = JSON.parse(JSON.stringify(await exportOf()))
+        data.notes.find((n: { name: string }) => n.name === "Nella cartella").bg_image = "/media/clip.mp4"
+        const { workspaceId, skippedFiles } = await importDBWorkspace(data, { mediaExists: async path => path === "/img/t.jpg" || path.startsWith("/x/") })
+        expect(images(workspaceId).every(row => row.bg_image === null)).toBe(true)
+        expect(templateImages(workspaceId).find(row => row.name === "T")!.bg_image).toBe("/img/t.jpg")
+        expect(skippedFiles).toBe(2)
+    })
+
+    it("points to the extracted copy for an entry of a zip", async () => {
+        seed()
+        const data = JSON.parse(JSON.stringify(await exportOf()))
+        data.notes.find((n: { name: string }) => n.name === "Sorgente").bg_image_file = "files/0_a.png"
+        data.templates.find((t: { name: string }) => t.name === "T").bg_image_file = "files/1_t.jpg"
+        const seen: string[] = []
+        const { workspaceId } = await importDBWorkspace(data, {
+            extractedFiles: { "files/0_a.png": "C:\\data\\media\\a.png", "files/1_t.jpg": "C:\\data\\media\\t.jpg" },
+            mediaExists: async path => { seen.push(path); return true },
+        })
+        expect(images(workspaceId).find(row => row.name === "Sorgente")!.bg_image).toBe("C:\\data\\media\\a.png")
+        expect(templateImages(workspaceId).find(row => row.name === "T")!.bg_image).toBe("C:\\data\\media\\t.jpg")
+        expect(seen.filter(path => path.startsWith("C:")).sort()).toEqual(["C:\\data\\media\\a.png", "C:\\data\\media\\t.jpg"])
+    })
+
+    it("still imports files created before the image existed, and rejects a path that is not a string", async () => {
+        const data = JSON.parse(JSON.stringify(await exportOf()))
+        expect(() => validateWorkspaceExport(data)).not.toThrow()
+        data.notes[0].bg_image = 5
+        expect(() => validateWorkspaceExport(data)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+    })
+})

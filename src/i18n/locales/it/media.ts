@@ -2,6 +2,7 @@ export const media = {
     add: "Aggiungi immagine o video",
     files: "Immagini e video",
     dialogFilter: "Immagini e video",
+    imageDialogFilter: "Immagini",
     added_one: "File multimediale aggiunto",
     added_other: "{{count}} file multimediali aggiunti",
     addError: "Impossibile aggiungere le immagini o i video: {{message}}",

@@ -1,4 +1,5 @@
 import type { ReactElement } from "react"
+import { open } from "@tauri-apps/plugin-dialog"
 import { useTranslation } from "react-i18next"
 import { ButtonInPopover } from "@/components/button-in-popover"
 import { ItemMenu } from "@/components/item-menu"
@@ -11,7 +12,9 @@ import { requestAppCommand } from "@/lib/app-commands"
 import { useActiveNoteId } from "@/contexts/use-tabs"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
-import { useNoteBackgroundColor } from "@/hooks/use-note-background"
+import { useNoteBackgroundColor, useNoteBackgroundImagePath } from "@/hooks/use-note-background"
+import { IMAGE_EXTENSIONS } from "@/db/queries/media"
+import { reportError } from "@/lib/report-error"
 import { Separator } from "@/components/ui/separator"
 import { ColorSubmenu } from "../ColorSubmenu"
 
@@ -36,7 +39,8 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
     const { request: requestNewGroup, onCloseAutoFocus } = useAfterMenuClose(newGroup)
     const noteId = useActiveNoteId()
     const background = useNoteBackgroundColor(noteId)
-    const { updateNoteBackground } = useWorkspaceActions()
+    const backgroundImage = useNoteBackgroundImagePath(noteId)
+    const { updateNoteBackground, updateNoteBackgroundImage } = useWorkspaceActions()
     const recorder = useUndoRecorder()
 
     // Saves the background (null = none) and makes it undoable; the tree holds the note, so no reload is needed
@@ -44,6 +48,32 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
         if (noteId === null || color === background) return
         await updateNoteBackground(noteId, color ?? undefined)
         recorder.background(noteId, null, background, color)
+    }
+
+    // Saves the image (null = none) and makes it undoable
+    const pickImage = async (path: string | null) => {
+        if (noteId === null || path === backgroundImage) return
+        await updateNoteBackgroundImage(noteId, path ?? undefined)
+        recorder.backgroundImage(noteId, null, backgroundImage, path)
+    }
+
+    const chooseImage = async () => {
+        menu.close()
+        try {
+            const selected = await open({ multiple: false, directory: false, filters: [{ name: t("media.imageDialogFilter"), extensions: [...IMAGE_EXTENSIONS] }] })
+            if (typeof selected === "string") await pickImage(selected)
+        } catch (error: unknown) {
+            reportError(error)
+        }
+    }
+
+    const removeImage = async () => {
+        menu.close()
+        try {
+            await pickImage(null)
+        } catch (error: unknown) {
+            reportError(error)
+        }
     }
 
     const items = (
@@ -63,6 +93,8 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
                     onPick={pickBackground}
                     onDone={menu.close}
                 />
+                <ButtonInPopover text={t("menu.chooseBackgroundImage")} type="addMedia" onClick={chooseImage} />
+                {backgroundImage !== null && <ButtonInPopover text={t("menu.removeBackgroundImage")} type="removeImage" onClick={removeImage} />}
             </>}
         </MenuGroup>
     )

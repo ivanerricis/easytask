@@ -85,6 +85,7 @@ export type WorkspaceActionsType = {
     updateItemColor: (itemType: DBItemType, itemId: number, color?: string) => Promise<void>
     /** Saves the background color of a note (undefined = default) and updates the sidebar tree at once. */
     updateNoteBackground: (noteId: number, color?: string) => Promise<void>
+    updateNoteBackgroundImage: (noteId: number, path?: string) => Promise<void>
     updateGroupsPositions: (groups: Group[]) => Promise<void>
     /** Saves the width of a group in pixels (null = automatic). Not an undo step; the caller patches the open note first. */
     setGroupWidth: (groupId: number, width: number | null) => Promise<void>

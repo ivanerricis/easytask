@@ -4,6 +4,7 @@ export const media: Translation["media"] = {
     add: "Add image or video",
     files: "Images and videos",
     dialogFilter: "Images and videos",
+    imageDialogFilter: "Images",
     added_one: "Media file added",
     added_other: "{{count}} media files added",
     addError: "Could not add the images or videos: {{message}}",

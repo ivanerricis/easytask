@@ -63,6 +63,8 @@ export const menu = {
     taskOrderOpenFirst: "Prima i task aperti",
     taskOrderDoneFirst: "Prima i task completati",
     noteBackground: "Sfondo della nota",
+    chooseBackgroundImage: "Scegli immagine…",
+    removeBackgroundImage: "Togli immagine",
     export: "Esporta",
     importHere: "Importa qui",
     moveUp: "Sposta su",
