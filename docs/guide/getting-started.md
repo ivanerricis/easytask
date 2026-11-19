@@ -36,7 +36,7 @@ To add a sub-task, open the menu of a task and choose **Add subtask**. Sub-tasks
 
 ## 5. Complete a task
 
-Click the checkbox of a task to complete it. A task with sub-tasks shows how many are completed, and sections and groups can show a progress bar (see [Settings](./settings)). To hide completed tasks, press `Ctrl+Shift+H`.
+Click the checkbox of a task to complete it. A task with sub-tasks shows how many are completed, and sections and groups can show a progress ring (see [Settings](./settings)). To hide completed tasks, press `Ctrl+Shift+H`.
 
 ## 6. Open the details panel
 

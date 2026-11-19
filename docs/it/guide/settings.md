@@ -37,8 +37,8 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 
 | Opzione | Scelte | Predefinito |
 | --- | --- | --- |
-| **Barre d'avanzamento**: Mostra barra d'avanzamento nelle sezioni | Sì / No | Sì |
-| Mostra barra d'avanzamento nei gruppi | Sì / No | Sì |
+| **Avanzamento**: Mostra anello d'avanzamento nelle sezioni | Sì / No | Sì |
+| Mostra anello d'avanzamento nei gruppi | Sì / No | Sì |
 | **Contatori**: Mostra numero di sezioni | Sì / No | Sì |
 | Mostra numero di task | Sì / No | Sì |
 | Mostra il numero di file audio, immagini e video | Sì / No | Sì |

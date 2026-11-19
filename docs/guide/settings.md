@@ -37,8 +37,8 @@ The theme gallery shows a preview of each theme; move between them with the arro
 
 | Option | Choices | Default |
 | --- | --- | --- |
-| **Progress bars**: Show progress bar in sections | On / Off | On |
-| Show progress bar in groups | On / Off | On |
+| **Progress**: Show progress ring in sections | On / Off | On |
+| Show progress ring in groups | On / Off | On |
 | **Counters**: Show number of sections | On / Off | On |
 | Show number of tasks | On / Off | On |
 | Show number of audio files, images and videos | On / Off | On |

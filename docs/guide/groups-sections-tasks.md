@@ -47,13 +47,13 @@ You can also move things by dragging:
 
 The list of the group tasks follows the same order as the sections: by default it is at the top, and you can move it with **Move task list up** and **Move task list down** (also in the right-click menu of the group), which are disabled when the list is already at the end, and are not shown while the group has no sections. [Undo](./undo-and-history) brings it back.
 
-### Collapse, counters and progress bars
+### Collapse, counters and progress
 
-Each group and section has a button to collapse it (**Collapse group**, **Collapse section**). A task that has subtasks has **Collapse subtasks** / **Expand subtasks** in its menu: while they are collapsed the subtasks are not drawn, and the task always shows its count of completed subtasks (even if **Show completed subtasks** is off). Adding a subtask to a collapsed task expands it first. Hidden subtasks still count in every progress bar and counter. What is open and what is closed is remembered between runs of the app; it is not part of undo/redo, templates or exports, and opening or closing something does not change the modification date of the workspace. The search opens what hides a match only while it is open. A group can show how many sections, tasks, audio files and images or videos it holds. Groups and sections can also show a progress bar with the percentage of completed tasks (for a group, tasks and subtasks all count). Choose what to show in **Settings > Notes and sections**: **Show progress bar in sections**, **Show progress bar in groups**, **Show number of sections**, **Show number of tasks**, **Show number of audio files, images and videos**. The option **Lines between groups** draws a thin guide between the columns.
+Each group and section has a button to collapse it (**Collapse group**, **Collapse section**). A task that has subtasks has **Collapse subtasks** / **Expand subtasks** in its menu: while they are collapsed the subtasks are not drawn, and the task always shows its count of completed subtasks (even if **Show completed subtasks** is off). Adding a subtask to a collapsed task expands it first. Hidden subtasks still count in every progress ring and counter. What is open and what is closed is remembered between runs of the app; it is not part of undo/redo, templates or exports, and opening or closing something does not change the modification date of the workspace. The search opens what hides a match only while it is open. A group can show how many sections, tasks, audio files and images or videos it holds. Groups and sections can also show a progress ring with the percentage of completed tasks (for a group, tasks and subtasks all count). Choose what to show in **Settings > Notes and sections**: **Show progress ring in sections**, **Show progress ring in groups**, **Show number of sections**, **Show number of tasks**, **Show number of audio files, images and videos**. The option **Lines between groups** draws a thin guide between the columns.
 
 ### Resize a group
 
-Drag the right edge of a group to make it wider or narrower. The edge covers the whole height of the column, also beside a short group. With the keyboard, focus the edge and use `Left` and `Right` (hold `Shift` for bigger steps), `Home` for the narrowest width and `End` for the widest. Double-click the edge to restore the automatic width. The progress bar of a group disappears when the group gets too narrow to show it.
+Drag the right edge of a group to make it wider or narrower. The edge covers the whole height of the column, also beside a short group. With the keyboard, focus the edge and use `Left` and `Right` (hold `Shift` for bigger steps), `Home` for the narrowest width and `End` for the widest. Double-click the edge to restore the automatic width. The progress ring of a group disappears when the group gets too narrow to show it.
 
 ## Tasks and subtasks
 
@@ -62,7 +62,7 @@ Drag the right edge of a group to make it wider or narrower. The edge covers the
 1. At the bottom of a section click the **+** button (**Add task**). To add a task to a group without a section, click the **New task** row of the group: it is always visible, like the add button of a section, and sits right under the tasks of the group, wherever that list is among the sections. The new task is created in that list.
 2. Type the text in **New task…** and confirm with `Enter` (the field has no buttons). `Esc` closes it and discards the text.
 
-Tasks of a group count in its progress bar and in its task count. Drag one into a section, or the other way round, or use **Move to…** (the group appears in the list as **Group tasks**). **Move up** and **Move down** of a task stay inside the same list.
+Tasks of a group count in its progress ring and in its task count. Drag one into a section, or the other way round, or use **Move to…** (the group appears in the list as **Group tasks**). **Move up** and **Move down** of a task stay inside the same list.
 
 New tasks go to the end of the section. To put them at the top, choose **At the top** in **Settings > Notes and sections > Position of new tasks**.
 

@@ -36,7 +36,7 @@ Per aggiungere un sottotask apri il menu di un task e scegli **Aggiungi sottotas
 
 ## 5. Completa un task
 
-Clicca la casella di un task per completarlo. Un task con sottotask mostra quanti sono completati, e sezioni e gruppi possono mostrare una barra di avanzamento (vedi [Impostazioni](./settings)). Per nascondere i task completati premi `Ctrl+Shift+H`.
+Clicca la casella di un task per completarlo. Un task con sottotask mostra quanti sono completati, e sezioni e gruppi possono mostrare un anello d'avanzamento (vedi [Impostazioni](./settings)). Per nascondere i task completati premi `Ctrl+Shift+H`.
 
 ## 6. Apri il pannello dei dettagli
 
