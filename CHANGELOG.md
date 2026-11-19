@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-20
+
+### Added
+
+- In split view, tasks, sections and groups can be dragged to the other note: hold **Ctrl** for the whole drag to move them there, and hold **Alt** too when you drop to copy them instead. While Ctrl is held the source note does not scroll. One **Undo** takes the move or the copy back.
+- Sections can have tags, like groups: choose them with **Tags…** in the section menu. They show right after the section title (the first 3, then **+N**) and travel with templates and exports.
+- Four new tag shapes: diamond, hexagon, star and small square, besides pill, rounded rectangle, dot and label.
+- Right click on a tag badge opens a menu to edit the tag or remove it from that task, group or section only.
+- **Undo all** in the History panel goes back to before every recorded action at once; the actions can still be redone.
+- **Ctrl+N** and **Ctrl+M** also work with the sidebar closed: Ctrl+N creates a new note at the root and opens it.
+- The loading texts end with animated dots, which stay still when animations are reduced or turned off.
+- The database is upgraded to version 20 when the app starts, and an older version of the app cannot open the upgraded database.
+
+### Changed
+
+- The tags of a task are on a line under its text, aligned on the left.
+- In split view the note without the focus has a darker veil, now also over its tab bar.
+- The pointer is a hand on every clickable control, an arrow on menu items, and shows "not allowed" on disabled controls.
+- The **Automatic** entry of the group color menu is shorter, so the menu is not wider than the palette; the explanation is in its tooltip.
+- **Enter** in the name field of the tag menu saves the name and closes the menu.
+- Section tags are not read by versions before 0.28.0: a file exported with this version opens there without them.
+
+### Fixed
+
+- A click on the resize handle of a group, without moving the mouse, no longer saves a fixed width or hides the progress percentage.
+- While dragging in the sidebar, the rows move live to make room also when the tree has fewer than 200 rows.
+- The scrollbar of a group starts at the height of the first task and keeps the same gap from the tasks as from the border.
+
 ## [0.27.0] - 2026-11-19
 
 ### Added
@@ -654,7 +682,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.27.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.28.0...HEAD
+[0.28.0]: https://github.com/ivanerricis/easytask/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0

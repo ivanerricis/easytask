@@ -4,6 +4,34 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.28.0] - 2026-11-20
+
+### Aggiunto
+
+- Nella vista divisa task, sezioni e gruppi si possono trascinare nell'altra nota: tieni premuto **Ctrl** per tutto il trascinamento per spostarli lì, e tieni premuto anche **Alt** al rilascio per copiarli. Con Ctrl premuto la nota di partenza non scorre. Un solo **Annulla** riporta indietro lo spostamento o la copia.
+- Le sezioni possono avere dei tag, come i gruppi: sceglili con **Tag…** nel menu della sezione. Si vedono subito dopo il titolo della sezione (i primi 3, poi **+N**) e passano a template ed export.
+- Quattro nuove forme per i tag: rombo, esagono, stella e quadratino, oltre a pillola, rettangolo arrotondato, pallino e cartellino.
+- Il tasto destro su un badge di un tag apre un menu per modificare il tag o toglierlo solo da quel task, gruppo o sezione.
+- **Annulla tutto** nel pannello Cronologia torna a prima di tutte le azioni registrate in un colpo; le azioni si possono ancora ripetere.
+- **Ctrl+N** e **Ctrl+M** funzionano anche con la sidebar chiusa: Ctrl+N crea una nuova nota alla radice e la apre.
+- I testi di caricamento finiscono con dei puntini animati, che restano fermi quando le animazioni sono ridotte o disattivate.
+- All'avvio il database passa alla versione 20, e una versione precedente dell'app non può aprire il database aggiornato.
+
+### Modificato
+
+- I tag di un task sono su una riga sotto il testo, allineati a sinistra.
+- Nella vista divisa la nota senza il focus ha un velo più scuro, ora anche sulla sua barra delle schede.
+- Il puntatore è una mano su tutti i controlli cliccabili, una freccia sulle voci dei menu, e mostra il divieto sui controlli disattivati.
+- La voce **Automatico** del menu del colore dei gruppi è più corta, così il menu non è più largo della tavolozza; la spiegazione è nel suo tooltip.
+- **Invio** nel campo del nome del menu del tag salva il nome e chiude il menu.
+- I tag delle sezioni non vengono letti dalle versioni precedenti alla 0.28.0: un file esportato con questa versione si apre lì senza di essi.
+
+### Corretto
+
+- Un clic sulla barra di ridimensionamento di un gruppo, senza muovere il mouse, non salva più una larghezza fissa e non nasconde più la percentuale di avanzamento.
+- Durante il trascinamento nella sidebar le righe si spostano dal vivo per fare spazio anche quando l'albero ha meno di 200 righe.
+- La scrollbar di un gruppo parte all'altezza del primo task e ha dai task la stessa distanza che ha dal bordo.
+
 ## [0.27.0] - 2026-11-19
 
 ### Aggiunto
@@ -651,7 +679,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.27.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.28.0...HEAD
+[0.28.0]: https://github.com/ivanerricis/easytask/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
