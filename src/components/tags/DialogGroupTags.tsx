@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TagPicker } from "./TagPicker"
 
 type DialogGroupTagsProps = {
@@ -23,7 +23,9 @@ export const DialogGroupTags = ({ open, onOpenChange, groupId }: DialogGroupTags
                 </DialogHeader>
                 <TagPicker groupIds={[groupId]} />
                 <DialogFooter>
-                    <Button onClick={() => onOpenChange(false)}>{t("tags.done")}</Button>
+                    <DialogFooterActions>
+                        <Button onClick={() => onOpenChange(false)}>{t("tags.done")}</Button>
+                    </DialogFooterActions>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
