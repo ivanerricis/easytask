@@ -80,6 +80,20 @@ describe("HistoryPanel", () => {
         expect(value.redo).toHaveBeenCalledTimes(1)
     })
 
+    it("undoes every action with 'Annulla tutto', like choosing the oldest entry", async () => {
+        const user = userEvent.setup()
+        const value = makeContext({ canUndo: true, canRedo: true, entries: { undo: ["C", "B", "A"], redo: ["D"] } })
+        renderPanel(value)
+        await user.click(screen.getByRole("button", { name: "Annulla tutto" }))
+        expect(value.undoTo).toHaveBeenCalledWith(2)
+        expect(value.clear).not.toHaveBeenCalled()
+    })
+
+    it("disables 'Annulla tutto' when there is nothing to undo", () => {
+        renderPanel(makeContext({ canRedo: true, entries: { undo: [], redo: ["A"] } }))
+        expect(screen.getByRole("button", { name: "Annulla tutto" })).toBeDisabled()
+    })
+
     it("follows the language", async () => {
         await i18n.changeLanguage("en")
         renderPanel(makeContext({ canUndo: true, entries: { undo: ["A"], redo: ["B"] } }))
