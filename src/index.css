@@ -248,6 +248,35 @@ body,
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Cursor: the hand on everything that can be clicked, also on a raw <button> (Tailwind's preflight gives buttons the arrow). Menu items and
+     select options keep the arrow, like the menus of a desktop app. Disabled controls say "not allowed". This sits in the base layer, so any
+     cursor utility (cursor-grab, cursor-text, cursor-col-resize...) still wins, and the drag cursors come from a cover over the window. */
+  button:not(:disabled),
+  summary,
+  a[href],
+  [role="button"],
+  [role="tab"],
+  [role="radio"],
+  [role="checkbox"],
+  [role="switch"],
+  [role="slider"],
+  [role="link"],
+  input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]):not(:disabled) {
+    cursor: pointer;
+  }
+
+  :is(button, input, select, textarea):disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"] {
+    cursor: default;
+  }
 }
 
 /* Toasts (sonner): the close button sits inside the toast, on the right, instead of on its top left corner.
