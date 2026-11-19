@@ -64,7 +64,7 @@ describe("TagBadge shapes", () => {
     it("keeps the text color of the theme and cuts a long name in every shape", () => {
         const long = "x".repeat(100)
         render(<>
-            {(["pill", "rounded", "dot", "tag"] as const).map(shape => <TagBadge key={shape} tag={{ name: long, color: "#00ff00", shape: shape === "pill" ? null : shape }} />)}
+            {(["pill", "rounded", "dot", "tag", "diamond", "hexagon", "star", "square"] as const).map(shape => <TagBadge key={shape} tag={{ name: long, color: "#00ff00", shape: shape === "pill" ? null : shape }} />)}
         </>)
         for (const badge of screen.getAllByTestId("tag-badge")) {
             expect(badge).toHaveClass("text-foreground", "max-w-32")
@@ -76,14 +76,77 @@ describe("TagBadge shapes", () => {
 describe("TagShapeSample", () => {
     it("draws every shape without text, hidden from the screen readers", () => {
         const { container } = render(<>
-            {(["pill", "rounded", "dot", "tag"] as const).map(shape => <TagShapeSample key={shape} shape={shape} color="#0000ff" />)}
+            {(["pill", "rounded", "dot", "tag", "diamond", "hexagon", "star", "square"] as const).map(shape => <TagShapeSample key={shape} shape={shape} color="#0000ff" />)}
         </>)
         const samples = [...container.querySelectorAll("[aria-hidden='true']")]
-        expect(samples).toHaveLength(4)
+        expect(samples).toHaveLength(8)
         expect(samples.every(sample => sample.textContent === "")).toBe(true)
         expect(samples[0]).toHaveClass("rounded-full")
         expect(samples[1]).toHaveClass("rounded-sm")
         expect((samples[2] as HTMLElement).style.backgroundColor).toBe("rgb(0, 0, 255)")
         expect(samples[3].className).toContain("clip-path:polygon")
+    })
+})
+
+describe("TagBadge new shapes", () => {
+    it.each(["diamond", "star", "square"] as const)("draws a %s marker in the color of the tag and the name, with no box", shape => {
+        render(<>
+            <TagBadge tag={{ name: "Colored", color: "#ff0000", shape }} />
+            <TagBadge tag={{ name: "Plain", color: null, shape }} />
+        </>)
+        const [colored, plain] = screen.getAllByTestId("tag-badge")
+        for (const badge of [colored, plain]) {
+            expect(badge).toHaveAttribute("data-shape", shape)
+            expect(badge).toHaveClass("text-foreground", "max-w-32")
+            expect(badge.style.backgroundColor).toBe("")
+            expect(badge.querySelector(".truncate")).not.toBeNull()
+        }
+        const marker = colored.firstElementChild as HTMLElement
+        expect(marker).toHaveAttribute("aria-hidden", "true")
+        expect(marker.style.backgroundColor).toBe("rgb(255, 0, 0)")
+        expect(plain.firstElementChild).toHaveClass("bg-muted-foreground/50")
+        if (shape === "square") expect(marker).toHaveClass("rounded-[2px]")
+        else expect(marker.className).toContain("clip-path:polygon")
+    })
+
+    it("draws a hexagon: a clipped outline with a point on both sides, tinted but with no border", () => {
+        render(<>
+            <TagBadge tag={{ name: "Colored", color: "#ff0000", shape: "hexagon" }} />
+            <TagBadge tag={{ name: "Plain", color: null, shape: "hexagon" }} />
+        </>)
+        const [colored, plain] = screen.getAllByTestId("tag-badge")
+        for (const badge of [colored, plain]) {
+            expect(badge).toHaveAttribute("data-shape", "hexagon")
+            expect(badge.className).toContain("clip-path:polygon")
+            expect(badge).toHaveClass("rounded-none", "text-foreground")
+            expect(badge).not.toHaveClass("border-2")
+        }
+        expect(colored.style.backgroundColor).toMatch(/^rgba\(255, 0, 0, /)
+        expect(colored.style.borderColor).toBe("")
+        expect(plain.style.backgroundColor).toBe("")
+    })
+
+    it("draws the samples of the new shapes in the color, without text", () => {
+        const { container } = render(<>
+            {(["diamond", "hexagon", "star", "square"] as const).map(shape => <TagShapeSample key={shape} shape={shape} color="#0000ff" />)}
+        </>)
+        const [diamond, hexagon, star, square] = [...container.querySelectorAll<HTMLElement>("[aria-hidden='true']")]
+        expect(diamond.style.backgroundColor).toBe("rgb(0, 0, 255)")
+        expect(diamond.className).toContain("clip-path:polygon")
+        expect(hexagon.className).toContain("clip-path:polygon")
+        expect(hexagon.style.backgroundColor).toMatch(/^rgba\(0, 0, 255, /)
+        expect(star.style.backgroundColor).toBe("rgb(0, 0, 255)")
+        expect(star.className).toContain("clip-path:polygon")
+        expect(square.style.backgroundColor).toBe("rgb(0, 0, 255)")
+    })
+
+    it("marks the markers of the box-less shapes (badge and sample) for the forced colors styles", () => {
+        const { container } = render(<>
+            {(["dot", "diamond", "star", "square"] as const).map(shape => <TagBadge key={shape} tag={{ name: shape, color: "#ff0000", shape }} />)}
+            {(["dot", "diamond", "star", "square"] as const).map(shape => <TagShapeSample key={shape} shape={shape} color="#ff0000" />)}
+            <TagBadge tag={{ name: "Hex", color: "#ff0000", shape: "hexagon" }} />
+        </>)
+        expect(container.querySelectorAll("[data-tag-marker]")).toHaveLength(8)
+        expect(screen.getAllByTestId("tag-badge").at(-1)).toHaveAttribute("data-shape", "hexagon")
     })
 })

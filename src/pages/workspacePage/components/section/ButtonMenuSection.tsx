@@ -25,6 +25,7 @@ import { LazyDialogAutomations } from "./LazyDialogAutomations"
 import { LazyMount } from "@/components/lazy-mount"
 import { useActiveNoteId } from "@/contexts/use-tabs"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
+import { DialogSectionTags } from "@/components/tags/DialogSectionTags"
 
 type ButtonMenuSectionProps = {
     section: Section
@@ -38,6 +39,7 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
     const { t } = useTranslation()
     const [isDeleteOpen, setDeleteOpen] = useState(false)
     const [isAutomationsOpen, setAutomationsOpen] = useState(false)
+    const [isTagsOpen, setTagsOpen] = useState(false)
     const noteId = useActiveNoteId()
     const isDraft = useIsActiveDraft()
     const menu = useItemMenuState()
@@ -97,6 +99,14 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
                 onDone={menu.close}
             />
             <SectionTaskOrderSubmenu section={section} onDone={menu.close} />
+            <ButtonInPopover
+                text={t("tags.menu")}
+                type="tags"
+                onClick={() => {
+                    menu.close()
+                    setTagsOpen(true)
+                }}
+            />
             <Separator />
             <SectionStepMoves sectionId={section.id} onDone={menu.close} />
             <SectionMoveSubmenu sectionId={section.id} onDone={menu.close} />
@@ -137,6 +147,7 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
                     onOpenChange={setAutomationsOpen}
                 />
             </LazyMount>}
+            {isTagsOpen && <DialogSectionTags open={isTagsOpen} onOpenChange={setTagsOpen} sectionId={section.id} />}
             {isDeleteOpen && <DialogDeleteItem
                 item={section}
                 itemType="section"

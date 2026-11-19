@@ -13,12 +13,26 @@ type TagBadgeProps = {
 /** The outline of the label shape: a point on the left (the hole of the label sits in it). */
 const LABEL_CLIP = "[clip-path:polygon(0.5rem_0,100%_0,100%_100%,0.5rem_100%,0_50%)]"
 
+/** The outline of the hexagon shape: a point on both sides. */
+const HEXAGON_CLIP = "[clip-path:polygon(0.4rem_0,calc(100%-0.4rem)_0,100%_50%,calc(100%-0.4rem)_100%,0.4rem_100%,0_50%)]"
+
+const DIAMOND_CLIP = "[clip-path:polygon(50%_0,100%_50%,50%_100%,0_50%)]"
+const STAR_CLIP = "[clip-path:polygon(50%_0,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)]"
+
+/** The shapes drawn without a box: a colored marker (its size and outline) followed by the name. */
+const MARKERS: Partial<Record<TagShape, string>> = {
+    dot: "size-2.5 rounded-full",
+    diamond: cn("size-3", DIAMOND_CLIP),
+    star: cn("size-3.5", STAR_CLIP),
+    square: "size-2.5 rounded-[2px]",
+}
+
 /**
  * A tag as a small badge: its name on a light tint of its color with a border of the same color. The text keeps the
  * foreground color of the theme (never the tag color), so it stays readable in the light, dark and high contrast themes;
  * the tint follows the "color intensity" preference like the other colored elements. A tag without color is a neutral badge.
- * The shape of the tag says how it is drawn: a pill (the default), a rounded rectangle, a label with a point on the left, or
- * no box at all (a colored dot and the name). A long name is cut with an ellipsis (the full name is the title of the badge).
+ * The shape of the tag says how it is drawn: a pill (the default), a rounded rectangle, a label with a point on the left, a hexagon, or
+ * no box at all (a colored dot, diamond, star or square, and the name). A long name is cut with an ellipsis (the full name is the title of the badge).
  * @category Components
  */
 export const TagBadge = memo(({ tag, className }: TagBadgeProps) => {
@@ -26,16 +40,18 @@ export const TagBadge = memo(({ tag, className }: TagBadgeProps) => {
     const color = tag.color || undefined
     const shape = shapeOf(tag.shape)
 
-    if (shape === "dot") return (
+    const marker = MARKERS[shape]
+    if (marker) return (
         <span
             data-testid="tag-badge"
-            data-shape="dot"
+            data-shape={shape}
             title={tag.name}
             className={cn("inline-flex max-w-32 min-w-0 items-center gap-1.5 text-xs font-medium whitespace-nowrap text-foreground", className)}
         >
             <span
                 aria-hidden="true"
-                className={cn("size-2.5 shrink-0 rounded-full", !color && "bg-muted-foreground/50")}
+                data-tag-marker=""
+                className={cn("shrink-0", marker, !color && "bg-muted-foreground/50")}
                 style={color ? { backgroundColor: color } : undefined}
             />
             <span className="truncate">{tag.name}</span>
@@ -43,20 +59,22 @@ export const TagBadge = memo(({ tag, className }: TagBadgeProps) => {
     )
 
     const label = shape === "tag"
+    const hexagon = shape === "hexagon"
     return (
         <Badge
-            variant={color && !label ? "outline" : "secondary"}
+            variant={color && !label && !hexagon ? "outline" : "secondary"}
             data-testid="tag-badge"
             data-shape={shape}
             title={tag.name}
             className={cn(
                 "relative max-w-32 min-w-0 justify-start px-1.5 py-0 text-foreground",
-                color && !label && "border-2",
+                color && !label && !hexagon && "border-2",
                 shape === "rounded" && "rounded-sm",
                 label && cn("rounded-none pl-4", LABEL_CLIP),
+                hexagon && cn("rounded-none px-2.5", HEXAGON_CLIP),
                 className,
             )}
-            style={color ? { backgroundColor: hexToRgba(colorAlpha.item(), color), ...(label ? {} : { borderColor: hexToRgba(0.85, color) }) } : undefined}
+            style={color ? { backgroundColor: hexToRgba(colorAlpha.item(), color), ...(label || hexagon ? {} : { borderColor: hexToRgba(0.85, color) }) } : undefined}
         >
             {label && (
                 <span
@@ -77,10 +95,12 @@ export const TagBadge = memo(({ tag, className }: TagBadgeProps) => {
  */
 export const TagShapeSample = memo(({ shape, color, className }: { shape: TagShape, color?: string | null, className?: string }) => {
     const colorAlpha = useColorAlpha()
-    if (shape === "dot") return (
+    const marker = MARKERS[shape]
+    if (marker) return (
         <span
             aria-hidden="true"
-            className={cn("inline-block size-3 rounded-full", !color && "bg-muted-foreground/60", className)}
+            data-tag-marker=""
+            className={cn("inline-block", marker, shape !== "star" && shape !== "diamond" && "size-3", !color && "bg-muted-foreground/60", className)}
             style={color ? { backgroundColor: color } : undefined}
         />
     )
@@ -92,6 +112,7 @@ export const TagShapeSample = memo(({ shape, color, className }: { shape: TagSha
                 shape === "pill" && "rounded-full",
                 shape === "rounded" && "rounded-sm",
                 shape === "tag" && cn("rounded-none border-0", LABEL_CLIP),
+                shape === "hexagon" && cn("rounded-none border-0", HEXAGON_CLIP),
                 className,
             )}
             style={color ? { backgroundColor: hexToRgba(colorAlpha.item(), color), borderColor: hexToRgba(0.85, color) } : undefined}

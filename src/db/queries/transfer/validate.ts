@@ -65,6 +65,7 @@ function checkContent(content: unknown, counter: Counter): NoteTemplateContent {
             bump(counter)
             if (!isObject(section) || !isString(section.title) || !isNumber(section.position) || !Array.isArray(section.tasks)
                 || !isNullableString(section.color) || !isNullableString(section.archived_at)) malformed()
+            if (section.tags !== undefined) checkTags(section.tags, counter)
             for (const task of section.tasks as unknown[]) checkTask(task, counter)
         }
     }
@@ -106,6 +107,7 @@ function normalizeContent(content: NoteTemplateContent) {
             // A blank title stays blank (a section may have no title); only the others must differ
             section.title = section.title.trim() ? uniqueSibling(section.title.trim(), titles) : ""
             section.color = cleanColor(section.color)
+            for (const tag of section.tags ?? []) tag.color = cleanColor(tag.color)
             // A view setting: a value this version does not know (a newer file) is dropped, the section follows the preference
             if (!isTaskOrder(section.task_order)) delete section.task_order
             for (const task of section.tasks) normalizeTask(task)

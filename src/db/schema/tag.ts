@@ -80,3 +80,28 @@ export const groupTagSchema: string[] = [
     `CREATE INDEX IF NOT EXISTS idx_section_group_tag_tag ON section_group_tag(tagID);`,
     ...triggersFor("section_group_tag"),
 ]
+
+/**
+ * Creates the section_tag table: the tags given to a section. A link goes away with its section (when it is purged, not when it
+ * is trashed) and with its tag.
+ * @category Database Schema
+ */
+export const createSectionTagTable = `
+    CREATE TABLE IF NOT EXISTS section_tag (
+        sectionID INTEGER NOT NULL,
+        tagID INTEGER NOT NULL,
+        PRIMARY KEY(sectionID, tagID),
+        FOREIGN KEY(sectionID) REFERENCES section(id) ON DELETE CASCADE,
+        FOREIGN KEY(tagID) REFERENCES tag(id) ON DELETE CASCADE
+    );
+`
+
+/**
+ * Migration v20: the tags of the sections, with the edit-date triggers of the workspace.
+ * @category Database Schema
+ */
+export const sectionTagSchema: string[] = [
+    createSectionTagTable,
+    `CREATE INDEX IF NOT EXISTS idx_section_tag_tag ON section_tag(tagID);`,
+    ...triggersFor("section_tag"),
+]

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { getErrorMessage } from "@/lib/utils"
 import type { Section as SectionType } from "@/types/types"
 import { ChevronDown } from "lucide-react"
+import { GroupTagBadges } from "../groups/GroupTagBadges"
 import { ButtonMenuSection } from "./ButtonMenuSection"
 import { ItemMenuButton } from "@/components/item-menu"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
@@ -80,6 +81,8 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                             <ChevronDown className={isOpen ? "rotate-0" : "-rotate-90"} />
                         </Button>}
                     <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                        {/* The title shrinks and truncates, the tags sit right after it and the free space is after them (like the group header) */}
+                        <div className="flex min-w-0 flex-1 items-center">
                         {!isTextAreaOpen && <button
                             type="button"
                             onClick={renameOnClick ? startEdit : undefined}
@@ -89,7 +92,7 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                             // An untitled section shows no text unless the preference asks for the fallback label
                             // and says what the button does (Enter renames), not only what it is called
                             aria-label={t("sections.renameAria", { name: getSectionLabel(section) })}
-                            className={`text-sm ml-1 min-w-0 flex-1 h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!section.title ? "text-muted-foreground" : ""}`}>
+                            className={`text-sm ml-1 min-w-0 shrink h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!section.title ? "text-muted-foreground" : ""}`}>
                             {search.query ? <Highlight text={section.title} query={search.query} active={search.active} /> : section.title || (showUnnamedLabels ? getSectionLabel(section) : "")}
                         </button>}
                         {isTextAreaOpen && <InlineErrorTooltip message={error}>
@@ -103,6 +106,8 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                                 className="h-6 min-w-0 flex-1 px-1 py-0 ml-1 text-sm md:text-sm border-primary"
                             />
                         </InlineErrorTooltip>}
+                        <GroupTagBadges tagIDs={section.tagIDs} layout="badges" owner={{ kind: "sections", id: section.id }} className="ml-1" />
+                        </div>
                         {!isOpen && section.tasks.length > 0 && <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                             {t("common.counts.task", { count: section.tasks.length })}
                         </span>}

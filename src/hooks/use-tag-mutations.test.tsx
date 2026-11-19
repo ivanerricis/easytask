@@ -10,13 +10,13 @@ vi.mock("@/lib/report-error", async () => (await import("@/test/mocks")).reportE
 
 const tag = (id: number, name: string): Tag => ({ id, workspaceID: 1, name, color: null, shape: null, position: id })
 let tags: Tag[]
-const actions = { createTag: vi.fn(), renameTag: vi.fn(), updateTagColor: vi.fn(), updateTagShape: vi.fn(), deleteTag: vi.fn(), setTaskTag: vi.fn(), setGroupTag: vi.fn() }
+const actions = { createTag: vi.fn(), renameTag: vi.fn(), updateTagColor: vi.fn(), updateTagShape: vi.fn(), deleteTag: vi.fn(), setTaskTag: vi.fn(), setGroupTag: vi.fn(), setSectionTag: vi.fn() }
 vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => actions, useWorkspaceTags: () => tags }))
 vi.mock("@/contexts/use-workspace", () => ({ useWorkspace: () => ({ currentWorkspace: { id: 1 } }) }))
 
 let tree: NoteDataTree
 const rollback = vi.fn()
-const note = { getNoteTree: () => tree, patchTask: vi.fn(() => rollback), patchGroup: vi.fn(() => rollback), refreshActiveNote: vi.fn() }
+const note = { getNoteTree: () => tree, patchTask: vi.fn(() => rollback), patchGroup: vi.fn(() => rollback), patchSection: vi.fn(() => rollback), refreshActiveNote: vi.fn() }
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => note }))
 const recorder = makeUndoRecorderMock()
 vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
@@ -139,5 +139,39 @@ describe("useTagMutations", () => {
         await mutations().remove(bug)
         expect(recorder.tagDelete).toHaveBeenCalledWith(bug, { taskIds: [10, 11], groupIds: [2] })
         expect(note.refreshActiveNote).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("useTagMutations for sections", () => {
+    beforeEach(() => {
+        tree = { groups: [makeGroup({ sections: [makeSection({ id: 5 }), makeSection({ id: 6, tagIDs: [1] })] })] }
+    })
+
+    it("gives the tag to the sections that lack it: patches the note first, writes the sections and records ONE section step", async () => {
+        await mutations().assign(bug, { kind: "sections", ids: [5, 6] }, true)
+        expect(note.patchSection).toHaveBeenCalledTimes(1)
+        expect(note.patchSection).toHaveBeenCalledWith(5, { tagIDs: [1] })
+        expect(actions.setSectionTag).toHaveBeenCalledWith(1, [5], true)
+        expect(recorder.tagAssignSections).toHaveBeenCalledWith(bug, [5], true)
+        expect(recorder.tagAssign).not.toHaveBeenCalled()
+    })
+
+    it("takes the tag from one section only, puts the note back and records nothing when the write fails", async () => {
+        await mutations().assign(bug, { kind: "sections", ids: [6] }, false)
+        expect(note.patchSection).toHaveBeenCalledWith(6, { tagIDs: [] })
+        expect(recorder.tagAssignSections).toHaveBeenCalledWith(bug, [6], false)
+        vi.clearAllMocks()
+        actions.setSectionTag.mockRejectedValueOnce(new Error("fail"))
+        await expect(mutations().assign(bug, { kind: "sections", ids: [5] }, true)).rejects.toThrow("fail")
+        expect(rollback).toHaveBeenCalledTimes(1)
+        expect(recorder.tagAssignSections).not.toHaveBeenCalled()
+    })
+
+    it("creates a tag for a section as ONE step with the section it was given to", async () => {
+        const later = tag(2, "Later")
+        actions.createTag.mockResolvedValueOnce(later)
+        await expect(mutations().create("Later", { kind: "sections", ids: [5] })).resolves.toBe(later)
+        expect(actions.setSectionTag).toHaveBeenCalledWith(2, [5], true)
+        expect(recorder.tagCreate).toHaveBeenCalledWith(later, { sectionIds: [5] })
     })
 })

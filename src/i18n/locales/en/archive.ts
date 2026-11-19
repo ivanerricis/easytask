@@ -63,6 +63,8 @@ export const undo: Translation["undo"] = {
         unassignTag: "Remove the tag from the task",
         assignTagGroup: "Add the tag to the group",
         unassignTagGroup: "Remove the tag from the group",
+        assignTagSection: "Add the tag to the section",
+        unassignTagSection: "Remove the tag from the section",
         assignTagMany_one: "Add the tag to {{count}} task",
         assignTagMany_other: "Add the tag to {{count}} tasks",
         unassignTagMany_one: "Remove the tag from {{count}} task",

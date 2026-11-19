@@ -166,7 +166,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                     className="h-6 min-w-0 flex-1 mr-1 px-1 py-0 text-sm font-semibold md:text-sm border-primary"
                 />
             </InlineErrorTooltip>}
-            <GroupTagBadges tagIDs={group.tagIDs} layout={compact ? "dots" : "badges"} />
+            <GroupTagBadges tagIDs={group.tagIDs} layout={compact ? "dots" : "badges"} owner={{ kind: "groups", id: group.id }} />
             {/* ml-auto: when the group is wider than the name needs, the bar, the counters and the menu stay on the right edge */}
             <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                 <div className="flex shrink-0 gap-2 text-muted-foreground">

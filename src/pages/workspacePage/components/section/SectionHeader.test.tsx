@@ -6,6 +6,7 @@ import { SectionHeader } from "./SectionHeader"
 import { makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { searchingStore } from "@/test/search-store"
 import { NoteSearchContext } from "../note-search-context"
+import { createTagsStore, WorkspaceTagsContext } from "@/contexts/workspace-data/tags"
 
 vi.mock("./ButtonMenuSection", () => ({ ButtonMenuSection: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 const renameItem = vi.fn()
@@ -146,5 +147,28 @@ describe("SectionHeader search", () => {
         expect(marks[0]).toHaveAttribute("data-active", "true")
         expect(marks[1]).not.toHaveAttribute("data-active")
         expect(screen.getByRole("button", { name: "Titolo sezione: Da comprare, premi Invio per rinominare" })).toHaveTextContent("Da comprare")
+    })
+})
+
+describe("SectionHeader tags", () => {
+    const tags = [
+        { id: 1, workspaceID: 1, name: "Bug", color: "#ff0000", shape: null, position: 0 },
+        { id: 2, workspaceID: 1, name: "Urgent", color: null, shape: "star" as const, position: 1 },
+    ]
+    const renderWithTags = (ui: React.ReactElement) => {
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags })
+        return render(<WorkspaceTagsContext.Provider value={store}>{ui}</WorkspaceTagsContext.Provider>)
+    }
+
+    it("shows the tags of the section as badges in the header, after the title, none when it has no tags", () => {
+        const { unmount } = renderWithTags(<SectionHeader isOpen onOpenChange={vi.fn()} section={makeSection({ title: "Spesa", tagIDs: [1, 2] })} />)
+        expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Bug", "Urgent"])
+        const title = screen.getByRole("button", { name: /Titolo sezione: Spesa/ })
+        const block = screen.getByTestId("group-tags")
+        expect(title.compareDocumentPosition(block) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+        unmount()
+        renderWithTags(<SectionHeader isOpen onOpenChange={vi.fn()} section={makeSection({ title: "Spesa" })} />)
+        expect(screen.queryByTestId("group-tags")).not.toBeInTheDocument()
     })
 })

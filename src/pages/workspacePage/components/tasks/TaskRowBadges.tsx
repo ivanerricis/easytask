@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next"
 import { AlignLeft, Flag, ListTree } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { cn } from "@/lib/utils"
-import { TaskTagBadges } from "./TaskTagBadges"
 
 type TaskRowBadgesProps = {
     hasDescription: boolean
@@ -12,13 +11,11 @@ type TaskRowBadgesProps = {
     doneSubtasks: number
     totalSubtasks: number
     priority: boolean
-    /** The tags of the task (ids of the tags of the workspace). */
-    tagIDs?: number[]
     onOpenDescription: () => void
 }
 
-/** What the task has besides its text: a description (click to read it), its subtasks (done / total), its tags and its priority flag. */
-export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden, doneSubtasks, totalSubtasks, priority, tagIDs, onOpenDescription }: TaskRowBadgesProps) {
+/** What the task has besides its text: a description (click to read it), its subtasks (done / total) and its priority flag (its tags are under the text, see TaskTagBadges). */
+export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden, doneSubtasks, totalSubtasks, priority, onOpenDescription }: TaskRowBadgesProps) {
     const { t } = useTranslation()
     const hasSubtasks = totalSubtasks > 0
     return <>
@@ -51,8 +48,6 @@ export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden
                         {doneSubtasks}/{totalSubtasks}
                     </span>}
             </div>}
-
-        {tagIDs && tagIDs.length > 0 && <TaskTagBadges tagIDs={tagIDs} />}
 
         {/* Priority: a flag (not just a color) */}
         {priority &&

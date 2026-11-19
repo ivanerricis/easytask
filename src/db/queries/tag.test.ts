@@ -20,7 +20,7 @@ vi.mock("@tauri-apps/api/core", async () => {
     return { invoke: createSqliteInvoke(() => sqlite) }
 })
 
-import { createDBTag, deleteDBTag, getDBNoteTags, getDBTags, renameDBTag, restoreDBTag, setDBGroupTag, setDBTaskTag, updateDBTagColor, updateDBTagShape } from "./tag"
+import { createDBTag, deleteDBTag, getDBNoteTags, getDBTags, renameDBTag, restoreDBTag, setDBGroupTag, setDBSectionTag, setDBTaskTag, updateDBTagColor, updateDBTagShape } from "./tag"
 import { getDBNoteData, getDBNotesData } from "./note"
 import { buildContentWithSectionIds, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplate } from "./template"
 import { createDBTemplateDraft } from "./template-draft"
@@ -92,7 +92,7 @@ describe("tag queries", () => {
     })
 
     it("deletes a tag with its links (also those of the trashed and archived tasks) and returns the tasks", async () => {
-        expect(await deleteDBTag(1)).toEqual({ taskIds: [1, 3, 4, 5], groupIds: [] })
+        expect(await deleteDBTag(1)).toEqual({ taskIds: [1, 3, 4, 5], groupIds: [], sectionIds: [] })
         expect(rows("SELECT tagID, taskID FROM task_tag ORDER BY taskID, tagID")).toEqual([{ tagID: 2, taskID: 1 }, { tagID: 4, taskID: 6 }])
         expect(rows("SELECT id FROM tag WHERE workspaceID = 1 ORDER BY id")).toEqual([{ id: 2 }, { id: 3 }])
     })
@@ -412,5 +412,94 @@ describe("the tags of the groups", () => {
         expect(() => validateWorkspaceExport({ ...base, notes: [note("x")] })).toThrow()
         expect(() => validateWorkspaceExport({ ...base, notes: [note([{ name: "" }])] })).toThrow()
         expect(validateWorkspaceExport({ ...base, notes: [note([{ name: "A", color: "" }])] }).notes[0].content.groups[0].tags).toEqual([{ name: "A", color: null }])
+    })
+})
+
+describe("the tags of the sections", () => {
+    beforeEach(() => {
+        sqlite.exec("INSERT INTO section (id, groupID, title, position) VALUES (3, 1, 'S3', 2)")
+    })
+
+    it("are given and taken idempotently, and loaded with the note (tags in use include the ones of sections only)", async () => {
+        await setDBSectionTag(3, [1, 3, 1], true)
+        await setDBSectionTag(3, [1], true)
+        await setDBSectionTag(2, [1], true)
+        expect(rows("SELECT sectionID, tagID FROM section_tag ORDER BY sectionID, tagID")).toEqual([{ sectionID: 1, tagID: 2 }, { sectionID: 1, tagID: 3 }, { sectionID: 3, tagID: 3 }])
+        const data = await getDBNoteData(1)
+        expect(Object.fromEntries(data.sections.filter(section => section.tagIDs).map(section => [section.id, section.tagIDs]))).toEqual({ 1: [2, 3], 3: [3] })
+        // "Unused" is used by a section only: it is in the tags in use, in the order of the tag list
+        expect(data.tags.map(tag => tag.name)).toEqual(["Bug", "È urgente", "Unused"])
+        const many = (await getDBNotesData([1, 2])).get(1)!
+        expect(many.sections.find(section => section.id === 1)?.tagIDs).toEqual([2, 3])
+        expect(many.tags.map(tag => tag.name)).toEqual(["Bug", "È urgente", "Unused"])
+        await setDBSectionTag(3, [1, 3], false)
+        expect(rows("SELECT COUNT(*) AS n FROM section_tag WHERE tagID = 3")).toEqual([{ n: 0 }])
+        await setDBSectionTag(3, [], false)
+    })
+
+    it("go with the tag when it is deleted and come back when it is restored; a trashed section is not loaded", async () => {
+        await setDBSectionTag(1, [1, 3], true)
+        const [tag] = (await getDBTags(1)).filter(item => item.id === 1)
+        const links = await deleteDBTag(1)
+        expect(links.sectionIds).toEqual([1, 3])
+        expect(rows("SELECT COUNT(*) AS n FROM section_tag")).toEqual([{ n: 0 }])
+        sqlite.exec("DELETE FROM section WHERE id = 3")
+        await restoreDBTag(tag, links)
+        expect(rows("SELECT sectionID FROM section_tag WHERE tagID = 1")).toEqual([{ sectionID: 1 }])
+        sqlite.exec("UPDATE section SET deleted_at = '2024-01-01' WHERE id = 1")
+        expect((await getDBNoteData(1)).sections.some(section => section.id === 1)).toBe(false)
+    })
+
+    it("go with their section when it is purged, and with their workspace", () => {
+        sqlite.exec("INSERT INTO section_tag (sectionID, tagID) VALUES (3, 1), (2, 4)")
+        sqlite.exec("DELETE FROM section WHERE id = 3")
+        expect(rows("SELECT sectionID FROM section_tag")).toEqual([{ sectionID: 2 }])
+        sqlite.exec("DELETE FROM workspace WHERE id = 2")
+        expect(rows("SELECT COUNT(*) AS n FROM section_tag")).toEqual([{ n: 0 }])
+    })
+
+    it("refresh the edit date of the workspace like the other tags links", () => {
+        sqlite.exec("UPDATE workspace SET edit_date = '2000-01-01' WHERE id = 1")
+        sqlite.exec("INSERT INTO section_tag (sectionID, tagID) VALUES (3, 1)")
+        expect(rows("SELECT edit_date FROM workspace WHERE id = 1")[0].edit_date).not.toBe("2000-01-01")
+    })
+
+    it("travel in a template, in a copy of the note and of the section, and in an export, reusing the tag by name in another workspace", async () => {
+        await setDBSectionTag(1, [1], true)
+        await updateDBTagShape(1, "star")
+        const { content } = await buildContentWithSectionIds(1)
+        expect(content.groups[0].sections[0].tags).toEqual([{ name: "Bug", color: "#e6194b", shape: "star" }])
+        expect(content.groups[0].sections[1].tags).toBeUndefined()
+
+        const copyId = await duplicateDBNote(1)
+        const copy = await getDBNoteData(copyId)
+        expect(copy.sections.filter(section => !section.is_default).map(section => section.tagIDs)).toEqual([[1], undefined])
+
+        const sectionCopy = await duplicateDBSection(1)
+        expect(rows(`SELECT tagID FROM section_tag WHERE sectionID = ${sectionCopy}`)).toEqual([{ tagID: 1 }])
+
+        const exported = await buildDBItemsExport([{ type: "note", id: 1 }])
+        const items = await importDBItems(validateWorkspaceExport(JSON.parse(JSON.stringify(exported))), 2, null)
+        const imported = await getDBNoteData(items.items[0].id)
+        // "Bug" already existed in the other workspace: that one is used, as it is
+        expect(imported.sections.find(section => section.tagIDs)?.tagIDs).toEqual([4])
+
+        // A file whose section tags are malformed is refused
+        const base = { format: "easytask-workspace", version: 3, exportedAt: "x", workspace: { name: "W", color: null }, folders: [], templates: [] }
+        const note = (tags: unknown) => ({ ref: "n", name: "N", position: 0, color: null, folderRef: null, audio: [], media: [], content: { version: 1, groups: [{ name: null, position: 0, sections: [{ title: "S", color: null, position: 0, tasks: [], tags }] }] } })
+        expect(() => validateWorkspaceExport({ ...base, notes: [note("x")] })).toThrow()
+        expect(() => validateWorkspaceExport({ ...base, notes: [note([{ name: "" }])] })).toThrow()
+        expect(validateWorkspaceExport({ ...base, notes: [note([{ name: "A", color: "", shape: "hexagon" }])] }).notes[0].content.groups[0].sections[0].tags).toEqual([{ name: "A", color: null, shape: "hexagon" }])
+    })
+})
+
+describe("the new tag shapes", () => {
+    it("are stored, and an unknown value is the default pill", async () => {
+        for (const shape of ["diamond", "hexagon", "star", "square"] as const) {
+            await updateDBTagShape(1, shape)
+            expect((await getDBTags(1))[0].shape).toBe(shape)
+        }
+        await updateDBTagShape(1, "triangle" as never)
+        expect((await getDBTags(1))[0].shape).toBeNull()
     })
 })

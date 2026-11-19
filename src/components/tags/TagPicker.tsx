@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from "react"
+import { useId, useState, type FormEvent, type KeyboardEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { Check, MoreHorizontal, Plus, Trash2, X } from "lucide-react"
 import type { Tag } from "@/types/types"
@@ -19,19 +19,21 @@ import { useWorkspaceTags } from "@/contexts/workspace-data"
 import { useTagMutations } from "@/hooks/use-tag-mutations"
 import { reportError } from "@/lib/report-error"
 import { TAG_SHAPES, shapeOf, toStoredShape } from "@/lib/tag-shapes"
-import { groupTagCoverage, tagCoverage, type TagTarget } from "@/lib/task-tags"
+import { groupTagCoverage, sectionTagCoverage, tagCoverage, type TagTarget } from "@/lib/task-tags"
 import { cn, getErrorMessage } from "@/lib/utils"
 import { MAX_NAME_LENGTH } from "@/lib/names"
 import { toastUndoable } from "@/lib/toast-trashed"
 
 type TagPickerProps =
     /** The tasks the list acts on (one task, or the selected ones). */
-    | { taskIds: readonly number[], groupIds?: undefined }
+    | { taskIds: readonly number[], groupIds?: undefined, sectionIds?: undefined }
     /** The groups the list acts on. */
-    | { groupIds: readonly number[], taskIds?: undefined }
+    | { groupIds: readonly number[], taskIds?: undefined, sectionIds?: undefined }
+    /** The sections the list acts on. */
+    | { sectionIds: readonly number[], taskIds?: undefined, groupIds?: undefined }
 
 /**
- * The tags of the workspace as a checkable list for some tasks or groups (checked = all of them have it; the count says when only
+ * The tags of the workspace as a checkable list for some tasks, groups or sections (checked = all of them have it; the count says when only
  * some do), with the field that creates a new tag (and gives it to them) and, for each tag, a small menu to rename it, change its
  * shape or color or delete it. Used by the dialogs of the task and group menus and by the details panel.
  */
@@ -45,8 +47,8 @@ export function TagPicker(props: TagPickerProps) {
     const [busy, setBusy] = useState(false)
     const nameId = useId()
     const errorId = useId()
-    const target: TagTarget = props.groupIds ? { kind: "groups", ids: props.groupIds } : { kind: "tasks", ids: props.taskIds }
-    // The tasks go as a plain list of ids (the original form), the groups say what they are
+    const target: TagTarget = props.groupIds ? { kind: "groups", ids: props.groupIds } : props.sectionIds ? { kind: "sections", ids: props.sectionIds } : { kind: "tasks", ids: props.taskIds! }
+    // The tasks go as a plain list of ids (the original form), the groups and sections say what they are
     const payload = target.kind === "tasks" ? target.ids : target
 
     const toggle = async (tag: Tag, assigned: boolean) => {
@@ -80,7 +82,8 @@ export function TagPicker(props: TagPickerProps) {
                 : (
                     <ul aria-label={t("tags.list")} className="flex max-h-64 flex-col gap-1 overflow-y-auto">
                         {tags.map(tag => {
-                            const coverage = target.kind === "groups" ? groupTagCoverage(noteDataTree, target.ids, tag.id) : tagCoverage(noteDataTree, target.ids, tag.id)
+                            const coverage = target.kind === "groups" ? groupTagCoverage(noteDataTree, target.ids, tag.id)
+                                : target.kind === "sections" ? sectionTagCoverage(noteDataTree, target.ids, tag.id) : tagCoverage(noteDataTree, target.ids, tag.id)
                             return <TagRow key={tag.id} tag={tag} coverage={coverage} onToggle={assigned => { void toggle(tag, assigned) }} />
                         })}
                     </ul>
@@ -153,7 +156,7 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-64">
-                    <TagManage tag={tag} onDelete={() => { setMenuOpen(false); if (skipConfirm) void removeTag(); else setDeleting(true) }} />
+                    <TagManage tag={tag} onClose={() => setMenuOpen(false)} onDelete={() => { setMenuOpen(false); if (skipConfirm) void removeTag(); else setDeleting(true) }} />
                 </PopoverContent>
             </Popover>
             <ConfirmDialog
@@ -173,10 +176,10 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
 const rowClass = "h-auto w-full justify-start gap-2 rounded-xs px-2 py-1.5 font-normal"
 
 /**
- * Rename, shape, color and delete of one tag (the content of the small menu of its row): the name with its Save button, the shape
+ * Rename, shape, color and (when `onDelete` is given) delete of one tag (the content of the small menu of its row): the name with its Save button, the shape
  * picker, the palette as wide as the menu, then "No color" and "Delete" as rows like the entries of a menu.
  */
-function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
+export function TagManage({ tag, onDelete, onClose }: { tag: Tag, onDelete?: () => void, onClose: () => void }) {
     const { t } = useTranslation()
     const { rename, recolor, reshape } = useTagMutations()
     const [name, setName] = useState(tag.name)
@@ -184,14 +187,28 @@ function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
     const errorId = useId()
     const shape = shapeOf(tag.shape)
 
-    const saveName = async (event: FormEvent) => {
-        event.preventDefault()
+    const changed = !!name.trim() && name.trim() !== tag.name
+
+    const saveName = async (event?: FormEvent) => {
+        event?.preventDefault()
         setError(null)
         try {
             await rename(tag, name)
         } catch (err) {
             setError(getErrorMessage(err))
+            return false
         }
+        return true
+    }
+
+    // Enter saves the name when it changed (and is valid) and closes the menu; with the name as it was it only closes. The
+    // dialogs that host the picker would close on Enter too: the key stops here.
+    const onNameKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Enter" || event.nativeEvent.isComposing) return
+        event.preventDefault()
+        event.stopPropagation()
+        if (!changed) { onClose(); return }
+        void saveName().then(saved => { if (saved) onClose() })
     }
 
     const pickColor = async (color: string | null) => {
@@ -226,13 +243,14 @@ function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
                     autoComplete="off"
                     className="h-8 min-w-0 flex-1"
                     onChange={event => { setName(event.target.value); setError(null) }}
+                    onKeyDown={onNameKeyDown}
                 />
-                <Button type="submit" size="sm" className="shrink-0" disabled={!name.trim() || name.trim() === tag.name}>{t("tags.save")}</Button>
+                <Button type="submit" size="sm" className="shrink-0" disabled={!changed}>{t("tags.save")}</Button>
             </form>
             <FormError id={errorId}>{error}</FormError>
             <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-muted-foreground">{t("tags.shape.label")}</span>
-                <ToggleGroup type="single" value={shape} onValueChange={value => { void pickShape(value) }} aria-label={t("tags.shape.label")} className={cn(segmentedGroupClass, "w-full")}>
+                <ToggleGroup type="single" value={shape} onValueChange={value => { void pickShape(value) }} aria-label={t("tags.shape.label")} className={cn(segmentedGroupClass, "w-full grid-flow-row grid-cols-4")}>
                     {TAG_SHAPES.map(option => (
                         <ToggleGroupItem key={option} value={option} aria-label={t(`tags.shape.${option}`)} title={t(`tags.shape.${option}`)} className={cn(segmentedItemClass, "px-0")}>
                             <TagShapeSample shape={option} color={tag.color} />
@@ -250,10 +268,10 @@ function TagManage({ tag, onDelete }: { tag: Tag, onDelete: () => void }) {
                     {t("tags.noColor")}
                     {!tag.color && <Check className="ml-auto" aria-hidden="true" />}
                 </Button>
-                <Button variant="destructiveGhost" className={rowClass} onClick={onDelete}>
+                {onDelete && <Button variant="destructiveGhost" className={rowClass} onClick={onDelete}>
                     <Trash2 />
                     {t("tags.delete")}
-                </Button>
+                </Button>}
             </div>
         </div>
     )

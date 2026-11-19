@@ -95,6 +95,8 @@ export type Section = {
     archived_at?: string | null
     /** The hidden default section of a group (true, or 1 from the database); absent/false = a normal section. */
     is_default?: boolean | number
+    /** The tags of the section (ids of the tags of its workspace, in the order of the tag list); absent when it has none. */
+    tagIDs?: number[]
     /** Saved state of the section: true (or 1 from the database) = closed; absent/false = open. A state of the view: undo, templates, exports and copies do not carry it. */
     collapsed?: boolean | number
     /** How the tasks are drawn: `manual`, `open-first` or `done-first`; null/absent = follow the preference "completed tasks last". A state of the view; duplicates, templates and exports copy the choice. */

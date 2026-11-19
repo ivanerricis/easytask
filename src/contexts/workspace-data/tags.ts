@@ -3,7 +3,7 @@ import type { Tag } from "@/types/types"
 import { createExternalStore, useStoreSelector, type ExternalStore } from "@/lib/external-store"
 import i18n from "@/i18n"
 import { reportError } from "@/lib/report-error"
-import { createDBTag, getDBTags, deleteDBTag, renameDBTag, restoreDBTag, setDBGroupTag, setDBTaskTag, updateDBTagColor, updateDBTagShape, type TagLinks } from "@/db/queries/tag"
+import { createDBTag, getDBTags, deleteDBTag, renameDBTag, restoreDBTag, setDBGroupTag, setDBSectionTag, setDBTaskTag, updateDBTagColor, updateDBTagShape, type TagLinks } from "@/db/queries/tag"
 import type { StoredTagShape } from "@/lib/tag-shapes"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
@@ -37,7 +37,7 @@ export const useTagsOf = (tagIDs: readonly number[] | undefined): Tag[] => {
 
 const byPosition = (a: Tag, b: Tag) => a.position - b.position || a.id - b.id
 
-type TagActions = Pick<WorkspaceActionsType, "reloadTags" | "createTag" | "renameTag" | "updateTagColor" | "updateTagShape" | "deleteTag" | "restoreTag" | "setTaskTag" | "setGroupTag">
+type TagActions = Pick<WorkspaceActionsType, "reloadTags" | "createTag" | "renameTag" | "updateTagColor" | "updateTagShape" | "deleteTag" | "restoreTag" | "setTaskTag" | "setGroupTag" | "setSectionTag">
 
 /**
  * Builds the function that reads the tags of the open workspace again (see WorkspaceActionsType.reloadTags).
@@ -104,6 +104,9 @@ export function useTagActions({ withLoading, tags, reloadTags }: Runtime): TagAc
     const setGroupTag = useCallback((tagID: number, groupIds: readonly number[], assigned: boolean) =>
         withLoading(() => setDBGroupTag(tagID, groupIds, assigned)), [withLoading])
 
-    return useMemo(() => ({ reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag }),
-        [reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag])
+    const setSectionTag = useCallback((tagID: number, sectionIds: readonly number[], assigned: boolean) =>
+        withLoading(() => setDBSectionTag(tagID, sectionIds, assigned)), [withLoading])
+
+    return useMemo(() => ({ reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag, setSectionTag }),
+        [reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag, setSectionTag])
 }

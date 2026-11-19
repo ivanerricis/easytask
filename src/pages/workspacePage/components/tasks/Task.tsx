@@ -36,6 +36,7 @@ import { useTaskRowPointer } from "./use-task-row-pointer"
 import { TaskConnectorTick } from "./TaskConnectors"
 import { TaskRowText } from "./TaskRowText"
 import { TaskRowBadges } from "./TaskRowBadges"
+import { TaskTagBadges } from "./TaskTagBadges"
 import { TaskRowToolbar } from "./TaskRowToolbar"
 
 type TaskProps = {
@@ -219,7 +220,8 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                         {task.color && <div className="w-1 absolute left-0 top-0 h-full self-stretch" style={{ backgroundColor: task.color }}></div>}
 
                         <div className={cn("relative group flex min-w-0 items-start justify-between w-full px-1", sizes.padding)}>
-                            <div className="flex min-w-0 items-start justify-between gap-2 ml-4 w-full">
+                            <div className="flex min-w-0 flex-col ml-4 w-full">
+                            <div className="flex min-w-0 items-start justify-between gap-2 w-full">
                                 <Checkbox
                                     checked={!!task.completed}
                                     onCheckedChange={handleCheckedChange}
@@ -242,6 +244,9 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                                     onEditEnd={requestRefocus}
                                 />
                             </div>
+                            {/* The tags go under the text (aligned with it, after the checkbox), on more lines only when the row is full */}
+                            {task.tagIDs && task.tagIDs.length > 0 && <TaskTagBadges tagIDs={task.tagIDs} taskId={task.id} className={isSubtask ? "pl-[22px]" : "pl-6"} />}
+                            </div>
                             <TaskRowBadges
                                 hasDescription={hasDescription}
                                 showSubtaskCount={showSubtaskCount}
@@ -249,7 +254,6 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                                 doneSubtasks={doneSubtasks}
                                 totalSubtasks={task.subtasks.length}
                                 priority={!!task.priority}
-                                tagIDs={task.tagIDs}
                                 onOpenDescription={openDescription}
                             />
                             <TaskRowToolbar taskText={task.text} hasDescription={hasDescription} inner={inner} onOpenDescription={openDescription} onAddSubtask={startAddSubtask} />

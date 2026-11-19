@@ -1,5 +1,5 @@
 import i18n from "@/i18n"
-import type { Group, Tag, Task } from "@/types/types"
+import type { Group, Section, Tag, Task } from "@/types/types"
 import { toStoredShape, type StoredTagShape } from "@/lib/tag-shapes"
 import { createError, handleDBError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
@@ -21,11 +21,14 @@ export type TagLinkRow = UsedTag & { taskID: number, position?: number }
 /** One link of a group with a tag, with the tag itself (the links come ordered by the tag list). */
 export type GroupTagLinkRow = UsedTag & { groupID: number, position?: number }
 
-/** The ids of the tasks and of the groups that have a tag (what a deletion of the tag has to give back). */
-export type TagLinks = { taskIds: number[], groupIds: number[] }
+/** One link of a section with a tag, with the tag itself (the links come ordered by the tag list). */
+export type SectionTagLinkRow = UsedTag & { sectionID: number, position?: number }
+
+/** The ids of the tasks, groups and sections that have a tag (what a deletion of the tag has to give back). */
+export type TagLinks = { taskIds: number[], groupIds: number[], sectionIds: number[] }
 
 /** No links. */
-export const NO_TAG_LINKS: TagLinks = { taskIds: [], groupIds: [] }
+export const NO_TAG_LINKS: TagLinks = { taskIds: [], groupIds: [], sectionIds: [] }
 
 /** Links of a row (a task or a group) by its id, as `tagIDs` lists in the order the links come. */
 function idsByOwner(links: readonly { owner: number, tagID: number }[]): Map<number, number[]> {
@@ -39,20 +42,23 @@ function idsByOwner(links: readonly { owner: number, tagID: number }[]): Map<num
 }
 
 /**
- * Gives every task its `tagIDs` (only the tasks that have tags get the property) and, when given, every group its own, and
- * returns the tags in use (by tasks or groups), in tag list order.
+ * Gives every task its `tagIDs` (only the tasks that have tags get the property) and, when given, every group and section its own,
+ * and returns the tags in use (by tasks, groups or sections), in tag list order.
  * @param tasks The tasks; they are changed in place.
  * @param links The links of those tasks, ordered by the position of the tag.
  * @param groups The groups, changed in place (none by default).
  * @param groupLinks The links of those groups, ordered by the position of the tag.
+ * @param sections The sections, changed in place (none by default).
+ * @param sectionLinks The links of those sections, ordered by the position of the tag.
  */
-export function attachTags(tasks: Task[], links: readonly TagLinkRow[], groups: Group[] = [], groupLinks: readonly GroupTagLinkRow[] = []): UsedTag[] {
+export function attachTags(tasks: Task[], links: readonly TagLinkRow[], groups: Group[] = [], groupLinks: readonly GroupTagLinkRow[] = [], sections: Pick<Section, "id" | "tagIDs">[] = [], sectionLinks: readonly SectionTagLinkRow[] = []): UsedTag[] {
     const used = new Map<number, UsedTag & { position: number }>()
     const remember = (link: UsedTag & { position?: number }) => {
         if (!used.has(link.id)) used.set(link.id, { id: link.id, name: link.name, color: link.color, shape: toStoredShape(link.shape), position: link.position ?? used.size })
     }
     for (const link of links) remember(link)
     for (const link of groupLinks) remember(link)
+    for (const link of sectionLinks) remember(link)
     const byTask = idsByOwner(links.map(link => ({ owner: link.taskID, tagID: link.id })))
     for (const task of tasks) {
         const ids = byTask.get(task.id)
@@ -63,9 +69,14 @@ export function attachTags(tasks: Task[], links: readonly TagLinkRow[], groups: 
         const ids = byGroup.get(group.id)
         if (ids) group.tagIDs = ids
     }
+    const bySection = idsByOwner(sectionLinks.map(link => ({ owner: link.sectionID, tagID: link.id })))
+    for (const section of sections) {
+        const ids = bySection.get(section.id)
+        if (ids) section.tagIDs = ids
+    }
     const ordered = [...used.values()]
-    // The two lists are each in tag order; the union is put in the same order (stable: the first seen wins a tie)
-    if (groupLinks.length > 0) ordered.sort((a, b) => a.position - b.position || a.id - b.id)
+    // The lists are each in tag order; the union is put in the same order (stable: the first seen wins a tie)
+    if (groupLinks.length > 0 || sectionLinks.length > 0) ordered.sort((a, b) => a.position - b.position || a.id - b.id)
     return ordered.map(({ id, name, color, shape }) => ({ id, name, color, shape }))
 }
 
@@ -154,19 +165,20 @@ export async function updateDBTagShape(tagId: number, shape: StoredTagShape): Pr
 }
 
 /**
- * Deletes a tag for good, with its links (also those of the tasks in the trash or archived, and of the groups).
- * @returns The ids of the tasks and of the groups that had the tag, to give it back with {@link restoreDBTag}.
+ * Deletes a tag for good, with its links (also those of the tasks in the trash or archived, and of the groups and sections).
+ * @returns The ids of the tasks, groups and sections that had the tag, to give it back with {@link restoreDBTag}.
  * @category Database Queries
  */
 export async function deleteDBTag(tagId: number): Promise<TagLinks> {
     try {
         const db = await getDB()
-        const [tasks, groups] = await Promise.all([
+        const [tasks, groups, sections] = await Promise.all([
             db.select<{ taskID: number }[]>('SELECT taskID FROM task_tag WHERE tagID = ? ORDER BY taskID', [tagId]),
             db.select<{ groupID: number }[]>('SELECT groupID FROM section_group_tag WHERE tagID = ? ORDER BY groupID', [tagId]),
+            db.select<{ sectionID: number }[]>('SELECT sectionID FROM section_tag WHERE tagID = ? ORDER BY sectionID', [tagId]),
         ])
         await db.execute('DELETE FROM tag WHERE id = ?', [tagId])
-        return { taskIds: tasks.map(link => link.taskID), groupIds: groups.map(link => link.groupID) }
+        return { taskIds: tasks.map(link => link.taskID), groupIds: groups.map(link => link.groupID), sectionIds: sections.map(link => link.sectionID) }
     } catch (error: unknown) {
         throw toAppError(error, e => createError("TAG_DELETE_FAILED", i18n.t("errors.tag.delete", { message: getErrorMessage(e) })))
     }
@@ -174,9 +186,9 @@ export async function deleteDBTag(tagId: number): Promise<TagLinks> {
 
 /**
  * Puts a deleted tag back with the same id, place and links (the undo of a deletion or the redo of a creation). A task or a
- * group that no longer exists is skipped.
+ * group or section that no longer exists is skipped.
  * @param tag The tag as it was.
- * @param links The tasks and the groups that had it.
+ * @param links The tasks, groups and sections that had it.
  * @throws A "TAG_EXISTS" error when another tag took the name meanwhile.
  * @category Database Queries
  */
@@ -188,6 +200,8 @@ export async function restoreDBTag(tag: Tag, links: Partial<TagLinks> = NO_TAG_L
         tx.add(`INSERT OR IGNORE INTO task_tag (taskID, tagID) SELECT id, ? FROM task WHERE id IN (${placeholders(ids.length)})`, [tag.id, ...ids])
     for (const ids of chunked(links.groupIds ?? []))
         tx.add(`INSERT OR IGNORE INTO section_group_tag (groupID, tagID) SELECT id, ? FROM section_group WHERE id IN (${placeholders(ids.length)})`, [tag.id, ...ids])
+    for (const ids of chunked(links.sectionIds ?? []))
+        tx.add(`INSERT OR IGNORE INTO section_tag (sectionID, tagID) SELECT id, ? FROM section WHERE id IN (${placeholders(ids.length)})`, [tag.id, ...ids])
     try {
         await tx.run()
     } catch (error: unknown) {
@@ -240,21 +254,47 @@ export async function setDBGroupTag(tagId: number, groupIds: readonly number[], 
 }
 
 /**
+ * Gives a tag to some sections, or takes it away from them, in one transaction. A section that already has it (or has not) is left as it is.
+ * @param tagId The tag.
+ * @param sectionIds The sections.
+ * @param assigned True to give the tag, false to remove it.
+ * @category Database Queries
+ */
+export async function setDBSectionTag(tagId: number, sectionIds: readonly number[], assigned: boolean): Promise<void> {
+    if (sectionIds.length === 0) return
+    try {
+        const tx = new Transaction()
+        for (const ids of chunked(sectionIds, 400)) {
+            if (assigned) tx.add(`INSERT OR IGNORE INTO section_tag (sectionID, tagID) VALUES ${ids.map(() => "(?, ?)").join(", ")}`, ids.flatMap(id => [id, tagId]))
+            else tx.add(`DELETE FROM section_tag WHERE tagID = ? AND sectionID IN (${placeholders(ids.length)})`, [tagId, ...ids])
+        }
+        await tx.run()
+    } catch (error: unknown) {
+        throw toAppError(error, e => createError("TAG_ASSIGN_FAILED", i18n.t("errors.tag.assign", { message: getErrorMessage(e) })))
+    }
+}
+
+/**
  * The tags of the tasks of a section (not deleted, not archived), as the template snapshot wants them.
  * @param sectionId The ID of the section.
  * @param tasks The tasks of the section: they get their `tagIDs`.
+ * @param section The section itself, when its own tags are wanted too: it gets its `tagIDs`.
  * @returns The tags in use.
  * @category Database Queries
  */
-export async function loadSectionTags(sectionId: number, tasks: Task[]): Promise<UsedTag[]> {
+export async function loadSectionTags(sectionId: number, tasks: Task[], section?: Pick<Section, "id" | "tagIDs">): Promise<UsedTag[]> {
     const db = await getDB()
+    const sectionLinks = section ? await db.select<SectionTagLinkRow[]>(
+        `SELECT st.sectionID, tg.id, tg.name, tg.color, tg.shape, tg.position FROM section_tag st
+         INNER JOIN tag tg ON tg.id = st.tagID
+         WHERE st.sectionID = ? ORDER BY tg.position, tg.id`, [sectionId]) : []
     const links = await db.select<TagLinkRow[]>(
         `SELECT tt.taskID, tg.id, tg.name, tg.color, tg.shape, tg.position FROM task_tag tt
          INNER JOIN tag tg ON tg.id = tt.tagID
          INNER JOIN task t ON t.id = tt.taskID
          WHERE t.sectionID = ? AND t.deleted_at IS NULL AND t.archived_at IS NULL
          ORDER BY tg.position, tg.id`, [sectionId])
-    return attachTags(tasks, links)
+    return attachTags(tasks, links, [], [], section ? [section] : [], sectionLinks)
 }
 
 /** SQL (one `?` for the section) of the workspace a section belongs to: its note's, or the template's for the note of a template draft. */

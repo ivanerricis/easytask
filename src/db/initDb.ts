@@ -4,7 +4,7 @@ import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, grou
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
-import { groupTagSchema, tagSchema } from "./schema/tag";
+import { groupTagSchema, sectionTagSchema, tagSchema } from "./schema/tag";
 import { automationSchema } from "./schema/automation";
 import { TransactionError, runTransactionOn } from "./transaction-core";
 
@@ -53,6 +53,8 @@ const migrations: string[][] = [
     groupTagSchema,
     // v19: background image of the notes and of the templates (path of the file)
     noteBackgroundImageSchema,
+    // v20: tags of the sections
+    sectionTagSchema,
 ];
 
 /**

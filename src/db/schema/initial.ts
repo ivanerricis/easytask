@@ -10,7 +10,7 @@ import { createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigge
 import { createWorkspaceEditTriggers } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
 import { mediaFileSchema } from "./media_file";
-import { groupTagSchema, tagSchema } from "./tag";
+import { groupTagSchema, sectionTagSchema, tagSchema } from "./tag";
 import { trashIndexSchema } from "./trash_index";
 import { createWorkspaceIndexes, createWorkspaceTable, createWorkspaceTrigger } from "./workspace";
 
@@ -121,7 +121,7 @@ export const customThemeSchema: string[] = [...createCustomThemeTable]
  * Migration v15: table of the images and videos linked to the groups.
  * @category Database Schema
  */
-export { mediaFileSchema, tagSchema, groupTagSchema }
+export { mediaFileSchema, tagSchema, groupTagSchema, sectionTagSchema }
 
 /**
  * Migration v17: how the tasks of a section are ordered on screen (`section.task_order`, NULL = the global preference).
@@ -141,5 +141,5 @@ export const noteBackgroundImageSchema: string[] = [...addNoteBackgroundImage]
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema,
 ]

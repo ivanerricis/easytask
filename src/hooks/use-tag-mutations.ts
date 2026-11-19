@@ -4,7 +4,7 @@ import { useActiveNoteActions } from "@/contexts/use-active-note"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import { useWorkspaceActions, useWorkspaceTags } from "@/contexts/workspace-data"
 import { reportError } from "@/lib/report-error"
-import { patchTagOnGroups, patchTagOnTasks, type TagTarget } from "@/lib/task-tags"
+import { patchTagOnGroups, patchTagOnSections, patchTagOnTasks, type TagTarget } from "@/lib/task-tags"
 import type { StoredTagShape } from "@/lib/tag-shapes"
 import { getErrorMessage } from "@/lib/utils"
 import i18n from "@/i18n"
@@ -19,26 +19,38 @@ import type { Tag } from "@/types/types"
 export function useTagMutations() {
     const { currentWorkspace } = useWorkspace()
     const workspaceId = currentWorkspace?.id ?? null
-    const { createTag, renameTag, updateTagColor, updateTagShape, deleteTag, setTaskTag, setGroupTag } = useWorkspaceActions()
+    const { createTag, renameTag, updateTagColor, updateTagShape, deleteTag, setTaskTag, setGroupTag, setSectionTag } = useWorkspaceActions()
     const note = useActiveNoteActions()
     const { refreshActiveNote } = note
     const recorder = useUndoRecorder()
     const tags = useWorkspaceTags()
 
-    /** Gives the tag to the tasks or groups of the target (or takes it away); only the ones that change are written and recorded. */
+    /** Patches the cached note for a target of any kind: the ids that really changed and what puts the cache back. */
+    const patchTarget = useCallback((kind: TagTarget["kind"], tagId: number, ids: readonly number[], assigned: boolean) =>
+        kind === "groups" ? patchTagOnGroups(note, tagId, ids, assigned)
+            : kind === "sections" ? patchTagOnSections(note, tagId, ids, assigned)
+                : patchTagOnTasks(note, tagId, ids, assigned), [note])
+    const writeTarget = useCallback((kind: TagTarget["kind"], tagId: number, ids: readonly number[], assigned: boolean) =>
+        (kind === "groups" ? setGroupTag : kind === "sections" ? setSectionTag : setTaskTag)(tagId, ids, assigned), [setTaskTag, setGroupTag, setSectionTag])
+    const record = useCallback((kind: TagTarget["kind"], tag: Pick<Tag, "id" | "name">, ids: readonly number[], assigned: boolean) => {
+        if (kind === "groups") recorder.tagAssignGroups(tag, ids, assigned)
+        else if (kind === "sections") recorder.tagAssignSections(tag, ids, assigned)
+        else recorder.tagAssign(tag, ids, assigned)
+    }, [recorder])
+
+    /** Gives the tag to the tasks, groups or sections of the target (or takes it away); only the ones that change are written and recorded. */
     const assign = useCallback(async (tag: Pick<Tag, "id" | "name">, target: readonly number[] | TagTarget, assigned: boolean) => {
         const { kind, ids } = Array.isArray(target) ? { kind: "tasks" as const, ids: target as readonly number[] } : target as TagTarget
-        const { changed, rollback } = kind === "groups" ? patchTagOnGroups(note, tag.id, ids, assigned) : patchTagOnTasks(note, tag.id, ids, assigned)
+        const { changed, rollback } = patchTarget(kind, tag.id, ids, assigned)
         if (changed.length === 0) return
         try {
-            await (kind === "groups" ? setGroupTag : setTaskTag)(tag.id, changed, assigned)
+            await writeTarget(kind, tag.id, changed, assigned)
         } catch (error) {
             rollback()
             throw error
         }
-        if (kind === "groups") recorder.tagAssignGroups(tag, changed, assigned)
-        else recorder.tagAssign(tag, changed, assigned)
-    }, [note, setTaskTag, setGroupTag, recorder])
+        record(kind, tag, changed, assigned)
+    }, [patchTarget, writeTarget, record])
 
     /** Creates the tag and gives it to the tasks or groups as one step; a name that exists (the case ignored) just gives that tag. */
     const create = useCallback(async (name: string, target: readonly number[] | TagTarget): Promise<Tag | null> => {
@@ -52,19 +64,19 @@ export function useTagMutations() {
         const { kind, ids } = Array.isArray(target) ? { kind: "tasks" as const, ids: target as readonly number[] } : target as TagTarget
         const tag = await createTag(workspaceId, clean)
         let linked: number[] = []
-        const { changed, rollback } = kind === "groups" ? patchTagOnGroups(note, tag.id, ids, true) : patchTagOnTasks(note, tag.id, ids, true)
+        const { changed, rollback } = patchTarget(kind, tag.id, ids, true)
         if (changed.length > 0) {
             try {
-                await (kind === "groups" ? setGroupTag : setTaskTag)(tag.id, changed, true)
+                await writeTarget(kind, tag.id, changed, true)
                 linked = changed
             } catch (error) {
                 rollback()
                 reportError(error, i18n.t("tags.errors.assign", { message: getErrorMessage(error) }))
             }
         }
-        recorder.tagCreate(tag, kind === "groups" ? { groupIds: linked } : { taskIds: linked })
+        recorder.tagCreate(tag, kind === "groups" ? { groupIds: linked } : kind === "sections" ? { sectionIds: linked } : { taskIds: linked })
         return tag
-    }, [workspaceId, tags, assign, createTag, note, setTaskTag, setGroupTag, recorder])
+    }, [workspaceId, tags, assign, createTag, patchTarget, writeTarget, recorder])
 
     const rename = useCallback(async (tag: Tag, name: string) => {
         const clean = name.trim()

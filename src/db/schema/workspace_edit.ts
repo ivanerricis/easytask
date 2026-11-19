@@ -15,10 +15,11 @@ const workspaceOf: Record<string, (row: "NEW" | "OLD") => string> = {
     tag: r => `${r}.workspaceID`,
     task_tag: r => `(SELECT n.workspaceID FROM task t JOIN section s ON s.id = t.sectionID JOIN section_group g ON g.id = s.groupID JOIN note n ON n.id = g.noteID WHERE t.id = ${r}.taskID)`,
     section_group_tag: r => `(SELECT n.workspaceID FROM section_group g JOIN note n ON n.id = g.noteID WHERE g.id = ${r}.groupID)`,
+    section_tag: r => `(SELECT n.workspaceID FROM section s JOIN section_group g ON g.id = s.groupID JOIN note n ON n.id = g.noteID WHERE s.id = ${r}.sectionID)`,
 }
 
 /** Tables created by a later migration: they get their triggers from it, not from migration v3. */
-const CREATED_LATER = ["media_file", "tag", "task_tag", "section_group_tag"]
+const CREATED_LATER = ["media_file", "tag", "task_tag", "section_group_tag", "section_tag"]
 
 const bump = (ws: string, extra = "") => `
         UPDATE workspace SET${NOW_SET}

@@ -344,6 +344,21 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
     box-shadow: none;
   }
 
+  /* tag shapes: the colored markers (dot, diamond, star, square) are backgrounds, which would vanish: they take the text color.
+     The clipped badges (label, hexagon) lose their tint and have no border: they get the selection pair of the system palette,
+     so the shape stays visible and the name readable. */
+  [data-tag-marker] {
+    forced-color-adjust: none;
+    background-color: CanvasText !important;
+  }
+
+  [data-shape="tag"],
+  [data-shape="hexagon"] {
+    forced-color-adjust: none;
+    background-color: Highlight !important;
+    color: HighlightText;
+  }
+
   /* the skeleton of the live drag: its tint is dropped, the edge stays in a system color */
   .live-drag-slot {
     border-color: Highlight;

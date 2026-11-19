@@ -206,3 +206,87 @@ describe("TagPicker for groups", () => {
         expect(mutations.create).toHaveBeenCalledWith("Later", { kind: "groups", ids: [5, 6] })
     })
 })
+
+describe("TagPicker menu of a tag: Enter closes it", () => {
+    it("saves a changed name and closes the menu", async () => {
+        const user = userEvent.setup()
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        const field = await screen.findByRole("textbox", { name: "Nome del tag" })
+        await user.clear(field)
+        await user.type(field, "Defect{Enter}")
+        expect(mutations.rename).toHaveBeenCalledWith(bug, "Defect")
+        await waitFor(() => expect(screen.queryByRole("textbox", { name: "Nome del tag" })).not.toBeInTheDocument())
+    })
+
+    it("only closes the menu when the name did not change, or is empty", async () => {
+        const user = userEvent.setup()
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.type(await screen.findByRole("textbox", { name: "Nome del tag" }), "{Enter}")
+        expect(mutations.rename).not.toHaveBeenCalled()
+        await waitFor(() => expect(screen.queryByRole("textbox", { name: "Nome del tag" })).not.toBeInTheDocument())
+
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.clear(await screen.findByRole("textbox", { name: "Nome del tag" }))
+        await user.keyboard("{Enter}")
+        expect(mutations.rename).not.toHaveBeenCalled()
+        await waitFor(() => expect(screen.queryByRole("textbox", { name: "Nome del tag" })).not.toBeInTheDocument())
+    })
+
+    it("keeps the menu open and shows the error when the rename fails", async () => {
+        const user = userEvent.setup()
+        mutations.rename.mockRejectedValueOnce(new Error("Esiste già"))
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.type(await screen.findByRole("textbox", { name: "Nome del tag" }), "x{Enter}")
+        expect(await screen.findByRole("alert")).toHaveTextContent("Esiste già")
+        expect(screen.getByRole("textbox", { name: "Nome del tag" })).toBeInTheDocument()
+    })
+
+    it("does not let the Enter reach the dialog that hosts the picker", async () => {
+        const user = userEvent.setup()
+        const outer = vi.fn()
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags: [bug] })
+        render(
+            <PreferencesContext.Provider value={{ skippedConfirms: [], setSkippedConfirms: vi.fn() } as unknown as PreferencesContextType}>
+                <WorkspaceTagsContext.Provider value={store}><div onKeyDown={outer}><TagPicker taskIds={[10]} /></div></WorkspaceTagsContext.Provider>
+            </PreferencesContext.Provider>,
+        )
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.type(await screen.findByRole("textbox", { name: "Nome del tag" }), "{Enter}")
+        expect(outer).not.toHaveBeenCalledWith(expect.objectContaining({ key: "Enter" }))
+    })
+
+    it("offers the eight shapes", async () => {
+        const user = userEvent.setup()
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        const picker = await screen.findByRole("radiogroup", { name: "Forma" })
+        expect([...picker.querySelectorAll("[role='radio']")].map(radio => radio.getAttribute("aria-label"))).toEqual(
+            ["Pillola", "Rettangolo", "Punto", "Cartellino", "Rombo", "Esagono", "Stella", "Quadrato"])
+        await user.click(screen.getByRole("radio", { name: "Stella" }))
+        expect(mutations.reshape).toHaveBeenCalledWith(bug, "star")
+    })
+})
+
+describe("TagPicker for sections", () => {
+    it("checks the tags the section has and gives or takes them for the section", async () => {
+        const user = userEvent.setup()
+        tree = { groups: [makeGroup({ id: 5, sections: [makeSection({ id: 7, tagIDs: [2] })] })] }
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags: [bug, urgent] })
+        render(
+            <PreferencesContext.Provider value={{ skippedConfirms: [], setSkippedConfirms: vi.fn() } as unknown as PreferencesContextType}>
+                <WorkspaceTagsContext.Provider value={store}><TagPicker sectionIds={[7]} /></WorkspaceTagsContext.Provider>
+            </PreferencesContext.Provider>,
+        )
+        expect(screen.getByRole("checkbox", { name: "Urgent" })).toBeChecked()
+        expect(screen.getByRole("checkbox", { name: "Bug" })).not.toBeChecked()
+        await user.click(screen.getByRole("checkbox", { name: "Bug" }))
+        expect(mutations.assign).toHaveBeenLastCalledWith(bug, { kind: "sections", ids: [7] }, true)
+        await user.click(screen.getByRole("checkbox", { name: "Urgent" }))
+        expect(mutations.assign).toHaveBeenLastCalledWith(urgent, { kind: "sections", ids: [7] }, false)
+    })
+})
