@@ -26,6 +26,7 @@ import type { Group } from "@/types/types";
 import { useState, type ReactElement } from "react";
 import { LazyDialogAutomations } from "../section/LazyDialogAutomations";
 import { LazyMount } from "@/components/lazy-mount";
+import { DialogGroupTags } from "@/components/tags/DialogGroupTags";
 import { useActiveNoteId } from "@/contexts/use-tabs";
 import { useIsActiveDraft } from "@/contexts/use-template-drafts";
 
@@ -43,6 +44,7 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
     const { t } = useTranslation()
     const [isDeleteOpen, setDeleteOpen] = useState(false)
     const [isAutomationsOpen, setAutomationsOpen] = useState(false)
+    const [isTagsOpen, setTagsOpen] = useState(false)
     const noteId = useActiveNoteId()
     const isDraft = useIsActiveDraft()
     const menu = useItemMenuState()
@@ -127,13 +129,21 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                 addColorItem={addColorItem}
                 onDone={menu.close}
                 header={<>
-                    <MenuItem onSelect={() => { void pickAutoColor() }}>
+                    <MenuItem onSelect={() => { void pickAutoColor() }} className={isAutoColor ? "font-medium" : undefined}>
                         <Gauge />
                         {t("groups.progressColor.auto")}
                         {isAutoColor && <Check className="ml-auto" role="img" aria-label={t("groups.progressColor.active")} />}
                     </MenuItem>
-                    <Separator />
+                    <Separator className="my-1" />
                 </>}
+            />
+            <ButtonInPopover
+                text={t("tags.menu")}
+                type="tags"
+                onClick={() => {
+                    menu.close()
+                    setTagsOpen(true)
+                }}
             />
             <Separator />
             <GroupStepMoves groupId={group.id} onDone={menu.close} />
@@ -174,6 +184,7 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                     onOpenChange={setAutomationsOpen}
                 />
             </LazyMount>}
+            {isTagsOpen && <DialogGroupTags open={isTagsOpen} onOpenChange={setTagsOpen} groupId={group.id} />}
             {isDeleteOpen && <DialogDeleteItem
                 item={group}
                 itemType="section_group"

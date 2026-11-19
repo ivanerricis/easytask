@@ -4,7 +4,7 @@ import type { Tag } from "@/types/types"
 import { createTagsStore, WorkspaceTagsContext } from "@/contexts/workspace-data/tags"
 import { TaskTagBadges } from "./TaskTagBadges"
 
-const tag = (id: number, name: string, color: string | null = null): Tag => ({ id, workspaceID: 1, name, color, position: id })
+const tag = (id: number, name: string, color: string | null = null): Tag => ({ id, workspaceID: 1, name, color, shape: null, position: id })
 
 const setup = (tags: Tag[], tagIDs: number[]) => {
     const store = createTagsStore()

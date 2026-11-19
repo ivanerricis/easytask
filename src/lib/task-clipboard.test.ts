@@ -41,6 +41,13 @@ describe("snapshotTasks", () => {
         expect(other.subtasks).toEqual([])
     })
 
+    it("carries the shape of a tag (the default pill writes none)", () => {
+        const [shaped] = snapshotTasks(tree, [{ ...tags[0], shape: "dot" }])
+        expect(shaped.tags).toEqual([{ name: "Casa", color: "#ff0000", shape: "dot" }])
+        const [plain] = snapshotTasks(tree, [{ ...tags[0], shape: null }])
+        expect(plain.tags).toEqual([{ name: "Casa", color: "#ff0000" }])
+    })
+
     it("keeps the order it is given and leaves out a tag that is not in the list", () => {
         const [first, second] = snapshotTasks([tree[1], tree[0]], [])
         expect([first.text, second.text]).toEqual(["Altra", "Radice"])

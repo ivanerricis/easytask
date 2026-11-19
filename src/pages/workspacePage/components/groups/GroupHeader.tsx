@@ -23,6 +23,7 @@ import { getGroupLabel } from "./group-label"
 import { taskSections } from "@/lib/group-sections"
 import { Highlight } from "@/components/highlight"
 import { useSearchHighlight } from "../note-search-context"
+import { GroupTagBadges } from "./GroupTagBadges"
 
 /** Icon + number, named for the screen readers and for the mouse (the icon alone does not say what is counted). */
 const CountBadge = ({ icon: Icon, count, label, open = false }: { icon: LucideIcon, count: number, label: string, open?: boolean }) => (
@@ -123,6 +124,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                 {taskCountLabel}
             </span>}
             {/* The tags of the group go here, after the count; the media buttons follow in Group, after a gap */}
+            <GroupTagBadges tagIDs={group.tagIDs} layout="strip" />
         </div>
     )
 
@@ -164,6 +166,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                     className="h-6 min-w-0 flex-1 mr-1 px-1 py-0 text-sm font-semibold md:text-sm border-primary"
                 />
             </InlineErrorTooltip>}
+            <GroupTagBadges tagIDs={group.tagIDs} layout={compact ? "dots" : "badges"} />
             {/* ml-auto: when the group is wider than the name needs, the bar, the counters and the menu stay on the right edge */}
             <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                 <div className="flex shrink-0 gap-2 text-muted-foreground">

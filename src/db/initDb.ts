@@ -4,7 +4,7 @@ import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, grou
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
-import { tagSchema } from "./schema/tag";
+import { groupTagSchema, tagSchema } from "./schema/tag";
 import { automationSchema } from "./schema/automation";
 import { TransactionError, runTransactionOn } from "./transaction-core";
 
@@ -49,6 +49,8 @@ const migrations: string[][] = [
     tagSchema,
     // v17: order of the tasks of a section on screen (NULL = the global preference)
     sectionTaskOrderSchema,
+    // v18: shape of the tags (NULL = pill) and the tags of the groups
+    groupTagSchema,
 ];
 
 /**

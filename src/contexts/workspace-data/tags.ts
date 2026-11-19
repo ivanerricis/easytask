@@ -3,7 +3,8 @@ import type { Tag } from "@/types/types"
 import { createExternalStore, useStoreSelector, type ExternalStore } from "@/lib/external-store"
 import i18n from "@/i18n"
 import { reportError } from "@/lib/report-error"
-import { createDBTag, getDBTags, deleteDBTag, renameDBTag, restoreDBTag, setDBTaskTag, updateDBTagColor } from "@/db/queries/tag"
+import { createDBTag, getDBTags, deleteDBTag, renameDBTag, restoreDBTag, setDBGroupTag, setDBTaskTag, updateDBTagColor, updateDBTagShape, type TagLinks } from "@/db/queries/tag"
+import type { StoredTagShape } from "@/lib/tag-shapes"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
 /**
@@ -36,7 +37,7 @@ export const useTagsOf = (tagIDs: readonly number[] | undefined): Tag[] => {
 
 const byPosition = (a: Tag, b: Tag) => a.position - b.position || a.id - b.id
 
-type TagActions = Pick<WorkspaceActionsType, "reloadTags" | "createTag" | "renameTag" | "updateTagColor" | "deleteTag" | "restoreTag" | "setTaskTag">
+type TagActions = Pick<WorkspaceActionsType, "reloadTags" | "createTag" | "renameTag" | "updateTagColor" | "updateTagShape" | "deleteTag" | "restoreTag" | "setTaskTag" | "setGroupTag">
 
 /**
  * Builds the function that reads the tags of the open workspace again (see WorkspaceActionsType.reloadTags).
@@ -65,8 +66,8 @@ export function useTagActions({ withLoading, tags, reloadTags }: Runtime): TagAc
         tags.set({ ...state, tags: change(state.tags) })
     }, [tags])
 
-    const createTag = useCallback((workspaceID: number, name: string, color?: string | null) => withLoading(async () => {
-        const tag = await createDBTag(workspaceID, name, color)
+    const createTag = useCallback((workspaceID: number, name: string, color?: string | null, shape?: StoredTagShape) => withLoading(async () => {
+        const tag = await createDBTag(workspaceID, name, color, shape)
         if (tags.getState().workspaceId === workspaceID) update(list => [...list, tag].sort(byPosition))
         return tag
     }), [withLoading, tags, update])
@@ -81,19 +82,28 @@ export function useTagActions({ withLoading, tags, reloadTags }: Runtime): TagAc
         update(list => list.map(tag => tag.id === tagID ? { ...tag, color } : tag))
     }), [withLoading, update])
 
-    const deleteTag = useCallback((tagID: number) => withLoading(async () => {
-        const taskIds = await deleteDBTag(tagID)
-        update(list => list.filter(tag => tag.id !== tagID))
-        return taskIds
+    const updateTagShape = useCallback((tagID: number, shape: StoredTagShape) => withLoading(async () => {
+        await updateDBTagShape(tagID, shape)
+        update(list => list.map(tag => tag.id === tagID ? { ...tag, shape } : tag))
     }), [withLoading, update])
 
-    const restoreTag = useCallback((tag: Tag, taskIds: readonly number[]) => withLoading(async () => {
-        await restoreDBTag(tag, taskIds)
+    const deleteTag = useCallback((tagID: number) => withLoading(async () => {
+        const links = await deleteDBTag(tagID)
+        update(list => list.filter(tag => tag.id !== tagID))
+        return links
+    }), [withLoading, update])
+
+    const restoreTag = useCallback((tag: Tag, links: Partial<TagLinks>) => withLoading(async () => {
+        await restoreDBTag(tag, links)
         if (tags.getState().workspaceId === tag.workspaceID) update(list => [...list.filter(item => item.id !== tag.id), tag].sort(byPosition))
     }), [withLoading, tags, update])
 
     const setTaskTag = useCallback((tagID: number, taskIds: readonly number[], assigned: boolean) =>
         withLoading(() => setDBTaskTag(tagID, taskIds, assigned)), [withLoading])
 
-    return useMemo(() => ({ reloadTags, createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag }), [reloadTags, createTag, renameTag, updateTagColor, deleteTag, restoreTag, setTaskTag])
+    const setGroupTag = useCallback((tagID: number, groupIds: readonly number[], assigned: boolean) =>
+        withLoading(() => setDBGroupTag(tagID, groupIds, assigned)), [withLoading])
+
+    return useMemo(() => ({ reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag }),
+        [reloadTags, createTag, renameTag, updateTagColor, updateTagShape, deleteTag, restoreTag, setTaskTag, setGroupTag])
 }

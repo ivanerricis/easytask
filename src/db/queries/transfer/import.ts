@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core"
 import { type ExportAudio, type ExportFolder, type WorkspaceExport } from "@/types/transfer"
 import { createError, handleDBError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
+import { toStoredShape } from "@/lib/tag-shapes"
 import { getDB } from "../../dbManager"
 import { AUDIO_EXTENSIONS } from "../audio"
 import { MEDIA_EXTENSIONS } from "../media"
@@ -220,7 +221,7 @@ export async function importDBWorkspace(
         const workspaceRef = tx.idOf(workspace)
         // The tag list first (in its order): the tags of the tasks, by name, find them there
         if (data.tags?.length)
-            tx.insertRows("tag", ["workspaceID", "name", "color", "position"], data.tags.map((tag, position) => [workspaceRef, tag.name.trim(), tag.color || null, position]))
+            tx.insertRows("tag", ["workspaceID", "name", "color", "shape", "position"], data.tags.map((tag, position) => [workspaceRef, tag.name.trim(), tag.color || null, toStoredShape(tag.shape), position]))
         const { skippedFiles } = await insertItems(tx, data, workspaceRef, null, checks)
 
         if (data.templates.length > 0) {

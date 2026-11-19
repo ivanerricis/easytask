@@ -22,7 +22,7 @@ export const ColorSubmenu = <T extends { id: number, color?: string | null }>({ 
                 <Palette className="size-4" />
                 {label ?? t("menu.changeColor")}
             </MenuSubTrigger>
-            <MenuSubContent>
+            <MenuSubContent className="p-1">
                 {header}
                 <DialogAddColor {...props} setDropDownOpen={onDone} />
             </MenuSubContent>

@@ -20,7 +20,7 @@ vi.mock("@tauri-apps/api/core", async () => {
     return { invoke: createSqliteInvoke(() => sqlite) }
 })
 
-import { createDBTag, deleteDBTag, getDBNoteTags, getDBTags, renameDBTag, restoreDBTag, setDBTaskTag, updateDBTagColor } from "./tag"
+import { createDBTag, deleteDBTag, getDBNoteTags, getDBTags, renameDBTag, restoreDBTag, setDBGroupTag, setDBTaskTag, updateDBTagColor, updateDBTagShape } from "./tag"
 import { getDBNoteData, getDBNotesData } from "./note"
 import { buildContentWithSectionIds, createDBNoteFromTemplate, createDBTemplateFromNote, getDBTemplate } from "./template"
 import { createDBTemplateDraft } from "./template-draft"
@@ -69,7 +69,7 @@ beforeEach(() => {
 describe("tag queries", () => {
     it("reads the tags of a workspace in the order of the list, and those of the workspace of a note", async () => {
         expect((await getDBTags(1)).map(tag => tag.name)).toEqual(["Bug", "È urgente", "Unused"])
-        expect(await getDBTags(1)).toContainEqual({ id: 3, workspaceID: 1, name: "Unused", color: null, position: 2 })
+        expect(await getDBTags(1)).toContainEqual({ id: 3, workspaceID: 1, name: "Unused", color: null, shape: null, position: 2 })
         expect((await getDBNoteTags(2)).map(tag => tag.id)).toEqual([4])
     })
 
@@ -92,7 +92,7 @@ describe("tag queries", () => {
     })
 
     it("deletes a tag with its links (also those of the trashed and archived tasks) and returns the tasks", async () => {
-        expect(await deleteDBTag(1)).toEqual([1, 3, 4, 5])
+        expect(await deleteDBTag(1)).toEqual({ taskIds: [1, 3, 4, 5], groupIds: [] })
         expect(rows("SELECT tagID, taskID FROM task_tag ORDER BY taskID, tagID")).toEqual([{ tagID: 2, taskID: 1 }, { tagID: 4, taskID: 6 }])
         expect(rows("SELECT id FROM tag WHERE workspaceID = 1 ORDER BY id")).toEqual([{ id: 2 }, { id: 3 }])
     })
@@ -126,7 +126,7 @@ describe("tags with the data of a note", () => {
         expect(data.tasks.map(task => [task.text, task.tagIDs])).toEqual([
             ["A", [1, 2]], ["A child", [1]], ["B", undefined],
         ])
-        expect(data.tags).toEqual([{ id: 1, name: "Bug", color: "#e6194b" }, { id: 2, name: "È urgente", color: "#4363d8" }])
+        expect(data.tags).toEqual([{ id: 1, name: "Bug", color: "#e6194b", shape: null }, { id: 2, name: "È urgente", color: "#4363d8", shape: null }])
         // The archive is kept when it is asked for (the export)
         const all = await getDBNoteData(1, true)
         expect(all.tasks.find(task => task.text === "Archived")?.tagIDs).toEqual([1])
@@ -136,7 +136,7 @@ describe("tags with the data of a note", () => {
         const bulk = await getDBNotesData([1, 2])
         expect(bulk.get(1)).toEqual(await getDBNoteData(1))
         expect(bulk.get(2)?.tasks[0].tagIDs).toEqual([4])
-        expect(bulk.get(2)?.tags).toEqual([{ id: 4, name: "Bug", color: "#00ff00" }])
+        expect(bulk.get(2)?.tags).toEqual([{ id: 4, name: "Bug", color: "#00ff00", shape: null }])
     })
 
     it("reaches the rows of the tree the note view renders", async () => {
@@ -291,3 +291,126 @@ describe("the tags of the content a user cannot reach", () => {
 })
 
 export type { Tag }
+
+describe("the shape of the tags", () => {
+    it("is NULL (the pill) by default, is set and cleared, and an unknown value reads as the pill", async () => {
+        expect((await getDBTags(1)).every(tag => tag.shape === null)).toBe(true)
+        await updateDBTagShape(1, "dot")
+        expect(rows("SELECT shape FROM tag WHERE id = 1")).toEqual([{ shape: "dot" }])
+        expect((await getDBTags(1))[0].shape).toBe("dot")
+        await updateDBTagShape(1, null)
+        expect(rows("SELECT shape FROM tag WHERE id = 1")).toEqual([{ shape: null }])
+        sqlite.exec("UPDATE tag SET shape = 'blob' WHERE id = 2")
+        expect((await getDBTags(1))[1].shape).toBeNull()
+        expect(await createDBTag(1, "Shaped", null, "tag")).toMatchObject({ shape: "tag" })
+    })
+
+    it("travels in a restore, a template, a copy and an export, and a file without shapes still imports", async () => {
+        await updateDBTagShape(1, "rounded")
+        const [tag] = (await getDBTags(1)).filter(item => item.id === 1)
+        const links = await deleteDBTag(1)
+        await restoreDBTag(tag, links)
+        expect(rows("SELECT shape FROM tag WHERE id = 1")).toEqual([{ shape: "rounded" }])
+
+        const { content } = await buildContentWithSectionIds(1)
+        expect(content.groups[0].sections[0].tasks[0].tags).toEqual([{ name: "Bug", color: "#e6194b", shape: "rounded" }, { name: "È urgente", color: "#4363d8" }])
+
+        const exported = await buildDBWorkspaceExport(1)
+        expect(exported.tags?.[0]).toEqual({ name: "Bug", color: "#e6194b", shape: "rounded" })
+        const { workspaceId } = await importDBWorkspace(validateWorkspaceExport(JSON.parse(JSON.stringify(exported))), { name: "Copy" })
+        expect(rows(`SELECT name, shape FROM tag WHERE workspaceID = ${workspaceId} ORDER BY position`)).toEqual([
+            { name: "Bug", shape: "rounded" }, { name: "È urgente", shape: null }, { name: "Unused", shape: null },
+        ])
+
+        // A tag created from a task of an items export gets the shape too
+        const items = await importDBItems(validateWorkspaceExport(JSON.parse(JSON.stringify(await buildDBItemsExport([{ type: "note", id: 1 }])))), 2, null)
+        expect(items.items).toHaveLength(1)
+        expect(rows("SELECT name, shape FROM tag WHERE workspaceID = 2 AND name = 'È urgente'")).toEqual([{ name: "È urgente", shape: null }])
+
+        // An old file: no shape at all; a wrong one is refused
+        const base = { format: "easytask-workspace", version: 3, exportedAt: "x", workspace: { name: "W", color: null }, folders: [], notes: [], templates: [] }
+        expect(validateWorkspaceExport({ ...base, tags: [{ name: "Old", color: null }] }).tags).toEqual([{ name: "Old", color: null }])
+        expect(() => validateWorkspaceExport({ ...base, tags: [{ name: "Bad", color: null, shape: 3 }] })).toThrow()
+    })
+})
+
+describe("the tags of the groups", () => {
+    beforeEach(() => {
+        sqlite.exec("INSERT INTO section_group (id, noteID, position) VALUES (3, 1, 1)")
+    })
+
+    it("are given and taken idempotently, and loaded with the note (tags in use include the ones of groups only)", async () => {
+        await setDBGroupTag(3, [1, 3, 1], true)
+        await setDBGroupTag(3, [1], true)
+        await setDBGroupTag(2, [1], true)
+        expect(rows("SELECT groupID, tagID FROM section_group_tag ORDER BY groupID, tagID")).toEqual([{ groupID: 1, tagID: 2 }, { groupID: 1, tagID: 3 }, { groupID: 3, tagID: 3 }])
+        const data = await getDBNoteData(1)
+        expect(Object.fromEntries(data.groups.map(group => [group.id, group.tagIDs]))).toEqual({ 1: [2, 3], 3: [3] })
+        // "Unused" is used by a group only: it is in the tags in use, in the order of the tag list
+        expect(data.tags.map(tag => tag.name)).toEqual(["Bug", "È urgente", "Unused"])
+        // The tree of the note view (what the headers render) keeps the tags of the groups
+        const tree = buildNoteTreeFromData(data)
+        expect(tree.groups.map(group => [group.id, group.tagIDs])).toEqual([[1, [2, 3]], [3, [3]]])
+        const many = (await getDBNotesData([1, 2])).get(1)!
+        expect(many.groups.find(group => group.id === 1)?.tagIDs).toEqual([2, 3])
+        expect(many.tags.map(tag => tag.name)).toEqual(["Bug", "È urgente", "Unused"])
+        await setDBGroupTag(3, [1, 3], false)
+        expect(rows("SELECT COUNT(*) AS n FROM section_group_tag WHERE tagID = 3")).toEqual([{ n: 0 }])
+        await setDBGroupTag(3, [], false)
+    })
+
+    it("go with the tag when it is deleted and come back when it is restored; a trashed group is not loaded", async () => {
+        await setDBGroupTag(1, [1, 3], true)
+        const [tag] = (await getDBTags(1)).filter(item => item.id === 1)
+        const links = await deleteDBTag(1)
+        expect(links.groupIds).toEqual([1, 3])
+        expect(rows("SELECT COUNT(*) AS n FROM section_group_tag")).toEqual([{ n: 0 }])
+        sqlite.exec("DELETE FROM section_group WHERE id = 3")
+        await restoreDBTag(tag, links)
+        expect(rows("SELECT groupID FROM section_group_tag WHERE tagID = 1")).toEqual([{ groupID: 1 }])
+        sqlite.exec("UPDATE section_group SET deleted_at = '2024-01-01' WHERE id = 1")
+        expect((await getDBNoteData(1)).groups).toEqual([])
+    })
+
+    it("go with their group when it is purged, and with their workspace", () => {
+        sqlite.exec("INSERT INTO section_group_tag (groupID, tagID) VALUES (3, 1), (2, 4)")
+        sqlite.exec("DELETE FROM section_group WHERE id = 3")
+        expect(rows("SELECT groupID FROM section_group_tag")).toEqual([{ groupID: 2 }])
+        sqlite.exec("DELETE FROM workspace WHERE id = 2")
+        expect(rows("SELECT COUNT(*) AS n FROM section_group_tag")).toEqual([{ n: 0 }])
+    })
+
+    it("refresh the edit date of the workspace like the other tags links", () => {
+        sqlite.exec("UPDATE workspace SET edit_date = '2000-01-01' WHERE id = 1")
+        sqlite.exec("INSERT INTO section_group_tag (groupID, tagID) VALUES (3, 1)")
+        expect(rows("SELECT edit_date FROM workspace WHERE id = 1")[0].edit_date).not.toBe("2000-01-01")
+    })
+
+    it("travel in a template, in a copy of the note and in an export, creating the tag by name in another workspace", async () => {
+        await setDBGroupTag(1, [1], true)
+        await updateDBTagShape(1, "dot")
+        const { content } = await buildContentWithSectionIds(1)
+        expect(content.groups[0].tags).toEqual([{ name: "Bug", color: "#e6194b", shape: "dot" }])
+        expect(content.groups[1].tags).toBeUndefined()
+
+        const copyId = await duplicateDBNote(1)
+        const copy = await getDBNoteData(copyId)
+        expect(copy.groups.map(group => group.tagIDs)).toEqual([[1], undefined])
+
+        const exported = await buildDBItemsExport([{ type: "note", id: 1 }])
+        const items = await importDBItems(validateWorkspaceExport(JSON.parse(JSON.stringify(exported))), 2, null)
+        const imported = await getDBNoteData(items.items[0].id)
+        const other = imported.tags.find(tag => tag.name === "Bug")!
+        expect(other.shape).toBeNull()
+        // "Bug" already existed in the other workspace: that one is used, as it is (its own shape too)
+        expect(other.id).toBe(4)
+        expect(imported.groups[0].tagIDs).toEqual([4])
+
+        // A file whose group tags are malformed is refused
+        const base = { format: "easytask-workspace", version: 3, exportedAt: "x", workspace: { name: "W", color: null }, folders: [], templates: [] }
+        const note = (tags: unknown) => ({ ref: "n", name: "N", position: 0, color: null, folderRef: null, audio: [], media: [], content: { version: 1, groups: [{ name: null, position: 0, sections: [], tags }] } })
+        expect(() => validateWorkspaceExport({ ...base, notes: [note("x")] })).toThrow()
+        expect(() => validateWorkspaceExport({ ...base, notes: [note([{ name: "" }])] })).toThrow()
+        expect(validateWorkspaceExport({ ...base, notes: [note([{ name: "A", color: "" }])] }).notes[0].content.groups[0].tags).toEqual([{ name: "A", color: null }])
+    })
+})

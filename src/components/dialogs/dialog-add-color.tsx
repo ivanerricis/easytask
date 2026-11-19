@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { X } from "lucide-react"
+import { Check, X } from "lucide-react"
 import React from "react"
 import { reportError } from "@/lib/report-error"
 import type { DBItemType } from "@/db/queries/shared_queries"
@@ -62,21 +62,21 @@ export const DialogAddColor = <T extends defaultItemType>({ item, itemType, getI
     }
 
     return (
-        <div className="flex flex-col rounded-xs">
+        // A fixed width: the palette and the "No color" row share it (the container around brings its own padding)
+        <div className="flex w-40 flex-col gap-1">
             {/* The automatic color of a group is a rule, not a swatch: no swatch is marked (nor the "+" one) */}
             <ColorPalette value={item?.color === GROUP_COLOR_PROGRESS ? null : item?.color} onPick={handleSaveColor} />
-            <div className="flex items-center p-1">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleDeleteColor}
-                    className="w-full justify-start text-xs"
-                >
-                    <X />
-                    {t("details.noColor")}
-                </Button>
-            </div>
+            {/* The same row as the entries of a menu (the "Automatic" one of a group): same padding and size */}
+            <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDeleteColor}
+                className="h-auto w-full justify-start gap-2 rounded-xs px-2 py-1.5 font-normal [&_svg:not([class*='text-'])]:text-muted-foreground"
+            >
+                <X />
+                {t("details.noColor")}
+                {item && !item.color && <Check className="ml-auto" aria-hidden="true" />}
+            </Button>
         </div>
     )
 }

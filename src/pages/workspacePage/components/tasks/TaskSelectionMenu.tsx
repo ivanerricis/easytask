@@ -57,7 +57,7 @@ export const TaskSelectionMenuItems = ({ menu }: { menu: ItemMenuState }) => {
                     <Palette className="size-4" />
                     {t("tasks.selection.color")}
                 </MenuSubTrigger>
-                <MenuSubContent>
+                <MenuSubContent className="p-1">
                     <DialogAddColor onPick={color => actions.applyColor(color)} setDropDownOpen={menu.close} />
                 </MenuSubContent>
             </MenuSub>

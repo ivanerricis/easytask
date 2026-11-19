@@ -8,15 +8,15 @@ import { useTagMutations } from "./use-tag-mutations"
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 vi.mock("@/lib/report-error", async () => (await import("@/test/mocks")).reportErrorMock())
 
-const tag = (id: number, name: string): Tag => ({ id, workspaceID: 1, name, color: null, position: id })
+const tag = (id: number, name: string): Tag => ({ id, workspaceID: 1, name, color: null, shape: null, position: id })
 let tags: Tag[]
-const actions = { createTag: vi.fn(), renameTag: vi.fn(), updateTagColor: vi.fn(), deleteTag: vi.fn(), setTaskTag: vi.fn() }
+const actions = { createTag: vi.fn(), renameTag: vi.fn(), updateTagColor: vi.fn(), updateTagShape: vi.fn(), deleteTag: vi.fn(), setTaskTag: vi.fn(), setGroupTag: vi.fn() }
 vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => actions, useWorkspaceTags: () => tags }))
 vi.mock("@/contexts/use-workspace", () => ({ useWorkspace: () => ({ currentWorkspace: { id: 1 } }) }))
 
 let tree: NoteDataTree
 const rollback = vi.fn()
-const note = { getNoteTree: () => tree, patchTask: vi.fn(() => rollback), refreshActiveNote: vi.fn() }
+const note = { getNoteTree: () => tree, patchTask: vi.fn(() => rollback), patchGroup: vi.fn(() => rollback), refreshActiveNote: vi.fn() }
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => note }))
 const recorder = makeUndoRecorderMock()
 vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
@@ -26,7 +26,7 @@ const bug = tag(1, "Bug")
 beforeEach(() => {
     vi.clearAllMocks()
     tags = [bug]
-    tree = { groups: [makeGroup({ sections: [makeSection({ id: 1, tasks: [makeTask({ id: 10 }), makeTask({ id: 11, tagIDs: [1] })] })] })] }
+    tree = { groups: [makeGroup({ sections: [makeSection({ id: 1, tasks: [makeTask({ id: 10 }), makeTask({ id: 11, tagIDs: [1] })] })] }), makeGroup({ id: 2, tagIDs: [1] }), makeGroup({ id: 3 })] }
     for (const fn of Object.values(actions)) fn.mockResolvedValue(undefined)
     note.refreshActiveNote.mockResolvedValue(undefined)
 })
@@ -61,7 +61,7 @@ describe("useTagMutations", () => {
         await expect(mutations().create("  Later ", [10, 11])).resolves.toBe(later)
         expect(actions.createTag).toHaveBeenCalledWith(1, "Later")
         expect(actions.setTaskTag).toHaveBeenCalledWith(2, [10, 11], true)
-        expect(recorder.tagCreate).toHaveBeenCalledWith(later, [10, 11])
+        expect(recorder.tagCreate).toHaveBeenCalledWith(later, { taskIds: [10, 11] })
         expect(recorder.tagAssign).not.toHaveBeenCalled()
     })
 
@@ -78,7 +78,48 @@ describe("useTagMutations", () => {
         actions.setTaskTag.mockRejectedValueOnce(new Error("fail"))
         await mutations().create("Later", [10])
         expect(rollback).toHaveBeenCalledTimes(1)
-        expect(recorder.tagCreate).toHaveBeenCalledWith(later, [])
+        expect(recorder.tagCreate).toHaveBeenCalledWith(later, { taskIds: [] })
+    })
+
+    it("gives the tag to the groups that lack it: patches the note first, writes the groups and records ONE group step", async () => {
+        await mutations().assign(bug, { kind: "groups", ids: [2, 3] }, true)
+        expect(note.patchGroup).toHaveBeenCalledTimes(1)
+        expect(note.patchGroup).toHaveBeenCalledWith(3, { tagIDs: [1] })
+        expect(actions.setGroupTag).toHaveBeenCalledWith(1, [3], true)
+        expect(actions.setTaskTag).not.toHaveBeenCalled()
+        expect(recorder.tagAssignGroups).toHaveBeenCalledWith(bug, [3], true)
+        expect(recorder.tagAssign).not.toHaveBeenCalled()
+    })
+
+    it("takes the tag from a group, puts the note back and records nothing when the write fails", async () => {
+        await mutations().assign(bug, { kind: "groups", ids: [2] }, false)
+        expect(note.patchGroup).toHaveBeenCalledWith(2, { tagIDs: [] })
+        expect(recorder.tagAssignGroups).toHaveBeenCalledWith(bug, [2], false)
+        vi.clearAllMocks()
+        actions.setGroupTag.mockRejectedValueOnce(new Error("fail"))
+        await expect(mutations().assign(bug, { kind: "groups", ids: [3] }, true)).rejects.toThrow("fail")
+        expect(rollback).toHaveBeenCalledTimes(1)
+        expect(recorder.tagAssignGroups).not.toHaveBeenCalled()
+    })
+
+    it("creates a tag for a group as ONE step with the group it was given to", async () => {
+        const later = tag(2, "Later")
+        actions.createTag.mockResolvedValueOnce(later)
+        await expect(mutations().create("Later", { kind: "groups", ids: [3] })).resolves.toBe(later)
+        expect(actions.setGroupTag).toHaveBeenCalledWith(2, [3], true)
+        expect(recorder.tagCreate).toHaveBeenCalledWith(later, { groupIds: [3] })
+        // An existing name gives that tag to the group
+        await mutations().create("bug", { kind: "groups", ids: [3] })
+        expect(recorder.tagAssignGroups).toHaveBeenCalledWith(bug, [3], true)
+    })
+
+    it("changes the shape, skips the same one and records the old and new shape", async () => {
+        const m = mutations()
+        await m.reshape(bug, null)
+        expect(actions.updateTagShape).not.toHaveBeenCalled()
+        await m.reshape(bug, "dot")
+        expect(actions.updateTagShape).toHaveBeenCalledWith(1, "dot")
+        expect(recorder.tagShape).toHaveBeenCalledWith(1, "Bug", null, "dot")
     })
 
     it("rename and recolor skip a change that changes nothing, and record the old and new values", async () => {
@@ -94,9 +135,9 @@ describe("useTagMutations", () => {
     })
 
     it("delete records the tasks that had the tag and refreshes the open note", async () => {
-        actions.deleteTag.mockResolvedValueOnce([10, 11])
+        actions.deleteTag.mockResolvedValueOnce({ taskIds: [10, 11], groupIds: [2] })
         await mutations().remove(bug)
-        expect(recorder.tagDelete).toHaveBeenCalledWith(bug, [10, 11])
+        expect(recorder.tagDelete).toHaveBeenCalledWith(bug, { taskIds: [10, 11], groupIds: [2] })
         expect(note.refreshActiveNote).toHaveBeenCalledTimes(1)
     })
 })

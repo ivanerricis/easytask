@@ -7,6 +7,7 @@ import { it as itLocale } from "./locales/it"
 const DYNAMIC_PREFIXES = [
     "common.colors.c",
     "undo.",
+    "tags.shape.",
     "archive.types.",
     "trash.",
     "transfer.names.",

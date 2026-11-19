@@ -6,6 +6,8 @@ import { GroupHeader } from "./GroupHeader"
 import { makeDefaultSection, makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { searchingStore } from "@/test/search-store"
 import { NoteSearchContext } from "../note-search-context"
+import { createTagsStore, WorkspaceTagsContext } from "@/contexts/workspace-data/tags"
+import type { ReactElement } from "react"
 
 // Radix tooltips measure their arrow with a ResizeObserver, which jsdom lacks
 vi.stubGlobal("ResizeObserver", class { observe() { } unobserve() { } disconnect() { } })
@@ -436,5 +438,48 @@ describe("GroupHeader search", () => {
             <NoteSearchContext.Provider value={searchingStore([group], "zzz")}><GroupHeader group={group} /></NoteSearchContext.Provider>,
         )
         expect(container.querySelector("mark")).toBeNull()
+    })
+})
+
+describe("GroupHeader tags", () => {
+    const tags = [
+        { id: 1, workspaceID: 1, name: "Bug", color: "#ff0000", shape: null, position: 0 },
+        { id: 2, workspaceID: 1, name: "Later", color: null, shape: null, position: 1 },
+    ]
+    const renderWithTags = (ui: ReactElement) => {
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags })
+        return render(<WorkspaceTagsContext.Provider value={store}>{ui}</WorkspaceTagsContext.Provider>)
+    }
+
+    it("shows the tags of the group as badges on the open header, none when it has no tags", () => {
+        const { unmount } = renderWithTags(<GroupHeader group={makeGroup({ name: "G", tagIDs: [1, 2] })} />)
+        expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Bug", "Later"])
+        unmount()
+        renderWithTags(<GroupHeader group={makeGroup({ name: "G" })} />)
+        expect(screen.queryByTestId("group-tags")).not.toBeInTheDocument()
+    })
+
+    it("shows only dots when the group is narrow", () => {
+        renderWithTags(<GroupHeader group={makeGroup({ name: "G", tagIDs: [1, 2] })} compact />)
+        expect(screen.queryByTestId("tag-badge")).not.toBeInTheDocument()
+        expect(screen.getAllByTestId("group-tag-dot")).toHaveLength(2)
+    })
+
+    it("puts the tags in the vertical strip of the closed group right after the count, as dots", () => {
+        isOpen = false
+        renderWithTags(<GroupHeader group={makeGroup({ name: "G", tagIDs: [1, 2] })} />)
+        const tagsBlock = screen.getByTestId("group-tags")
+        const count = tagsBlock.previousElementSibling as HTMLElement
+        expect(count).toHaveTextContent(/task/)
+        expect(tagsBlock).toHaveClass("flex-col")
+        expect(screen.queryByTestId("tag-badge")).not.toBeInTheDocument()
+    })
+
+    it("keeps the badges on the one-row header of the closed group with the horizontal layout", () => {
+        isOpen = false
+        prefs.collapsedGroupLayout = "horizontal"
+        renderWithTags(<GroupHeader group={makeGroup({ name: "G", tagIDs: [2] })} />)
+        expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Later"])
     })
 })

@@ -48,3 +48,35 @@ export const createTagIndexes = [
  * @category Database Schema
  */
 export const tagSchema: string[] = [createTagTable, createTaskTagTable, ...createTagIndexes, ...triggersFor("tag"), ...triggersFor("task_tag")]
+
+/**
+ * Adds the shape of a tag: NULL = the default pill, otherwise "rounded", "dot" or "tag" (migration v18).
+ * @category Database Schema
+ */
+export const addTagShapeColumn = `ALTER TABLE tag ADD COLUMN shape TEXT DEFAULT NULL;`
+
+/**
+ * Creates the section_group_tag table: the tags given to a group. A link goes away with its group (when it is purged, not when it
+ * is trashed) and with its tag.
+ * @category Database Schema
+ */
+export const createGroupTagTable = `
+    CREATE TABLE IF NOT EXISTS section_group_tag (
+        groupID INTEGER NOT NULL,
+        tagID INTEGER NOT NULL,
+        PRIMARY KEY(groupID, tagID),
+        FOREIGN KEY(groupID) REFERENCES section_group(id) ON DELETE CASCADE,
+        FOREIGN KEY(tagID) REFERENCES tag(id) ON DELETE CASCADE
+    );
+`
+
+/**
+ * Migration v18: the shape of the tags and the tags of the groups, with the edit-date triggers of the workspace.
+ * @category Database Schema
+ */
+export const groupTagSchema: string[] = [
+    addTagShapeColumn,
+    createGroupTagTable,
+    `CREATE INDEX IF NOT EXISTS idx_section_group_tag_tag ON section_group_tag(tagID);`,
+    ...triggersFor("section_group_tag"),
+]

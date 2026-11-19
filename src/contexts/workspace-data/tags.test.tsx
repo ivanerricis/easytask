@@ -1,16 +1,16 @@
 import { act, renderHook } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { Tag } from "@/types/types"
-import { createDBTag, deleteDBTag, getDBTags, renameDBTag, restoreDBTag, setDBTaskTag, updateDBTagColor } from "@/db/queries/tag"
+import { createDBTag, deleteDBTag, getDBTags, renameDBTag, restoreDBTag, setDBGroupTag, setDBTaskTag, updateDBTagColor, updateDBTagShape } from "@/db/queries/tag"
 import { createReloadTags, createTagsStore, useTagActions, useTagsOf, useWorkspaceTags, WorkspaceTagsContext } from "./tags"
 import type { Runtime } from "./types"
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 vi.mock("@/db/queries/tag", () => ({
-    createDBTag: vi.fn(), deleteDBTag: vi.fn(), getDBTags: vi.fn(), renameDBTag: vi.fn(), restoreDBTag: vi.fn(), setDBTaskTag: vi.fn(), updateDBTagColor: vi.fn(),
+    createDBTag: vi.fn(), deleteDBTag: vi.fn(), getDBTags: vi.fn(), renameDBTag: vi.fn(), restoreDBTag: vi.fn(), setDBGroupTag: vi.fn(), setDBTaskTag: vi.fn(), updateDBTagColor: vi.fn(), updateDBTagShape: vi.fn(),
 }))
 
-const tag = (id: number, name: string, over: Partial<Tag> = {}): Tag => ({ id, workspaceID: 1, name, color: null, position: id, ...over })
+const tag = (id: number, name: string, over: Partial<Tag> = {}): Tag => ({ id, workspaceID: 1, name, color: null, shape: null, position: id, ...over })
 
 let store: ReturnType<typeof createTagsStore>
 
@@ -55,11 +55,26 @@ describe("tag actions", () => {
 
     it("delete removes the tag and resolves with its tasks, restore puts it back in its place", async () => {
         const actions = setup()
-        vi.mocked(deleteDBTag).mockResolvedValueOnce([5, 6])
-        await expect(actions.deleteTag(1)).resolves.toEqual([5, 6])
+        vi.mocked(deleteDBTag).mockResolvedValueOnce({ taskIds: [5, 6], groupIds: [] })
+        await expect(actions.deleteTag(1)).resolves.toEqual({ taskIds: [5, 6], groupIds: [] })
         expect(names()).toEqual(["Urgent"])
-        await actions.restoreTag(tag(1, "Bug"), [5, 6])
-        expect(restoreDBTag).toHaveBeenCalledWith(tag(1, "Bug"), [5, 6])
+        await actions.restoreTag(tag(1, "Bug"), { taskIds: [5, 6] })
+        expect(restoreDBTag).toHaveBeenCalledWith(tag(1, "Bug"), { taskIds: [5, 6] })
+        expect(names()).toEqual(["Bug", "Urgent"])
+    })
+
+    it("shape updates the tag in place, in the store and in the database", async () => {
+        const actions = setup()
+        await actions.updateTagShape(2, "tag")
+        expect(updateDBTagShape).toHaveBeenCalledWith(2, "tag")
+        expect(store.getState().tags).toEqual([tag(1, "Bug"), tag(2, "Urgent", { shape: "tag" })])
+    })
+
+    it("giving a tag to groups only writes, like for the tasks", async () => {
+        const actions = setup()
+        await actions.setGroupTag(1, [3], true)
+        expect(setDBGroupTag).toHaveBeenCalledWith(1, [3], true)
+        expect(setDBTaskTag).not.toHaveBeenCalled()
         expect(names()).toEqual(["Bug", "Urgent"])
     })
 

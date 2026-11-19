@@ -135,7 +135,7 @@ export async function buildDBWorkspaceExport(workspaceId: number): Promise<Works
             folders: exportFolders,
             notes: exportNotes,
             templates: exportTemplates,
-            ...(tags.length > 0 ? { tags: tags.map(({ name, color }) => ({ name, color })) } : {}),
+            ...(tags.length > 0 ? { tags: tags.map(({ name, color, shape }) => ({ name, color, ...(shape ? { shape } : {}) })) } : {}),
         }
     } catch (error: unknown) {
         throw toAppError(error, e => createError("TRANSFER_EXPORT_FAILED", i18n.t("errors.transfer.export", { message: getErrorMessage(e) })))

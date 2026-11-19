@@ -29,6 +29,9 @@ vi.mock("@/components/dialogs/dialog-automations", () => ({
     DialogAutomations: ({ isOpen, noteId, groupId }: { isOpen: boolean, noteId: number, groupId?: number }) =>
         isOpen ? <div>Dialog automazioni {noteId}/{groupId}</div> : null,
 }))
+vi.mock("@/components/tags/DialogGroupTags", () => ({
+    DialogGroupTags: ({ open, groupId }: { open: boolean, groupId: number }) => open ? <div>Dialog tag {groupId}</div> : null,
+}))
 vi.mock("@/components/dialogs/dialog-delete", () => ({
     DialogDeleteItem: ({ isOpen, optimistic }: { isOpen: boolean, optimistic: () => () => void }) =>
         isOpen ? <button onClick={() => optimistic()}>Dialog elimina</button> : null,
@@ -88,6 +91,14 @@ describe("ButtonMenuGroup", () => {
         await waitFor(() => expect(archive).toHaveBeenCalledWith("section_group", 3, undefined))
         expect(removeGroup).toHaveBeenCalledWith(3)
         expect(archiveItem).toHaveBeenCalledWith("section_group", 3)
+    })
+
+    it("opens the tags dialog of the group from the Tag entry", async () => {
+        const user = userEvent.setup()
+        const row = setup()
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Tag…"))
+        expect(await screen.findByText("Dialog tag 3")).toBeInTheDocument()
     })
 
     it("opens the automations of the group", async () => {
