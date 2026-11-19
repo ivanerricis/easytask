@@ -5,6 +5,7 @@ import type { Section as SectionType } from "@/types/types"
 import { cn, hexToRgba } from "@/lib/utils"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { useNoteDndSelector, useNoteDrag, useNoteDrop } from "../note-dnd-state"
+import { useNoteDndOwner } from "../note-dnd-owner"
 import { useSectionOpen } from "@/contexts/use-tabs"
 import { DropLine } from "../sidebar/DropLine"
 import { registerShiftNode, sectionNodeKey } from "../note-dnd-shift"
@@ -23,17 +24,18 @@ export const Section = memo(({ section }: SectionProps) => {
     // The card is both a drop target (sections and tasks) and the dimmed source while it is dragged
     // It is also moved by the live drag of the sections (a transform of the whole card, tasks included)
     const sectionId = section.id
+    const owner = useNoteDndOwner()
     const setRef = useCallback((node: HTMLElement | null) => {
         setDropRef(node)
         setDragRef(node)
-        registerShiftNode(sectionNodeKey(sectionId), node)
-    }, [setDropRef, setDragRef, sectionId])
+        registerShiftNode(sectionNodeKey(sectionId), node, owner)
+    }, [setDropRef, setDragRef, sectionId, owner])
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
     const colorAlpha = useColorAlpha()
 
     const draggingSection = active?.kind === "section"
     // A dragged task: the whole card is outlined when it is the destination, wherever the pointer is inside it
-    const taskDestination = useNoteDndSelector(state => state.active?.kind === "task" && state.hover.targetSectionId === section.id)
+    const taskDestination = useNoteDndSelector(state => (state.active ?? state.incoming)?.kind === "task" && state.hover.targetSectionId === section.id)
 
     return (
         <div

@@ -12,9 +12,11 @@ import type { PointerDragHandlers } from "./note-dnd-pointer"
 let hit: { ref: unknown, rect: unknown } | null = null
 // The callback the provider gives to be told when a row changes its size
 let onResize: (() => void) | undefined
-vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit, zoneRect: () => null, registerZone: () => undefined }))
+vi.mock("./note-dnd-hit", () => ({ measureZones: (_kind: unknown, callback?: () => void) => { onResize = callback }, clearZones: () => undefined, hitTest: () => hit && { owner: "", ...hit }, zoneRect: () => null, registerZone: () => undefined }))
 // The controller of the pointer is replaced by one that hands the provider's handlers to the test (the real one is tested in
 // note-dnd-pointer.test.ts); the tests speak the shape of the old dnd-kit events, turned here into the pointer the provider gets now
+// The rows of these tests register without an owner: the provider has none either (the keys stay as they are)
+vi.mock("./note-dnd-owner", async importActual => ({ ...await importActual<typeof import("./note-dnd-owner")>(), newOwnerId: () => "" }))
 let latest: PointerDragHandlers
 const driver = () => latest
 const handlers = {
@@ -27,13 +29,13 @@ const handlers = {
         hit = over ? { ref: over.data.current, rect: over.rect } : null
         driver().move(activatorEvent ? { x: activatorEvent.clientX + (delta?.x ?? 0), y: activatorEvent.clientY + (delta?.y ?? 0) } : { x: -1, y: -1 })
     },
-    onDragEnd: () => driver().end(),
+    onDragEnd: () => driver().end({ ctrl: false, alt: false }),
     onDragCancel: () => driver().cancel(),
 }
 vi.mock("./note-dnd-pointer", async importActual => ({
     ...await importActual<typeof import("./note-dnd-pointer")>(),
     createPointerDrag: () => {
-        return { press: () => undefined, getPointer: () => null, isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
+        return { press: () => undefined, getPointer: () => null, getModifiers: () => ({ ctrl: false, alt: false }), isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
     },
 }))
 // The preview is a portal in the body, which these tests empty by hand; it has its own tests
@@ -48,6 +50,7 @@ vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ header: (
 const moveTaskTo = vi.fn()
 const moveSectionTo = vi.fn()
 const moveGroupMock = vi.fn()
+vi.mock("./note-dnd-cross", () => ({ useCrossNoteMoves: () => ({ noteId: 1, getTree: () => null, dropAcross: vi.fn() }) }))
 vi.mock("./note-dnd-state", async importActual => ({
     ...await importActual<typeof import("./note-dnd-state")>(),
     useNoteMoves: () => ({ moveSectionTo, moveTaskTo }),

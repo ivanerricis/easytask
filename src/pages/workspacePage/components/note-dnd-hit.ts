@@ -1,5 +1,6 @@
 import { isDisplaced, shiftNodesOf, shiftOf } from "./note-dnd-shift"
 import type { NoteDragKind, NoteOverKind, NoteOverRef } from "./note-dnd"
+import { ownerKey } from "./note-dnd-owner"
 
 /**
  * Hit test of the note drag, owned by the app instead of dnd-kit: the drop zones (tasks, sections, groups, the slots of a new group) are
@@ -11,14 +12,22 @@ import type { NoteDragKind, NoteOverKind, NoteOverRef } from "./note-dnd"
  * @category Note DnD
  */
 
-type Zone = { kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement }
+type Zone = { kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement, owner: string }
 
 /** A measured zone: its rect when it was measured (viewport coordinates) and the scrollable ancestors it moves with. */
-type Measured = { ref: NoteOverRef, node: HTMLElement, area: number, left: number, top: number, width: number, height: number, scrollers: HTMLElement[] }
+type Measured = { ref: NoteOverRef, owner: string, node: HTMLElement, area: number, left: number, top: number, width: number, height: number, scrollers: HTMLElement[] }
 
 /** The edges of a zone, in the viewport coordinates of the moment of the hit test (the scroll since the measure is added up). */
 export type HitRect = { top: number, bottom: number, left: number, right: number, width: number, height: number }
-export type Hit = { ref: NoteOverRef, rect: HitRect }
+export type Hit = {
+    ref: NoteOverRef
+    rect: HitRect
+    /** The drag provider (note) the zone belongs to: the other pane of a split view has another one. */
+    owner: string
+}
+
+/** What a hit test may return: with `cross` false only the zones of `owner` (the note the drag started in) count. */
+export type HitScope = { owner: string, cross: boolean }
 
 const zones = new Map<string, Zone>()
 let measured: Measured[] = []
@@ -33,10 +42,14 @@ let onWindowResize: (() => void) | null = null
 /** The frame a call to `onResize` waits for (0: none), so a burst of changes calls it once. */
 let resizeFrame = 0
 
-/** Registers (or, with a null node, forgets) a drop zone. A ref callback: cheap, it triggers no render. */
-export function registerZone(key: string, kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement | null): void {
-    if (node) zones.set(key, { kind, id, accepts, node })
-    else zones.delete(key)
+/**
+ * Registers (or, with a null node, forgets) a drop zone of the note of `owner` (see note-dnd-owner: the zones of two notes never
+ * share a key). A ref callback: cheap, it triggers no render.
+ */
+export function registerZone(key: string, kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[], node: HTMLElement | null, owner = ""): void {
+    const full = ownerKey(owner, key)
+    if (node) zones.set(full, { kind, id, accepts, node, owner })
+    else zones.delete(full)
 }
 
 /** The lists whose size changes can move the zones (the row of the groups and the lists of a group); the rows are not observed. */
@@ -68,7 +81,7 @@ function measure(kind: NoteDragKind): void {
         for (const scroller of scrollers) if (!baseline.has(scroller)) baseline.set(scroller, { left: scroller.scrollLeft, top: scroller.scrollTop })
         const left = rect.left - (shifted ? shiftOf(node, "x") : 0)
         const top = rect.top - (shifted ? shiftOf(node, "y") : 0)
-        next.push({ ref: { kind: zone.kind, id: zone.id }, node, area: rect.width * rect.height, left, top, width: rect.width, height: rect.height, scrollers })
+        next.push({ ref: { kind: zone.kind, id: zone.id }, owner: zone.owner, node, area: rect.width * rect.height, left, top, width: rect.width, height: rect.height, scrollers })
     }
     measured = next
     measuredKind = kind
@@ -125,8 +138,8 @@ export function clearZones(): void {
  * What keeps a place by the rect it was hit with (the few px of gap around it) must ask this, not use the old rect: with the pointer
  * still and the content scrolling under it, the old rect is where the zone was.
  */
-export function zoneRect(kind: NoteOverKind, id: number): HitRect | null {
-    const zone = measured.find(item => item.ref.kind === kind && item.ref.id === id)
+export function zoneRect(kind: NoteOverKind, id: number, owner?: string): HitRect | null {
+    const zone = measured.find(item => item.ref.kind === kind && item.ref.id === id && (owner === undefined || item.owner === owner))
     if (!zone) return null
     let left = zone.left
     let top = zone.top
@@ -140,8 +153,9 @@ export function zoneRect(kind: NoteOverKind, id: number): HitRect | null {
 /**
  * The zone under the pointer: the smallest one that contains it (a task row beats its section card, a section card beats its group), the
  * same rule the dnd-kit collision detection had. `pointer` is in viewport coordinates.
+ * `scope`: the zones of another note (the other pane of the split view) are skipped unless it allows crossing (Ctrl held).
  */
-export function hitTest(pointer: { x: number, y: number }): Hit | null {
+export function hitTest(pointer: { x: number, y: number }, scope?: HitScope): Hit | null {
     if (stale && measuredKind) measure(measuredKind)
     const delta = new Map<HTMLElement, { x: number, y: number }>()
     for (const [scroller, start] of scrollAtMeasure) delta.set(scroller, { x: start.left - scroller.scrollLeft, y: start.top - scroller.scrollTop })
@@ -149,6 +163,7 @@ export function hitTest(pointer: { x: number, y: number }): Hit | null {
     let bestLeft = 0
     let bestTop = 0
     for (const zone of measured) {
+        if (scope && !scope.cross && zone.owner !== scope.owner) continue
         let left = zone.left
         let top = zone.top
         for (const scroller of zone.scrollers) {
@@ -162,5 +177,5 @@ export function hitTest(pointer: { x: number, y: number }): Hit | null {
         bestTop = top
     }
     if (!best) return null
-    return { ref: best.ref, rect: { left: bestLeft, top: bestTop, width: best.width, height: best.height, right: bestLeft + best.width, bottom: bestTop + best.height } }
+    return { ref: best.ref, owner: best.owner, rect: { left: bestLeft, top: bestTop, width: best.width, height: best.height, right: bestLeft + best.width, bottom: bestTop + best.height } }
 }

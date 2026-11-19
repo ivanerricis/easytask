@@ -1,5 +1,6 @@
 import { shiftDurationMs } from "@/lib/animation-speed"
 import { buildLiveSnapshot, GROUPS_LIST, groupListKey, tabListKey, type LiveNodeInfo, type LiveSlot, type LiveSnapshot } from "./note-dnd-live"
+import { ownerKey } from "./note-dnd-owner"
 
 /**
  * The visual side of the "live drag" of the tasks, the sections, the groups and the open tabs: a registry of the outer wrapper of every task, section, group and tab and the code that moves them with
@@ -21,6 +22,8 @@ export const SHIFT_ATTR = { task: "data-task-wrap", section: "data-task-section"
 export type ShiftAxis = "x" | "y"
 
 const nodes = new Map<string, HTMLElement>()
+/** The owner (drag provider) of every registered wrapper: the keys of its snapshot are prefixed with it (see note-dnd-owner). */
+const owners = new WeakMap<HTMLElement, string>()
 /** What is applied now, by node. */
 const applied = new Map<HTMLElement, number>()
 let target: ReadonlyMap<string, number> = new Map()
@@ -49,14 +52,20 @@ export const groupNodeKey = (groupId: number): string => `group-${groupId}`
 /** Key of the wrapper of a tab in the registry: the note id is only unique inside a pane when the workspace is split. */
 export const tabNodeKey = (pane: number, noteId: number): string => `tab-${pane}-${noteId}`
 
-/** Registers (or, with null, forgets) the wrapper of a task. A ref callback: it must be the same function while the key is. */
-export function registerShiftNode(key: string, node: HTMLElement | null): void {
+/**
+ * Registers (or, with null, forgets) the wrapper of a task, section, group or tab. A ref callback: it must be the same function while
+ * the key is. `owner` is the drag provider of the note the wrapper belongs to (empty for the tabs): the registry key and the keys of
+ * the snapshot carry it, so two notes never share a key.
+ */
+export function registerShiftNode(key: string, node: HTMLElement | null, owner = ""): void {
+    const full = ownerKey(owner, key)
     if (node) {
-        nodes.set(key, node)
+        nodes.set(full, node)
+        owners.set(node, owner)
         return
     }
-    const old = nodes.get(key)
-    nodes.delete(key)
+    const old = nodes.get(full)
+    nodes.delete(full)
     if (old) applied.delete(old)
     if (old && old === hiddenNode) hiddenNode = null
 }
@@ -363,6 +372,8 @@ export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | n
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
     const infos: LiveNodeInfo[] = sorted.map(node => {
         const rect = node.getBoundingClientRect()
+        const owner = owners.get(node) ?? ""
+        const own = (key: string) => ownerKey(owner, key)
         // The tabs of a bar: one list per bar, laid out along the horizontal axis (left and width stand for top and height)
         if (kind === "tab") {
             const pane = Number(node.getAttribute(SHIFT_ATTR.tabBar))
@@ -377,8 +388,8 @@ export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | n
         // The columns are laid out along the horizontal axis: left and width stand for top and height
         if (kind === "group") {
             return {
-                key: groupNodeKey(Number(node.getAttribute(SHIFT_ATTR.groupWrap))),
-                list: GROUPS_LIST,
+                key: own(groupNodeKey(Number(node.getAttribute(SHIFT_ATTR.groupWrap)))),
+                list: own(GROUPS_LIST),
                 parent: null,
                 top: resting(node, rect.left),
                 height: rect.width,
@@ -386,8 +397,8 @@ export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | n
         }
         if (kind === "section") {
             return {
-                key: sectionNodeKey(Number(node.getAttribute(SHIFT_ATTR.sectionWrap))),
-                list: groupListKey(Number(node.getAttribute(SHIFT_ATTR.group))),
+                key: own(sectionNodeKey(Number(node.getAttribute(SHIFT_ATTR.sectionWrap)))),
+                list: own(groupListKey(Number(node.getAttribute(SHIFT_ATTR.group)))),
                 parent: null,
                 top: resting(node, rect.top),
                 height: rect.height,
@@ -396,9 +407,9 @@ export function readLiveSnapshot(kind: ShiftKind = "task", near: HTMLElement | n
         const parentNode = node.parentElement?.closest<HTMLElement>(`[${SHIFT_ATTR.task}]`)
         const parentId = parentNode?.getAttribute(SHIFT_ATTR.task)
         return {
-            key: `task-${node.getAttribute(SHIFT_ATTR.task)}`,
-            list: parentId ? `t-${parentId}` : `s-${node.getAttribute(SHIFT_ATTR.section)}`,
-            parent: parentId ? `task-${parentId}` : null,
+            key: own(`task-${node.getAttribute(SHIFT_ATTR.task)}`),
+            list: own(parentId ? `t-${parentId}` : `s-${node.getAttribute(SHIFT_ATTR.section)}`),
+            parent: parentId ? own(`task-${parentId}`) : null,
             top: resting(node, rect.top),
             height: rect.height,
         }
