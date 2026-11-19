@@ -9,7 +9,9 @@ import { getDBNoteData, getDBNotesData, type NoteData } from "./note";
 import { addEnsureTag, WORKSPACE_OF_NOTE, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
-import { isTaskOrder } from "@/lib/task-order";
+import { isTaskOrder } from "@/lib/task-order"
+import { isPortableAutomation, type PortableAutomation } from "@/lib/automations/portable"
+import { addNoteAutomations, getDBPortableAutomations } from "./automation";
 
 const TEMPLATE_UNIQUE_MESSAGE = () => i18n.t("errors.template.unique")
 const TEMPLATE_CHECK_MESSAGE = () => i18n.t("errors.template.check")
@@ -159,6 +161,28 @@ export async function buildContentWithSectionIds(noteId: number, includeArchived
 }
 
 /**
+ * The content of a note as a template stores it: its visible content plus its automations (see getDBPortableAutomations;
+ * a rule that refers to something left out, like an archived section, is dropped).
+ * @param noteId The ID of the note (or of the draft of a template).
+ * @category Database Queries
+ */
+export async function buildTemplateSnapshot(noteId: number): Promise<NoteTemplateContent> {
+    const { content, sectionIds, groupIds, defaultSectionIds } = await buildContentWithSectionIds(noteId)
+    const automations = await getDBPortableAutomations(noteId, content, sectionIds, groupIds, defaultSectionIds)
+    return automations.length > 0 ? { ...content, automations } : content
+}
+
+/**
+ * The automations of a template that are valid for its content. The stored JSON is not trusted: a rule that is malformed or
+ * points to a section or group that does not exist is ignored.
+ * @param content The template content.
+ * @category Database Queries
+ */
+export function getTemplateAutomations(content: NoteTemplateContent): PortableAutomation[] {
+    return Array.isArray(content.automations) ? content.automations.filter(rule => isPortableAutomation(rule, content)) : []
+}
+
+/**
  * Like buildContentWithSectionIds for many notes at once (a few selects for the whole list instead of three per note).
  * @param noteIds The IDs of the notes.
  * @param includeArchived Keeps the archived groups and sections (default false).
@@ -186,7 +210,7 @@ export async function createDBTemplateFromNote(noteId: number, name: string): Pr
         if (notes.length === 0)
             throw createError("TEMPLATE_SOURCE_MISSING", SOURCE_MISSING_MESSAGE())
 
-        const { content } = await buildContentWithSectionIds(noteId)
+        const content = await buildTemplateSnapshot(noteId)
         const result = await db.execute(
             'INSERT INTO note_template (workspaceID, sourceNoteID, name, color, bg_color, bg_image, content) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [notes[0].workspaceID, noteId, name.trim(), notes[0].color ?? null, notes[0].bg_color ?? null, notes[0].bg_image ?? null, JSON.stringify(content)])
@@ -305,7 +329,7 @@ export async function updateDBTemplateFromNote(templateId: number, noteId?: numb
         if (rows.length === 0)
             throw createError("TEMPLATE_SOURCE_MISSING", SOURCE_MISSING_MESSAGE())
 
-        const { content } = await buildContentWithSectionIds(rows[0].noteID)
+        const content = await buildTemplateSnapshot(rows[0].noteID)
         await db.execute('UPDATE note_template SET sourceNoteID = ?, color = ?, bg_color = ?, bg_image = ?, content = ? WHERE id = ?',
             [rows[0].noteID, rows[0].color ?? null, rows[0].bg_color ?? null, rows[0].bg_image ?? null, JSON.stringify(content), templateId])
     } catch (error: unknown) {
@@ -483,7 +507,8 @@ export async function createDBNoteFromTemplate(templateId: number, workspaceId: 
             `INSERT INTO note (workspaceID, folderID, name, color, bg_color, bg_image, position)
              SELECT ?, ?, ?, ?, ?, ?, ${nextPositionSql("note", "folderID = ? AND deleted_at IS NULL")}`,
             [workspaceId, folderId, name.trim(), template.color, template.bg_color ?? null, template.bg_image ?? null, folderId])
-    addNoteContent(tx, tx.idOf(note), template.content)
+    const { groups, sections, defaultSections } = addNoteContent(tx, tx.idOf(note), template.content)
+    addNoteAutomations(tx, tx.idOf(note), getTemplateAutomations(template.content), template.content, sections, groups, defaultSections)
 
     try {
         const results = await tx.run()

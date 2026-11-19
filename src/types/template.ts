@@ -1,4 +1,5 @@
 import type { TaskOrder } from "@/lib/task-order"
+import type { PortableAutomation } from "@/lib/automations/portable"
 
 /**
  * A tag of a task in a snapshot: by name and color, since the ids belong to the workspace. Applying the snapshot reuses the
@@ -75,6 +76,11 @@ export type TemplateGroup = {
 export type NoteTemplateContent = {
     version: 1
     groups: TemplateGroup[]
+    /**
+     * The automations of the template, copied into the notes created from it: sections and groups are positions in
+     * `groups`, tags are named (see PortableAutomation). Absent when there are none (and in older snapshots).
+     */
+    automations?: PortableAutomation[]
 }
 
 /**

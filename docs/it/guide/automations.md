@@ -103,5 +103,5 @@ Nell'elenco della finestra, ogni regola ha:
 ## Note duplicate, template ed esportazioni
 
 - **Duplica** copia le automazioni della nota. Le copie puntano alle sezioni e ai gruppi della nuova nota, quindi non agiscono mai sull'originale. Le regole che si riferiscono a qualcosa fuori dal contenuto copiato non vengono copiate.
-- Un [template](./templates) non include le automazioni. Una nota creata da un template non ne ha.
+- Un [template](./templates) conserva le automazioni: una nota creata da esso ne riceve una copia propria, e non girano mai dentro l'editor del template.
 - Esportando e importando un workspace, le automazioni delle sue note vengono conservate.

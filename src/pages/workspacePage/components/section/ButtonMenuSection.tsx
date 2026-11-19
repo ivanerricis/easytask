@@ -100,8 +100,8 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
             <Separator />
             <SectionStepMoves sectionId={section.id} onDone={menu.close} />
             <SectionMoveSubmenu sectionId={section.id} onDone={menu.close} />
-            {!isDraft && <Separator />}
-            {noteId !== null && !isDraft && <ButtonInPopover
+            <Separator />
+            {noteId !== null && <ButtonInPopover
                 text={t("automations.menu")}
                 type="automations"
                 onClick={() => {
@@ -129,7 +129,7 @@ export const ButtonMenuSection = ({ section, onRename, children }: ButtonMenuSec
 
     const dialogs = (
         <>
-            {noteId !== null && !isDraft && <LazyMount active={isAutomationsOpen}>
+            {noteId !== null && <LazyMount active={isAutomationsOpen}>
                 <LazyDialogAutomations
                     noteId={noteId}
                     sectionId={section.id}

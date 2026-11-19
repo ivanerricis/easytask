@@ -103,5 +103,5 @@ In the list of the dialog, each rule has:
 ## Duplicated notes, templates and exports
 
 - **Duplicate** copies the automations of the note. The copies point to the sections and groups of the new note, so they never act on the original. Rules that refer to something outside the copied content are not copied.
-- A [template](./templates) does not include automations. A note created from a template has none.
+- A [template](./templates) keeps the automations: a note created from it gets its own copy, and they never run inside the template editor.
 - Exporting and importing a workspace keeps the automations of its notes.
