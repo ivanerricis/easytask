@@ -88,6 +88,8 @@ export const notes: Translation["notes"] = {
     closeCurrent: "Close current note",
     close: "Close note",
     openTabs: "Open notes",
+    newNote: "New note in the root",
+    defaultName: "New note",
     moveTabLeft: "Move tab left",
     moveTabRight: "Move tab right",
 }

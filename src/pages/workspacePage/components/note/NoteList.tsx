@@ -12,6 +12,7 @@ import { DropLine } from "../sidebar/DropLine"
 import { registerShiftNode, SHIFT_ATTR, tabNodeKey } from "../note-dnd-shift"
 import { barDndId, keepInBar, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
 import { TabsDndProvider } from "./TabsDndProvider"
+import { NewNoteTabButton } from "./NewNoteTabButton"
 import { TabsDndContext } from "./tabs-dnd-context-object"
 import type { Note } from "@/types/types"
 
@@ -88,7 +89,9 @@ function useTabBar(tabs: Note[]) {
 
 // The line under the tabs: drawn by every inactive tab and, as an inset shadow, by the empty part of the bar.
 // The active tab paints over it, so it opens onto the note below.
-const BAR_CLASS = "flex shrink-0 w-full overflow-x-auto overflow-y-hidden bg-secondary divide-x-1 shadow-[inset_0_-1px_0_0_var(--border)]"
+const BAR_CLASS = "flex shrink-0 w-full bg-secondary shadow-[inset_0_-1px_0_0_var(--border)]"
+/** The scrollable list of tabs inside the bar, next to the "+" button (which stays put while the tabs scroll). */
+const LIST_CLASS = "flex min-w-0 flex-1 overflow-x-auto overflow-y-hidden divide-x-1"
 
 /**
  * The tab bar of a pane, inside `TabsDndProvider`. Split: the drag and drop context is the shared one, the bar is a droppable
@@ -105,29 +108,32 @@ function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean
     const label = t(pane === 0 ? "notes.split.leftPane" : "notes.split.rightPane")
 
     return (
-        <div
-            ref={node => {
-                listRef.current = node
-                setNodeRef(node)
-            }}
-            role="tablist"
-            aria-label={split ? t("notes.split.openTabsPane", { pane: label }) : t("notes.openTabs")}
-            onKeyDown={handleKeyDown}
-            className={cn(BAR_CLASS, split && "relative min-h-[42px]")}
-        >
-            {tabs.map(note => (
-                <Tab
-                    key={note.id}
-                    note={note}
-                    pane={pane}
-                    dndId={split ? tabDndId(pane, note.id) : note.id}
-                    overlay={split || live}
-                    live={live}
-                    indicator={mine?.overId === note.id ? mine.zone : null}
-                />
-            ))}
-            {/* Over the bar itself (it has no tab to point at): the line at the start, which is also its end */}
-            {split && tabs.length === 0 && <DropLine zone={mine && mine.overId === null ? "before" : null} vertical />}
+        <div className={cn(BAR_CLASS, split && "min-h-[42px]")}>
+            <div
+                ref={node => {
+                    listRef.current = node
+                    setNodeRef(node)
+                }}
+                role="tablist"
+                aria-label={split ? t("notes.split.openTabsPane", { pane: label }) : t("notes.openTabs")}
+                onKeyDown={handleKeyDown}
+                className={cn(LIST_CLASS, split && "relative")}
+            >
+                {tabs.map(note => (
+                    <Tab
+                        key={note.id}
+                        note={note}
+                        pane={pane}
+                        dndId={split ? tabDndId(pane, note.id) : note.id}
+                        overlay={split || live}
+                        live={live}
+                        indicator={mine?.overId === note.id ? mine.zone : null}
+                    />
+                ))}
+                {/* Over the bar itself (it has no tab to point at): the line at the start, which is also its end */}
+                {split && tabs.length === 0 && <DropLine zone={mine && mine.overId === null ? "before" : null} vertical />}
+            </div>
+            <NewNoteTabButton />
         </div>
     )
 }

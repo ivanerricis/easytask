@@ -27,6 +27,9 @@ let duration = SHIFT_DURATION
 /** Attribute of the root of the tree while rows are shifted: the folders stop clipping their rows (see index.css). */
 export const SHIFTING_ATTR = "data-tree-shifting"
 
+/** Attribute of the layer that moves a row (guides and item together): what the rows register, and what the droppable inside looks up. */
+export const SHIFT_LAYER_ATTR = "data-tree-shift-layer"
+
 /** Registers (or, with null, forgets) a row. A row that mounts while rows are shifted takes its shift at once, without gliding to it. */
 export function registerTreeRow(key: string, node: HTMLElement | null): void {
     if (!node) {
@@ -115,7 +118,7 @@ export type TreeSlot = { index: number, count: number, depth: number }
 
 let slot: TreeSlot | null = null
 /** Where the rows are at rest, measured when the drag starts (see readTreeRest). */
-let rest: { root: HTMLElement, originY: number, rowSize: number, gap: number, indentPx: number } | null = null
+let rest: { root: HTMLElement, originY: number, rowSize: number, gap: number, indentPx: number, guidePx: number } | null = null
 let slotNode: HTMLElement | null = null
 let slotHost: { root: HTMLElement, position: string } | null = null
 
@@ -123,7 +126,7 @@ let slotHost: { root: HTMLElement, position: string } | null = null
  * Measures the layout at rest, before anything moves: the top of the first row of the flat list inside the tree (from any mounted row,
  * the rows have a fixed size), so the skeleton can be placed by row index even for rows that are not mounted.
  */
-export function readTreeRest(indexOf: (key: string) => number | undefined, rowSize: number, gap: number, indentPx: number): void {
+export function readTreeRest(indexOf: (key: string) => number | undefined, rowSize: number, gap: number, indentPx: number, guidePx: number): void {
     rest = null
     if (!hasTreeShifts()) duration = shiftDurationMs(SHIFT_DURATION)
     for (const [key, node] of nodes) {
@@ -132,7 +135,7 @@ export function readTreeRest(indexOf: (key: string) => number | undefined, rowSi
         if (index === undefined || !root || !node.isConnected) continue
         const box = root.getBoundingClientRect()
         const originY = node.getBoundingClientRect().top - index * rowSize - box.top - root.clientTop + root.scrollTop
-        rest = { root, originY, rowSize, gap, indentPx }
+        rest = { root, originY, rowSize, gap, indentPx, guidePx }
         return
     }
 }
@@ -174,6 +177,29 @@ function writeSlot(animate: boolean) {
     style.left = `${left}px`
     style.width = `calc(100% - ${left}px)`
     style.height = `${slot.count * rest.rowSize - rest.gap}px`
+    writeSlotGuides(slotNode, slot.depth, left, rest)
+}
+
+/**
+ * The indent guides inside the skeleton (the rows carry theirs in their shift layer): one per level of the place, at the same x as the
+ * ones of the rows, reaching up into the gap above and down into the one below so the lines run on without a break across the room.
+ */
+function writeSlotGuides(node: HTMLElement, depth: number, left: number, measures: { indentPx: number, guidePx: number, gap: number }) {
+    while (node.children.length > depth) node.lastElementChild?.remove()
+    while (node.children.length < depth) {
+        const guide = document.createElement("span")
+        guide.setAttribute("aria-hidden", "true")
+        guide.setAttribute("data-testid", "tree-slot-guide")
+        guide.className = "pointer-events-none absolute w-px bg-foreground/20"
+        node.appendChild(guide)
+    }
+    // Relative to the padding box of the skeleton: its 1px border is not part of it
+    for (let level = 0; level < depth; level++) {
+        const style = (node.children[level] as HTMLElement).style
+        style.left = `${level * measures.indentPx + measures.guidePx - left - 1}px`
+        style.top = `${-measures.gap - 1}px`
+        style.bottom = `${-measures.gap - 1}px`
+    }
 }
 
 /** Whether something is moved (or about to be). */
@@ -193,6 +219,8 @@ const currentOffset = (node: HTMLElement, wanted: number): number => {
 /** The vertical shift applied to a row right now (its droppable is measured at rest: see makeShiftFreeMeasure). */
 export function treeShiftOf(element: HTMLElement, axis: "x" | "y" = "y"): number {
     if (axis !== "y") return 0
-    const state = applied.get(element)
-    return state ? currentOffset(element, state.dy) : 0
+    // The droppable is the item inside the shift layer that moves: the shift is the one of its closest registered ancestor
+    const layer = applied.has(element) ? element : element.closest<HTMLElement>(`[${SHIFT_LAYER_ATTR}]`)
+    const state = layer ? applied.get(layer) : undefined
+    return layer && state ? currentOffset(layer, state.dy) : 0
 }

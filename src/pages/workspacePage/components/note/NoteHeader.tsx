@@ -4,7 +4,10 @@ import { useActiveNoteSelector, useTabsActions } from "@/contexts/use-tabs"
 import type { Note } from "@/types/types"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
 import { X } from "lucide-react"
-import React from "react"
+import React, { useEffect } from "react"
+import { usePane } from "@/contexts/use-layout"
+import { useStoreSelector } from "@/lib/external-store"
+import { consumeTabRename, pendingRename } from "@/lib/pending-rename"
 import { ButtonMenuNote } from "./ButtonMenuNote"
 import { Button } from "@/components/ui/button"
 import { focusRing } from "@/lib/a11y"
@@ -34,7 +37,14 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
     const closeLabel = useShortcutLabel("close-note")
     const { editing, error, start: startRename, inputProps } = useInlineRename({ itemType: "note", id: note.id, name: note.name })
 
-    const handleCloseHeader = (e: React.MouseEvent) => {
+    // A note just created with the "+" of the bar asks for its name as soon as its tab is here
+    const pane = usePane()?.pane ?? 0
+    const renameRequested = useStoreSelector(pendingRename, request => request?.noteId === note.id && request.pane === pane)
+    useEffect(() => {
+        if (renameRequested && consumeTabRename(note.id, pane)) startRename()
+    }, [renameRequested, note.id, pane, startRename])
+
+    const handleCloseHeader =(e: React.MouseEvent) => {
         e.stopPropagation()
         closeNote(note.id)
     }

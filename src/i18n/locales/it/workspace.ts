@@ -86,6 +86,8 @@ export const notes = {
     closeCurrent: "Chiudi nota corrente",
     close: "Chiudi nota",
     openTabs: "Note aperte",
+    newNote: "Nuova nota nella radice",
+    defaultName: "Nuova nota",
     moveTabLeft: "Sposta tab a sinistra",
     moveTabRight: "Sposta tab a destra",
 }

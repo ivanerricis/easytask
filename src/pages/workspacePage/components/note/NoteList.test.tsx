@@ -12,6 +12,8 @@ vi.mock("@/contexts/use-tabs", () => ({
     useActiveNoteId: () => activeId,
     useTabsActions: () => ({ reorderTabs: vi.fn(), activateNote }),
 }))
+// The "+" has its own test (it needs the workspace data)
+vi.mock("./NewNoteTabButton", () => ({ NewNoteTabButton: () => <button type="button">+</button> }))
 // The tab itself: only what the keyboard handler of the list reads
 vi.mock("./NoteHeader", () => ({
     NoteHeader: ({ note }: { note: Note }) => <button role="tab" data-note-id={note.id}>{note.name}</button>,
