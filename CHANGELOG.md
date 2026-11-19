@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-19
+
+### Added
+
+- Groups can have tags: choose them with **Tags…** in the group menu. They show as badges in the group header and as small dots in the vertical strip of a collapsed group (the first 3, then **+N**). Deleting a tag removes it from tasks and groups, and **Undo** brings it back on both.
+- Tags have a shape besides the color: pill (as before), rounded rectangle, dot with the name, or label. Choose it in the menu of the tag.
+- A note can have an image as background: right click on an empty area of the note and choose **Choose image…** (or **Remove image**). The background color stays on top as a light veil so the text stays readable. The image follows duplicates, templates and exports (also inside the .zip with the linked files); if the file is moved or deleted, the note shows only its color.
+- Templates keep the automations of the note they are made from: a note created from the template gets the rules, pointing to its own sections and groups. In the template editor the rules can be edited from the group and section menus but never run.
+- A **+** button at the right of the tabs creates a new note at the root of the tree, opens it and lets you type its name right away.
+- A collapsed group with tasks still open shows how many are open (subtasks included) instead of the total. A setting in Settings > Notes and sections turns it off.
+- **Don't ask again** on the confirmations that can be undone: moving tasks, folders or several sidebar items to the trash, removing an audio file, image or video from a group, deleting a tag or an automation rule. **Restore confirmations** in Settings > Notes and sections brings them back. Removing a file from a group and deleting a rule can now be undone too.
+- The database is upgraded to version 19 when the app starts, and an older version of the app cannot open the upgraded database.
+
+### Changed
+
+- In split view the note that is not active is slightly dimmed (its tab bar is not).
+- The buttons on the right of a dialog footer all have the same width.
+- Red buttons follow one rule: solid only for what cannot be undone (also **Empty trash** in the trash), a thin red outline when the action can be undone, and red icons without border in rows and menus.
+- The open category in Settings, trash and archive has a light accent background and an accent icon, besides the line on its side.
+- The color submenu of groups, with **Automatic (progress)**, and the color palettes of the app are tidier; the dialog to edit a tag has a new layout.
+- In the vertical strip of a collapsed group there is more space between the name and the audio, image and video buttons.
+- The settings about progress talk about a progress ring, which is what the groups and sections show.
+- Tag shapes, group tags and note background images are not read by versions before 0.27.0: a file exported with this version opens there without them.
+
+### Fixed
+
+- While dragging notes and folders in the sidebar, the vertical guide lines move together with the rows and show in the gap where the item will land.
+
 ## [0.26.0] - 2026-11-18
 
 ### Added
@@ -626,7 +654,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.26.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.27.0...HEAD
+[0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0

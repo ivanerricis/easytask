@@ -4,6 +4,34 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.27.0] - 2026-11-19
+
+### Aggiunto
+
+- I gruppi possono avere dei tag: sceglili con **Tag…** nel menu del gruppo. Si vedono come badge nell'intestazione del gruppo e come pallini nella striscia verticale di un gruppo chiuso (i primi 3, poi **+N**). Eliminare un tag lo toglie da task e gruppi, e **Annulla** lo rimette su entrambi.
+- Oltre al colore, i tag hanno una forma: pillola (come prima), rettangolo arrotondato, pallino con il nome o cartellino. Si sceglie nel menu del tag.
+- Una nota può avere un'immagine come sfondo: clic destro su un'area vuota della nota e scegli **Scegli immagine…** (o **Togli immagine**). Il colore di sfondo resta sopra come velo leggero, così il testo si legge. L'immagine segue duplicati, template ed esportazioni (anche dentro lo .zip con i file collegati); se il file viene spostato o cancellato, la nota mostra solo il suo colore.
+- I template tengono le automazioni della nota da cui nascono: una nota creata dal template riceve le regole, collegate alle sue sezioni e ai suoi gruppi. Nell'editor dei template le regole si modificano dai menu di gruppo e sezione ma non scattano mai.
+- Un pulsante **+** a destra delle schede crea una nuova nota nella radice dell'albero, la apre e ti fa scrivere subito il nome.
+- Un gruppo chiuso con task ancora aperti mostra quanti sono aperti (sottotask compresi) invece del totale. Un'impostazione in Impostazioni > Note e sezioni lo disattiva.
+- **Non chiedermelo più** sulle conferme che si possono annullare: spostare nel cestino task, cartelle o più elementi della sidebar, togliere un file audio, un'immagine o un video da un gruppo, eliminare un tag o una regola di automazione. **Ripristina le conferme** in Impostazioni > Note e sezioni le fa tornare. Anche togliere un file da un gruppo ed eliminare una regola ora si possono annullare.
+- Il database viene aggiornato alla versione 19 all'avvio dell'app; una versione più vecchia dell'app non può aprire il database aggiornato.
+
+### Modificato
+
+- Nella vista divisa la nota non attiva è leggermente scurita (la sua barra delle schede no).
+- I pulsanti a destra nel footer delle finestre hanno tutti la stessa larghezza.
+- I pulsanti rossi seguono una regola sola: pieni solo per ciò che non si può annullare (anche **Svuota cestino** nel cestino), con un sottile contorno rosso quando l'azione si può annullare, e icone rosse senza bordo nelle righe e nei menu.
+- La categoria aperta nelle Impostazioni, nel cestino e nell'archivio ha uno sfondo leggero e l'icona nel colore d'accento, oltre alla linea di lato.
+- Il sottomenu del colore dei gruppi, con **Automatico (avanzamento)**, e le palette dei colori dell'app sono più ordinati; la finestra per modificare un tag ha un nuovo layout.
+- Nella striscia verticale di un gruppo chiuso c'è più spazio tra il nome e i pulsanti di audio, immagini e video.
+- Le impostazioni sull'avanzamento parlano di anello d'avanzamento, che è quello che mostrano gruppi e sezioni.
+- Le forme dei tag, i tag dei gruppi e le immagini di sfondo delle note non vengono letti dalle versioni precedenti alla 0.27.0: un file esportato con questa versione lì si apre senza di loro.
+
+### Corretto
+
+- Trascinando note e cartelle nella sidebar, le linee verticali di guida si spostano insieme alle righe e compaiono nello spazio dove l'elemento verrà lasciato.
+
 ## [0.26.0] - 2026-11-18
 
 ### Aggiunto
@@ -623,7 +651,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.26.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.27.0...HEAD
+[0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
 [0.25.0]: https://github.com/ivanerricis/easytask/compare/v0.24.0...v0.25.0
 [0.24.0]: https://github.com/ivanerricis/easytask/compare/v0.23.0...v0.24.0
