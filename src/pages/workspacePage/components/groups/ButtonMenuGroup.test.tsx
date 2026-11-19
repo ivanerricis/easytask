@@ -58,7 +58,7 @@ const setup = (color?: string | null, withAddSection = true, withSections = true
 }
 
 describe("ButtonMenuGroup", () => {
-    it("has no archive, automations and audio entries in a template draft", async () => {
+    it("has no archive and audio entries in a template draft, but keeps the automations", async () => {
         draftActive = true
         const user = userEvent.setup()
         const row = setup()
@@ -67,7 +67,7 @@ describe("ButtonMenuGroup", () => {
         fireEvent.contextMenu(row)
         expect(await screen.findByText("Elimina")).toBeInTheDocument()
         expect(screen.queryByText("Archivia")).not.toBeInTheDocument()
-        expect(screen.queryByText("Automazioni…")).not.toBeInTheDocument()
+        expect(screen.getByText("Automazioni…")).toBeInTheDocument()
         expect(screen.queryByText("Aggiungi file audio")).not.toBeInTheDocument()
         expect(screen.queryByText("Aggiungi immagine o video")).not.toBeInTheDocument()
     })

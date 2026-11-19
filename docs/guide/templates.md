@@ -29,7 +29,7 @@ The template is an independent snapshot of the note at that moment. Later change
 | Task descriptions, completed state and priority | Archived groups, sections and tasks |
 | The colors of the note, groups, sections and tasks | Items in the trash |
 | The [tags](./groups-sections-tasks#tags) of the tasks, by name and color: a note created from the template reuses the tag of the workspace with the same name, or creates it | |
-| | [Automations](./automations) |
+| The [automations](./automations) of the note, pointing to the sections and groups of the new note (rules that refer to something not copied are left out). They never run inside the template editor | |
 
 ## Create a note from a template
 
@@ -69,7 +69,7 @@ Click **Edit** on a template: it opens in a tab of the open notes, marked with t
 - **Refresh from another note.** In the same menu, **Refresh from another note...** replaces the content with that of a note you choose, which becomes the source note.
 - **Recovery.** If the app is closed while a template is open, the changes are not lost. With the option **Reopen notes at startup** on, the tab opens again where you left it. With the option off, the changes are saved into the template at startup and a notice tells you they were recovered.
 
-In a template, the actions that make no sense are hidden: archive, audio and [automations](./automations). Deleting an item shows a short "Deleted" notice instead of the usual one, and undo works on the template while its tab is open.
+In a template, the actions that make no sense are hidden: archive and audio. The [automations](./automations) of a template can be edited but never run there: they act on the notes created from it. Deleting an item shows a short "Deleted" notice instead of the usual one, and undo works on the template while its tab is open.
 
 Close the tab (or use **Close editor** in its menu) when you are done; the template keeps what you wrote.
 

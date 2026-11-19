@@ -29,7 +29,7 @@ Il template è un'istantanea indipendente della nota in quel momento. Le modific
 | Descrizioni dei task, stato di completamento e priorità | Gruppi, sezioni e task archiviati |
 | I [tag](./groups-sections-tasks#tag) dei task, per nome e colore: una nota creata dal template riusa il tag del workspace con lo stesso nome, oppure lo crea | |
 | I colori della nota, dei gruppi, delle sezioni e dei task | Elementi nel cestino |
-| | [Automazioni](./automations) |
+| Le [automazioni](./automations) della nota, che puntano alle sezioni e ai gruppi della nuova nota (le regole che si riferiscono a qualcosa non copiato restano fuori). Non girano mai dentro l'editor del template | |
 
 ## Creare una nota da un template
 
@@ -69,7 +69,7 @@ Fai clic su **Modifica** su un template: si apre in un tab tra le note aperte, c
 - **Aggiorna da un'altra nota.** Nello stesso menu, **Aggiorna da un'altra nota...** sostituisce il contenuto con quello di una nota che scegli, che diventa la nota di origine.
 - **Recupero.** Se l'app viene chiusa mentre un template è aperto, le modifiche non si perdono. Con l'opzione **Riapri le note all'avvio** attiva, il tab si riapre dove l'avevi lasciata. Con l'opzione spenta, le modifiche vengono salvate nel template all'avvio e un avviso ti dice che sono state recuperate.
 
-In un template le azioni che non hanno senso sono nascoste: archivio, audio e [automazioni](./automations). L'eliminazione di un elemento mostra un breve avviso "Eliminato" al posto del solito, e l'annulla funziona sul template finché il suo tab è aperto.
+In un template le azioni che non hanno senso sono nascoste: archivio e audio. Le [automazioni](./automations) di un template si possono modificare ma non girano mai lì: agiscono sulle note create da esso. L'eliminazione di un elemento mostra un breve avviso "Eliminato" al posto del solito, e l'annulla funziona sul template finché il suo tab è aperto.
 
 Chiudi il tab (o usa **Chiudi editor** nel suo menu) quando hai finito: il template conserva quello che hai scritto.
 

@@ -287,7 +287,8 @@ export async function getDBTagIndex(noteIds: readonly number[]): Promise<Map<num
     const db = await getDB()
     for (const ids of chunked(noteIds)) {
         const rows = await db.select<{ id: number, name: string, color: string | null, shape: string | null }[]>(
-            `SELECT id, name, color, shape FROM tag WHERE workspaceID IN (SELECT workspaceID FROM note WHERE id IN (${placeholders(ids.length)}))`, ids)
+            `SELECT id, name, color, shape FROM tag WHERE workspaceID IN (
+                SELECT COALESCE(n.workspaceID, (SELECT t.workspaceID FROM note_template t WHERE t.id = n.templateID)) FROM note n WHERE n.id IN (${placeholders(ids.length)}))`, ids)
         for (const row of rows) index.set(row.id, { name: row.name, color: row.color ?? null, ...(row.shape ? { shape: row.shape } : {}) })
     }
     return index

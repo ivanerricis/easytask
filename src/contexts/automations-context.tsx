@@ -5,6 +5,7 @@ import i18n from "@/i18n"
 import type { NoteDataTree, Task } from "@/types/types"
 import { useActiveNote, useActiveNoteActions } from "@/contexts/use-active-note"
 import { useActiveNoteId } from "@/contexts/use-tabs"
+import { useTemplateDrafts } from "@/contexts/use-template-drafts"
 import { useWorkspaceActions, useWorkspaceTags } from "@/contexts/workspace-data"
 import { useOptionalUndo, useUndoRecorder } from "@/contexts/undo/use-undo"
 import type { UndoCommand } from "@/contexts/undo/stack"
@@ -78,6 +79,11 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
     const activeIdRef = useRef(activeId)
     // The rules of the open note, read once and shared by `run` and `sync` (both fire on every task action). Dropped when
     // the open note changes or when `sync` is called from outside, which is what the automations dialog does after a write.
+    // The working copy of a template never runs its rules: they are only data there, applied to the notes created from the template
+    const drafts = useTemplateDrafts()
+    const draftsRef = useRef(drafts)
+    useEffect(() => { draftsRef.current = drafts }, [drafts])
+    const isDraftNote = useCallback((noteId: number) => draftsRef.current.some(draft => draft.noteId === noteId), [])
     const rulesCache = useRef(new Map<number, Promise<Automation[]>>())
     const getRules = useCallback((noteId: number) => {
         const cached = rulesCache.current.get(noteId)
@@ -141,7 +147,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
 
     const run = useCallback(async (event: AutomationEvent, target?: number | null) => {
         const noteId = target ?? activeIdRef.current
-        if (noteId === null) return
+        if (noteId === null || isDraftNote(noteId)) return
         const rules = await getRules(noteId)
         if (!rules.some(rule => rule.enabled)) return
         // Read after the await: the note may have changed (or been closed) while the rules were loading
@@ -192,7 +198,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
                 ...(undo ? { action: { label: i18n.t("undo.undo"), onClick: undoAutomation } } : {}),
             },
         )
-    }, [getRules, getCachedNoteTree, setNoteDataTree, applyOrRefresh, notifyArchiveChanged, recorder, restore])
+    }, [getRules, isDraftNote, getCachedNoteTree, setNoteDataTree, applyOrRefresh, notifyArchiveChanged, recorder, restore])
 
     /** Runs the rules for an event (never rejects: a failure is reported). An undo asked meanwhile waits for it. */
     const dispatch = useCallback((event: AutomationEvent, noteId?: number | null) => recorder.track(run(event, noteId).catch(error => {
@@ -205,7 +211,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
      */
     const syncRules = useCallback((target?: number | null) => recorder.track((async () => {
         const noteId = target ?? activeIdRef.current
-        if (noteId === null) return
+        if (noteId === null || isDraftNote(noteId)) return
         const rules = await getRules(noteId)
         if (!rules.some(rule => rule.enabled && isStateTrigger(rule.trigger.type))) return
         // Read after the await: the user may have acted while the rules were loading
@@ -217,7 +223,7 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
         await applyOrRefresh(noteId, () => applyDBAutomationChanges([...diffGroupStatements(before, after), ...diffSectionStatements(before, after)]))
     })().catch(error => {
         reportError(error, getErrorMessage(error))
-    })), [recorder, getRules, getCachedNoteTree, setNoteDataTree, applyOrRefresh])
+    })), [recorder, getRules, isDraftNote, getCachedNoteTree, setNoteDataTree, applyOrRefresh])
 
     /** The public `sync`: whoever asks from outside has just changed the rules (the automations dialog), so they are read again. */
     const sync = useCallback((noteId?: number | null) => {

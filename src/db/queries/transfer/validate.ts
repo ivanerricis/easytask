@@ -182,7 +182,13 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     for (const template of templates as unknown[]) {
         if (!isObject(template) || !isNonEmpty(template.name) || !isNullableString(template.color) || !isNullableString(template.bg_color)
             || !isNullableString(template.bg_image) || !isNullableString(template.bg_image_file)) malformed()
-        checkContent(template.content, counter)
+        const content = checkContent(template.content, counter)
+        if (content.automations !== undefined) {
+            if (!Array.isArray(content.automations)) malformed()
+            bump(counter, content.automations.length)
+            for (const automation of content.automations as unknown[])
+                if (!isPortableAutomation(automation, content)) malformed()
+        }
     }
 
     if (scope === "items") {

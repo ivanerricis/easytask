@@ -147,8 +147,8 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
             />
             <Separator />
             <GroupStepMoves groupId={group.id} onDone={menu.close} />
-            {!isDraft && <Separator />}
-            {noteId !== null && !isDraft && <ButtonInPopover
+            <Separator />
+            {noteId !== null && <ButtonInPopover
                 text={t("automations.menu")}
                 type="automations"
                 onClick={() => {
@@ -176,7 +176,7 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
 
     const dialogs = (
         <>
-            {noteId !== null && !isDraft && <LazyMount active={isAutomationsOpen}>
+            {noteId !== null && <LazyMount active={isAutomationsOpen}>
                 <LazyDialogAutomations
                     noteId={noteId}
                     groupId={group.id}

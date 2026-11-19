@@ -3,7 +3,8 @@ import { createError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
 import { getDB } from "../dbManager"
 import { Transaction, TransactionError } from "../transaction"
-import { addNoteContent, buildContentWithSectionIds, getDBTemplate } from "./template"
+import { addNoteContent, buildTemplateSnapshot, getDBTemplate, getTemplateAutomations } from "./template"
+import { addNoteAutomations } from "./automation"
 
 /**
  * The working copy of a template while it is edited: a note with no workspace (so no list of a workspace shows it)
@@ -52,7 +53,8 @@ export async function createDBTemplateDraft(templateId: number): Promise<number>
         const note = tx.add(
             'INSERT INTO note (workspaceID, folderID, templateID, name, color, bg_color, bg_image, position) VALUES (NULL, NULL, ?, ?, ?, ?, ?, 0)',
             [templateId, template.name, template.color, template.bg_color ?? null, template.bg_image ?? null])
-        addNoteContent(tx, tx.idOf(note), template.content)
+        const { groups, sections, defaultSections } = addNoteContent(tx, tx.idOf(note), template.content)
+        addNoteAutomations(tx, tx.idOf(note), getTemplateAutomations(template.content), template.content, sections, groups, defaultSections)
         try {
             const results = await tx.run()
             return results[note].lastInsertId
@@ -86,7 +88,7 @@ export async function saveDBTemplateDraft(noteId: number): Promise<TemplateDraft
              WHERE n.id = ? AND n.templateID IS NOT NULL`, [noteId])
         if (rows.length === 0) return "missing"
 
-        const { content } = await buildContentWithSectionIds(noteId)
+        const content = await buildTemplateSnapshot(noteId)
         const json = JSON.stringify(content)
         const color = rows[0].color ?? null
         const bg = rows[0].bg_color ?? null

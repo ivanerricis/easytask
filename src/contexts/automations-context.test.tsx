@@ -58,6 +58,7 @@ vi.mock("@/db/queries/automation", () => ({
 
 import { AutomationsProvider } from "./automations-context"
 import { useAutomations } from "@/hooks/use-automations"
+import { TemplateDraftsContext } from "@/contexts/template-drafts-context-object"
 
 const wrapper = ({ children }: { children: ReactNode }) => <AutomationsProvider>{children}</AutomationsProvider>
 
@@ -394,5 +395,38 @@ describe("AutomationsProvider with two panes", () => {
         expect(mocks.setNoteDataTree).toHaveBeenCalledWith(expect.anything(), 2)
         expect(mocks.getNoteData).toHaveBeenCalledWith(2)
         expect(mocks.reportError).toHaveBeenCalled()
+    })
+})
+
+describe("AutomationsProvider and template drafts", () => {
+    const draft = { noteId: 2, templateId: 7, templateName: "T", color: null, trashed: false }
+    const draftWrapper = ({ children }: { children: ReactNode }) => (
+        <TemplateDraftsContext.Provider value={{ drafts: [draft] }}><AutomationsProvider>{children}</AutomationsProvider></TemplateDraftsContext.Provider>
+    )
+
+    it("never runs the rules of a template draft, neither after an action nor in the sync", async () => {
+        mocks.trees[2] = fresh()
+        mocks.activeId = 3 // no cached focused note: the sync on mount does nothing
+        mocks.rules = [
+            makeRule(1, { type: "group.completed", groupId: null }, [{ type: "archiveGroup" }]),
+            makeRule(2, { type: "section.noOpenTasks", sectionId: null }, [{ type: "setColor", color: "#00ff00" }]),
+        ]
+        const { result } = renderHook(() => useAutomations(), { wrapper: draftWrapper })
+        await result.current.dispatch({ type: "task.completed", taskId: 11 }, 2)
+        await result.current.sync(2)
+
+        expect(mocks.getDBAutomations).not.toHaveBeenCalledWith(2)
+        expect(mocks.applyDBAutomationChanges).not.toHaveBeenCalled()
+        expect(mocks.setNoteDataTree).not.toHaveBeenCalledWith(expect.anything(), 2)
+        expect(toastMock.success).not.toHaveBeenCalled()
+        expect(mocks.recorded).toHaveLength(0)
+    })
+
+    it("still runs the rules of a normal note when a draft exists", async () => {
+        mocks.rules = [makeRule(1, { type: "group.completed", groupId: 1 }, [{ type: "archiveGroup" }])]
+        const { result } = renderHook(() => useAutomations(), { wrapper: draftWrapper })
+        await result.current.dispatch({ type: "task.completed", taskId: 11 })
+        expect(groupIds(mocks.tree!)).toEqual([2])
+        expect(mocks.applyDBAutomationChanges).toHaveBeenCalledTimes(1)
     })
 })
