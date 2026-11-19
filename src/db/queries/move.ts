@@ -9,6 +9,27 @@ import { DEFAULT_SECTION_SQL } from "./sql"
 const SECTION_UNIQUE_MESSAGE = () => i18n.t("errors.move.sectionUnique")
 
 /**
+ * Options of the moves that can cross to another note of the split view. `acrossNotes` lifts the rule "same note" (the two notes
+ * must still belong to the same workspace: the tags are the ones of the workspace and the move does not touch them).
+ * @category Database Queries
+ */
+export type AcrossNotes = { acrossNotes?: boolean }
+
+/**
+ * Checks that two notes belong to the same workspace (a template draft counts as part of the workspace of its template).
+ * @throws The given code when they do not, or when one of them does not exist.
+ */
+export async function assertSameWorkspace(db: Database, noteA: number, noteB: number, code: string): Promise<void> {
+    if (noteA === noteB) return
+    const rows = await db.select<{ id: number, workspaceID: number | null }[]>(
+        `SELECT n.id, COALESCE(n.workspaceID, (SELECT t.workspaceID FROM note_template t WHERE t.id = n.templateID)) AS workspaceID
+         FROM note n WHERE n.id IN (?, ?) AND n.deleted_at IS NULL`, [noteA, noteB])
+    const workspaces = new Set(rows.map(row => row.workspaceID))
+    if (rows.length !== 2 || workspaces.size !== 1 || workspaces.has(null))
+        throw createError(code, i18n.t("errors.move.noteInvalid"))
+}
+
+/**
  * The section to move (neither deleted nor the hidden default section of a group) with its group and note.
  * @throws SECTION_MOVE_INVALID when it does not exist.
  */
@@ -37,19 +58,21 @@ async function loadMovableSection(db: Database, sectionId: number): Promise<{ id
  * @param targetIndex Position among the destination sections (0 based, clamped).
  * @param options beforeList: when the list of the direct tasks sits exactly at that position (the index counts only the sections
  * with a header, so the section would go after the list) the section goes right before the list instead.
- * @throws SECTION_MOVE_INVALID when the section or the destination group is not valid.
+ * @throws SECTION_MOVE_INVALID when the section or the destination group is not valid (a group of another note is valid only with
+ * `options.acrossNotes`, and only in the same workspace).
  * @throws SECTION_EXISTS when the destination group already has a section with the same title.
  * @category Database Queries
  */
-export async function moveDBSection(sectionId: number, targetGroupId: number, targetIndex: number, options: { beforeList?: boolean } = {}) {
+export async function moveDBSection(sectionId: number, targetGroupId: number, targetIndex: number, options: { beforeList?: boolean } & AcrossNotes = {}) {
     try {
         const db = await getDB()
         const section = await loadMovableSection(db, sectionId)
 
         const targets = await db.select<{ id: number, noteID: number }[]>(
             'SELECT id, noteID FROM section_group WHERE id = ? AND deleted_at IS NULL AND archived_at IS NULL', [targetGroupId])
-        if (!targets[0] || targets[0].noteID !== section.noteID)
+        if (!targets[0] || (!options.acrossNotes && targets[0].noteID !== section.noteID))
             throw createError("SECTION_MOVE_INVALID", i18n.t("errors.move.groupInvalid"))
+        if (options.acrossNotes) await assertSameWorkspace(db, section.noteID, targets[0].noteID, "SECTION_MOVE_INVALID")
 
         const order = insertAmongSections(await groupOrderRows(db, targetGroupId, sectionId), targetIndex, sectionId, options.beforeList)
 
@@ -73,17 +96,21 @@ export async function moveDBSection(sectionId: number, targetGroupId: number, ta
  * The caller is responsible for updating the note data (the new group id is returned for that).
  * @param sectionId ID of the section to move.
  * @param groupPosition Index of the new group among the groups of the note (0 based, clamped).
+ * @param options noteId: the note that gets the new group (default: the note of the section; another one of the same workspace crosses notes).
  * @returns The IDs of the new group and of its hidden default section.
  * @throws SECTION_MOVE_INVALID when the section does not exist.
  * @category Database Queries
  */
-export async function moveDBSectionToNewGroup(sectionId: number, groupPosition: number): Promise<{ groupId: number, defaultSectionId: number }> {
+export async function moveDBSectionToNewGroup(sectionId: number, groupPosition: number, options: { noteId?: number } = {}): Promise<{ groupId: number, defaultSectionId: number }> {
     try {
         const db = await getDB()
         const section = await loadMovableSection(db, sectionId)
+        // The new group is created in the note of the section, or in `options.noteId` (the other note of the split view)
+        const noteID = options.noteId ?? section.noteID
+        await assertSameWorkspace(db, section.noteID, noteID, "SECTION_MOVE_INVALID")
 
         const groups = await db.select<{ id: number }[]>(
-            'SELECT id FROM section_group WHERE noteID = ? AND deleted_at IS NULL ORDER BY position, id', [section.noteID])
+            'SELECT id FROM section_group WHERE noteID = ? AND deleted_at IS NULL ORDER BY position, id', [noteID])
         const order = groups.map(row => row.id)
         const index = clampIndex(groupPosition, order.length)
 
@@ -91,7 +118,7 @@ export async function moveDBSectionToNewGroup(sectionId: number, groupPosition: 
         const remaining = (await groupOrderRows(db, section.groupID, sectionId)).map(row => row.id)
 
         const tx = new Transaction()
-        const created = tx.add('INSERT INTO section_group (noteID, position) VALUES (?, ?)', [section.noteID, index])
+        const created = tx.add('INSERT INTO section_group (noteID, position) VALUES (?, ?)', [noteID, index])
         const newGroup = tx.idOf(created)
         const createdDefault = tx.add(DEFAULT_SECTION_SQL, [newGroup])
         const groupOrder: (number | TxRef)[] = [...order]
@@ -155,11 +182,12 @@ export type TaskMoveTarget = {
  * @param taskId ID of the task to move.
  * @param target Destination section and optional parent task.
  * @param targetIndex Position among the destination siblings (0 based, clamped).
- * @throws TASK_MOVE_INVALID when the task/target does not exist, belongs to another note, the parent is not in
+ * @param options acrossNotes: the destination may be in another note of the same workspace (the tags and the trashed descendants follow the task).
+ * @throws TASK_MOVE_INVALID when the task/target does not exist, belongs to another note (unless `acrossNotes`), the parent is not in
  * the target section, or the parent is the task itself or one of its descendants.
  * @category Database Queries
  */
-export async function moveDBTask(taskId: number, target: TaskMoveTarget, targetIndex: number) {
+export async function moveDBTask(taskId: number, target: TaskMoveTarget, targetIndex: number, options: AcrossNotes = {}) {
     try {
         const db = await getDB()
         const parentId = target.parentTaskId ?? null
@@ -183,8 +211,9 @@ export async function moveDBTask(taskId: number, target: TaskMoveTarget, targetI
         if (!task)
             throw createError("TASK_MOVE_INVALID", i18n.t("errors.move.taskMissing"))
 
-        if (!sectionsFound[0] || sectionsFound[0].noteID !== task.noteID)
+        if (!sectionsFound[0] || (!options.acrossNotes && sectionsFound[0].noteID !== task.noteID))
             throw createError("TASK_MOVE_INVALID", i18n.t("errors.move.sectionTargetInvalid"))
+        if (options.acrossNotes) await assertSameWorkspace(db, task.noteID, sectionsFound[0].noteID, "TASK_MOVE_INVALID")
 
         if (parentId != null && parents) {
             if (!parents[0] || parents[0].sectionID !== target.sectionId)

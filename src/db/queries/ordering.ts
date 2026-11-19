@@ -8,7 +8,7 @@ import type { Transaction, TxRef } from "../transaction"
 export const clampIndex = (index: number, length: number) => Math.max(0, Math.min(Math.trunc(index) || 0, length))
 
 /** A column assigned to the same value on every row of a position update (the new parent of the rows). */
-type PositionParent = { column: "groupID" | "folderID", value: number | TxRef | null }
+type PositionParent = { column: "groupID" | "folderID" | "noteID", value: number | TxRef | null }
 
 /**
  * Builds the single UPDATE that assigns sequential positions to an ordered list of rows,
@@ -94,8 +94,8 @@ export async function groupOrderRows(db: Database, groupId: number, excludeId: n
  * with `beforeList` it goes right before it instead (the place between the section above the list and the list).
  * @category Database Queries
  */
-export function insertAmongSections(rows: readonly OrderRow[], index: number, id: number, beforeList = false): number[] {
-    const ids = rows.map(row => row.id)
+export function insertAmongSections<T extends number | TxRef = number>(rows: readonly OrderRow[], index: number, id: T, beforeList = false): (number | T)[] {
+    const ids: (number | T)[] = rows.map(row => row.id)
     // Only the sections the note shows: an archived one is not counted by the index
     const headed = rows.filter(row => !row.isDefault && !row.archived)
     const at = clampIndex(index, headed.length)

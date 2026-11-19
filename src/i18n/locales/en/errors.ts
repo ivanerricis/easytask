@@ -63,6 +63,8 @@ export const errors: Translation["errors"] = {
         sectionTargetInvalid: "The target section is not valid.",
         taskTargetInvalid: "The target task is not valid.",
         taskIntoItself: "You cannot move a task into itself or one of its subtasks.",
+        noteInvalid: "The other note is not valid for this move: it must be open in the same workspace.",
+        groupMissing: "The group to move does not exist.",
     },
     duplicate: {
         noteMissing: "The note to duplicate no longer exists.",
