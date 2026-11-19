@@ -6,7 +6,7 @@ export const templateEditor: Translation["templateEditor"] = {
     edit: "Edit",
     editAria: "Edit the template {{name}}",
     pathRoot: "Template",
-    saving: "Saving…",
+    saving: "Saving",
     saved: "Saved",
     saveError: "Could not save",
     retry: "Retry",

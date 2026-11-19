@@ -15,13 +15,13 @@ describe("ItemRow", () => {
 })
 
 describe("ListSkeleton", () => {
-    it("è occupato, mostra Caricamento… e non anima con movimento ridotto", async () => {
+    it("è occupato, mostra Caricamento e non anima con movimento ridotto", async () => {
         render(<ListSkeleton />)
         const status = screen.getByRole("status")
         expect(status).toHaveAttribute("aria-busy", "true")
         // The skeleton (and the visible text) appear after a short delay; the text is read out from the start
-        expect(screen.getByText("Caricamento…")).toBeInTheDocument()
-        await waitFor(() => expect(screen.getByText("Caricamento…")).toHaveClass("text-sm"))
+        expect(screen.getByText("Caricamento")).toBeInTheDocument()
+        await waitFor(() => expect(screen.getByText("Caricamento")).toHaveClass("text-sm"))
         expect(status.querySelector("[data-slot=skeleton]")).toHaveClass("motion-reduce:animate-none")
     })
 })

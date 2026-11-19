@@ -3,7 +3,7 @@ import type { Translation } from "../it"
 export const details: Translation["details"] = {
     showTask: "Show details",
     emptyNote: "Open a note to see its details.",
-    loading: "Loading details…",
+    loading: "Loading details",
     taskTitle: "Task details",
     noteTitle: "Note details",
     path: "Path",
@@ -26,7 +26,7 @@ export const details: Translation["details"] = {
         title: "Audio",
         fileTitle: "Audio file title",
         empty: "No audio file: play a file or choose Show details from its menu.",
-        loading: "Reading the audio file…",
+        loading: "Reading the audio file",
         error: "File not found or not readable.",
         cover: "Cover art",
         file: "File",

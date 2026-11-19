@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { Update } from "@tauri-apps/plugin-updater"
@@ -76,7 +77,7 @@ export const UpdateSection = () => {
 
                 <div role="status" aria-live="polite" className="flex flex-col gap-2 text-sm not-empty:mt-3">
                     {status.kind === "checking" && (
-                        <p className="text-muted-foreground">{t("settings.about.update.checking")}</p>
+                        <p className="text-muted-foreground">{t("settings.about.update.checking")}<LoadingDots /></p>
                     )}
                     {status.kind === "upToDate" && (
                         <p className="text-muted-foreground">{t("settings.about.update.upToDate")}</p>

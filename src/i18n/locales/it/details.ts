@@ -1,7 +1,7 @@
 export const details = {
     showTask: "Mostra dettagli",
     emptyNote: "Apri una nota per vederne i dettagli.",
-    loading: "Caricamento dei dettagli…",
+    loading: "Caricamento dei dettagli",
     taskTitle: "Dettagli del task",
     noteTitle: "Dettagli della nota",
     path: "Percorso",
@@ -24,7 +24,7 @@ export const details = {
         title: "Audio",
         fileTitle: "Titolo del file audio",
         empty: "Nessun file audio: riproduci un file o scegli Mostra dettagli dal suo menu.",
-        loading: "Lettura del file audio…",
+        loading: "Lettura del file audio",
         error: "File non trovato o non leggibile.",
         cover: "Copertina",
         file: "File",

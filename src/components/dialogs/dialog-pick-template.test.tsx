@@ -52,15 +52,15 @@ describe("DialogPickTemplate", () => {
         setup()
         await waitFor(() => expect(screen.getByText(/Non ci sono ancora template/)).toBeInTheDocument())
     })
-    it("mostra Caricamento… finché i template non sono arrivati, senza Nessun risultato", async () => {
+    it("mostra Caricamento finché i template non sono arrivati, senza Nessun risultato", async () => {
         let resolve: (list: NoteTemplate[]) => void = () => { /* none */ }
         actions.getTemplates.mockReturnValue(new Promise<NoteTemplate[]>(r => { resolve = r }))
         setup()
-        expect(screen.getByText("Caricamento…")).toBeInTheDocument()
+        expect(screen.getByText("Caricamento")).toBeInTheDocument()
         expect(screen.queryByText("Nessun risultato")).not.toBeInTheDocument()
         resolve([template(1, "Sprint")])
         expect(await screen.findByText("Sprint")).toBeInTheDocument()
-        expect(screen.queryByText("Caricamento…")).not.toBeInTheDocument()
+        expect(screen.queryByText("Caricamento")).not.toBeInTheDocument()
     })
 
     it("in caso di errore mostra l'errore e non Nessun risultato", async () => {
@@ -68,6 +68,6 @@ describe("DialogPickTemplate", () => {
         setup()
         expect(await screen.findByText(/boom/)).toBeInTheDocument()
         expect(screen.queryByText("Nessun risultato")).not.toBeInTheDocument()
-        expect(screen.queryByText("Caricamento…")).not.toBeInTheDocument()
+        expect(screen.queryByText("Caricamento")).not.toBeInTheDocument()
     })
 })

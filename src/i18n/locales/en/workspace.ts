@@ -1,7 +1,7 @@
 import type { Translation } from "../it"
 
 export const home: Translation["home"] = {
-    loading: "Loading workspaces…",
+    loading: "Loading workspaces",
     welcome: "Welcome back!",
     import: "Import a workspace",
     recent: "Open a recent workspace",
@@ -31,7 +31,7 @@ export const home: Translation["home"] = {
 }
 
 export const workspace: Translation["workspace"] = {
-    loading: "Loading workspace data…",
+    loading: "Loading workspace data",
     combobox: {
         select: "Select workspace…",
         search: "Search a workspace…",

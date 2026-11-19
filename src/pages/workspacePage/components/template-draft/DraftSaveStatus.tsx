@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useTranslation } from "react-i18next"
 import { AlertCircle, Check, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,7 @@ export const DraftSaveStatus = ({ status, onRetry, className }: DraftSaveStatusP
 
     return (
         <div role="status" aria-live="polite" className={cn("flex items-center gap-1 text-xs text-muted-foreground", className)}>
-            {status === "saving" && <><Loader2 className="size-3.5 animate-spin" aria-hidden />{t("templateEditor.saving")}</>}
+            {status === "saving" && <><Loader2 className="size-3.5 animate-spin" aria-hidden />{t("templateEditor.saving")}<LoadingDots /></>}
             {status === "saved" && <><Check className="size-3.5" aria-hidden />{t("templateEditor.saved")}</>}
             {status === "error" && (
                 <>

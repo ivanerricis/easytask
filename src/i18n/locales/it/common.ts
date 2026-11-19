@@ -8,7 +8,7 @@ export const common = {
     system: "Sistema",
     close: "Chiudi",
     retry: "Riprova",
-    loading: "Caricamento…",
+    loading: "Caricamento",
     noResults: "Nessun risultato",
     counts: {
         group_one: "{{count}} gruppo",

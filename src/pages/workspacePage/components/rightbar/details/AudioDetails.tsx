@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useContext, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AudioFile } from "@/types/types"
@@ -95,7 +96,7 @@ export const AudioDetails = () => {
 
     let content: React.ReactNode
     if (!file || !path) content = <p role="status" className="text-sm text-muted-foreground">{t("details.audio.empty")}</p>
-    else if (state?.path !== path) content = <p role="status" className="text-sm text-muted-foreground">{t("details.audio.loading")}</p>
+    else if (state?.path !== path) content = <p role="status" className="text-sm text-muted-foreground">{t("details.audio.loading")}<LoadingDots /></p>
     else if (state.failed || !state.metadata) content = <p role="alert" className="text-sm text-destructive">{t("details.audio.error")}</p>
     else content = <AudioFields name={file.name} path={path} metadata={state.metadata} />
 
