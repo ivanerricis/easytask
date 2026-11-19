@@ -139,4 +139,14 @@ describe("TagBadge new shapes", () => {
         expect(star.className).toContain("clip-path:polygon")
         expect(square.style.backgroundColor).toBe("rgb(0, 0, 255)")
     })
+
+    it("marks the markers of the box-less shapes (badge and sample) for the forced colors styles", () => {
+        const { container } = render(<>
+            {(["dot", "diamond", "star", "square"] as const).map(shape => <TagBadge key={shape} tag={{ name: shape, color: "#ff0000", shape }} />)}
+            {(["dot", "diamond", "star", "square"] as const).map(shape => <TagShapeSample key={shape} shape={shape} color="#ff0000" />)}
+            <TagBadge tag={{ name: "Hex", color: "#ff0000", shape: "hexagon" }} />
+        </>)
+        expect(container.querySelectorAll("[data-tag-marker]")).toHaveLength(8)
+        expect(screen.getAllByTestId("tag-badge").at(-1)).toHaveAttribute("data-shape", "hexagon")
+    })
 })

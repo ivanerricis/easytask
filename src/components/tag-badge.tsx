@@ -50,6 +50,7 @@ export const TagBadge = memo(({ tag, className }: TagBadgeProps) => {
         >
             <span
                 aria-hidden="true"
+                data-tag-marker=""
                 className={cn("shrink-0", marker, !color && "bg-muted-foreground/50")}
                 style={color ? { backgroundColor: color } : undefined}
             />
@@ -98,6 +99,7 @@ export const TagShapeSample = memo(({ shape, color, className }: { shape: TagSha
     if (marker) return (
         <span
             aria-hidden="true"
+            data-tag-marker=""
             className={cn("inline-block", marker, shape !== "star" && shape !== "diamond" && "size-3", !color && "bg-muted-foreground/60", className)}
             style={color ? { backgroundColor: color } : undefined}
         />
