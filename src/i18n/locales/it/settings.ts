@@ -314,18 +314,18 @@ export const settings = {
     notes: {
         title: "Note e sezioni",
         sections: {
-            progress: "Barre d'avanzamento",
+            progress: "Avanzamento",
             counts: "Contatori",
             display: "Visualizzazione",
             behavior: "Comportamento",
             startup: "All'avvio",
         },
         progressBar: {
-            label: "Mostra barra d'avanzamento nelle sezioni",
+            label: "Mostra anello d'avanzamento nelle sezioni",
             description: "Indica la percentuale di task completati.",
         },
         groupProgressBar: {
-            label: "Mostra barra d'avanzamento nei gruppi",
+            label: "Mostra anello d'avanzamento nei gruppi",
             description: "Conta tutti i task e i sottotask del gruppo.",
         },
         sectionCount: "Mostra numero di sezioni",

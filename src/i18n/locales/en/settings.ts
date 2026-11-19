@@ -316,18 +316,18 @@ export const settings: Translation["settings"] = {
     notes: {
         title: "Notes and sections",
         sections: {
-            progress: "Progress bars",
+            progress: "Progress",
             counts: "Counters",
             display: "Display",
             behavior: "Behavior",
             startup: "On startup",
         },
         progressBar: {
-            label: "Show progress bar in sections",
+            label: "Show progress ring in sections",
             description: "Shows the percentage of completed tasks.",
         },
         groupProgressBar: {
-            label: "Show progress bar in groups",
+            label: "Show progress ring in groups",
             description: "Counts all the tasks and subtasks of the group.",
         },
         sectionCount: "Show number of sections",

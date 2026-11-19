@@ -27,6 +27,22 @@ const setup = (pane: PaneIndex, s: SplitState = state) => {
 }
 
 describe("SplitPane", () => {
+    it("dims only the note of the pane without the focus, never the tab bar", () => {
+        setup(1, { open0: [1], active0: 1, open1: [2], active1: 2, focused: 0 })
+        const dim = screen.getByTestId("pane-dim")
+        expect(dim).toHaveAttribute("data-dimmed", "true")
+        expect(dim.className).toContain("pointer-events-none")
+        expect(dim.className).toContain("opacity-100")
+        expect(screen.getByTestId("note-list").closest("[data-testid=pane-dim]")).toBeNull()
+        expect(dim.parentElement).toContainElement(screen.getByTestId("groups"))
+        expect(dim.parentElement).not.toContainElement(screen.getByTestId("note-list"))
+    })
+
+    it("does not dim the focused pane", () => {
+        setup(0)
+        expect(screen.getByTestId("pane-dim")).toHaveAttribute("data-dimmed", "false")
+    })
+
     it("shows the tab bar, the path bar and the groups of the active note", () => {
         const { region } = setup(0)
         expect(region).toHaveAccessibleName("Area sinistra")

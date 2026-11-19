@@ -56,7 +56,7 @@ export const SplitPane = memo(function SplitPane({ pane, split }: SplitPaneProps
             onPointerDownCapture={split ? claimFocus : undefined}
             onFocusCapture={split ? claimFocus : undefined}
         >
-            <PaneBody empty={empty} alwaysTabs={split} />
+            <PaneBody empty={empty} alwaysTabs={split} dimmed={split && !focused} />
         </div>
     )
 })

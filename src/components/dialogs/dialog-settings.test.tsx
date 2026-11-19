@@ -114,7 +114,7 @@ describe("DialogSettings", () => {
         expect(screen.getByLabelText("Mostra numero di task")).toBeInTheDocument()
         expect(screen.getAllByRole("switch")).toHaveLength(19)
         expect(screen.getByRole("switch", { name: "Nascondi task completati" })).not.toBeChecked()
-        expect(screen.getByRole("switch", { name: "Mostra barra d'avanzamento nei gruppi" })).toBeChecked()
+        expect(screen.getByRole("switch", { name: "Mostra anello d'avanzamento nei gruppi" })).toBeChecked()
         expect(screen.getByRole("switch", { name: "Mostra il nome dei gruppi e delle sezioni senza nome" })).not.toBeChecked()
         expect(screen.getByRole("switch", { name: "Rinomina cliccando sul nome" })).toBeChecked()
         expect(screen.getByLabelText("Riapri le note all'avvio")).toBeChecked()
