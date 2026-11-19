@@ -25,7 +25,7 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
     const { t } = useTranslation()
     const [dragWidth, setDragWidth] = useState<number | null>(null)
     const isResizing = dragWidth !== null
-    const dragRef = useRef<{ startX: number, startWidth: number, width: number } | null>(null)
+    const dragRef = useRef<{ startX: number, startWidth: number, width: number, moved: boolean } | null>(null)
     const pendingKey = useRef<{ timer: ReturnType<typeof setTimeout>, width: number } | null>(null)
     // The latest callback, so the window listeners and the timer never use a stale one
     const commitRef = useRef(onCommit)
@@ -56,7 +56,7 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
         e.preventDefault()
         flushKey()
         const startWidth = clampGroupWidth(width ?? getWidth())
-        dragRef.current = { startX: e.clientX, startWidth, width: startWidth }
+        dragRef.current = { startX: e.clientX, startWidth, width: startWidth, moved: false }
         setDragWidth(startWidth)
     }
 
@@ -66,6 +66,7 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
             const drag = dragRef.current
             if (!drag) return
             drag.width = clampGroupWidth(drag.startWidth + e.clientX - drag.startX)
+            drag.moved = true
             setDragWidth(drag.width)
             onResize(drag.width)
         }
@@ -73,7 +74,16 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
             const drag = dragRef.current
             dragRef.current = null
             setDragWidth(null)
-            if (drag) commitRef.current(drag.width)
+            if (!drag) return
+            if (drag.width !== drag.startWidth || (drag.moved && width !== null)) {
+                // Also the same width as before is saved after a movement: that ends the live width of the caller
+                commitRef.current(drag.width)
+            } else if (drag.moved) {
+                onResize(null)
+            }
+            // Else a click without a movement (or a drag back to where it started) on an automatic width: nothing changes. Saving
+            // the measured width would turn the automatic one into a fixed one, and a fixed width below the threshold hides the
+            // completion bar of the header
         }
         window.addEventListener("mousemove", move)
         window.addEventListener("mouseup", stop)
@@ -81,7 +91,7 @@ export const GroupResizeHandle = ({ getWidth, width, onResize, onCommit }: Group
             window.removeEventListener("mousemove", move)
             window.removeEventListener("mouseup", stop)
         }
-    }, [isResizing, onResize])
+    }, [isResizing, onResize, width])
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         // Measured now, not at the last render: the automatic width follows the content, which can have changed since
