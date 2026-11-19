@@ -73,7 +73,7 @@ export const useTreeLive = (rows: FlatRow[], tree: object) => {
         // A keyboard drag has its own announcements and a drag of the selection moves rows from many places: both keep the indicator
         liveRef.current = enabled && !keyboard && !selection ? build(source, rowsRef.current) : null
         const live = liveRef.current
-        if (live) readTreeRest(key => live.index.get(key), rowSize, TREE_ROW_GAP, size.indentPx)
+        if (live) readTreeRest(key => live.index.get(key), rowSize, TREE_ROW_GAP, size.indentPx, size.guidePx)
         return liveRef.current !== null
     }
 

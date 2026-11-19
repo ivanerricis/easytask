@@ -7,12 +7,14 @@ import { TabsProvider } from "@/contexts/tabs-context"
 import { useTabsActions } from "@/contexts/use-tabs"
 import { makeNote } from "@/test/ui-fixtures"
 import { NoteHeader } from "./NoteHeader"
+import { pendingRename, requestTabRename } from "@/lib/pending-rename"
 import { TemplateDraftsContext } from "@/contexts/template-drafts-context-object"
 vi.mock("../template-draft/DraftTabMenu", () => ({ DraftTabMenu: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 
 // The rename field needs the workspace data; the rows are tested without it
+const startRename = vi.hoisted(() => vi.fn())
 vi.mock("@/hooks/use-inline-rename", () => ({
-    useInlineRename: () => ({ editing: false, error: null, start: () => {}, inputProps: {} }),
+    useInlineRename: () => ({ editing: false, error: null, start: startRename, inputProps: {} }),
 }))
 
 vi.mock("@/lib/store/preferences", () => ({ getReopenNotes: vi.fn().mockResolvedValue(false) }))
@@ -154,5 +156,29 @@ describe("NoteHeader renders", () => {
         await userEvent.click(screen.getByText("Uno"))
         expect(screen.getByRole("tab", { name: "Uno" })).toHaveAttribute("aria-selected", "true")
         expect(menuRenders.count).toBe(2)
+    })
+})
+
+describe("NoteHeader rename request", () => {
+    it("starts the inline rename when a rename of its note is requested, once", async () => {
+        startRename.mockClear()
+        setup()
+        await act(async () => { })
+        expect(startRename).not.toHaveBeenCalled()
+        // Not the pane of these tabs (outside the panes: 0): nothing happens
+        act(() => requestTabRename(1, 1))
+        expect(startRename).not.toHaveBeenCalled()
+        act(() => requestTabRename(1, 0))
+        expect(startRename).toHaveBeenCalledTimes(1)
+        expect(pendingRename.getState()).toBeNull()
+    })
+
+    it("asks when the tab shows up after the request", async () => {
+        startRename.mockClear()
+        requestTabRename(2, 0)
+        setup()
+        await act(async () => { })
+        expect(startRename).toHaveBeenCalledTimes(1)
+        expect(pendingRename.getState()).toBeNull()
     })
 })

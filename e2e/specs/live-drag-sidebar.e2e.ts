@@ -24,8 +24,9 @@ const rows = async (): Promise<Row[]> => {
             label: row.getAttribute("aria-label") ?? "",
             top: rect.top,
             height: rect.height,
-            transform: row.style.transform,
-            opacity: row.style.opacity,
+            // The shift is written on the layer of the row (guides and item together), not on the item
+            transform: (row.closest<HTMLElement>("[data-tree-shift-layer]") ?? row).style.transform,
+            opacity: (row.closest<HTMLElement>("[data-tree-shift-layer]") ?? row).style.opacity,
             line: Array.from(row.children).some(child => child.classList.contains("bg-primary") && child.classList.contains("h-0.5")),
             ring: row.classList.contains("ring-primary"),
         }
@@ -49,7 +50,7 @@ const slots = async () => browser.execute(() => Array.from(document.querySelecto
 }))
 
 const strayTransforms = async () =>
-    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[role=treeitem]")).filter(item => item.style.transform !== "" || item.style.opacity !== "").length
+    browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-tree-shift-layer]")).filter(item => item.style.transform !== "" || item.style.opacity !== "").length
         + document.querySelectorAll("[data-live-slot]").length)
 
 /** Where each note is saved: its folder name (null at the root) and position, from the database. */

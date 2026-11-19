@@ -14,6 +14,8 @@ vi.mock("../tasks/note-announcer-store", () => ({ announce: (message: string) =>
 let liveDrag: boolean | undefined = true
 vi.mock("@/contexts/use-preference", () => ({ usePreference: (selector: (p: { liveDrag?: boolean }) => unknown) => selector({ liveDrag }) }))
 // The tab itself: only what the bars read
+// The "+" has its own test (it needs the workspace data)
+vi.mock("./NewNoteTabButton", () => ({ NewNoteTabButton: () => null }))
 vi.mock("./NoteHeader", () => ({
     NoteHeader: ({ note }: { note: Note }) => <button role="tab" data-note-id={note.id}>{note.name}</button>,
 }))
@@ -101,7 +103,8 @@ describe("TabsDndProvider with two bars", () => {
 
     it("keeps an empty bar visible so it can receive a tab", async () => {
         render(<Panes open0={[1]} open1={[]} />)
-        expect(right().className).toContain("min-h-[42px]")
+        // The minimum height is the one of the bar around the list and the "+"
+        expect(right().parentElement?.className).toContain("min-h-[42px]")
         expect(within(right()).queryAllByRole("tab")).toHaveLength(0)
     })
 
