@@ -21,10 +21,10 @@ import { announce } from "./tasks/note-announcer-store"
 import type { NoteDataTree } from "@/types/types"
 import { NO_HOVER, NoteDndStoreContext, NoteDragPressContext, createNoteDndStore, noteKey, useGroupMoves, useNoteDndSelector, useNoteMoves, type NoteHover } from "./note-dnd-state"
 import { createPointerDrag, type Modifiers, type Point, type PointerDragHandlers } from "./note-dnd-pointer"
-import { otherScrollers, scrollableAncestors, startAutoScroll, startScrollLock, type ScrollLock } from "./note-dnd-autoscroll"
+import { otherScrollers, SCROLLABLE, scrollableAncestors, startAutoScroll, startScrollLock, type ScrollLock } from "./note-dnd-autoscroll"
 import { createOverlayFollower } from "./note-dnd-overlay"
 import { NoteDragOverlay } from "./NoteDragOverlay"
-import { getNoteOwner, NoteOwnerContext, otherOwners, ownerKey, ownerOfKey, registerNoteOwner, stripOwner, type OwnerInfo } from "./note-dnd-owner"
+import { getNoteOwner, hasOtherNote, NoteOwnerContext, otherOwners, ownerKey, ownerOfKey, registerNoteOwner, stripOwner, type OwnerInfo } from "./note-dnd-owner"
 import { useCrossNoteMoves } from "./note-dnd-cross"
 
 /** Where a drop goes when it crosses to the other note of the split view: that note and the provider (pane) it belongs to. */
@@ -208,9 +208,14 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         measureZones(data.kind, () => refreshLive(data.kind))
         // What scrolls near an edge: this note's containers, and, while Ctrl is held and there is another note, only the containers of the other one
         const sources = scrollableAncestors(node)
-        const lock = startScrollLock(() => sources)
+        // The whole note the drag started in (its row of groups and every list inside it) stays still with Ctrl; the containers of the other one are found once
+        const root = node?.closest<HTMLElement>('[data-testid="group-scroll"]') ?? null
+        const own = root ? [root, ...root.querySelectorAll<HTMLElement>(SCROLLABLE)] : sources
+        let others: HTMLElement[] | null = null
+        const othersNow = () => others ??= otherScrollers(root ? [root] : sources)
+        const lock = startScrollLock(() => own)
         lockRef.current = lock
-        const stopAuto = startAutoScroll(() => drag.getModifiers().ctrl && otherOwners(owner).length > 0 ? otherScrollers(sources) : sources, () => drag.getPointer())
+        const stopAuto = startAutoScroll(() => drag.getModifiers().ctrl && hasOtherNote(owner) ? othersNow() : sources, () => drag.getPointer())
         stopScrollRef.current = () => { stopAuto(); lock.stop() }
         follower.begin(node?.getBoundingClientRect() ?? null, press, pointer)
         announce(t("dnd.start", { name: nameOf(data) }))
@@ -236,7 +241,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         const dragged = store.getState().active
         follower.follow(pointer)
         // Ctrl held: the drag may cross to the other note (when there is one open), and this note's containers do not scroll
-        const crossing = drag.getModifiers().ctrl && otherOwners(owner).length > 0
+        const crossing = drag.getModifiers().ctrl && hasOtherNote(owner)
         lockRef.current?.update(crossing)
         if (dragged) offerToOthers(crossing ? dragged : null)
         const hit = dragged ? hitTest(pointer, { owner, cross: crossing }) : null

@@ -1,4 +1,4 @@
-import { $, browser, expect } from "@wdio/globals"
+import { $, $$, browser, expect } from "@wdio/globals"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, groupCard, newSectionInGroup, openContextMenu, openWorkspace,
     pane, paneTab, sectionCard, sql, tr, treeRow, typeInto, waitForApp,
@@ -47,13 +47,13 @@ const shiftedIn = async (index: 0 | 1) =>
 const strayTransforms = async () =>
     browser.execute(() => Array.from(document.querySelectorAll<HTMLElement>("[data-task-wrap]")).filter(wrap => wrap.style.transform !== "").length + document.querySelectorAll("[data-live-slot]").length)
 
-/** The centre of an element in the viewport. */
-const centerOf = async (target: ChainablePromiseElement) => {
+/** A point of an element in the viewport: the middle of its width, `where` of its height (0.9 = the lower edge of a task row: "after" it). */
+const centerOf = async (target: ChainablePromiseElement, where = 0.5) => {
     const element = (await target.getElement()) as unknown as HTMLElement
-    return browser.execute((el: HTMLElement) => {
+    return browser.execute((el: HTMLElement, f: number) => {
         const rect = el.getBoundingClientRect()
-        return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) }
-    }, element)
+        return { x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height * f) }
+    }, element, where)
 }
 
 type ChainablePromiseElement = ReturnType<typeof $>
@@ -71,7 +71,8 @@ const drag = async (
     { ctrl = false, alt = false, whilePressed }: { ctrl?: boolean, alt?: boolean, whilePressed?: () => Promise<void> } = {},
 ) => {
     const a = await centerOf(from)
-    const b = await centerOf(to)
+    // The lower edge of the target row: the task goes after it (the middle would make it a subtask, which opens no room)
+    const b = await centerOf(to, 0.9)
     const steps = 30
     const at = (i: number) => ({ x: Math.round(a.x + ((b.x - a.x) * i) / steps), y: Math.round(a.y + ((b.y - a.y) * i) / steps), origin: "viewport" as const })
     const pointer = browser.action("pointer", { parameters: { pointerType: "mouse" } })

@@ -22,10 +22,13 @@ export const scrollableAncestors = (node: HTMLElement | null): HTMLElement[] => 
     return found
 }
 
-/** The containers that can scroll in the rest of the window: the ones of the other note of the split view, innermost first. */
+/**
+ * The containers that can scroll in the rest of the window: the ones of the other note of the split view, innermost first.
+ * Everything inside one of the `source` elements belongs to the note the drag started in and is left out.
+ */
 export const otherScrollers = (source: readonly HTMLElement[]): HTMLElement[] =>
     [...document.querySelectorAll<HTMLElement>(SCROLLABLE)]
-        .filter(element => !source.includes(element))
+        .filter(element => !source.some(root => root === element || root.contains(element)))
         .sort((a, b) => a.contains(b) ? 1 : b.contains(a) ? -1 : 0)
 
 /** How far into the band of an edge the pointer is: 0 outside it, 1 at the edge (or beyond). */

@@ -121,3 +121,14 @@ describe("startScrollLock", () => {
         expect(wheel(list).defaultPrevented).toBe(false)
     })
 })
+
+describe("otherScrollers leaves out everything inside the source root", () => {
+    it("a sibling list of the source note is not an 'other' container", () => {
+        const root = box({ "data-testid": "group-scroll" })
+        const sibling = document.createElement("div")
+        sibling.setAttribute("data-group-list", "")
+        root.appendChild(sibling)
+        const elsewhere = box({ "data-group-list": "" })
+        expect(otherScrollers([root])).toEqual([elsewhere])
+    })
+})

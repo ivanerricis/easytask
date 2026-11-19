@@ -49,3 +49,6 @@ export const NoteOwnerContext = createContext("")
 
 /** The id of the drag provider of the note the component is in: the rows register their wrappers under it. */
 export const useNoteDndOwner = (): string => useContext(NoteOwnerContext)
+
+/** Whether another note is open to receive a drag from `owner` (the other pane of a split view, showing a note). */
+export const hasOtherNote = (owner: string): boolean => otherOwners(owner).some(info => info.noteId !== null)
