@@ -51,6 +51,7 @@ beforeEach(() => {
         INSERT INTO tag (id, workspaceID, name, color, position) VALUES (1, 1, 'urgent', '#ff0000', 0);
         INSERT INTO task_tag (taskID, tagID) VALUES (2, 1);
         INSERT INTO section_group_tag (groupID, tagID) VALUES (1, 1);
+        INSERT INTO section_tag (sectionID, tagID) VALUES (11, 1);
     `)
 })
 
@@ -81,6 +82,12 @@ describe("moveDBTaskToNote", () => {
 })
 
 describe("moveDBSectionToNote", () => {
+    it("a moved section keeps its own tags", async () => {
+        await moveDBSectionToNote(11, 4, 0)
+        expect(col("SELECT groupID FROM section WHERE id = 11")).toEqual([4])
+        expect(col("SELECT tagID FROM section_tag WHERE sectionID = 11")).toEqual([1])
+    })
+
     it("moves a section with its tasks to a group of the other note", async () => {
         await moveDBSectionToNote(12, 3, 0)
         expect(col("SELECT title FROM section WHERE groupID = 3 AND is_default = 0 ORDER BY position, id")).toEqual(["S2", "S1", "Other"])
@@ -112,6 +119,7 @@ describe("moveDBGroupToNote", () => {
         expect(rows("SELECT name, color, width FROM section_group WHERE id = 1")).toEqual([{ name: "GA", color: "#112233", width: 300 }])
         expect(topTasks(11)).toEqual(["t1", "t2"])
         expect(col("SELECT groupID FROM section_group_tag")).toEqual([1])
+        expect(col("SELECT sectionID FROM section_tag")).toEqual([11])
         expect(col("SELECT taskID FROM task_tag")).toEqual([2])
     })
 
@@ -164,7 +172,9 @@ describe("copyDBSectionToNote", () => {
         const sub = col(`SELECT id FROM task WHERE sectionID = ${sectionId} AND taskID IS NOT NULL`)
         expect(sub).toHaveLength(1)
         expect(col(`SELECT tagID FROM task_tag WHERE taskID = ${sub[0]}`)).toEqual([1])
-        // the original is untouched
+        // the section keeps its own tag too; the original is untouched
+        expect(col(`SELECT tagID FROM section_tag WHERE sectionID = ${sectionId}`)).toEqual([1])
+        expect(col("SELECT COUNT(*) FROM section_tag WHERE sectionID = 11")).toEqual([1])
         expect(topTasks(11)).toEqual(["t1", "t2"])
     })
 
@@ -187,6 +197,8 @@ describe("copyDBGroupToNote", () => {
         expect(col(`SELECT COUNT(*) FROM task WHERE sectionID IN (SELECT id FROM section WHERE groupID = ${id})`)).toEqual([3])
         expect(col(`SELECT COUNT(*) FROM section_group_tag WHERE groupID = ${id}`)).toEqual([1])
         expect(col("SELECT COUNT(*) FROM task_tag")).toEqual([2])
+        // the tag of the section of the group and the tag of the group itself are copied
+        expect(col(`SELECT COUNT(*) FROM section_tag WHERE sectionID IN (SELECT id FROM section WHERE groupID = ${id})`)).toEqual([1])
         expect(topTasks(11)).toEqual(["t1", "t2"])
     })
 

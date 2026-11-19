@@ -51,7 +51,7 @@ export function useCrossNoteMoves() {
     const { deleteItem, restoreItem } = useWorkspaceActions()
     const tags = useWorkspaceTags()
     const recorder = useUndoRecorder()
-    const { dispatch } = useAutomations()
+    const { dispatch, sync } = useAutomations()
 
     const treesOf = useCallback((ids: Ids): Trees => ({ from: getCachedNoteTree(ids.fromNoteId), to: getCachedNoteTree(ids.toNoteId) }), [getCachedNoteTree])
 
@@ -129,6 +129,9 @@ export function useCrossNoteMoves() {
                 if (pair) commit(op, pair)
                 else await reload(op)
             }
+            // The state rules of a note that does not have the focus are not synced by the focused note's effect
+            void sync(op.fromNoteId)
+            if (op.toNoteId !== op.fromNoteId) void sync(op.toNoteId)
             if (!back) return
             const groupId = created?.groupId
             const itemType = op.kind === "group" ? "section_group" : op.kind
@@ -165,7 +168,7 @@ export function useCrossNoteMoves() {
             if (trees.from && trees.to) commit(op, { from: trees.from, to: trees.to })
             reportError(error, getErrorMessage(error))
         }
-    })()), [recorder, treesOf, reverseOf, optimistic, commit, write, reload, replay, deleteItem, restoreItem, dispatch])
+    })()), [recorder, treesOf, reverseOf, optimistic, commit, write, reload, replay, deleteItem, restoreItem, dispatch, sync])
 
     const copy = useCallback((drop: CrossDrop, fromNoteId: number) => recorder.track((async () => {
         const ids: Ids = { fromNoteId, toNoteId: drop.toNoteId }
@@ -197,6 +200,7 @@ export function useCrossNoteMoves() {
                 undoIds = [{ itemType: "section_group", id: await copyDBGroupToNote(drop.id, drop.toNoteId, drop.index) }]
             }
             await reload(ids)
+            void sync(drop.toNoteId)
             const first = undoIds[0]
             if (!first) return
             recorder.record({
@@ -211,7 +215,7 @@ export function useCrossNoteMoves() {
         } catch (error) {
             reportError(error, getErrorMessage(error))
         }
-    })()), [recorder, getCachedNoteTree, tags, reload, deleteItem, restoreItem])
+    })()), [recorder, getCachedNoteTree, tags, reload, deleteItem, restoreItem, sync])
 
     /** Drops the item dragged from the note this provider belongs to (`noteId`) on the other note: a move, or a copy (Alt). */
     const dropAcross = useCallback(async (drop: CrossDrop) => {

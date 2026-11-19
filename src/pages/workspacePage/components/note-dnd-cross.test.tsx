@@ -33,6 +33,7 @@ const deleteItem = vi.fn(async () => undefined)
 const restoreItem = vi.fn(async () => undefined)
 const recorded: UndoCommand[] = []
 const dispatch = vi.fn()
+const sync = vi.fn()
 const reportError = vi.fn()
 
 vi.mock("@/contexts/use-tabs", () => ({ useActiveNoteId: () => 1 }))
@@ -46,7 +47,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 vi.mock("@/contexts/undo/use-undo", () => ({
     useUndoRecorder: () => ({ record: (command: UndoCommand) => { recorded.push(command) }, track: <T,>(write: Promise<T>) => write }),
 }))
-vi.mock("@/hooks/use-automations", () => ({ useAutomations: () => ({ dispatch }) }))
+vi.mock("@/hooks/use-automations", () => ({ useAutomations: () => ({ dispatch, sync }) }))
 vi.mock("@/lib/report-error", async importActual => ({ ...await importActual<typeof import("@/lib/report-error")>(), reportError: (...args: unknown[]) => reportError(...args) }))
 
 const db = vi.hoisted(() => ({
@@ -79,6 +80,9 @@ describe("a task dropped on the other note", () => {
         expect(findTask(cache.get(2)!, 100)).toMatchObject({ parent: { sectionId: 30 }, index: 1 })
         expect(db.moveDBTaskToNote).toHaveBeenCalledWith(100, { sectionId: 30, parentTaskId: null }, 1)
         expect(dispatch).toHaveBeenCalledWith({ type: "task.moved", taskId: 100, fromSectionId: 10 }, 2)
+        // The state rules of both notes run again (the one without the focus is not synced by itself)
+        expect(sync).toHaveBeenCalledWith(1)
+        expect(sync).toHaveBeenCalledWith(2)
     })
 
     it("is ONE undo step: undo moves the task back and reloads both notes, redo moves it again", async () => {

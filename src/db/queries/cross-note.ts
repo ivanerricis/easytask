@@ -139,8 +139,10 @@ export async function copyDBSectionToNote(sectionId: number, target: CopySection
         if (!source) throw createError("SECTION_MOVE_INVALID", i18n.t("errors.move.sectionMissing"))
         const tasks = await db.select<Task[]>(
             'SELECT * FROM task WHERE sectionID = ? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, id', [sectionId])
-        const tags = await loadSectionTags(sectionId, tasks)
-        const snapshot = createSectionSnapshotter(tasks, tags)({ ...source, title: source.title ?? "" })
+        // The tags of the section itself go with the copy, like the ones of its tasks
+        const section = { ...source, title: source.title ?? "" } as typeof source & { title: string, tagIDs?: number[] }
+        const tags = await loadSectionTags(sectionId, tasks, section)
+        const snapshot = createSectionSnapshotter(tasks, tags)(section)
 
         const tx = new Transaction()
         if (target.type === "group") {
