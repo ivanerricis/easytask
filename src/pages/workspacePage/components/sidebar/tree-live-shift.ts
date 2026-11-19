@@ -42,6 +42,9 @@ export function registerTreeRow(key: string, node: HTMLElement | null): void {
     if (shifts) paint(key, node, "none")
 }
 
+/** Whether any row is registered: with none nothing can be moved, and the drop line has to be drawn instead of the room. */
+export const hasTreeRows = (): boolean => nodes.size > 0
+
 /** Writes the state a row must have (the transition is the one given: none for a row that was just born). */
 function paint(key: string, node: HTMLElement, transition: string): void {
     const dy = shifts?.dyOf(key) ?? 0

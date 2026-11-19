@@ -1,5 +1,5 @@
-import { useCallback, useImperativeHandle, useMemo, type CSSProperties, type ReactNode, type Ref } from "react"
-import { registerTreeRow, SHIFT_LAYER_ATTR } from "./tree-live-shift"
+import { useCallback, useImperativeHandle, useMemo, type Ref } from "react"
+import { TreeRowGuides, TreeRowLayer } from "./TreeRowLayer"
 import { defaultRangeExtractor, useVirtualizer, type Range } from "@tanstack/react-virtual"
 import { ItemNote } from "../note/Note"
 import { ItemFolder } from "../folder/Folder"
@@ -27,15 +27,6 @@ type VirtualTreeProps = {
     tabStopKey?: string | null
     getScrollElement: () => HTMLElement | null
     handleRef?: Ref<VirtualTreeHandle>
-}
-
-/**
- * The layer of a row that the live drag moves (see tree-live-shift): it holds the indent guides and the item together, so both follow
- * the row when it steps aside. Registers itself by row key; a stable ref, so a re-render never unregisters it (and forgets its shift).
- */
-function TreeRowLayer({ rowKey, className, style, children }: { rowKey: string, className: string, style: CSSProperties, children: ReactNode }) {
-    const ref = useCallback((node: HTMLDivElement | null) => registerTreeRow(rowKey, node), [rowKey])
-    return <div ref={ref} {...{ [SHIFT_LAYER_ATTR]: "" }} className={className} style={style}>{children}</div>
 }
 
 /** Flat, virtualized rendering of the tree; only the rows near the viewport are in the DOM. */
@@ -103,16 +94,7 @@ export const VirtualTree = ({ rows, collapsedIds, onToggleFolder, activeKey, tab
                         }}
                     >
                         <TreeRowLayer rowKey={row.key} className="relative h-full w-full" style={{ paddingLeft: row.depth * size.indentPx }}>
-                            {/* One guide per ancestor level, under the chevron of its folder; it also crosses the gap above the row so the lines are continuous */}
-                            {Array.from({ length: row.depth }, (_, level) => (
-                                <span
-                                    key={level}
-                                    aria-hidden="true"
-                                    data-testid="tree-guide"
-                                    className="pointer-events-none absolute w-px bg-foreground/20"
-                                    style={{ left: level * size.indentPx + size.guidePx, top: -ROW_GAP, height: size.rowPx + ROW_GAP }}
-                                />
-                            ))}
+                            <TreeRowGuides depth={row.depth} />
                             {row.kind === "folder" ? (
                                 <ItemFolder
                                     folder={row.item}
