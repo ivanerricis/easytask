@@ -159,4 +159,6 @@ export const history = {
     goBackTo: "Torna a: {{label}}",
     goForwardTo: "Avanza a: {{label}}",
     emptyUndo: "Nessuna azione da annullare",
+    undoAll: "Annulla tutto",
+    undoAllHint: "Annulla tutto: torna a prima di tutte le azioni",
 }

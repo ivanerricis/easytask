@@ -161,4 +161,6 @@ export const history: Translation["history"] = {
     goBackTo: "Go back to: {{label}}",
     goForwardTo: "Go forward to: {{label}}",
     emptyUndo: "No actions to undo",
+    undoAll: "Undo all",
+    undoAllHint: "Undo all: go back to before every action",
 }

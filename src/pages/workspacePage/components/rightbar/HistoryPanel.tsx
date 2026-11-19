@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Redo2, Undo2 } from "lucide-react"
+import { Redo2, Rewind, Undo2 } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { Button } from "@/components/ui/button"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
@@ -24,6 +24,18 @@ export function HistoryPanel() {
         <div className="flex h-full min-h-0 flex-col" role="region" aria-label={t("history.title")}>
             <div className="flex items-center gap-1 border-b p-2">
                 <h2 className="mr-auto text-sm font-semibold">{t("history.title")}</h2>
+                {/* Back to before every recorded action, like choosing the oldest entry: the actions stay redoable */}
+                <TooltipCustom text={t("history.undoAllHint")}>
+                    <Button
+                        variant="buttonIcon"
+                        size="icon"
+                        aria-label={t("history.undoAll")}
+                        disabled={!canUndo || entries.undo.length === 0}
+                        onClick={() => { void undoTo(entries.undo.length - 1) }}
+                    >
+                        <Rewind />
+                    </Button>
+                </TooltipCustom>
                 <TooltipCustom text={t("undo.undo")} shortcut={undoShortcut}>
                     <Button variant="buttonIcon" size="icon" aria-label={t("undo.undo")} disabled={!canUndo} onClick={() => { void undo() }}>
                         <Undo2 />
