@@ -13,6 +13,7 @@ import { getItemName } from "@/contexts/undo/commands";
 import { reportError } from "@/lib/report-error";
 import { getErrorMessage } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ColorSubmenu } from "../ColorSubmenu";
 import { ItemMenu } from "@/components/item-menu";
 import { useItemMenuState } from "@/hooks/use-item-menu-state";
@@ -129,11 +130,17 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                 addColorItem={addColorItem}
                 onDone={menu.close}
                 header={<>
-                    <MenuItem onSelect={() => { void pickAutoColor() }} className={isAutoColor ? "font-medium" : undefined}>
-                        <Gauge />
-                        {t("groups.progressColor.auto")}
-                        {isAutoColor && <Check className="ml-auto" role="img" aria-label={t("groups.progressColor.active")} />}
-                    </MenuItem>
+                    {/* Short label, so the entry is not wider than the palette under it; the tooltip says what "automatic" means */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <MenuItem onSelect={() => { void pickAutoColor() }} className={isAutoColor ? "font-medium" : undefined}>
+                                <Gauge />
+                                {t("groups.progressColor.auto")}
+                                {isAutoColor && <Check className="ml-auto" role="img" aria-label={t("groups.progressColor.active")} />}
+                            </MenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">{t("groups.progressColor.hint")}</TooltipContent>
+                    </Tooltip>
                     <Separator className="my-1" />
                 </>}
             />

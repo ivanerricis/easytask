@@ -115,7 +115,8 @@ export const groups: Translation["groups"] = {
     moreFiles_other: "{{count}} more files: open the group",
     progressColor: {
         active: "Automatic color is on",
-        auto: "Automatic (progress)",
+        auto: "Automatic",
+        hint: "The color follows the progress of the group's tasks",
     },
     width: {
         handle: "Resize the group",

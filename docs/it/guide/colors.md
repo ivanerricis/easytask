@@ -31,7 +31,7 @@ Apri la stessa tavolozza e fai clic su **Nessun colore**.
 
 ## Colore automatico di un gruppo
 
-Il menu del colore di un gruppo (non quello degli altri elementi) comincia con **Automatico (avanzamento)**. Il gruppo prende il colore dal suo avanzamento e lo cambia da solo mentre completi i task:
+Il menu del colore di un gruppo (non quello degli altri elementi) comincia con **Automatico**. Il gruppo prende il colore dal suo avanzamento e lo cambia da solo mentre completi i task:
 
 - **rosso** quando nessun task è completato;
 - **giallo** quando almeno uno è completato, ma non tutti;

@@ -31,7 +31,7 @@ Open the same palette and click **No color**.
 
 ## Automatic color of a group
 
-The color menu of a group (not of the other items) starts with **Automatic (progress)**. The group takes its color from its progress, and changes it by itself as you complete tasks:
+The color menu of a group (not of the other items) starts with **Automatic**. The group takes its color from its progress, and changes it by itself as you complete tasks:
 
 - **red** when none of its tasks is completed;
 - **yellow** when at least one is completed, but not all;

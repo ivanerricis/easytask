@@ -113,7 +113,8 @@ export const groups = {
     moreFiles_other: "Altri {{count}} file: apri il gruppo",
     progressColor: {
         active: "Colore automatico attivo",
-        auto: "Automatico (avanzamento)",
+        auto: "Automatico",
+        hint: "Il colore segue l'avanzamento dei task del gruppo",
     },
     width: {
         handle: "Ridimensiona il gruppo",
