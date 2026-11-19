@@ -62,40 +62,35 @@ type ChainablePromiseElement = ReturnType<typeof $>
 const taskRow = (index: 0 | 1, text: string) => $(`[data-pane="${index}"] [role="treeitem"][aria-label=${JSON.stringify(text)}]`)
 
 /**
- * Presses on `from`, moves to `to` and releases, in one chain of actions with the keyboard: Ctrl (when `ctrl`) goes down before the
- * press and stays down until after the release; Alt (when `alt`) goes down just before the release. `whilePressed` runs with the
- * pointer still down (the actions of the first part are performed, the release is a second call).
+ * Presses on `from`, moves to `to` and releases. Ctrl (when `ctrl`) goes down before the press and up after the release; Alt (when
+ * `alt`) goes down just before the release. `whilePressed` runs with the pointer still down. Every part is performed apart with
+ * skipRelease (a chain through `browser.actions` releases the button at its end).
  */
 const drag = async (
     from: ChainablePromiseElement, to: ChainablePromiseElement,
-    { ctrl = false, alt = false, whilePressed }: { ctrl?: boolean, alt?: boolean, whilePressed?: () => Promise<void> } = {},
+    { ctrl = false, alt = false, where = 0.9, whilePressed }: { ctrl?: boolean, alt?: boolean, where?: number, whilePressed?: () => Promise<void> } = {},
 ) => {
     const a = await centerOf(from)
-    // The lower edge of the target row: the task goes after it (the middle would make it a subtask, which opens no room)
-    const b = await centerOf(to, 0.9)
+    // The edge of the target row (0.1 = before it, 0.9 = after it): the middle would make a subtask, which opens no room
+    const b = await centerOf(to, where)
     const steps = 30
     const at = (i: number) => ({ x: Math.round(a.x + ((b.x - a.x) * i) / steps), y: Math.round(a.y + ((b.y - a.y) * i) / steps), origin: "viewport" as const })
+    // Each part is performed with skipRelease: the keys and the button stay down until the release below
+    if (ctrl) await browser.action("key").down(CONTROL).perform(true)
     const pointer = browser.action("pointer", { parameters: { pointerType: "mouse" } })
-    const keys = browser.action("key")
-    // Tick 0: Ctrl down and the pointer over the source. Then the press and the moves
-    if (ctrl) keys.down(CONTROL); else keys.pause(0)
-    pointer.move({ ...at(0), duration: 0 })
-    pointer.down(); keys.pause(0)
-    for (let i = 1; i <= steps; i++) { pointer.move({ ...at(i), duration: 20 }); keys.pause(0) }
-    await browser.actions([keys, pointer])
+    pointer.move({ ...at(0), duration: 0 }).down()
+    for (let i = 1; i <= steps; i++) pointer.move({ ...at(i), duration: 20 })
+    await pointer.perform(true)
     try {
         await browser.pause(400) // the shifts glide for 150 ms
         await whilePressed?.()
+        if (alt) await browser.action("key").down(ALT).perform(true)
+        await browser.action("pointer", { parameters: { pointerType: "mouse" } }).up().perform(true)
     } finally {
-        const releasePointer = browser.action("pointer", { parameters: { pointerType: "mouse" } })
-        const releaseKeys = browser.action("key")
-        if (alt) { releaseKeys.down(ALT); releasePointer.pause(0) }
-        releasePointer.pause(50); releaseKeys.pause(0)
-        releasePointer.up(); releaseKeys.pause(0)
-        releasePointer.pause(0)
-        if (alt) releaseKeys.up(ALT)
-        if (ctrl) releaseKeys.up(CONTROL)
-        await browser.actions([releaseKeys, releasePointer])
+        const release = browser.action("key")
+        if (alt) release.up(ALT)
+        if (ctrl) release.up(CONTROL)
+        if (alt || ctrl) await release.perform(true)
         await browser.releaseActions()
     }
     await browser.pause(600)
@@ -145,6 +140,7 @@ describe("Drag between the two notes of the split view", () => {
         if (process.platform === "linux") return this.skip()
         await drag(taskRow(0, TASK), taskRow(1, "Cross resident"), {
             whilePressed: async () => {
+                expect(await browser.execute(() => document.body.hasAttribute("data-note-dragging"))).toBe(true) // a real drag is going on
                 expect(await shiftedIn(1)).toBe(0)
                 expect(await $$("[data-live-slot]")).toHaveLength(0)
             },
@@ -158,9 +154,11 @@ describe("Drag between the two notes of the split view", () => {
         if (process.platform === "linux") return this.skip()
         await drag(taskRow(0, TASK), taskRow(1, "Cross resident"), {
             ctrl: true,
+            // Before the only task of the other note: it steps down to open the room
+            where: 0.1,
             whilePressed: async () => {
-                // The room opens in the other note while the task is dragged over it
                 expect(await shiftedIn(1)).toBeGreaterThan(0)
+                expect(await $$('[data-pane="1"] [data-live-slot]')).toHaveLength(1)
             },
         })
         await waitForNotes(TASK, [NOTE_B])
@@ -177,7 +175,7 @@ describe("Drag between the two notes of the split view", () => {
 
     it("copies the task with Ctrl and Alt: it is in both notes, and Ctrl+Z removes the copy", async function () {
         if (process.platform === "linux") return this.skip()
-        await drag(taskRow(0, TASK), taskRow(1, "Cross resident"), { ctrl: true, alt: true })
+        await drag(taskRow(0, TASK), taskRow(1, "Cross resident"), { ctrl: true, alt: true, where: 0.1 })
         await waitForNotes(TASK, [NOTE_A, NOTE_B])
         await taskRow(1, TASK).waitForDisplayed({ timeoutMsg: "the copy is not in the right pane" })
         await expect(taskRow(0, TASK)).toBeDisplayed()

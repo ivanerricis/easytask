@@ -58,6 +58,17 @@ const NO_HANDLERS: PointerDragHandlers = { start: () => undefined, move: () => u
 type Session = { ref: NoteDragRef, node: HTMLElement | null, pointerId: number, press: Point, last: Point, active: boolean, modifiers: Modifiers }
 
 /** Records the modifiers an event carries; true when they changed. */
+/**
+ * Ctrl / Alt pressed (`down`) or released by the key itself: the flags of a key event are not trusted (a synthetic or repeated event can
+ * carry them wrong), the key that went down or up is. True when the modifiers changed.
+ */
+const keyModifier = (session: Session, event: { key: string }, down: boolean): boolean => {
+    const name = event.key === "Control" ? "ctrl" : "alt"
+    if (session.modifiers[name] === down) return false
+    session.modifiers = { ...session.modifiers, [name]: down }
+    return true
+}
+
 const readModifiers = (session: Session, event: { ctrlKey: boolean, altKey: boolean }): boolean => {
     const changed = session.modifiers.ctrl !== !!event.ctrlKey || session.modifiers.alt !== !!event.altKey
     if (changed) session.modifiers = { ctrl: !!event.ctrlKey, alt: !!event.altKey }
@@ -174,12 +185,12 @@ export function createPointerDrag(): PointerDrag {
             if (key.key !== "Control" && key.key !== "Alt") return
             // Alt alone would move the focus to the menu of the window
             if (current.active && key.key === "Alt") key.preventDefault()
-            if (readModifiers(current, key) && current.active) getHandlers().move(current.last)
+            if (keyModifier(current, key, true) && current.active) getHandlers().move(current.last)
         })
         listen(offs, "keyup", key => {
             if (session !== current || (key.key !== "Control" && key.key !== "Alt")) return
             if (current.active && key.key === "Alt") key.preventDefault()
-            if (readModifiers(current, key) && current.active) getHandlers().move(current.last)
+            if (keyModifier(current, key, false) && current.active) getHandlers().move(current.last)
         })
         // In capture the blur of every element reaches the window: only the one of the window itself counts
         listen(offs, "blur", blur => { if (blur.target === window) stop("cancel") })

@@ -75,6 +75,16 @@ describe("modifier keys of a note drag", () => {
         expect(handlers.move).not.toHaveBeenCalled()
     })
 
+    it("a repeated or synthetic keydown of Control with the flag wrong does not take Ctrl away (the key counts, not the flag)", () => {
+        down()
+        pointer("pointermove", far)
+        key("keydown", "Control", { ctrlKey: true })
+        key("keydown", "Control", { ctrlKey: false })
+        expect(drag.getModifiers().ctrl).toBe(true)
+        key("keyup", "Control", { ctrlKey: true })
+        expect(drag.getModifiers().ctrl).toBe(false)
+    })
+
     it("only records a modifier pressed before the drag started", () => {
         down()
         key("keydown", "Control", { ctrlKey: true })
