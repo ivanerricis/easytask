@@ -55,7 +55,7 @@ describe("WorkSpacePage", () => {
         dataCtx.getWorkspaceData.mockReturnValue(d.promise)
         const { rerender } = renderAt(4)
 
-        expect(screen.getByText("Caricamento dati del workspace…")).toBeInTheDocument()
+        expect(screen.getByText("Caricamento dati del workspace")).toBeInTheDocument()
         expect(dataCtx.getWorkspaceData).toHaveBeenCalledWith(4)
         expect(screen.queryByText("main-container")).not.toBeInTheDocument()
 
@@ -63,7 +63,7 @@ describe("WorkSpacePage", () => {
         dataCtx.loadedWorkspaceId = 4
         rerender(pageAt(4))
         expect(await screen.findByText("main-container")).toBeInTheDocument()
-        expect(screen.queryByText("Caricamento dati del workspace…")).not.toBeInTheDocument()
+        expect(screen.queryByText("Caricamento dati del workspace")).not.toBeInTheDocument()
     })
 
     it("shows the loading page again when another workspace is opened", async () => {
@@ -74,7 +74,7 @@ describe("WorkSpacePage", () => {
         workspaceCtx.currentWorkspace = makeWorkspace({ id: 5 })
         rerender(pageAt(4))
 
-        expect(screen.getByText("Caricamento dati del workspace…")).toBeInTheDocument()
+        expect(screen.getByText("Caricamento dati del workspace")).toBeInTheDocument()
         expect(screen.queryByText("main-container")).not.toBeInTheDocument()
         await waitFor(() => expect(dataCtx.getWorkspaceData).toHaveBeenCalledWith(5))
     })
@@ -95,7 +95,7 @@ describe("WorkSpacePage", () => {
 
         it("restores the workspace of the URL, loading the list first", async () => {
             const { rerender } = renderAt(4)
-            expect(screen.getByText("Caricamento dati del workspace…")).toBeInTheDocument()
+            expect(screen.getByText("Caricamento dati del workspace")).toBeInTheDocument()
             await waitFor(() => expect(workspaceCtx.getWorkspaces).toHaveBeenCalledTimes(1))
 
             workspaceCtx.workspaces = [makeWorkspace({ id: 3 }), makeWorkspace({ id: 4 })]

@@ -37,7 +37,7 @@ describe("WorkspacesContainer", () => {
         vi.useFakeTimers()
         try {
             const { container } = render(<WorkspacesContainer workspaces={[]} loading />)
-            expect(screen.getByRole("status")).toHaveTextContent("Caricamento dei workspace…")
+            expect(screen.getByRole("status")).toHaveTextContent("Caricamento dei workspace")
             expect(screen.queryByText("Nessun workspace trovato.")).not.toBeInTheDocument()
             expect(container.querySelectorAll("[data-slot=skeleton]")).toHaveLength(0)
             act(() => { vi.advanceTimersByTime(SKELETON_DELAY_MS) })

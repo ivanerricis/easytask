@@ -70,6 +70,15 @@ describe("App menu with the left sidebar closed", () => {
         })
     })
 
+    it("creates a note with Ctrl+N while the sidebar is closed", async () => {
+        const name = await tr("notes.defaultName")
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "n"])
+        await $(`[role="tab"][title=${JSON.stringify(name)}]`).waitForDisplayed({ timeoutMsg: "Ctrl+N did not create a note with the sidebar closed" })
+        // The tab goes straight into the inline rename: Escape keeps the provisional name
+        await browser.keys("Escape")
+    })
+
     it("keeps Trash, Archive, Templates and Note from template in File (not in Edit)", async () => {
         const trash = await tr("appMenu.trash")
         const archive = await tr("appMenu.archive")

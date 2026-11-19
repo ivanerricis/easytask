@@ -114,7 +114,7 @@ describe("DetailsPanel without selection", () => {
     it("waits for the data of the note", () => {
         tree = null
         renderPanel()
-        expect(screen.getByText("Caricamento dei dettagli…")).toHaveAttribute("role", "status")
+        expect(screen.getByText("Caricamento dei dettagli")).toHaveAttribute("role", "status")
     })
 
     it("shows the note: name, statistics, progress, color and dates", async () => {
