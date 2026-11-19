@@ -24,6 +24,7 @@ vi.mock("@/contexts/use-media", () => ({
 }))
 vi.mock("@/components/dialogs/dialog-rename", () => ({ DialogRenameItem: () => null }))
 vi.mock("@/components/dialogs/dialog-delete", () => ({ DialogDeleteItem: () => null }))
+vi.mock("@/components/dialogs/use-delete-item", () => ({ useSkippableDelete: () => ({ request: vi.fn() }) }))
 vi.mock("../rightbar/use-right-panel", () => ({ useShowAudioInfo: () => null }))
 vi.mock("./MediaViewer", () => ({ MediaViewer: ({ index }: { index: number | null }) => index === null ? null : <div>viewer {index}</div> }))
 

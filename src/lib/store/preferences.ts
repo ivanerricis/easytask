@@ -164,6 +164,9 @@ const isValidUndoLimit = (value: unknown): value is number =>
 type PrefDef<T> = { key: string, default: T, normalize?: (raw: unknown) => T }
 
 const def = <T>(definition: PrefDef<T>): PrefDef<T> => definition
+/** The list of skipped confirmations: only non-empty strings, no duplicates; anything else gives an empty list. */
+export const normalizeSkippedConfirms = (value: unknown): string[] =>
+    Array.isArray(value) ? [...new Set(value.filter((key): key is string => typeof key === "string" && key !== ""))] : []
 const normalizeSidebarWidth = (value: unknown): number => isFiniteNumber(value) ? clampSidebarWidth(value) : SIDEBAR_DEFAULT_WIDTH
 
 /** The preferences exposed by `usePreferences()` (the name of each one is the name of its field there). */
@@ -173,6 +176,8 @@ export const UI_PREFS = {
     showSectionCount: def({ key: "showSectionCount", default: true }),
     showTaskCount: def({ key: "showTaskCount", default: true }),
     showSubtaskCount: def({ key: "showSubtaskCount", default: true }),
+    /** On: a collapsed group shows the number of open tasks (subtasks included) instead of the total, while some are open. */
+    showCollapsedOpenCount: def({ key: "showCollapsedOpenCount", default: true, normalize: value => value !== false }),
     showAudioFileCount: def({ key: "showAudioFileCount", default: true }),
     showGroupSeparators: def({ key: "showGroupSeparators", default: false, normalize: value => value === true }),
     showUnnamedLabels: def({ key: "showUnnamedLabels", default: false, normalize: value => value === true }),
@@ -232,6 +237,8 @@ export const UI_PREFS = {
     }),
     /** On: ask before deleting a note, section or group only when it has content (empty ones go straight to the trash). Off: never ask for these. */
     confirmDeleteWithContent: def({ key: "confirmDeleteWithContent", default: true, normalize: value => value !== false }),
+    /** The confirmations the user chose not to be asked again ("Non chiedermelo più"): the keys of the `ConfirmDialog`s, only of undoable actions. */
+    skippedConfirms: def<string[]>({ key: "skippedConfirms", default: [], normalize: normalizeSkippedConfirms }),
 }
 
 /** The accent color, stored as `{ hex }`. */

@@ -487,6 +487,17 @@ describe("PreferencesContext", () => {
         expect(prefs.savePref).toHaveBeenCalledWith("showSubtaskCount", true)
     })
 
+    it("loads and persists the skipped confirmations (default none) and the collapsed open count (default on)", async () => {
+        const { result } = renderHook(() => usePreferences(), { wrapper })
+        expect(result.current.skippedConfirms).toEqual([])
+        expect(result.current.showCollapsedOpenCount).toBe(true)
+        act(() => result.current.setSkippedConfirms(["task-trash"]))
+        expect(result.current.skippedConfirms).toEqual(["task-trash"])
+        expect(prefs.savePref).toHaveBeenCalledWith("skippedConfirms", ["task-trash"])
+        act(() => result.current.setShowCollapsedOpenCount(false))
+        expect(prefs.savePref).toHaveBeenCalledWith("showCollapsedOpenCount", false)
+    })
+
     it("resetPlayerPosition sets and saves the computed position once", async () => {
         const { result } = renderHook(() => usePreferences(), { wrapper })
         await waitFor(() => expect(result.current.audioPlayerScale).toBe(1.2))

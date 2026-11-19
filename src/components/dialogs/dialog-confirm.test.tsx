@@ -4,6 +4,8 @@ import { Trash2, FolderSearch } from "lucide-react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { ConfirmDialog } from "./dialog-confirm"
 import i18n from "@/i18n"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
+import { DialogFooterActions } from "@/components/ui/dialog"
 
 const sources = import.meta.glob("../../**/*.tsx", { query: "?raw", import: "default", eager: true }) as Record<string, string>
 
@@ -25,6 +27,85 @@ const setup = (props: Partial<React.ComponentProps<typeof ConfirmDialog>> = {}) 
 
 beforeEach(() => {
     vi.clearAllMocks()
+})
+
+describe("ConfirmDialog skipKey", () => {
+    const setSkippedConfirms = vi.fn()
+    const withPrefs = (skippedConfirms: string[], props: Partial<React.ComponentProps<typeof ConfirmDialog>> = {}) =>
+        render(
+            <PreferencesContext.Provider value={{ skippedConfirms, setSkippedConfirms } as unknown as PreferencesContextType}>
+                <ConfirmDialog
+                    open
+                    onOpenChange={onOpenChange}
+                    title="Spostare nel cestino?"
+                    confirm={{ label: "Sposta nel cestino", icon: Trash2, onClick: onConfirm }}
+                    skipKey="task-trash"
+                    {...props}
+                />
+            </PreferencesContext.Provider>,
+        )
+
+    it("shows no checkbox without a skipKey, or without a preferences provider", () => {
+        setup()
+        expect(screen.queryByRole("checkbox")).toBeNull()
+        setup({ skipKey: "task-trash" })
+        expect(screen.queryByRole("checkbox")).toBeNull()
+    })
+
+    it("shows the unchecked checkbox 'Non chiedermelo più' with a skipKey", () => {
+        withPrefs([])
+        expect(screen.getByRole("checkbox", { name: "Non chiedermelo più" })).not.toBeChecked()
+    })
+
+    it("stores the key, then runs the action, when confirmed with the box checked", async () => {
+        const user = userEvent.setup()
+        withPrefs(["tag-delete"])
+        await user.click(screen.getByRole("checkbox", { name: "Non chiedermelo più" }))
+        await user.click(screen.getByRole("button", { name: "Sposta nel cestino" }))
+        expect(setSkippedConfirms).toHaveBeenCalledWith(["tag-delete", "task-trash"])
+        expect(onConfirm).toHaveBeenCalledTimes(1)
+    })
+
+    it("stores nothing when confirmed with the box unchecked, or when cancelled with it checked", async () => {
+        const user = userEvent.setup()
+        const { unmount } = withPrefs([])
+        await user.click(screen.getByRole("button", { name: "Sposta nel cestino" }))
+        expect(setSkippedConfirms).not.toHaveBeenCalled()
+        unmount()
+        withPrefs([])
+        await user.click(screen.getByRole("checkbox", { name: "Non chiedermelo più" }))
+        await user.click(screen.getByRole("button", { name: "Annulla" }))
+        expect(setSkippedConfirms).not.toHaveBeenCalled()
+    })
+
+    it("starts unchecked at every opening", async () => {
+        const user = userEvent.setup()
+        const { rerender } = withPrefs([])
+        await user.click(screen.getByRole("checkbox", { name: "Non chiedermelo più" }))
+        const element = (open: boolean) => (
+            <PreferencesContext.Provider value={{ skippedConfirms: [], setSkippedConfirms } as unknown as PreferencesContextType}>
+                <ConfirmDialog open={open} onOpenChange={onOpenChange} title="T" confirm={{ label: "Sposta nel cestino", onClick: onConfirm }} skipKey="task-trash" />
+            </PreferencesContext.Provider>
+        )
+        rerender(element(false))
+        rerender(element(true))
+        expect(screen.getByRole("checkbox", { name: "Non chiedermelo più" })).not.toBeChecked()
+    })
+})
+
+describe("DialogFooterActions", () => {
+    it("puts every button of a confirmation in one group of equal columns (stacked on a phone)", () => {
+        setup()
+        const group = document.querySelector("[data-slot='dialog-footer-actions']")
+        expect(group).not.toBeNull()
+        expect(group).toHaveClass("flex-col-reverse", "sm:grid", "sm:grid-flow-col", "sm:auto-cols-fr")
+        expect(group?.querySelectorAll("button")).toHaveLength(2)
+    })
+
+    it("renders its children in the group", () => {
+        render(<DialogFooterActions><button>A</button><button>B</button></DialogFooterActions>)
+        expect(screen.getAllByRole("button").map(b => b.textContent)).toEqual(["A", "B"])
+    })
 })
 
 describe("ConfirmDialog", () => {

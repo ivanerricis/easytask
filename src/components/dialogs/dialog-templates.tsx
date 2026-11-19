@@ -3,7 +3,7 @@ import { useState } from "react"
 import { FileInput, FilePlus, LayoutTemplate, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "./dialog-confirm"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormError } from "@/components/form-error"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -158,30 +158,32 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
                     )}
                     <FormError>{error}</FormError>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>
-                            {t("common.close")}
-                        </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button className="max-sm:w-full" disabled={busy}>
-                                    <Plus />
-                                    {t("dialogs.templates.new")}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem disabled={workspaceID === undefined} onSelect={() => setCreatingEmpty(true)}>
-                                    <LayoutTemplate />
-                                    {t("dialogs.templates.newEmpty")}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled={allNotes.length === 0} onSelect={() => setPicking(true)}>
-                                    <FilePlus />
-                                    <span className="flex flex-col">
-                                        {t("dialogs.templates.newFromNote")}
-                                        {allNotes.length === 0 && <span className="text-xs text-muted-foreground">{t("dialogs.templates.noNotes")}</span>}
-                                    </span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <DialogFooterActions>
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                {t("common.close")}
+                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button disabled={busy}>
+                                        <Plus />
+                                        {t("dialogs.templates.new")}
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem disabled={workspaceID === undefined} onSelect={() => setCreatingEmpty(true)}>
+                                        <LayoutTemplate />
+                                        {t("dialogs.templates.newEmpty")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem disabled={allNotes.length === 0} onSelect={() => setPicking(true)}>
+                                        <FilePlus />
+                                        <span className="flex flex-col">
+                                            {t("dialogs.templates.newFromNote")}
+                                            {allNotes.length === 0 && <span className="text-xs text-muted-foreground">{t("dialogs.templates.noNotes")}</span>}
+                                        </span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </DialogFooterActions>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

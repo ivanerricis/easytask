@@ -145,7 +145,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                     !color && "bg-secondary",
                     // Open: same minimum width as a section, at most 32rem so long task texts and audio names wrap or truncate.
                     // Closed as a strip: the arrow, the ring and the name written vertically
-                    strip ? "w-11 items-center py-2" : "gap-2 p-2 min-w-[250px]",
+                    strip ? "w-11 items-center gap-3 py-2" : "gap-2 p-2 min-w-[250px]",
                     !strip && width === null && "max-w-[32rem]",
                     isDragging && "opacity-40",
                     !draggingGroup && zone && "ring-2 ring-primary",

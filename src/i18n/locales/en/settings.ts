@@ -332,6 +332,10 @@ export const settings: Translation["settings"] = {
         },
         sectionCount: "Show number of sections",
         taskCount: "Show number of tasks",
+        collapsedOpenCount: {
+            label: "Show open tasks in collapsed groups",
+            description: "A collapsed group with unfinished tasks shows how many are still open (subtasks included) instead of the total.",
+        },
         audioFileCount: "Show number of audio files, images and videos",
         groupSeparators: {
             label: "Lines between groups",
@@ -410,6 +414,11 @@ export const settings: Translation["settings"] = {
         confirmDelete: {
             label: "Confirm deleting only when there is content",
             description: "For notes, sections and groups: asks only if they contain something, otherwise they go straight to the trash (with \"Undo\"). When off, it never asks. Folders, workspaces, tasks and multiple selections always ask.",
+        },
+        skippedConfirms: {
+            label: "Restore confirmations",
+            description: "The confirmations you silenced with \"Don't ask again\" will be asked again.",
+            action: "Restore",
         },
         reopenNotes: {
             label: "Reopen notes at startup",

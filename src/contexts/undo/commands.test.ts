@@ -242,6 +242,17 @@ describe("remove and create", () => {
         expect(ctx.deps.workspace.deleteItem).toHaveBeenCalledWith(type, 11)
     })
 
+    it.each(["audio_file", "media_file"] as const)("a removed %s is brought back by id without reloading the note or the tree; redo removes it again", async (type) => {
+        const command = commands.remove(type, 12, "brano")
+        expect(command.label).toContain("brano")
+        await command.undo()
+        expect(ctx.deps.workspace.restoreItem).toHaveBeenCalledWith(type, 12)
+        expect(ctx.deps.note.refreshActiveNote).not.toHaveBeenCalled()
+        expect(ctx.deps.workspace.getWorkspaceData).not.toHaveBeenCalled()
+        await command.redo()
+        expect(ctx.deps.workspace.deleteItem).toHaveBeenCalledWith(type, 12)
+    })
+
     it("a creation is undone by deleting the new item and redone by restoring it", async () => {
         const command = commands.create("task", 21, "New")
         expect(command.label).toBe("Crea task \"New\"")

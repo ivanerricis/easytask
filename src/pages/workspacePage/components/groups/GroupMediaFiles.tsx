@@ -3,6 +3,8 @@ import { useState } from "react"
 import { ExternalLink, FileWarning, Play, TriangleAlert } from "lucide-react"
 import { ButtonInPopover } from "@/components/button-in-popover"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
+import { useSkippableDelete } from "@/components/dialogs/use-delete-item"
+import { SKIP_KEYS } from "@/components/dialogs/use-skipped-confirm"
 import { DialogRenameItem } from "@/components/dialogs/dialog-rename"
 import { MenuGroup } from "@/components/menu-kind"
 import { Button } from "@/components/ui/button"
@@ -65,6 +67,15 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen, variant = "row" }: 
 
     // The dialogs call this with the id they were given after the change is stored
     const reload = async () => refresh()
+    // Without the question once the user chose "Non chiedermelo più" (the toast brings the file back)
+    const { request: requestDelete } = useSkippableDelete({
+        item: file,
+        itemType: "media_file",
+        getItemId: groupId,
+        getItemData: reload,
+        skipKey: SKIP_KEYS.mediaRemove,
+        openDialog: () => setDeleteOpen(true),
+    })
 
     const items = (
         <MenuGroup className="flex flex-col gap-1">
@@ -91,7 +102,7 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen, variant = "row" }: 
                 type="delete"
                 destructive
                 onClick={() => {
-                    setDeleteOpen(true)
+                    requestDelete()
                     menu.close()
                 }}
             />
@@ -115,6 +126,7 @@ const MediaFileRow = ({ file, groupId, src, missing, onOpen, variant = "row" }: 
                 onOpenChange={setDeleteOpen}
                 getItemId={groupId}
                 getItemData={reload}
+                skipKey={SKIP_KEYS.mediaRemove}
             />
         </>
     )

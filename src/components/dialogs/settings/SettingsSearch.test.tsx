@@ -72,6 +72,8 @@ vi.mock("@/contexts/use-preferences", () => ({
         spellcheck: true, setSpellcheck: vi.fn(),
         trashAutoEmptyDays: 0, setTrashAutoEmptyDays: vi.fn(),
         confirmDeleteWithContent: true, setConfirmDeleteWithContent: vi.fn(),
+        skippedConfirms: [], setSkippedConfirms: vi.fn(),
+        showCollapsedOpenCount: true, setShowCollapsedOpenCount: vi.fn(),
     }),
 }))
 

@@ -3,8 +3,10 @@ import { useState } from "react"
 import { Loader2, Plus, Trash2, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ConfirmDialog } from "./dialog-confirm"
+import { SKIP_KEYS, useConfirmSkipped } from "./use-skipped-confirm"
+import { toastUndoable } from "@/lib/toast-trashed"
 import { createDBAutomation, deleteDBAutomation, setDBAutomationEnabled, updateDBAutomation } from "@/db/queries/automation"
 import { automationName } from "@/lib/automations/describe"
 import type { Automation, AutomationDraft, AutomationTrigger } from "@/lib/automations/types"
@@ -44,6 +46,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
     // Closing or cancelling an edited draft asks first: which of the two is waiting for the answer
     const [discarding, setDiscarding] = useState<"close" | "cancel" | null>(null)
     const { saving, run } = useSubmitOnce()
+    const skipDeleteConfirm = useConfirmSkipped(SKIP_KEYS.automationDelete)
     const { sync } = useAutomations()
     // The state rules (colors by open tasks) align the open note right away; not awaited, the list does not wait for it
     const resync = () => { sync().catch(err => reportError(err, getErrorMessage(err))) }
@@ -99,16 +102,33 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
         }
     })
 
+    // The toast puts the rule back (the same content, after the other rules): that is why the question can be silenced
+    const restore = async (rule: Automation) => {
+        try {
+            await createDBAutomation(noteId, rule)
+            resync()
+            await reload()
+        } catch (err) {
+            reportError(err, getErrorMessage(err))
+        }
+    }
+
     const remove = (rule: Automation) => run(async () => {
         try {
             await deleteDBAutomation(rule.id)
-            toast.success(t("automations.deletedToast"))
+            toastUndoable(t("automations.deletedToast"), () => restore(rule))
             resync()
             await reload()
         } catch (err) {
             setError(getErrorMessage(err))
         }
     })
+
+    // The delete button of a rule: asks first, unless the user chose "Non chiedermelo più"
+    const requestDelete = (rule: Automation) => {
+        if (skipDeleteConfirm) void remove(rule)
+        else setDeleting(rule)
+    }
 
     const handleOpenChange = (open: boolean) => {
         if (!open && dirty) {
@@ -193,27 +213,25 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                             tagNameOf={tagNameOf}
                             onToggle={(rule, checked) => void toggle(rule, checked)}
                             onEdit={rule => openEditor(rule.id, { name: rule.name, enabled: rule.enabled, trigger: rule.trigger, actions: rule.actions })}
-                            onDelete={setDeleting}
+                            onDelete={requestDelete}
                         />
                     )}
 
                     {error && <FormError>{error}</FormError>}
 
                     {/* mt-auto: with few or no rules the buttons stay at the bottom of the (minimum height) dialog */}
-                    <DialogFooter className={editing ? "mt-auto sm:justify-between" : "mt-auto"}>
+                    <DialogFooter className="mt-auto">
                         {editing ? (
-                            <>
-                                <EditorButtons
-                                    step={editing.step}
-                                    valid={stepValid(editing.step, editing.draft)}
-                                    saving={saving}
-                                    onCancel={cancelEditing}
-                                    onGoTo={goTo}
-                                    onSave={() => void save()}
-                                />
-                            </>
+                            <EditorButtons
+                                step={editing.step}
+                                valid={stepValid(editing.step, editing.draft)}
+                                saving={saving}
+                                onCancel={cancelEditing}
+                                onGoTo={goTo}
+                                onSave={() => void save()}
+                            />
                         ) : (
-                            <>
+                            <DialogFooterActions>
                                 <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>
                                     {t("common.close")}
                                 </Button>
@@ -224,7 +242,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                                         {t("automations.add")}
                                     </Button>
                                 )}
-                            </>
+                            </DialogFooterActions>
                         )}
                     </DialogFooter>
                 </DialogContent>
@@ -244,7 +262,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                 title={t("automations.deleteConfirm.title")}
                 description={deleting ? automationName(deleting, titleOf, groupLabelOf, tagNameOf) : undefined}
                 destructive
-                irreversible
+                skipKey={SKIP_KEYS.automationDelete}
                 confirm={{ label: t("common.delete"), icon: Trash2, onClick: () => { if (deleting) return remove(deleting) } }}
             />
         </>

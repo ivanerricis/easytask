@@ -10,6 +10,8 @@ import { ButtonInPopover } from "@/components/button-in-popover"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { Separator } from "@/components/ui/separator"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
+import { useSkippableDelete } from "@/components/dialogs/use-delete-item"
+import { SKIP_KEYS } from "@/components/dialogs/use-skipped-confirm"
 import { MoveToSubmenu } from "../MoveToSubmenu"
 import { ColorSubmenu } from "../ColorSubmenu"
 import { MenuGroup } from "@/components/menu-kind"
@@ -36,6 +38,13 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
     const menu = useItemMenuState()
     const { requestRename, onCloseAutoFocus } = useRenameAfterClose(onRename)
     const multi = useIsInMultiSelection("folder", folder.id)
+    // Without the question once the user chose "Non chiedermelo più" (the toast and Ctrl+Z bring the folder back)
+    const { request: requestDelete } = useSkippableDelete({
+        item: folder,
+        itemType: "folder",
+        skipKey: SKIP_KEYS.folderTrash,
+        openDialog: () => setDeleteFolderOpen(true),
+    })
     const { exportItem, importItems } = useItemTransfer()
     // Rename, color and delete are applied to the sidebar tree by the context: the dialogs need no reload
     const { updateFolderColorContent, updateItemColor, archiveItem } = useWorkspaceActions()
@@ -116,7 +125,7 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
                 text={t("common.delete")}
                 type="delete"
                 destructive
-                onClick={() => { setDeleteFolderOpen(true); menu.close() }}
+                onClick={() => { requestDelete(); menu.close() }}
             />
         </MenuGroup>
     )
@@ -141,6 +150,7 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
                 itemType="folder"
                 isOpen={isDeleteFolderOpen}
                 onOpenChange={setDeleteFolderOpen}
+                skipKey={SKIP_KEYS.folderTrash}
             />}
         </>
     )

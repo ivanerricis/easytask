@@ -4,7 +4,7 @@ import { useState } from "react"
 import { RotateCcw, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "./dialog-confirm"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormError } from "@/components/form-error"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
@@ -83,17 +83,19 @@ const DialogTrashView = ({ isOpen, onOpenChange, source }: DialogTrashViewProps)
             <FormError>{error}</FormError>
             {/* mt-auto: with few or no items the buttons stay at the bottom of the (fixed height) dialog */}
             <DialogFooter className="mt-auto">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                    {t("common.close")}
-                </Button>
-                <Button
-                    variant="destructive"
-                    disabled={busy || isLoading || items.length === 0}
-                    onClick={() => setConfirm({ kind: "empty" })}
-                >
-                    <Trash2 />
-                    {t("trash.empty")}
-                </Button>
+                <DialogFooterActions>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        {t("common.close")}
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        disabled={busy || isLoading || items.length === 0}
+                        onClick={() => setConfirm({ kind: "empty" })}
+                    >
+                        <Trash2 />
+                        {t("trash.empty")}
+                    </Button>
+                </DialogFooterActions>
             </DialogFooter>
         </>
     )

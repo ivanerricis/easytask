@@ -1,7 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+import { toast } from "sonner"
 import { DialogAutomations } from "./dialog-automations"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 import { createDBAutomation, deleteDBAutomation, getDBAutomations, setDBAutomationEnabled, updateDBAutomation } from "@/db/queries/automation"
 import { getDBNoteData } from "@/db/queries/note"
 import { getDBNoteTags } from "@/db/queries/tag"
@@ -561,5 +563,38 @@ describe("DialogAutomations tag actions", () => {
         expect(await screen.findByText("Quando un task viene completato in \"Doing\", togli il tag \"Bug\"")).toBeInTheDocument()
         expect(screen.getByText("Quando un task viene completato in \"Doing\", aggiungi il tag \"(tag eliminato)\"")).toBeInTheDocument()
         expect(screen.getAllByText("In pausa: il tag di questa regola è stato eliminato.")).toHaveLength(1)
+    })
+})
+
+describe("DialogAutomations delete without the question", () => {
+    const renderSkipped = (skipped: string[]) => render(
+        <PreferencesContext.Provider value={{ skippedConfirms: skipped, setSkippedConfirms: vi.fn() } as unknown as PreferencesContextType}>
+            <DialogAutomations noteId={1} isOpen onOpenChange={vi.fn()} />
+        </PreferencesContext.Provider>,
+    )
+
+    it("offers 'Non chiedermelo più' on the confirmation and deletes with an undo toast that puts the rule back", async () => {
+        const user = userEvent.setup()
+        const success = vi.spyOn(toast, "success")
+        mocked(getDBAutomations).mockResolvedValue([rule()])
+        renderSkipped([])
+        await user.click(await screen.findByRole("button", { name: "Elimina l'automazione \"Chiudi\"" }))
+        expect(await screen.findByRole("checkbox", { name: "Non chiedermelo più" })).toBeInTheDocument()
+        await user.click(screen.getByRole("button", { name: "Elimina" }))
+        await waitFor(() => expect(deleteDBAutomation).toHaveBeenCalledWith(10))
+        await waitFor(() => expect(success).toHaveBeenCalledWith("Automazione eliminata", expect.objectContaining({ action: expect.objectContaining({ label: "Annulla" }) })))
+        const options = success.mock.calls.find(call => call[0] === "Automazione eliminata")![1] as unknown as { action: { onClick: () => void } }
+        options.action.onClick()
+        await waitFor(() => expect(createDBAutomation).toHaveBeenCalledWith(1, expect.objectContaining({ name: "Chiudi", enabled: true, trigger: { type: "task.completed", sectionId: 1 } })))
+        success.mockRestore()
+    })
+
+    it("deletes at once, with the undo toast, when the confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        mocked(getDBAutomations).mockResolvedValue([rule()])
+        renderSkipped(["automation-delete"])
+        await user.click(await screen.findByRole("button", { name: "Elimina l'automazione \"Chiudi\"" }))
+        await waitFor(() => expect(deleteDBAutomation).toHaveBeenCalledWith(10))
+        expect(screen.queryByText("Eliminare l'automazione?")).toBeNull()
     })
 })

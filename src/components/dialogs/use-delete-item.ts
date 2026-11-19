@@ -6,10 +6,11 @@ import { reportError } from "@/lib/report-error"
 import { getErrorMessage } from "@/lib/utils"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useOptionalUndo, useUndoRecorder } from "@/contexts/undo/use-undo"
-import { getItemName, isUndoableType } from "@/contexts/undo/commands"
+import { getItemName, isUndoableRemoveType } from "@/contexts/undo/commands"
 import type { DBItemType } from "@/db/queries/shared_queries"
 import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { toastTrashed } from "@/lib/toast-trashed"
+import { useConfirmSkipped } from "./use-skipped-confirm"
 
 type DeleteItemOptions<T extends { id: number }> = {
     item: T
@@ -38,7 +39,7 @@ export const useDeleteItem = <T extends { id: number }>({ item, itemType, getIte
             await deleteItem(itemType, item.id)
             // Without an explicit id the reload gets the deleted item's own (e.g. the home reloads its workspaces)
             await getItemData?.(getItemId ?? item.id)
-            const undoable = isUndoableType(itemType)
+            const undoable = isUndoableRemoveType(itemType)
             if (undoable) recorder.remove(itemType, item.id, getItemName(item))
             toastTrashed(1, undoable ? undo : undefined, isDraft)
         } catch (error) {
@@ -83,6 +84,42 @@ export const useDeleteRequest = <T extends { id: number }>({ hasContent, openDia
                 openDialog()
                 return
             }
+            try {
+                await deleteNow()
+            } catch (error) {
+                reportError(error, t("dialogs.delete.error", { message: getErrorMessage(error) }))
+            }
+        })
+    }
+
+    return { request }
+}
+
+type SkippableDeleteOptions<T extends { id: number }> = DeleteItemOptions<T> & {
+    /** The key of the confirmation (see `SKIP_KEYS`): once the user chose "Non chiedermelo più" for it, the item goes to the trash at once. */
+    skipKey: string
+    /** Opens the confirmation dialog. */
+    openDialog: () => void
+}
+
+/**
+ * Entry point of a delete menu entry whose confirmation can be silenced: opens the dialog, or, when the user chose
+ * "Non chiedermelo più" (only for actions with the undo toast), moves the item to the trash at once with the toast that
+ * undoes it; a failure is reported with an error toast.
+ * @returns `request` to call from the menu entry.
+ */
+export const useSkippableDelete = <T extends { id: number }>({ skipKey, openDialog, ...deleteOptions }: SkippableDeleteOptions<T>) => {
+    const { t } = useTranslation()
+    const skipped = useConfirmSkipped(skipKey)
+    const deleteNow = useDeleteItem(deleteOptions)
+    const { run } = useSubmitOnce()
+
+    const request = () => {
+        if (!skipped) {
+            openDialog()
+            return
+        }
+        void run(async () => {
             try {
                 await deleteNow()
             } catch (error) {

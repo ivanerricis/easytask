@@ -30,7 +30,7 @@ export const GroupStripFiles = ({ groupId, onOpen }: GroupStripFilesProps) => {
     if (audioCount + mediaCount === 0) return null
 
     return (
-        <div data-group-strip-files className="flex flex-col items-center gap-1">
+        <div data-group-strip-files className="flex w-full flex-col items-center gap-1 border-t border-border/60 pt-3">
             <GroupAudioFiles groupId={groupId} variant="strip" max={audioShown} />
             <GroupMediaFiles groupId={groupId} variant="strip" max={mediaShown} />
             {more > 0 && <TooltipCustom text={t("groups.moreFiles", { count: more })}>

@@ -8,15 +8,18 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ColorPalette } from "@/components/color-palette"
 import { ConfirmDialog } from "@/components/dialogs/dialog-confirm"
+import { SKIP_KEYS, useConfirmSkipped } from "@/components/dialogs/use-skipped-confirm"
 import { FormError } from "@/components/form-error"
 import { TagBadge } from "@/components/tag-badge"
 import { useActiveNote } from "@/contexts/use-active-note"
+import { useOptionalUndo } from "@/contexts/undo/use-undo"
 import { useWorkspaceTags } from "@/contexts/workspace-data"
 import { useTagMutations } from "@/hooks/use-tag-mutations"
 import { reportError } from "@/lib/report-error"
 import { tagCoverage } from "@/lib/task-tags"
 import { getErrorMessage } from "@/lib/utils"
 import { MAX_NAME_LENGTH } from "@/lib/names"
+import { toastUndoable } from "@/lib/toast-trashed"
 
 type TagPickerProps = {
     /** The tasks the list acts on (one task, or the selected ones). */
@@ -109,8 +112,20 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
     const { remove } = useTagMutations()
     const [menuOpen, setMenuOpen] = useState(false)
     const [deleting, setDeleting] = useState(false)
+    const undo = useOptionalUndo()?.undo
+    const skipConfirm = useConfirmSkipped(SKIP_KEYS.tagDelete)
     const all = coverage.total > 0 && coverage.with === coverage.total
     const some = coverage.with > 0 && !all
+
+    // The toast brings the tag back (with its tasks): that is why the question can be silenced
+    const removeTag = async () => {
+        try {
+            await remove(tag)
+            toastUndoable(t("tags.deleted"), undo)
+        } catch (err) {
+            reportError(err, t("tags.errors.delete", { message: getErrorMessage(err) }))
+        }
+    }
 
     return (
         <li className="flex h-8 min-w-0 items-center gap-2" data-testid="tag-row">
@@ -131,26 +146,17 @@ function TagRow({ tag, coverage, onToggle }: TagRowProps) {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-64">
-                    <TagManage tag={tag} onDelete={() => { setMenuOpen(false); setDeleting(true) }} />
+                    <TagManage tag={tag} onDelete={() => { setMenuOpen(false); if (skipConfirm) void removeTag(); else setDeleting(true) }} />
                 </PopoverContent>
             </Popover>
             <ConfirmDialog
                 open={deleting}
                 onOpenChange={setDeleting}
                 destructive
+                skipKey={SKIP_KEYS.tagDelete}
                 title={t("tags.deleteTitle")}
                 description={t("tags.deleteDescription", { name: tag.name })}
-                confirm={{
-                    label: t("tags.deleteConfirm"),
-                    icon: Trash2,
-                    onClick: async () => {
-                        try {
-                            await remove(tag)
-                        } catch (err) {
-                            reportError(err, t("tags.errors.delete", { message: getErrorMessage(err) }))
-                        }
-                    },
-                }}
+                confirm={{ label: t("tags.deleteConfirm"), icon: Trash2, onClick: removeTag }}
             />
         </li>
     )

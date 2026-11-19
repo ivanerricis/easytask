@@ -36,7 +36,17 @@ const UNDOABLE: readonly DBItemType[] = ["folder", "note", "section_group", "sec
 /** Whether the actions on this type of item can be undone. */
 export const isUndoableType = (itemType: DBItemType): itemType is UndoItemType => UNDOABLE.includes(itemType)
 
-const isTreeType = (itemType: UndoItemType): itemType is TreeItemType => itemType === "folder" || itemType === "note"
+/**
+ * The types whose move to the trash can be undone: the undoable ones plus the audio, image and video files of a group.
+ * (Their rename and color stay outside the history: files are only removed and brought back.)
+ */
+type UndoRemoveType = UndoItemType | "audio_file" | "media_file"
+
+/** Whether the removal (move to the trash) of this type of item can be undone. */
+export const isUndoableRemoveType = (itemType: DBItemType): itemType is UndoRemoveType =>
+    isUndoableType(itemType) || itemType === "audio_file" || itemType === "media_file"
+
+const isTreeType = (itemType: UndoRemoveType): itemType is TreeItemType => itemType === "folder" || itemType === "note"
 
 /** Where a folder or a note sits: the parent folder (null = workspace root) and the index among its siblings of the same type. */
 type TreePlace = { folderId: number | null, index: number }
@@ -187,7 +197,7 @@ export function createUndoCommands(deps: UndoDeps) {
         return null
     }
 
-    const removeFromNote = (itemType: UndoItemType, id: number) => {
+    const removeFromNote = (itemType: UndoRemoveType, id: number) => {
         if (itemType === "section_group") return note.removeGroup(id)
         if (itemType === "section") return note.removeSection(id)
         if (itemType === "task") return note.removeTask(id)
@@ -195,15 +205,16 @@ export function createUndoCommands(deps: UndoDeps) {
     }
 
     /** Soft delete with the same optimistic removal as the delete dialog (folders and notes are removed by deleteItem). */
-    const removeItem = async (itemType: UndoItemType, id: number) => {
+    const removeItem = async (itemType: UndoRemoveType, id: number) => {
         await withRollback(removeFromNote(itemType, id), () => workspace.deleteItem(itemType, id))
     }
 
     /** Restores from the trash (the ids are the same, so every reference stays valid) and reloads what changed. */
-    const restoreItem = async (itemType: UndoItemType, id: number) => {
+    const restoreItem = async (itemType: UndoRemoveType, id: number) => {
         await workspace.restoreItem(itemType, id)
         if (isTreeType(itemType)) await reloadTree()
-        else await reloadNote()
+        // The files of a group are listed again by the workspace data itself (the audio version is bumped)
+        else if (itemType !== "audio_file" && itemType !== "media_file") await reloadNote()
     }
 
     /** Archives with the same optimistic removal as the archive action (folders and notes are removed by archiveItem). */
@@ -356,7 +367,7 @@ export function createUndoCommands(deps: UndoDeps) {
         },
 
         /** Move to the trash: undone by restoring the item, with the same id and the same position. */
-        remove: (itemType: UndoItemType, id: number, name: string | null | undefined): UndoCommand => ({
+        remove: (itemType: UndoRemoveType, id: number, name: string | null | undefined): UndoCommand => ({
             label: makeLabel("delete", itemType, name),
             undo: () => restoreItem(itemType, id),
             redo: () => removeItem(itemType, id),

@@ -1,5 +1,6 @@
 export const common = {
     cancel: "Annulla",
+    dontAskAgain: "Non chiedermelo più",
     selected: "selezionato",
     delete: "Elimina",
     save: "Salva",

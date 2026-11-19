@@ -1,9 +1,12 @@
-import { useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react"
+import { useContext, useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Loader2, type LucideIcon } from "lucide-react"
 import { useSubmitOnce } from "@/hooks/use-submit-once"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { PreferencesContext } from "@/contexts/preferences-context-object"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 /** An action of a confirmation: its label, an icon and what it does. */
 type ConfirmAction = {
@@ -43,6 +46,29 @@ type ConfirmDialogProps = {
     initialFocus?: "confirm" | "cancel"
     /** Id of an element (e.g. an inline error among the children) that the main button points to with aria-describedby. */
     confirmDescribedBy?: string
+    /**
+     * Adds the checkbox "Non chiedermelo più": when it is checked on confirm, the key is stored in the `skippedConfirms` preference
+     * and the caller runs the action without asking (see `useConfirmSkipped`). ONLY for an action that shows an undo toast;
+     * never for one that cannot be undone. Needs a preferences provider (without one the checkbox is not shown).
+     */
+    skipKey?: string
+}
+
+/** The checkbox of `skipKey` (it lives in the dialog content: it goes with the content, and the next opening starts unchecked). */
+const SkipCheckbox = ({ checked, onChange }: { checked: boolean, onChange: (checked: boolean) => void }) => {
+    const { t } = useTranslation()
+    const id = useId()
+    useEffect(() => () => onChange(false), [onChange])
+    return (
+        <div className="flex items-center gap-2">
+            <Checkbox
+                id={id}
+                checked={checked}
+                onCheckedChange={value => onChange(value === true)}
+            />
+            <Label htmlFor={id} className="cursor-pointer font-normal text-muted-foreground">{t("common.dontAskAgain")}</Label>
+        </div>
+    )
 }
 
 /**
@@ -51,19 +77,26 @@ type ConfirmDialogProps = {
  * @category Dialogs
  */
 export const ConfirmDialog = ({
-    open, onOpenChange, title, description, children, destructive = false, irreversible = false, confirm, secondary, secondaryDestructive = false, autoClose = true, initialFocus = "confirm", confirmDescribedBy,
+    open, onOpenChange, title, description, children, destructive = false, irreversible = false, confirm, secondary, secondaryDestructive = false, autoClose = true, initialFocus = "confirm", confirmDescribedBy, skipKey,
 }: ConfirmDialogProps) => {
     const { t } = useTranslation()
     const confirmRef = useRef<HTMLButtonElement>(null)
     // A second Enter/click while the action is still running does nothing (a delete must not be sent twice)
     const { saving, run: runOnce } = useSubmitOnce()
     const [pending, setPending] = useState<ConfirmAction | null>(null)
+    const prefs = useContext(PreferencesContext)
+    const canSkip = skipKey !== undefined && prefs !== undefined
+    const [dontAsk, setDontAsk] = useState(false)
 
     // The dialog is in a portal but React events still bubble to the parents (a row, a menu): keep them out
     const run = (action: ConfirmAction) => (e?: MouseEvent | KeyboardEvent) => {
         e?.stopPropagation()
         void runOnce(async () => {
             setPending(action)
+            // "Non chiedermelo più": remembered when the main action is chosen
+            if (skipKey !== undefined && prefs && action === confirm && dontAsk && !prefs.skippedConfirms.includes(skipKey)) {
+                prefs.setSkippedConfirms([...prefs.skippedConfirms, skipKey])
+            }
             try {
                 if (autoClose) onOpenChange(false)
                 await action.onClick()
@@ -97,20 +130,23 @@ export const ConfirmDialog = ({
                     {description && <DialogDescription>{description}</DialogDescription>}
                     {children}
                 </DialogHeader>
+                {canSkip && <SkipCheckbox checked={dontAsk} onChange={setDontAsk} />}
                 <DialogFooter>
-                    <Button variant="outline" onClick={e => { e.stopPropagation(); onOpenChange(false) }}>
-                        {t("common.cancel")}
-                    </Button>
-                    {secondary && (
-                        <Button variant={secondaryDestructive ? "destructive" : "outline"} onClick={run(secondary)} disabled={saving}>
-                            {pending === secondary ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : SecondaryIcon && <SecondaryIcon />}
-                            {secondary.label}
+                    <DialogFooterActions>
+                        <Button variant="outline" onClick={e => { e.stopPropagation(); onOpenChange(false) }}>
+                            {t("common.cancel")}
                         </Button>
-                    )}
-                    <Button ref={confirmRef} variant={destructive ? (irreversible ? "destructiveSolid" : "destructive") : "default"} onClick={run(confirm)} disabled={saving} aria-describedby={confirmDescribedBy}>
-                        {pending === confirm ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : ConfirmIcon && <ConfirmIcon />}
-                        {confirm.label}
-                    </Button>
+                        {secondary && (
+                            <Button variant={secondaryDestructive ? "destructive" : "outline"} onClick={run(secondary)} disabled={saving}>
+                                {pending === secondary ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : SecondaryIcon && <SecondaryIcon />}
+                                {secondary.label}
+                            </Button>
+                        )}
+                        <Button ref={confirmRef} variant={destructive ? (irreversible ? "destructiveSolid" : "destructive") : "default"} onClick={run(confirm)} disabled={saving} aria-describedby={confirmDescribedBy}>
+                            {pending === confirm ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : ConfirmIcon && <ConfirmIcon />}
+                            {confirm.label}
+                        </Button>
+                    </DialogFooterActions>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

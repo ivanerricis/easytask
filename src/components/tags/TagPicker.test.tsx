@@ -3,6 +3,9 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { NoteDataTree, Tag } from "@/types/types"
 import { createTagsStore, WorkspaceTagsContext } from "@/contexts/workspace-data/tags"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
+import { UndoContext } from "@/contexts/undo/context"
+import { toast } from "sonner"
 import { makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { TagPicker } from "./TagPicker"
 
@@ -18,14 +21,23 @@ const tag = (id: number, name: string, color: string | null = null): Tag => ({ i
 const bug = tag(1, "Bug", "#e6194b")
 const urgent = tag(2, "Urgent")
 
+const undoLast = vi.fn()
+const skipped = { list: [] as string[] }
 const setup = (tags: Tag[], taskIds: number[] = [10]) => {
     const store = createTagsStore()
     store.set({ workspaceId: 1, tags })
-    return render(<WorkspaceTagsContext.Provider value={store}><TagPicker taskIds={taskIds} /></WorkspaceTagsContext.Provider>)
+    return render(
+        <PreferencesContext.Provider value={{ skippedConfirms: skipped.list, setSkippedConfirms: vi.fn() } as unknown as PreferencesContextType}>
+            <UndoContext.Provider value={{ undo: undoLast } as never}>
+                <WorkspaceTagsContext.Provider value={store}><TagPicker taskIds={taskIds} /></WorkspaceTagsContext.Provider>
+            </UndoContext.Provider>
+        </PreferencesContext.Provider>,
+    )
 }
 
 beforeEach(() => {
     vi.clearAllMocks()
+    skipped.list = []
     for (const fn of Object.values(mutations)) fn.mockResolvedValue(undefined)
     tree = {
         groups: [makeGroup({
@@ -116,5 +128,30 @@ describe("TagPicker", () => {
         expect(await screen.findByText(/Il tag "Bug" sarà tolto da tutti i task che lo hanno/)).toBeInTheDocument()
         await user.click(screen.getByRole("button", { name: "Elimina tag" }))
         await waitFor(() => expect(mutations.remove).toHaveBeenCalledWith(bug))
+    })
+
+    it("offers 'Non chiedermelo più' and shows an undo toast after deleting a tag", async () => {
+        const user = userEvent.setup()
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.click(await screen.findByRole("button", { name: "Elimina il tag" }))
+        expect(await screen.findByRole("checkbox", { name: "Non chiedermelo più" })).toBeInTheDocument()
+        await user.click(screen.getByRole("button", { name: "Elimina tag" }))
+        await waitFor(() => expect(mutations.remove).toHaveBeenCalledWith(bug))
+        expect(toast.success).toHaveBeenCalledWith("Tag eliminato", expect.objectContaining({ action: expect.objectContaining({ label: "Annulla" }) }))
+        const options = vi.mocked(toast.success).mock.calls[0][1] as unknown as { action: { onClick: () => void } }
+        options.action.onClick()
+        expect(undoLast).toHaveBeenCalledTimes(1)
+    })
+
+    it("deletes at once, with the undo toast, when the confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        skipped.list = ["tag-delete"]
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        await user.click(await screen.findByRole("button", { name: "Elimina il tag" }))
+        await waitFor(() => expect(mutations.remove).toHaveBeenCalledWith(bug))
+        expect(screen.queryByText("Eliminare il tag?")).toBeNull()
+        expect(toast.success).toHaveBeenCalledWith("Tag eliminato", expect.anything())
     })
 })

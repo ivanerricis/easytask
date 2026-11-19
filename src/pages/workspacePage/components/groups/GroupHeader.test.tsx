@@ -20,7 +20,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 vi.mock("@/contexts/use-active-note", () => ({
     useActiveNoteActions: () => ({ patchGroup }),
 }))
-const prefs = { showSectionCount: true, showTaskCount: true, showAudioFileCount: true, showGroupProgressBar: true, showUnnamedLabels: false, renameOnClick: true, collapsedGroupLayout: "vertical" }
+const prefs = { showSectionCount: true, showTaskCount: true, showCollapsedOpenCount: true, showAudioFileCount: true, showGroupProgressBar: true, showUnnamedLabels: false, renameOnClick: true, collapsedGroupLayout: "vertical" }
 vi.mock("@/contexts/use-preferences", () => ({
     usePreferences: () => prefs,
 }))
@@ -33,6 +33,8 @@ vi.mock("@/contexts/use-tabs", () => ({
 beforeEach(() => {
     prefs.showGroupProgressBar = true
     prefs.showAudioFileCount = true
+    prefs.showCollapsedOpenCount = true
+    prefs.showTaskCount = true
     prefs.showUnnamedLabels = false
     prefs.renameOnClick = true
     prefs.collapsedGroupLayout = "vertical"
@@ -255,7 +257,35 @@ describe("GroupHeader progress and collapse", () => {
         render(<GroupHeader group={makeGroup({ name: "Lancio", sections: withTasks.sections })} />)
         expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50")
         expect(screen.getByText("Lancio")).toBeInTheDocument()
+        // One of the two tasks is open: the open count replaces the total
+        expect(screen.getByText("1 task aperto")).toBeInTheDocument()
+        expect(screen.queryByText("2 task")).not.toBeInTheDocument()
+    })
+
+    it("closed, counts the open subtasks too", () => {
+        isOpen = false
+        const group = makeGroup({ name: "L", sections: [makeSection({ tasks: [makeTask({ id: 1, subtasks: [makeTask({ id: 2 }), makeTask({ id: 3, completed: true })] })] })] })
+        render(<GroupHeader group={group} />)
+        // The task and one subtask are open
+        expect(screen.getByText("2 task aperti")).toBeInTheDocument()
+    })
+
+    it("closed with every task done, or with the preference off, keeps the total", () => {
+        isOpen = false
+        const done = makeGroup({ name: "L", sections: [makeSection({ tasks: [makeTask({ completed: true }), makeTask({ id: 2, completed: true })] })] })
+        const { unmount } = render(<GroupHeader group={done} />)
         expect(screen.getByText("2 task")).toBeInTheDocument()
+        unmount()
+        prefs.showCollapsedOpenCount = false
+        render(<GroupHeader group={makeGroup({ name: "L", sections: withTasks.sections })} />)
+        expect(screen.getByText("2 task")).toBeInTheDocument()
+    })
+
+    it("open, shows the total as always", () => {
+        isOpen = true
+        const { container } = render(<GroupHeader group={makeGroup({ name: "L", sections: withTasks.sections })} />)
+        expect(container.querySelector("[data-open-count]")).toBeNull()
+        expect(container.querySelector("svg.lucide-square-check-big")?.parentElement).toHaveTextContent("2")
     })
 
     it("closed, an unnamed group shows no name unless the preference asks for the label", () => {
@@ -285,6 +315,11 @@ describe("GroupHeader when collapsed with the horizontal layout", () => {
         expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50")
         expect(screen.getByText("50%")).toBeInTheDocument()
         expect(container.querySelector("[class*='writing-mode']")).toBeNull()
+    })
+
+    it("shows the number of open tasks next to the counters, with its name", () => {
+        render(<GroupHeader group={makeGroup({ name: "Lancio", sections: withTasks.sections })} />)
+        expect(screen.getByRole("img", { name: "1 task aperto" })).toHaveTextContent("1")
     })
 
     it("labels the chevron 'Espandi gruppo' and toggles from it", async () => {

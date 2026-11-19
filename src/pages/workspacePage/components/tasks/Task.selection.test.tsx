@@ -83,11 +83,12 @@ function Probe() {
 }
 
 let store: ReturnType<typeof createSelectionStore>
+const prefs = { skippedConfirms: [] as string[], setSkippedConfirms: vi.fn() }
 
 const setup = () => render(
     <TabsProvider notes={[makeNote({ id: 1 })]} workspaceId={null}>
         <OpenNote>
-            <PreferencesContext.Provider value={{ showTaskInsertLine: true, taskDensity: "normal" } as never}>
+            <PreferencesContext.Provider value={{ showTaskInsertLine: true, taskDensity: "normal", ...prefs } as never}>
                 <TaskSelectionContext.Provider value={store}>
                     <TaskSelectionActionsProvider>
                         <div role="tree">{tasks.map(task => <Task key={task.id} task={task} />)}</div>
@@ -111,6 +112,7 @@ beforeEach(() => {
     moveTask.mockResolvedValue(undefined)
     refreshActiveNote.mockResolvedValue(undefined)
     clipboard.text = ""
+    prefs.skippedConfirms = []
     store = createSelectionStore()
     store.sync(["task-10", "task-11", "task-12", "task-13"])
 })
@@ -254,6 +256,40 @@ describe("actions (one undo step each)", () => {
         expect(recorder.removeMany).toHaveBeenCalledWith([
             { itemType: "task", id: 10, name: "Primo" }, { itemType: "task", id: 12, name: "Terzo" },
         ])
+    })
+
+    it("offers 'Non chiedermelo più' on the confirmation and stores the key when it is checked", async () => {
+        const user = userEvent.setup()
+        setup()
+        select(10, 12)
+        fireEvent.contextMenu(rowOf(10))
+        await user.click(await screen.findByText("Elimina 2 task"))
+        await user.click(await screen.findByRole("checkbox", { name: "Non chiedermelo più" }))
+        await user.click(screen.getByRole("button", { name: "Sposta 2 task nel cestino" }))
+        expect(prefs.setSkippedConfirms).toHaveBeenCalledWith(["task-trash"])
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledTimes(2))
+    })
+
+    it("trashes the selection at once, as ONE undo step, when the confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        prefs.skippedConfirms = ["task-trash"]
+        setup()
+        select(10, 12, 13)
+        fireEvent.contextMenu(rowOf(10))
+        await user.click(await screen.findByText("Elimina 2 task"))
+        await waitFor(() => expect(recorder.removeMany).toHaveBeenCalledTimes(1))
+        expect(deleteItem.mock.calls).toEqual([["task", 10], ["task", 12]])
+        expect(screen.queryByRole("button", { name: /nel cestino/ })).not.toBeInTheDocument()
+    })
+
+    it("a single task menu trashes it at once when the confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        prefs.skippedConfirms = ["task-trash"]
+        setup()
+        fireEvent.contextMenu(rowOf(11))
+        await user.click(await screen.findByText("Elimina"))
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledWith("task", 11))
+        expect(screen.queryByRole("button", { name: /nel cestino/ })).not.toBeInTheDocument()
     })
 
     it("Delete trashes the focused task at once, with no confirmation, in ONE undo step", async () => {

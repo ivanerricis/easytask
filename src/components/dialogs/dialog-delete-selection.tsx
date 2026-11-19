@@ -2,12 +2,10 @@ import { useTranslation } from "react-i18next"
 import { Trash2 } from "lucide-react"
 import { useRef, useState } from "react"
 import { ConfirmDialog } from "./dialog-confirm"
-import { useWorkspaceActions } from "@/contexts/workspace-data"
-import { useOptionalUndo, useUndoRecorder } from "@/contexts/undo/use-undo"
+import { SKIP_KEYS } from "./use-skipped-confirm"
+import { useTrashTreeItems } from "./use-trash-tree-items"
 import type { TreeItemRef } from "@/contexts/undo/commands"
 import { getErrorMessage } from "@/lib/utils"
-import { useIsActiveDraft } from "@/contexts/use-template-drafts"
-import { toastTrashed } from "@/lib/toast-trashed"
 import { FormError } from "@/components/form-error"
 
 type DialogDeleteSelectionProps = {
@@ -24,32 +22,18 @@ type DialogDeleteSelectionProps = {
  */
 export const DialogDeleteSelection = ({ items, isOpen, onOpenChange }: DialogDeleteSelectionProps) => {
     const { t } = useTranslation()
-    const { deleteItem } = useWorkspaceActions()
-    const recorder = useUndoRecorder()
-    const undo = useOptionalUndo()?.undo
-    const isDraft = useIsActiveDraft()
+    const trashItems = useTrashTreeItems()
     const [error, setError] = useState<string | null>(null)
     // Trashed by an earlier attempt of this same confirmation
     const trashed = useRef(new Set<string>())
 
     const handleDelete = async () => {
         setError(null)
-        const done: TreeItemRef[] = []
         try {
-            for (const item of items) {
-                const key = `${item.itemType}-${item.id}`
-                if (trashed.current.has(key)) continue
-                await deleteItem(item.itemType, item.id)
-                trashed.current.add(key)
-                done.push(item)
-            }
-            trashed.current.clear()
-            toastTrashed(items.length, undo, isDraft)
+            await trashItems(items, trashed.current)
             onOpenChange(false)
         } catch (err) {
             setError(t("dialogs.deleteSelection.error", { done: trashed.current.size, total: items.length, message: getErrorMessage(err) }))
-        } finally {
-            if (done.length > 0) recorder.removeMany(done)
         }
     }
 
@@ -65,6 +49,7 @@ export const DialogDeleteSelection = ({ items, isOpen, onOpenChange }: DialogDel
             }}
             destructive
             autoClose={false}
+            skipKey={SKIP_KEYS.treeSelectionTrash}
             title={t("dialogs.delete.title")}
             description={t("dialogs.deleteSelection.description", { count: items.length })}
             confirm={{ label: t("dialogs.deleteSelection.confirm", { count: items.length }), icon: Trash2, onClick: handleDelete }}

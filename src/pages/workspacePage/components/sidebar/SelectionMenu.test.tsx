@@ -7,6 +7,7 @@ import { ItemMenuButton } from "@/components/item-menu"
 import { ButtonMenuFolder } from "../folder/ButtonMenuFolder"
 import { ButtonMenuNote } from "../note/ButtonMenuNote"
 import { SelectionContext } from "./selection-context-object"
+import { PreferencesContext, type PreferencesContextType } from "@/contexts/preferences-context-object"
 import { SelectionActionsProvider } from "./selection-actions"
 import { createSelectionStore } from "./selection"
 
@@ -165,6 +166,53 @@ describe("delete", () => {
         expect(recorder.removeMany).toHaveBeenLastCalledWith([
             { itemType: "note", id: 9, name: "Spesa" }, { itemType: "note", id: 10, name: "Idee" },
         ])
+    })
+})
+
+describe("delete without the question", () => {
+    const setupWithPrefs = (skippedConfirms: string[]) => {
+        const setSkippedConfirms = vi.fn()
+        render(
+            <PreferencesContext.Provider value={{ skippedConfirms, setSkippedConfirms } as unknown as PreferencesContextType}>
+                <SelectionContext.Provider value={store}>
+                    <SelectionActionsProvider>
+                        <ButtonMenuFolder folder={lavoro}><div data-testid="row">Riga</div></ButtonMenuFolder>
+                    </SelectionActionsProvider>
+                </SelectionContext.Provider>
+            </PreferencesContext.Provider>,
+        )
+        return { row: screen.getByTestId("row"), setSkippedConfirms }
+    }
+
+    it("offers 'Non chiedermelo più' on the confirmation and stores the key when it is checked", async () => {
+        const user = userEvent.setup()
+        const { row, setSkippedConfirms } = setupWithPrefs([])
+        select("folder-1", "note-9")
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Elimina 2 elementi"))
+        await user.click(await screen.findByRole("checkbox", { name: "Non chiedermelo più" }))
+        await user.click(screen.getByRole("button", { name: "Sposta 2 elementi nel cestino" }))
+        expect(setSkippedConfirms).toHaveBeenCalledWith(["tree-selection-trash"])
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledTimes(2))
+    })
+
+    it("trashes the selection at once, as ONE undo step, when the confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        const { row } = setupWithPrefs(["tree-selection-trash"])
+        select("folder-1", "note-5", "note-9")
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Elimina 2 elementi"))
+        await waitFor(() => expect(recorder.removeMany).toHaveBeenCalledTimes(1))
+        expect(deleteItem.mock.calls).toEqual([["folder", 1], ["note", 9]])
+        expect(screen.queryByRole("button", { name: "Sposta 2 elementi nel cestino" })).not.toBeInTheDocument()
+    })
+
+    it("trashes a single folder at once when its confirmation was skipped", async () => {
+        const user = userEvent.setup()
+        const { row } = setupWithPrefs(["folder-trash"])
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Elimina"))
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledWith("folder", 1))
     })
 })
 

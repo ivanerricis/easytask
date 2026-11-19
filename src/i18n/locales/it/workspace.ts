@@ -103,6 +103,8 @@ export const groups = {
     renameError: "Impossibile cambiare il nome del gruppo: {{message}}",
     namePlaceholder: "Nome del gruppo…",
     progress: "Avanzamento del gruppo",
+    openTasks_one: "{{count}} task aperto",
+    openTasks_other: "{{count}} task aperti",
     audioCount_one: "{{count}} file audio",
     audioCount_other: "{{count}} file audio",
     mediaCount_one: "{{count}} immagine o video",

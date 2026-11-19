@@ -56,7 +56,7 @@ describe("DialogDeleteItem and undo", () => {
 
     it("has no undo button in the toast of the types that cannot be undone", async () => {
         const user = userEvent.setup()
-        render(withUndo(<DialogDeleteItem item={{ id: 3 }} itemType="audio_file" isOpen onOpenChange={vi.fn()} />))
+        render(withUndo(<DialogDeleteItem item={{ id: 3 }} itemType="workspace" isOpen onOpenChange={vi.fn()} />))
         await user.click(screen.getByRole("button", { name: "Sposta nel cestino" }))
         await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Elemento spostato nel cestino", undefined))
     })
@@ -80,13 +80,23 @@ describe("DialogDeleteItem and undo", () => {
         expect(recorder.remove).not.toHaveBeenCalled()
     })
 
-    it("does not record the types that cannot be undone (audio files, workspaces)", async () => {
+    it("does not record the types that cannot be undone (workspaces)", async () => {
         const user = userEvent.setup()
-        render(withUndo(<DialogDeleteItem item={{ id: 3 }} itemType="audio_file" isOpen onOpenChange={vi.fn()} />))
+        render(withUndo(<DialogDeleteItem item={{ id: 3 }} itemType="workspace" isOpen onOpenChange={vi.fn()} />))
         await user.click(screen.getByRole("button", { name: "Sposta nel cestino" }))
 
-        await waitFor(() => expect(deleteItem).toHaveBeenCalledWith("audio_file", 3))
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledWith("workspace", 3))
         expect(recorder.remove).not.toHaveBeenCalled()
+    })
+
+    it.each(["audio_file", "media_file"] as const)("records the removal of a %s and puts the undo button in the toast", async (itemType) => {
+        const user = userEvent.setup()
+        render(withUndo(<DialogDeleteItem item={{ id: 3, name: "song" }} itemType={itemType} isOpen onOpenChange={vi.fn()} />))
+        await user.click(screen.getByRole("button", { name: "Sposta nel cestino" }))
+
+        await waitFor(() => expect(deleteItem).toHaveBeenCalledWith(itemType, 3))
+        expect(recorder.remove).toHaveBeenCalledWith(itemType, 3, "song")
+        expect(toast.success).toHaveBeenCalledWith("Elemento spostato nel cestino", expect.objectContaining({ action: expect.objectContaining({ label: "Annulla" }) }))
     })
 })
 

@@ -18,6 +18,7 @@ export const tags: Translation["tags"] = {
     deleteTitle: "Delete the tag?",
     deleteDescription: "The tag \"{{name}}\" will be removed from all the tasks that have it. You can undo it.",
     deleteConfirm: "Delete tag",
+    deleted: "Tag deleted",
     save: "Save",
     done: "Done",
     badges: "Tags: {{names}}",
