@@ -2,6 +2,7 @@ import type { Translation } from "../it"
 
 export const common: Translation["common"] = {
     cancel: "Cancel",
+    dontAskAgain: "Don't ask again",
     selected: "selected",
     delete: "Delete",
     save: "Save",

@@ -25,9 +25,9 @@ import { Highlight } from "@/components/highlight"
 import { useSearchHighlight } from "../note-search-context"
 
 /** Icon + number, named for the screen readers and for the mouse (the icon alone does not say what is counted). */
-const CountBadge = ({ icon: Icon, count, label }: { icon: LucideIcon, count: number, label: string }) => (
+const CountBadge = ({ icon: Icon, count, label, open = false }: { icon: LucideIcon, count: number, label: string, open?: boolean }) => (
     <TooltipCustom text={label}>
-        <div role="img" aria-label={label} className="flex items-center gap-1">
+        <div role="img" aria-label={label} data-open-count={open || undefined} className="flex items-center gap-1">
             <Icon className="size-4" />
             <span className="text-xs tabular-nums">{count}</span>
         </div>
@@ -56,6 +56,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     const { t } = useTranslation()
     const showSectionCount = usePreference(p => p.showSectionCount)
     const showTaskCount = usePreference(p => p.showTaskCount)
+    const showCollapsedOpenCount = usePreference(p => p.showCollapsedOpenCount) ?? true
     const showAudioFileCount = usePreference(p => p.showAudioFileCount)
     const showGroupProgressBar = usePreference(p => p.showGroupProgressBar)
     const showUnnamedLabels = usePreference(p => p.showUnnamedLabels)
@@ -69,7 +70,12 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
     const recorder = useUndoRecorder()
     const name = group.name?.trim() ?? ""
     const label = getGroupLabel(group, index)
-    const taskCount = useMemo(() => taskSections(group).reduce((sum, section) => sum + section.tasks.length, 0), [group])
+    const totalTaskCount = useMemo(() => taskSections(group).reduce((sum, section) => sum + section.tasks.length, 0), [group])
+    // Collapsed with something still to do: the number of open tasks (subtasks included) replaces the total; all done = the total as always
+    const openTaskCount = progress.total - progress.done
+    const showOpen = !isOpen && showCollapsedOpenCount && openTaskCount > 0
+    const taskCount = showOpen ? openTaskCount : totalTaskCount
+    const taskCountLabel = showOpen ? t("groups.openTasks", { count: openTaskCount }) : t("common.counts.task", { count: totalTaskCount })
     // An empty text removes the name (a group can have none)
     const { editing: isEditing, error, start: startEditing, inputProps } = useInlineEdit({
         value: name,
@@ -113,9 +119,10 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
             {(name || showUnnamedLabels) && <span title={name || label} className={`max-h-80 truncate text-sm font-semibold [writing-mode:vertical-rl] ${!name ? "text-muted-foreground" : ""}`}>
                 {name || label}
             </span>}
-            {showTaskCount && <span className="text-xs text-muted-foreground tabular-nums [writing-mode:vertical-rl]">
-                {t("common.counts.task", { count: taskCount })}
+            {showTaskCount && <span data-open-count={showOpen || undefined} className="text-xs text-muted-foreground tabular-nums [writing-mode:vertical-rl]">
+                {taskCountLabel}
             </span>}
+            {/* The tags of the group go here, after the count; the media buttons follow in Group, after a gap */}
         </div>
     )
 
@@ -161,7 +168,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
             <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                 <div className="flex shrink-0 gap-2 text-muted-foreground">
                     {showSectionCount && <CountBadge icon={LayoutList} count={group.sections.length} label={t("common.counts.section", { count: group.sections.length })} />}
-                    {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={t("common.counts.task", { count: taskCount })} />}
+                    {showTaskCount && <CountBadge icon={SquareCheckBig} count={taskCount} label={taskCountLabel} open={showOpen} />}
                     {showAudioFileCount && audioCount > 0 && <CountBadge icon={FileAudio} count={audioCount} label={t("groups.audioCount", { count: audioCount })} />}
                     {showAudioFileCount && mediaCount > 0 && <CountBadge icon={Images} count={mediaCount} label={t("groups.mediaCount", { count: mediaCount })} />}
                 </div>

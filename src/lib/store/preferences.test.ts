@@ -585,10 +585,10 @@ describe("preference table", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
             "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "autoBackupMode", "backupFolder",
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
-            "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount",
+            "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount", "showCollapsedOpenCount",
             "showGroupProgressBar", "showGroupSeparators", "showMediaWhenCollapsed", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
             "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth",
-            "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "themeBackground", "themeId", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
+            "skippedConfirms", "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "themeBackground", "themeId", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
         ])
     })
 
@@ -659,6 +659,17 @@ describe("delete confirmation and window preferences", () => {
         expect(normalizePref(name, false)).toBe(false)
         expect(normalizePref(name, "x")).toBe(true)
         expect(normalizePref(name, null)).toBe(true)
+    })
+
+    it("showCollapsedOpenCount is on unless stored as false", () => {
+        expect(normalizePref("showCollapsedOpenCount", false)).toBe(false)
+        expect(normalizePref("showCollapsedOpenCount", "x")).toBe(true)
+    })
+
+    it("skippedConfirms keeps only the distinct non-empty strings", () => {
+        expect(normalizePref("skippedConfirms", ["task-trash", "", 3, "task-trash", "tag-delete"])).toEqual(["task-trash", "tag-delete"])
+        expect(normalizePref("skippedConfirms", "task-trash")).toEqual([])
+        expect(normalizePref("skippedConfirms", null)).toEqual([])
     })
 
     it("alwaysOnTop is off unless stored as true", () => {

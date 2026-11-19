@@ -103,6 +103,8 @@ export const groups: Translation["groups"] = {
     renameError: "Could not change the group name: {{message}}",
     namePlaceholder: "Group name…",
     progress: "Group progress",
+    openTasks_one: "{{count}} open task",
+    openTasks_other: "{{count}} open tasks",
     audioCount_one: "{{count}} audio file",
     audioCount_other: "{{count}} audio files",
     mediaCount_one: "{{count}} image or video",

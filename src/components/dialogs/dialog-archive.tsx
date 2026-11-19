@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ArchiveRestore, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "./dialog-confirm"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormError } from "@/components/form-error"
 import { ItemRow, ItemRowActions, ListEmpty, ListError, TypeTabs, TypeTabsSkeleton } from "./item-list-parts"
 import { useOpenList } from "./use-open-list"
@@ -78,9 +78,11 @@ export const DialogArchive = ({ isOpen, onOpenChange }: DialogArchiveProps) => {
             <FormError>{error}</FormError>
             {/* mt-auto: with few or no items the buttons stay at the bottom of the (fixed height) dialog */}
             <DialogFooter className="mt-auto">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                    {t("common.close")}
-                </Button>
+                <DialogFooterActions>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        {t("common.close")}
+                    </Button>
+                </DialogFooterActions>
             </DialogFooter>
         </>
     )

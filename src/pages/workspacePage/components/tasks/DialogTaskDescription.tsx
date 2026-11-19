@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import type { Task } from "@/types/types";
 import { getErrorMessage } from "@/lib/utils"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import TextareaAutosize from "react-textarea-autosize"
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
@@ -91,7 +91,7 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
                 {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
                 <DialogFooter className="items-center sm:justify-between">
                     <span className="hidden text-xs text-muted-foreground sm:inline">{t("tasks.descriptionDialog.hint")}</span>
-                    <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                    <DialogFooterActions>
                         <Button variant="outline" onClick={handleClose}>
                             {t("common.cancel")}
                         </Button>
@@ -99,7 +99,7 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
                             <Check />
                             {t("common.save")}
                         </Button>
-                    </div>
+                    </DialogFooterActions>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { usePreferences } from "@/contexts/use-preferences"
 import { SegmentedSetting } from "./SegmentedSetting"
-import { SettingsPanel, SettingsSubsection, SettingsSwitchRow } from "./SettingsRow"
+import { Button } from "@/components/ui/button"
+import { SettingsPanel, SettingsRow, SettingsSubsection, SettingsSwitchRow } from "./SettingsRow"
 import { StartupWorkspaceSetting } from "./StartupWorkspaceSetting"
 
 const TASK_DENSITY_OPTIONS = ["compact", "normal", "large"] as const
@@ -30,6 +31,8 @@ export const NotesSettings = () => {
         newTaskPosition, setNewTaskPosition,
         spellcheck, setSpellcheck,
         confirmDeleteWithContent, setConfirmDeleteWithContent,
+        skippedConfirms, setSkippedConfirms,
+        showCollapsedOpenCount, setShowCollapsedOpenCount,
         hideCompletedTasks, setHideCompletedTasks,
         completedTasksLast, setCompletedTasksLast,
         reopenNotes, setReopenNotes,
@@ -44,6 +47,7 @@ export const NotesSettings = () => {
             <SettingsSubsection title={t("settings.notes.sections.counts")}>
                 <SettingsSwitchRow label={t("settings.notes.sectionCount")} checked={showSectionCount} onCheckedChange={setShowSectionCount} />
                 <SettingsSwitchRow label={t("settings.notes.taskCount")} checked={showTaskCount} onCheckedChange={setShowTaskCount} />
+                <SettingsSwitchRow label={t("settings.notes.collapsedOpenCount.label")} description={t("settings.notes.collapsedOpenCount.description")} checked={showCollapsedOpenCount} onCheckedChange={setShowCollapsedOpenCount} />
                 <SettingsSwitchRow label={t("settings.notes.audioFileCount")} checked={showAudioFileCount} onCheckedChange={setShowAudioFileCount} />
                 <SettingsSwitchRow label={t("settings.notes.subtaskCount.label")} description={t("settings.notes.subtaskCount.description")} checked={showSubtaskCount} onCheckedChange={setShowSubtaskCount} />
             </SettingsSubsection>
@@ -83,6 +87,13 @@ export const NotesSettings = () => {
                 />
                 <SettingsSwitchRow label={t("settings.notes.spellcheck.label")} description={t("settings.notes.spellcheck.description")} checked={spellcheck} onCheckedChange={setSpellcheck} />
                 <SettingsSwitchRow label={t("settings.notes.confirmDelete.label")} description={t("settings.notes.confirmDelete.description")} checked={confirmDeleteWithContent} onCheckedChange={setConfirmDeleteWithContent} />
+                <SettingsRow label={t("settings.notes.skippedConfirms.label")} description={t("settings.notes.skippedConfirms.description")}>
+                    {({ id, descriptionId }) => (
+                        <Button id={id} aria-describedby={descriptionId} variant="outline" size="sm" disabled={skippedConfirms.length === 0} onClick={() => setSkippedConfirms([])}>
+                            {t("settings.notes.skippedConfirms.action")}
+                        </Button>
+                    )}
+                </SettingsRow>
             </SettingsSubsection>
             <SettingsSubsection title={t("settings.notes.sections.startup")}>
                 <StartupWorkspaceSetting />

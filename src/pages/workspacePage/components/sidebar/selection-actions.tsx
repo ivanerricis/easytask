@@ -4,6 +4,8 @@ import { useWorkspaceData } from "@/contexts/workspace-data"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import type { ColorChange, TreeItemRef, TreeMoveStep } from "@/contexts/undo/commands"
 import { DialogDeleteSelection } from "@/components/dialogs/dialog-delete-selection"
+import { useTrashTreeItems } from "@/components/dialogs/use-trash-tree-items"
+import { SKIP_KEYS, useConfirmSkipped } from "@/components/dialogs/use-skipped-confirm"
 import { useItemTransfer } from "@/hooks/use-workspace-transfer"
 import { reportError } from "@/lib/report-error"
 import { getErrorMessage } from "@/lib/utils"
@@ -43,10 +45,19 @@ export function SelectionActionsProvider({ children }: { children: ReactNode }) 
         [tree, store],
     )
 
+    const skipConfirm = useConfirmSkipped(SKIP_KEYS.treeSelectionTrash)
+    const trashItems = useTrashTreeItems()
+
+    // Asks first, unless the user chose "Non chiedermelo più": then the toast and Ctrl+Z bring the items back
     const requestDelete = useCallback(() => {
         const targets = getTargets()
-        if (targets.length > 0) setDeleting({ items: targets, open: true })
-    }, [getTargets])
+        if (targets.length === 0) return
+        if (!skipConfirm) {
+            setDeleting({ items: targets, open: true })
+            return
+        }
+        trashItems(targets).catch((error: unknown) => reportError(error, getErrorMessage(error)))
+    }, [getTargets, skipConfirm, trashItems])
 
     const archiveSelection = useCallback(async () => {
         const done: TreeItemRef[] = []

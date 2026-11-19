@@ -13,7 +13,7 @@ const colorContent = vi.fn()
 const archive = vi.fn()
 const archiveItem = vi.fn()
 const recorder = makeUndoRecorderMock({ colorContent, archive })
-vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
+vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder, useOptionalUndo: () => null }))
 const getWorkspaceData = vi.fn()
 vi.mock("@/contexts/workspace-data", () => ({
     useWorkspaceActions: () => ({ updateFolderColorContent, getWorkspaceData, updateItemColor: vi.fn(), archiveItem }),

@@ -21,7 +21,7 @@ vi.mock("@/contexts/workspace-data", () => ({
 }))
 // Only the archive step is observed: every other recorder method is a no-op
 const recorder = makeUndoRecorderMock({ archive })
-vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
+vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder, useOptionalUndo: () => null }))
 let draftActive = false
 vi.mock("@/contexts/use-template-drafts", () => ({ useIsActiveDraft: () => draftActive }))
 const selectTask = vi.fn()

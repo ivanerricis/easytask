@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { NotesSettings } from "./NotesSettings"
 
-const setters = { setCollapsedGroupLayout: vi.fn(), setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setShowMediaWhenCollapsed: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
+const setters = { setCollapsedGroupLayout: vi.fn(), setTaskDensity: vi.fn(), setNewTaskPosition: vi.fn(), setSpellcheck: vi.fn(), setSkippedConfirms: vi.fn(), setShowCollapsedOpenCount: vi.fn(), setConfirmDeleteWithContent: vi.fn(), setKeepAddingTasks: vi.fn(), setShowTaskInsertLine: vi.fn(), setLiveDrag: vi.fn(), setShowMediaWhenCollapsed: vi.fn(), setReopenLastWorkspace: vi.fn(), setStartupWorkspaceId: vi.fn() }
 let prefs: Record<string, unknown>
 const workspaces = [{ id: 1, name: "Alpha" }, { id: 2, name: "Beta" }]
 
@@ -14,7 +14,7 @@ vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => ({ ...prefs
 describe("NotesSettings", () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        prefs = { collapsedGroupLayout: "vertical", taskDensity: "normal", newTaskPosition: "bottom", spellcheck: true, reopenLastWorkspace: false, startupWorkspaceId: null }
+        prefs = { collapsedGroupLayout: "vertical", taskDensity: "normal", newTaskPosition: "bottom", spellcheck: true, skippedConfirms: [], showCollapsedOpenCount: true, reopenLastWorkspace: false, startupWorkspaceId: null }
     })
 
     it("changes the layout of the collapsed groups", async () => {
@@ -79,6 +79,23 @@ describe("NotesSettings", () => {
         expect(toggle).toBeChecked()
         await userEvent.click(toggle)
         expect(setters.setConfirmDeleteWithContent).toHaveBeenCalledWith(false)
+    })
+
+    it("toggles the open count of collapsed groups", async () => {
+        render(<NotesSettings />)
+        const toggle = screen.getByRole("switch", { name: "Mostra i task aperti nei gruppi chiusi" })
+        expect(toggle).toBeChecked()
+        await userEvent.click(toggle)
+        expect(setters.setShowCollapsedOpenCount).toHaveBeenCalledWith(false)
+    })
+
+    it("restores the skipped confirmations, disabled when there are none", async () => {
+        const { rerender } = render(<NotesSettings />)
+        expect(screen.getByRole("button", { name: "Ripristina le conferme" })).toBeDisabled()
+        prefs.skippedConfirms = ["task-trash"]
+        rerender(<NotesSettings />)
+        await userEvent.click(screen.getByRole("button", { name: "Ripristina le conferme" }))
+        expect(setters.setSkippedConfirms).toHaveBeenCalledWith([])
     })
 
     it("toggles the spell check", async () => {

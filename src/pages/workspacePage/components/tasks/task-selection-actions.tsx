@@ -9,6 +9,7 @@ import { captureTaskPlace, type ColorChange, type ManyItemRef, type TaskMoveStep
 import { withRollback } from "@/contexts/with-rollback"
 import { useAutomations } from "@/hooks/use-automations"
 import { ConfirmDialog } from "@/components/dialogs/dialog-confirm"
+import { SKIP_KEYS, useConfirmSkipped } from "@/components/dialogs/use-skipped-confirm"
 import { DialogTaskTags } from "@/components/tags/DialogTaskTags"
 import { FormError } from "@/components/form-error"
 import { reportError } from "@/lib/report-error"
@@ -53,10 +54,7 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         return tree ? getTopMostTasks(tree, selectedIds()).map(task => ({ itemType: "task", id: task.id, name: task.text })) : []
     }, [getNoteTree, selectedIds])
 
-    const requestDelete = useCallback(() => {
-        const items = getTargets()
-        if (items.length > 0) setDeleting({ items, open: true })
-    }, [getTargets])
+    const skipConfirm = useConfirmSkipped(SKIP_KEYS.taskTrash)
 
     /**
      * Moves the tasks to the trash as ONE undo step, with the toast that undoes it. Throws when a write fails: the tasks
@@ -95,9 +93,8 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         return targets.length > 0 ? targets : [focused]
     }, [store, getTargets])
 
-    // The Delete key: no confirmation (like the archive), the toast and Ctrl+Z bring the tasks back
-    const deleteNow = useCallback(async (focused: ManyItemRef) => {
-        const items = keyboardTargets(focused)
+    // No confirmation: the toast and Ctrl+Z bring the tasks back; a failure is reported with an error toast
+    const trashQuietly = useCallback(async (items: ManyItemRef[]) => {
         try {
             await trashItems(items)
         } catch (err) {
@@ -105,7 +102,18 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
         } finally {
             trashed.current.clear()
         }
-    }, [keyboardTargets, trashItems, t])
+    }, [trashItems, t])
+
+    // The Delete key: no confirmation (like the archive)
+    const deleteNow = useCallback((focused: ManyItemRef) => trashQuietly(keyboardTargets(focused)), [keyboardTargets, trashQuietly])
+
+    // The menu of the selection: asks first, unless the user chose "Non chiedermelo più"
+    const requestDelete = useCallback(() => {
+        const items = getTargets()
+        if (items.length === 0) return
+        if (skipConfirm) void trashQuietly(items)
+        else setDeleting({ items, open: true })
+    }, [getTargets, skipConfirm, trashQuietly])
 
     const copy = useCallback(async (focused: ManyItemRef) => {
         const tree = getNoteTree()
@@ -208,6 +216,7 @@ export function TaskSelectionActionsProvider({ children }: { children: ReactNode
                 }}
                 destructive
                 autoClose={false}
+                skipKey={SKIP_KEYS.taskTrash}
                 title={t("dialogs.delete.title")}
                 description={t("tasks.selection.deleteDescription", { count: deleting.items.length })}
                 confirm={{ label: t("tasks.selection.deleteConfirm", { count: deleting.items.length }), icon: Trash2, onClick: handleDelete }}

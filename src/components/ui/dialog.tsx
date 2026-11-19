@@ -108,6 +108,20 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * The action buttons of a `DialogFooter`: stacked full width on a phone, in a row from `sm` up, all as wide as the widest
+ * one (the labels differ a lot in Italian). Put every button of the footer in it; hints or other content stay outside.
+ */
+function DialogFooterActions({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-footer-actions"
+      className={cn("flex flex-col-reverse gap-2 sm:grid sm:w-fit sm:grid-flow-col sm:auto-cols-fr", className)}
+      {...props}
+    />
+  )
+}
+
 function DialogTitle({
   className,
   ...props
@@ -140,6 +154,7 @@ export {
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogFooterActions,
   DialogHeader,
   DialogOverlay,
   DialogPortal,

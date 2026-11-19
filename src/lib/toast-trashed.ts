@@ -11,6 +11,11 @@ export const ACTION_TOAST_DURATION = 8000
  */
 export function toastTrashed(count: number, undo?: () => Promise<void>, inDraft = false) {
     const message = inDraft ? i18n.t("templateEditor.deleted") : i18n.t("dialogs.delete.done", { count })
+    toastUndoable(message, undo)
+}
+
+/** A success toast with the "Annulla" button that runs `undo` (without it, a plain toast). */
+export function toastUndoable(message: string, undo?: () => Promise<void>) {
     toast.success(message, undo
         ? { duration: ACTION_TOAST_DURATION, action: { label: i18n.t("undo.undo"), onClick: () => { void undo() } } }
         : undefined)

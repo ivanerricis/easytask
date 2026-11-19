@@ -10,6 +10,8 @@ import { useState, type ReactElement } from "react"
 import { ButtonInPopover } from "@/components/button-in-popover"
 import { Separator } from "@/components/ui/separator"
 import { DialogDeleteItem } from "@/components/dialogs/dialog-delete"
+import { useSkippableDelete } from "@/components/dialogs/use-delete-item"
+import { SKIP_KEYS } from "@/components/dialogs/use-skipped-confirm"
 import { ColorSubmenu } from "../ColorSubmenu"
 import { MenuGroup } from "@/components/menu-kind"
 import { ItemMenu } from "@/components/item-menu"
@@ -56,6 +58,15 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
     const selectTask = useSelectTask()
     const showTaskDetails = useShowTaskDetails()
     const multi = useIsInTaskMultiSelection(task.id)
+    // Without the question once the user chose "Non chiedermelo più" (the toast and Ctrl+Z bring the task back)
+    const { request: requestDelete } = useSkippableDelete({
+        item: task,
+        itemType: "task",
+        getItemId: activeId ?? undefined,
+        getItemData: async () => { removeTask(task.id) },
+        skipKey: SKIP_KEYS.taskTrash,
+        openDialog: () => setDeleteTaskOpen(true),
+    })
 
     const handleEditPriority = async () => {
         // Optimistic: the cached tree is updated at once and restored if the write fails
@@ -162,7 +173,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
                 type="delete"
                 destructive
                 onClick={() => {
-                    setDeleteTaskOpen(true)
+                    requestDelete()
                     menu.close()
                 }}
             />
@@ -183,6 +194,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
                     onOpenChange={setDeleteTaskOpen}
                     getItemId={activeId ?? undefined}
                     getItemData={async () => { removeTask(task.id) }}
+                    skipKey={SKIP_KEYS.taskTrash}
                 />}
         </>
     )

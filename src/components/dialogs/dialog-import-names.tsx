@@ -2,7 +2,7 @@ import { useId, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Briefcase, Download, FileText, Folder, Loader2, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FormError } from "@/components/form-error"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -75,11 +75,13 @@ export const DialogImportNames = ({ proposed, onSubmit, onCancel }: DialogImport
                     </div>
                     <FormError id={errorId}>{message}</FormError>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>{t("common.cancel")}</Button>
-                        <Button type="submit" disabled={saving || blank} aria-busy={saving || undefined}>
-                            {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : <Download />}
-                            {t("transfer.importAction")}
-                        </Button>
+                        <DialogFooterActions>
+                            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>{t("common.cancel")}</Button>
+                            <Button type="submit" disabled={saving || blank} aria-busy={saving || undefined}>
+                                {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : <Download />}
+                                {t("transfer.importAction")}
+                            </Button>
+                        </DialogFooterActions>
                     </DialogFooter>
                 </form>
             </DialogContent>

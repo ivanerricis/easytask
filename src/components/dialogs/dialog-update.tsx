@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { ACTION_TOAST_DURATION } from "@/lib/toast-trashed"
 import { Download, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { UpdateInstallProgress } from "@/components/update-parts"
 import { useUpdateInstall } from "@/hooks/use-update-install"
 import { isDialogOpen } from "@/components/dialog-open"
@@ -118,16 +118,18 @@ export const DialogUpdate = () => {
                 )}
 
                 <DialogFooter>
-                    <Button variant="ghost" disabled={installing} onClick={handleSkip}>
-                        {t("settings.about.update.dialog.skip")}
-                    </Button>
-                    <Button variant="outline" disabled={installing} onClick={close}>
-                        {t("settings.about.update.dialog.later")}
-                    </Button>
-                    <Button ref={updateButton} disabled={installing} onClick={() => void handleUpdate(update)}>
-                        {portable ? <ExternalLink /> : <Download />}
-                        {portable ? t("settings.about.update.openReleases") : t("settings.about.update.dialog.updateNow")}
-                    </Button>
+                    <DialogFooterActions>
+                        <Button variant="ghost" disabled={installing} onClick={handleSkip}>
+                            {t("settings.about.update.dialog.skip")}
+                        </Button>
+                        <Button variant="outline" disabled={installing} onClick={close}>
+                            {t("settings.about.update.dialog.later")}
+                        </Button>
+                        <Button ref={updateButton} disabled={installing} onClick={() => void handleUpdate(update)}>
+                            {portable ? <ExternalLink /> : <Download />}
+                            {portable ? t("settings.about.update.openReleases") : t("settings.about.update.dialog.updateNow")}
+                        </Button>
+                    </DialogFooterActions>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

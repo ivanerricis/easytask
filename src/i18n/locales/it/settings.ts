@@ -330,6 +330,10 @@ export const settings = {
         },
         sectionCount: "Mostra numero di sezioni",
         taskCount: "Mostra numero di task",
+        collapsedOpenCount: {
+            label: "Mostra i task aperti nei gruppi chiusi",
+            description: "Un gruppo chiuso con task da completare mostra quanti sono ancora aperti (sottotask compresi) al posto del totale.",
+        },
         audioFileCount: "Mostra il numero di file audio, immagini e video",
         groupSeparators: {
             label: "Linee tra i gruppi",
@@ -408,6 +412,11 @@ export const settings = {
         confirmDelete: {
             label: "Conferma l'eliminazione solo se c'è contenuto",
             description: "Per note, sezioni e gruppi: chiede conferma solo se contengono qualcosa, altrimenti vanno subito nel cestino (con \"Annulla\"). Se disattivata, non chiede mai conferma. Cartelle, workspace, task e selezioni multiple chiedono sempre.",
+        },
+        skippedConfirms: {
+            label: "Ripristina le conferme",
+            description: "Le conferme per cui hai scelto \"Non chiedermelo più\" tornano a comparire.",
+            action: "Ripristina",
         },
         reopenNotes: {
             label: "Riapri le note all'avvio",

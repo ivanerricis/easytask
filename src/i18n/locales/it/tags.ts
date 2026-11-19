@@ -16,6 +16,7 @@ export const tags = {
     deleteTitle: "Eliminare il tag?",
     deleteDescription: "Il tag \"{{name}}\" sarà tolto da tutti i task che lo hanno. Puoi annullare con Annulla.",
     deleteConfirm: "Elimina tag",
+    deleted: "Tag eliminato",
     save: "Salva",
     done: "Fatto",
     badges: "Tag: {{names}}",

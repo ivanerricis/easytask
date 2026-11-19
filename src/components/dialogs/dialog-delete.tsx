@@ -17,13 +17,15 @@ type DialogDeleteProps<T> = {
     getItemData?: (id: number) => Promise<void>
     /** Removes the item from the cached data before the write; returns the function that restores it if the write fails. */
     optimistic?: () => () => void
+    /** Key of the "Non chiedermelo più" checkbox (see `SKIP_KEYS`); only for deletes that show the undo toast. */
+    skipKey?: string
 }
 
 type defaultItemType = {
     id: number
 }
 
-export const DialogDeleteItem = <T extends defaultItemType>({ item, itemType, getItemId, isOpen, onOpenChange, getItemData, optimistic }: DialogDeleteProps<T>) => {
+export const DialogDeleteItem = <T extends defaultItemType>({ item, itemType, getItemId, isOpen, onOpenChange, getItemData, optimistic, skipKey }: DialogDeleteProps<T>) => {
     const { t } = useTranslation()
     const deleteNow = useDeleteItem({ item, itemType, getItemId, getItemData, optimistic })
 
@@ -46,6 +48,7 @@ export const DialogDeleteItem = <T extends defaultItemType>({ item, itemType, ge
             onOpenChange={(open) => { if (!open) setError(null); onOpenChange(open) }}
             destructive
             autoClose={false}
+            skipKey={skipKey}
             confirmDescribedBy={error ? errorId : undefined}
             title={t("dialogs.delete.title")}
             description={t("dialogs.delete.description")}
