@@ -88,7 +88,7 @@ const DialogTrashView = ({ isOpen, onOpenChange, source }: DialogTrashViewProps)
                         {t("common.close")}
                     </Button>
                     <Button
-                        variant="destructive"
+                        variant="destructiveSolid"
                         disabled={busy || isLoading || items.length === 0}
                         onClick={() => setConfirm({ kind: "empty" })}
                     >

@@ -289,7 +289,7 @@ export const BackupSettings = () => {
                                     </TooltipCustom>
                                     <TooltipCustom text={t("common.delete")}>
                                         <Button
-                                            variant="destructive"
+                                            variant="destructiveGhost"
                                             size="icon"
                                             disabled={busy}
                                             aria-label={t("settings.data.backup.delete.aria", { date })}

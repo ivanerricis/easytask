@@ -51,7 +51,7 @@ const AutomationRow = ({ rule, titleOf, groupLabelOf, tagNameOf, onToggle, onEdi
                 </Button>
             </TooltipCustom>
             <TooltipCustom text={t("automations.delete")}>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" aria-label={t("automations.deleteAria", { name })}
+                <Button variant="destructiveGhost" size="icon" aria-label={t("automations.deleteAria", { name })}
                     onClick={() => onDelete(rule)}>
                     <Trash2 />
                 </Button>
