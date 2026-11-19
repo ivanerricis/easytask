@@ -242,6 +242,12 @@ export const openSubmenu = async (
  * WebDriver click fail with "element click intercepted".
  */
 export const domClick = async (element: ChainablePromiseElement) => {
+    // Right after a start or a view change the target can still be rendering (lazy pages): wait for it instead of failing at once
+    const shown = async () => (await browser.execute(() => (document.getElementById("root")?.innerText ?? "").replace(/\s+/g, " ").slice(0, 200)))
+    await element.waitForExist({
+        timeout: 20_000,
+        timeoutMsg: `domClick: the element "${String(element.selector)}" does not exist; the page shows: ${await shown()}`,
+    })
     const resolved = (await element.getElement()) as unknown as HTMLElement
     await browser.execute((el: HTMLElement) => el.click(), resolved)
 }
