@@ -41,6 +41,8 @@ export type TemplateSection = {
     /** Archive date: only in the export files (a template never contains archived items). */
     archived_at?: string | null
     position: number
+    /** The tags of the section; absent when it has none (and in snapshots created before sections had tags). */
+    tags?: TemplateTag[]
     /** How the tasks of the section are ordered on screen; absent in templates and export files created before this choice (= follow the preference). */
     task_order?: TaskOrder | null
     tasks: TemplateTask[]

@@ -62,4 +62,14 @@ describe("GroupTagBadges", () => {
         act(() => store.set({ workspaceId: 1, tags: [tag(2, "Urgent")] }))
         expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Urgent"])
     })
+
+    it("gives each badge its own menu when the owner is known, and plain badges otherwise", () => {
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags: TAGS })
+        const { unmount } = render(<WorkspaceTagsContext.Provider value={store}><GroupTagBadges tagIDs={[1, 2]} layout="badges" owner={{ kind: "sections", id: 4 }} /></WorkspaceTagsContext.Provider>)
+        expect(screen.getAllByTestId("tag-badge-trigger")).toHaveLength(2)
+        unmount()
+        setup([1, 2], "badges")
+        expect(screen.queryByTestId("tag-badge-trigger")).not.toBeInTheDocument()
+    })
 })

@@ -61,6 +61,8 @@ export const undo = {
         unassignTag: "Togli il tag dal task",
         assignTagGroup: "Aggiungi il tag al gruppo",
         unassignTagGroup: "Togli il tag dal gruppo",
+        assignTagSection: "Aggiungi il tag alla sezione",
+        unassignTagSection: "Togli il tag dalla sezione",
         assignTagMany_one: "Aggiungi il tag a {{count}} task",
         assignTagMany_other: "Aggiungi il tag a {{count}} task",
         unassignTagMany_one: "Togli il tag da {{count}} task",

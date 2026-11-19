@@ -142,8 +142,9 @@ export async function duplicateDBSection(sectionId: number): Promise<number> {
         title = source.title ? uniqueCopyName(source.title, new Set(siblings.flatMap(row => row.title ? [row.title] : []))) : ""
         const tasks = await db.select<Task[]>(
             'SELECT * FROM task WHERE sectionID = ? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, id', [sectionId])
-        const tags = await loadSectionTags(sectionId, tasks)
-        snapshot = createSectionSnapshotter(tasks, tags)({ ...source, title: source.title ?? "" })
+        const section = { ...source, title: source.title ?? "" } as Omit<SectionRow, "title"> & { title: string, tagIDs?: number[] }
+        const tags = await loadSectionTags(sectionId, tasks, section)
+        snapshot = createSectionSnapshotter(tasks, tags)(section)
     } catch (error: unknown) {
         throw toAppError(error, e => createError("DUPLICATE_FAILED", i18n.t("errors.duplicate.load", { message: getErrorMessage(e) })))
     }

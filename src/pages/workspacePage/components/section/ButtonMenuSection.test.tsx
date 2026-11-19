@@ -25,13 +25,16 @@ vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ upda
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ patchSection, removeSection, refreshActiveNote }) }))
 vi.mock("../NoteMoveSubmenus", () => ({ SectionMoveSubmenu: () => null }))
 vi.mock("../NoteStepMoves", () => ({ SectionStepMoves: () => null }))
+vi.mock("@/components/tags/DialogSectionTags", () => ({
+    DialogSectionTags: ({ open, sectionId }: { open: boolean, sectionId: number }) => open ? <div>Dialog tag sezione {sectionId}</div> : null,
+}))
 vi.mock("@/components/dialogs/dialog-delete", () => ({
     DialogDeleteItem: ({ isOpen, optimistic }: { isOpen: boolean, optimistic: () => () => void }) =>
         isOpen ? <button onClick={() => optimistic()}>Dialog elimina</button> : null,
 }))
 const onRename = vi.fn()
 
-const ENTRIES = ["Rinomina", "Duplica", "Cambia colore", "Ordine dei task", "Archivia", "Elimina"]
+const ENTRIES = ["Rinomina", "Duplica", "Cambia colore", "Ordine dei task", "Tag…", "Archivia", "Elimina"]
 
 beforeEach(() => {
     vi.clearAllMocks()
@@ -67,6 +70,14 @@ describe("ButtonMenuSection", () => {
 
         fireEvent.contextMenu(row)
         for (const entry of ENTRIES) expect(await screen.findByText(entry)).toBeInTheDocument()
+    })
+
+    it("opens the tags dialog of the section from the Tag entry", async () => {
+        const user = userEvent.setup()
+        const row = setup()
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Tag…"))
+        expect(await screen.findByText("Dialog tag sezione 7")).toBeInTheDocument()
     })
 
     it("starts the inline rename from the context menu", async () => {

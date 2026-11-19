@@ -1,6 +1,6 @@
-﻿import { $, browser } from "@wdio/globals"
+﻿import { $, browser, expect } from "@wdio/globals"
 import {
-    addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, menuButton, openMenuWithButton, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
+    addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, menuButton, openContextMenu, openMenuWithButton, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
     waitForApp,
     groupCard, newSectionInGroup,
 } from "../helpers"
@@ -15,6 +15,7 @@ const GROUP = "Tags Group"
 const SECTION = "Tags S1"
 const TASK = "Tags T1"
 const TAG = "Urgent e2e"
+const RENAMED = "Urgent e2e renamed"
 
 const xpathString = (value: string) =>
     value.includes("'") ? `concat('${value.split("'").join(`', "'", '`)}')` : `'${value}'`
@@ -102,5 +103,44 @@ describe("Tags of the tasks", () => {
         await browser.waitUntil(async () => (await badgesOf(TASK)).join() === TAG, { timeoutMsg: "the pill did not come back with the redo" })
         await browser.waitUntil(async () => (await savedTags(TASK)).join() === TAG, { timeoutMsg: "the tag was not saved again by the redo" })
     })
-})
 
+    it("puts the pill on a line under the text of the task", async () => {
+        const below = await browser.execute((label: string) => {
+            const row = Array.from(document.querySelectorAll("[role='treeitem']")).find(item => item.getAttribute("aria-label") === label)
+            const badge = row?.querySelector('[data-testid="tag-badge"]')
+            const checkbox = row?.querySelector('[role="checkbox"]')
+            if (!badge || !checkbox) return null
+            return badge.getBoundingClientRect().top >= checkbox.getBoundingClientRect().bottom - 1
+        }, TASK)
+        expect(below).toBe(true)
+    })
+
+    it("removes the tag from the task with the right click on its pill, not from the workspace; Ctrl+Z gives it back", async () => {
+        const badge = rowOf(TASK).$('[data-testid="tag-badge"]')
+        const menu = await openContextMenu(badge)
+        await domClick(byText(await tr("tags.removeTag"), menu))
+        await browser.waitUntil(async () => (await badgesOf(TASK)).length === 0, { timeoutMsg: "the pill is still on the row after Remove tag" })
+        await browser.waitUntil(async () => (await savedTags(TASK)).length === 0, { timeoutMsg: "the link was not removed" })
+        expect(await savedTagNames()).toEqual([TAG])
+
+        await pressCtrl("z")
+        await browser.waitUntil(async () => (await badgesOf(TASK)).join() === TAG, { timeoutMsg: "the pill did not come back with the undo" })
+    })
+
+    it("Enter in the name field of the tag menu saves the name and closes the menu, not the dialog", async () => {
+        await rowOf(TASK).moveTo()
+        const menu = await openMenuWithButton(await menuButton(rowOf(TASK)))
+        await domClick(byText(await tr("tags.menu"), menu))
+        const dialog = await topDialog()
+        await dialog.waitForDisplayed({ timeoutMsg: "the tags dialog did not open" })
+        await domClick(byLabel(await tr("tags.manage", { name: TAG })))
+        const field = byLabel(await tr("tags.renameLabel"))
+        await field.waitForDisplayed({ timeoutMsg: "the tag menu did not open" })
+        await typeInto(field, RENAMED)
+        await browser.keys("Enter")
+        await field.waitForDisplayed({ reverse: true, timeoutMsg: "the tag menu is still open after Enter" })
+        await browser.waitUntil(async () => (await badgesOf(TASK)).join() === RENAMED, { timeoutMsg: "the pill was not renamed" })
+        expect(await dialog.isDisplayed()).toBe(true)
+        await domClick(byText(await tr("tags.done"), dialog))
+    })
+})

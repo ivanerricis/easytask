@@ -5,7 +5,7 @@ import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 import { chunked, nextPositionSql, placeholders } from "./sql";
-import { attachTags, type GroupTagLinkRow, type TagLinkRow, type UsedTag } from "./tag";
+import { attachTags, type GroupTagLinkRow, type SectionTagLinkRow, type TagLinkRow, type UsedTag } from "./tag";
 
 /** SQL filter that hides the archived rows (nothing when they are kept); `alias` is the table alias of the column. */
 const notArchived = (includeArchived: boolean, alias = "") =>
@@ -29,7 +29,7 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
         const db = await getDB()
         const gA = notArchived(includeArchived)
         // Three independent selects (no transaction): the pooled connection can serve them in parallel
-        const [groups, sectionRows, tasks, links, groupLinks] = await Promise.all([
+        const [groups, sectionRows, tasks, links, groupLinks, sectionLinks] = await Promise.all([
             db.select<Group[]>(
                 `SELECT * FROM section_group WHERE noteID=? AND deleted_at IS NULL${gA} ORDER BY position`, [noteId]),
             db.select<Section[]>(`
@@ -56,9 +56,16 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
                 INNER JOIN section_group g ON g.id = gt.groupID
                 WHERE g.noteID = ? AND g.deleted_at IS NULL${notArchived(includeArchived, "g")}
                 ORDER BY tg.position, tg.id`, [noteId]),
+            db.select<SectionTagLinkRow[]>(`
+                SELECT st.sectionID, tg.id, tg.name, tg.color, tg.shape, tg.position FROM section_tag st
+                INNER JOIN tag tg ON tg.id = st.tagID
+                INNER JOIN section s ON s.id = st.sectionID
+                INNER JOIN section_group g ON g.id = s.groupID
+                WHERE g.noteID = ? AND g.deleted_at IS NULL${notArchived(includeArchived, "g")} AND s.deleted_at IS NULL${notArchived(includeArchived, "s")}
+                ORDER BY tg.position, tg.id`, [noteId]),
         ])
         const sections = sectionRows.map(withTitle)
-        const tags = attachTags(tasks, links, groups, groupLinks)
+        const tags = attachTags(tasks, links, groups, groupLinks, sections, sectionLinks)
         return { groups, sections, tasks, tags }
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
@@ -86,7 +93,7 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
 
         for (const ids of chunked(noteIds)) {
             const marks = placeholders(ids.length)
-            const [groups, sections, tasks, links, groupLinks] = await Promise.all([
+            const [groups, sections, tasks, links, groupLinks, sectionLinks] = await Promise.all([
                 db.select<Group[]>(
                     `SELECT * FROM section_group g WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} ORDER BY g.position, g.id`, ids),
                 db.select<(Section & { _noteID: number })[]>(
@@ -116,6 +123,13 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                      INNER JOIN section_group g ON g.id = gt.groupID
                      WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")}
                      ORDER BY tg.position, tg.id`, ids),
+                db.select<(SectionTagLinkRow & { _noteID: number })[]>(
+                    `SELECT st.sectionID, tg.id, tg.name, tg.color, tg.shape, tg.position, g.noteID AS _noteID FROM section_tag st
+                     INNER JOIN tag tg ON tg.id = st.tagID
+                     INNER JOIN section s ON s.id = st.sectionID
+                     INNER JOIN section_group g ON g.id = s.groupID
+                     WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} AND s.deleted_at IS NULL${arch("s")}
+                     ORDER BY tg.position, tg.id`, ids),
             ])
             for (const group of groups) dataOf(group.noteID).groups.push(group)
             for (const { _noteID, ...section } of sections) dataOf(_noteID).sections.push(withTitle(section))
@@ -132,9 +146,15 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                 if (list) list.push(link)
                 else groupLinksByNote.set(_noteID, [link])
             }
-            for (const noteID of new Set([...linksByNote.keys(), ...groupLinksByNote.keys()])) {
+            const sectionLinksByNote = new Map<number, SectionTagLinkRow[]>()
+            for (const { _noteID, ...link } of sectionLinks) {
+                const list = sectionLinksByNote.get(_noteID)
+                if (list) list.push(link)
+                else sectionLinksByNote.set(_noteID, [link])
+            }
+            for (const noteID of new Set([...linksByNote.keys(), ...groupLinksByNote.keys(), ...sectionLinksByNote.keys()])) {
                 const data = dataOf(noteID)
-                data.tags = attachTags(data.tasks, linksByNote.get(noteID) ?? [], data.groups, groupLinksByNote.get(noteID) ?? [])
+                data.tags = attachTags(data.tasks, linksByNote.get(noteID) ?? [], data.groups, groupLinksByNote.get(noteID) ?? [], data.sections, sectionLinksByNote.get(noteID) ?? [])
             }
         }
         return result

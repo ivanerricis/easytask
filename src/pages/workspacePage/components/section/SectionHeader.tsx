@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { getErrorMessage } from "@/lib/utils"
 import type { Section as SectionType } from "@/types/types"
 import { ChevronDown } from "lucide-react"
+import { GroupTagBadges } from "../groups/GroupTagBadges"
 import { ButtonMenuSection } from "./ButtonMenuSection"
 import { ItemMenuButton } from "@/components/item-menu"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
@@ -103,6 +104,7 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                                 className="h-6 min-w-0 flex-1 px-1 py-0 ml-1 text-sm md:text-sm border-primary"
                             />
                         </InlineErrorTooltip>}
+                        <GroupTagBadges tagIDs={section.tagIDs} layout="badges" owner={{ kind: "sections", id: section.id }} />
                         {!isOpen && section.tasks.length > 0 && <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                             {t("common.counts.task", { count: section.tasks.length })}
                         </span>}

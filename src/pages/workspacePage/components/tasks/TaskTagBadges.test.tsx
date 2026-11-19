@@ -9,7 +9,7 @@ const tag = (id: number, name: string, color: string | null = null): Tag => ({ i
 const setup = (tags: Tag[], tagIDs: number[]) => {
     const store = createTagsStore()
     store.set({ workspaceId: 1, tags })
-    render(<WorkspaceTagsContext.Provider value={store}><TaskTagBadges tagIDs={tagIDs} /></WorkspaceTagsContext.Provider>)
+    render(<WorkspaceTagsContext.Provider value={store}><TaskTagBadges tagIDs={tagIDs} taskId={1} /></WorkspaceTagsContext.Provider>)
     return store
 }
 
@@ -50,5 +50,16 @@ describe("TaskTagBadges", () => {
         expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Defect", "Urgent"])
         act(() => store.set({ workspaceId: 1, tags: [tag(2, "Urgent")] }))
         expect(screen.getAllByTestId("tag-badge").map(badge => badge.textContent)).toEqual(["Urgent"])
+    })
+
+    it("is a left aligned line that grows with the row (no 45% column on the right) and takes the indent it is given", () => {
+        const store = createTagsStore()
+        store.set({ workspaceId: 1, tags: [tag(1, "Bug")] })
+        render(<WorkspaceTagsContext.Provider value={store}><TaskTagBadges tagIDs={[1]} taskId={3} className="pl-6" /></WorkspaceTagsContext.Provider>)
+        const line = screen.getByTestId("task-tags")
+        expect(line).toHaveClass("flex-wrap", "justify-start", "pl-6")
+        expect(line.className).not.toContain("max-w-")
+        expect(line.className).not.toContain("justify-end")
+        expect(screen.getAllByTestId("tag-badge-trigger")).toHaveLength(1)
     })
 })

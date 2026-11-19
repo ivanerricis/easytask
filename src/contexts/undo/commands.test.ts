@@ -18,7 +18,7 @@ function makeDeps() {
             renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), updateNoteBackgroundImage: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
             moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(),
             updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
-            renameTag: fn(), updateTagColor: fn(), updateTagShape: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(), setGroupTag: fn(),
+            renameTag: fn(), updateTagColor: fn(), updateTagShape: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(), setGroupTag: fn(), setSectionTag: fn(),
         },
         note: {
             patchTask: vi.fn(() => rollbacks.patch), patchSection: vi.fn(() => rollbacks.patch), patchGroup: vi.fn(() => rollbacks.patch),
@@ -833,10 +833,10 @@ describe("tags", () => {
     })
 
     it("delete: undo restores the tag with the tasks that had it, redo deletes it again", async () => {
-        const command = commands.tagDelete(tag, { taskIds: [11], groupIds: [2] })
+        const command = commands.tagDelete(tag, { taskIds: [11], groupIds: [2], sectionIds: [] })
         expect(command.label).toBe("Elimina tag \"Bug\"")
         await command.undo()
-        expect(ctx.deps.workspace.restoreTag).toHaveBeenCalledWith(tag, { taskIds: [11], groupIds: [2] })
+        expect(ctx.deps.workspace.restoreTag).toHaveBeenCalledWith(tag, { taskIds: [11], groupIds: [2], sectionIds: [] })
         await command.redo()
         expect(ctx.deps.workspace.deleteTag).toHaveBeenCalledWith(4)
     })
@@ -893,6 +893,22 @@ describe("tags", () => {
         await command.undo()
         expect(ctx.deps.note.patchGroup).toHaveBeenCalledWith(4, { tagIDs: [9] })
         expect(ctx.deps.workspace.setGroupTag).toHaveBeenLastCalledWith(4, [3, 4], false)
+        expect(ctx.deps.workspace.setTaskTag).not.toHaveBeenCalled()
+    })
+
+    it("assign to sections: redo patches the cached sections and writes them, undo takes the tag away", async () => {
+        ctx.deps.note.getNoteTree.mockReturnValue({ groups: [makeGroup({ id: 1, sections: [makeSection({ id: 3 }), makeSection({ id: 4, tagIDs: [9] })] })] })
+        const command = commands.tagAssignSections(tag, [3, 4], true)
+        expect(command.label).toBe("Aggiungi il tag alla sezione \"Bug\"")
+        expect(commands.tagAssignSections(tag, [3], false).label).toBe("Togli il tag dalla sezione \"Bug\"")
+        await command.redo()
+        expect(ctx.deps.note.patchSection).toHaveBeenCalledWith(3, { tagIDs: [4] })
+        expect(ctx.deps.note.patchSection).toHaveBeenCalledWith(4, { tagIDs: [9, 4] })
+        expect(ctx.deps.workspace.setSectionTag).toHaveBeenLastCalledWith(4, [3, 4], true)
+        ctx.deps.note.getNoteTree.mockReturnValue({ groups: [makeGroup({ id: 1, sections: [makeSection({ id: 3, tagIDs: [4] }), makeSection({ id: 4, tagIDs: [9, 4] })] })] })
+        await command.undo()
+        expect(ctx.deps.note.patchSection).toHaveBeenCalledWith(4, { tagIDs: [9] })
+        expect(ctx.deps.workspace.setSectionTag).toHaveBeenLastCalledWith(4, [3, 4], false)
         expect(ctx.deps.workspace.setTaskTag).not.toHaveBeenCalled()
     })
 

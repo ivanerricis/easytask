@@ -73,14 +73,16 @@ export type WorkspaceActionsType = {
     renameTag: (tagID: number, name: string) => Promise<void>
     updateTagColor: (tagID: number, color: string | null) => Promise<void>
     updateTagShape: (tagID: number, shape: StoredTagShape) => Promise<void>
-    /** Deletes a tag with its links; resolves with the tasks and groups that had it. The caller refreshes the open note. */
+    /** Deletes a tag with its links; resolves with the tasks, groups and sections that had it. The caller refreshes the open note. */
     deleteTag: (tagID: number) => Promise<TagLinks>
-    /** Puts a deleted tag back (same id and place) and gives it again to its tasks and groups. The caller refreshes the open note. */
+    /** Puts a deleted tag back (same id and place) and gives it again to its tasks, groups and sections. The caller refreshes the open note. */
     restoreTag: (tag: Tag, links: Partial<TagLinks>) => Promise<void>
     /** Gives a tag to the tasks (or takes it away). Does not touch the open note: the caller patches it first. */
     setTaskTag: (tagID: number, taskIds: readonly number[], assigned: boolean) => Promise<void>
     /** Gives a tag to the groups (or takes it away). Does not touch the open note: the caller patches it first. */
     setGroupTag: (tagID: number, groupIds: readonly number[], assigned: boolean) => Promise<void>
+    /** Gives a tag to the sections (or takes it away). Does not touch the open note: the caller patches it first. */
+    setSectionTag: (tagID: number, sectionIds: readonly number[], assigned: boolean) => Promise<void>
     renameItem: (itemType: DBItemType, itemId: number, name: string) => Promise<void>
     updateItemColor: (itemType: DBItemType, itemId: number, color?: string) => Promise<void>
     /** Saves the background color of a note (undefined = default) and updates the sidebar tree at once. */

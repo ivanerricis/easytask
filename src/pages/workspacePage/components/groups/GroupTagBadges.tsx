@@ -1,6 +1,7 @@
 import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import { TagBadge } from "@/components/tag-badge"
+import { TagBadgeMenu } from "@/components/tags/TagBadgeMenu"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { useTagsOf } from "@/contexts/workspace-data/tags"
 import { cn } from "@/lib/utils"
@@ -13,6 +14,8 @@ type GroupTagBadgesProps = {
      * "strip": the dots stacked (the closed group as a vertical strip).
      */
     layout: "badges" | "dots" | "strip"
+    /** The group or section the tags belong to: with it the badges have their own context menu (edit the tag, remove it from this item). */
+    owner?: { kind: "groups" | "sections", id: number }
     className?: string
 }
 
@@ -20,11 +23,11 @@ type GroupTagBadgesProps = {
 const MAX_SHOWN = 3
 
 /**
- * The tags of a group in its header. It reads the tag list from its own store (like TaskTagBadges), so a tag that is renamed or
+ * The tags of a group or section in its header. It reads the tag list from its own store (like TaskTagBadges), so a tag that is renamed or
  * recolored re-renders only the headers that show it. The compact layouts have no room for the names: they show a dot per tag with
  * the names as tooltip and as accessible name of the group of dots.
  */
-export const GroupTagBadges = memo(({ tagIDs, layout, className }: GroupTagBadgesProps) => {
+export const GroupTagBadges = memo(({ tagIDs, layout, owner, className }: GroupTagBadgesProps) => {
     const { t } = useTranslation()
     const tags = useTagsOf(tagIDs)
     if (tags.length === 0) return null
@@ -35,7 +38,9 @@ export const GroupTagBadges = memo(({ tagIDs, layout, className }: GroupTagBadge
 
     if (layout === "badges") return (
         <div role="group" aria-label={label} data-testid="group-tags" className={cn("flex min-w-0 shrink items-center gap-1 overflow-hidden", className)}>
-            {shown.map(tag => <TagBadge key={tag.id} tag={tag} className="max-w-24" />)}
+            {shown.map(tag => owner
+                ? <TagBadgeMenu key={tag.id} tag={tag} target={owner}><TagBadge tag={tag} className="max-w-24" /></TagBadgeMenu>
+                : <TagBadge key={tag.id} tag={tag} className="max-w-24" />)}
             {more > 0 && <span className="shrink-0 text-xs tabular-nums text-muted-foreground">+{more}</span>}
         </div>
     )

@@ -2,7 +2,7 @@
  * The shapes a tag can be drawn with. `pill` is the default (stored as NULL), the others are chosen by the user.
  * @category Utils
  */
-export const TAG_SHAPES = ["pill", "rounded", "dot", "tag"] as const
+export const TAG_SHAPES = ["pill", "rounded", "dot", "tag", "diamond", "hexagon", "star", "square"] as const
 
 export type TagShape = (typeof TAG_SHAPES)[number]
 
