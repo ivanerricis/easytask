@@ -34,6 +34,7 @@ export const FileTreeItem = memo(({ item, collapsedIds, onToggleFolder, depth = 
                 isOpen={!collapsedIds.has(item.id)}
                 onToggle={onToggleFolder}
                 level={depth + 1}
+                layer
             >
                 {item.subfolders.map((child) => (
                     <FileTreeItem
@@ -49,13 +50,14 @@ export const FileTreeItem = memo(({ item, collapsedIds, onToggleFolder, depth = 
                         key={`note-${note.id}`}
                         note={note}
                         level={depth + 2}
+                        layer
                     />
                 ))}
             </ItemFolder>
         )
     }
 
-    return <ItemNote note={item} level={depth + 1} />
+    return <ItemNote note={item} level={depth + 1} layer />
 })
 
 /** The virtualized tree, which alone follows the tab stop: a focus move re-renders it, not the whole FileTree. */

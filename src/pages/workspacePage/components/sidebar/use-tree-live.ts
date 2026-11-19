@@ -8,7 +8,7 @@ import { useItemSize, TREE_ROW_GAP } from "./item-size"
 import {
     computeTreeShifts, indexRows, insertionIndex, isShiftingZone, rowsWithoutSource, sourceRange, toLiveRows, type LiveTreeRow,
 } from "./tree-dnd-live"
-import { applyTreeShifts, clearTreeShifts, hasTreeShifts, readTreeRest, treeShiftOf } from "./tree-live-shift"
+import { applyTreeShifts, clearTreeShifts, hasTreeRows, hasTreeShifts, readTreeRest, treeShiftOf } from "./tree-live-shift"
 import { treeRowKey } from "./tree-row"
 
 /** Longest wait for the optimistic update of a drop before the rows are put back anyway. */
@@ -56,7 +56,8 @@ export const useTreeLive = (rows: FlatRow[], tree: object) => {
         const parent = target?.folderId == null ? undefined : live.rows.find(row => row.kind === "folder" && row.id === target.folderId)
         const slot = shifts && range && at !== null ? { index: at, count: range.end - range.start + 1, depth: parent ? parent.depth + 1 : 0 } : null
         applyTreeShifts(shifts, slot)
-        return shifts !== null
+        // Shifted only if there are rows to move: with none the line of the drop is the only indicator
+        return shifts !== null && hasTreeRows()
     }, [rowSize])
 
     // The rows changed during the drag: the room is where the last target puts it in the new list

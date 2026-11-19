@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useTranslation } from "react-i18next"
 import { useState } from "react"
 import { Loader2, Plus, Trash2, Zap } from "lucide-react"
@@ -169,7 +170,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
 
                     {!loaded ? (
                         <div role="status" aria-busy="true" className="flex items-center justify-center gap-2 py-6 text-muted-foreground text-sm">
-                            <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> {t("common.loading")}
+                            <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> <span>{t("common.loading")}<LoadingDots /></span>
                         </div>
                     ) : editing ? (
                         <>

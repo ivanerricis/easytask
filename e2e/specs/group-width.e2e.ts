@@ -71,6 +71,14 @@ describe("Group width", () => {
         await (await groupPercent()).waitForDisplayed({ timeoutMsg: "the percentage is not shown" })
     })
 
+    it("keeps the automatic width and the percentage after a click on the handle without moving it", async () => {
+        const handle = byLabel(await tr("groups.width.handle"))
+        await handle.click()
+        await browser.pause(300)
+        expect(await savedWidth()).toBeNull()
+        await (await groupPercent()).waitForDisplayed({ timeoutMsg: "the percentage went away after a click on the handle" })
+    })
+
     it("has the same horizontal scrollbar as the rest of the app (9px, no style of its own)", async () => {
         const height = await browser.execute(() => {
             const scroller = document.querySelector('[data-testid="group-scroll"]')!

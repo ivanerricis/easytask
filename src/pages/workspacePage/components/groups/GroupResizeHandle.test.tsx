@@ -48,6 +48,28 @@ describe("GroupResizeHandle", () => {
         expect(onResize).toHaveBeenCalledTimes(2)
     })
 
+    it("does not commit a width for a click on the handle without a movement (it would turn the automatic width into a fixed one)", () => {
+        const { handle, onResize, onCommit } = setup(null)
+        fireEvent.mouseDown(handle, { clientX: 100 })
+        fireEvent.mouseUp(window)
+        expect(onResize).not.toHaveBeenCalled()
+        expect(onCommit).not.toHaveBeenCalled()
+        // Same for a press that comes back to where it started
+        fireEvent.mouseDown(handle, { clientX: 100 })
+        fireEvent.mouseMove(window, { clientX: 140 })
+        fireEvent.mouseMove(window, { clientX: 100 })
+        fireEvent.mouseUp(window)
+        expect(onCommit).not.toHaveBeenCalled()
+    })
+
+    it("still commits a movement that changes the width, from the automatic one too", () => {
+        const { handle, onCommit } = setup(null)
+        fireEvent.mouseDown(handle, { clientX: 100 })
+        fireEvent.mouseMove(window, { clientX: 130 })
+        fireEvent.mouseUp(window)
+        expect(onCommit).toHaveBeenCalledWith(430)
+    })
+
     it("clamps the dragged width", () => {
         const { handle, onResize, onCommit } = setup(400)
         fireEvent.mouseDown(handle, { clientX: 0 })

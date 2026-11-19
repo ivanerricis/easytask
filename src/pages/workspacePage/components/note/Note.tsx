@@ -8,6 +8,7 @@ import { useItemSize } from "../sidebar/item-size"
 import { DropLine } from "../sidebar/DropLine"
 import { openOnKeyboardFocus, useIsTreeTabStop, treeRowKey, treeRowKeyDown, useTreeDropZone, useTreeRow } from "../sidebar/tree-row"
 import { SelectionMark } from "../sidebar/SelectionMark"
+import { TreeRowGuides, TreeRowLayer } from "../sidebar/TreeRowLayer"
 import { useIsSelected } from "../sidebar/selection-context-object"
 import { useTreeRowHandlers } from "../sidebar/use-tree-row-handlers"
 import { TreeRowMenu } from "../sidebar/TreeRowMenu"
@@ -23,6 +24,8 @@ type ItemNoteProps = {
     note: Note
     /** Depth in the tree, starting at 1 (aria-level). */
     level?: number
+    /** The row is drawn by the recursive tree (not the virtualized one, which has its own layer): it makes its layer for the live drag. */
+    layer?: boolean
 }
 
 type NoteRowProps = ItemNoteProps & { dropZone: DropZone | null } & Omit<ReturnType<typeof useTreeRow>, "ref"> & { dndRef: ReturnType<typeof useTreeRow>["ref"] }
@@ -34,7 +37,15 @@ type NoteRowProps = ItemNoteProps & { dropZone: DropZone | null } & Omit<ReturnT
 export const ItemNote = React.memo((props: ItemNoteProps) => {
     const { ref, attributes, listeners, isDragging } = useTreeRow("note", props.note.id)
     const hoverZone = useTreeDropZone("note", props.note.id)
-    return <NoteRow {...props} dropZone={hoverZone} dndRef={ref} attributes={attributes} listeners={listeners} isDragging={isDragging} />
+    const { layer, ...rest } = props
+    const row = <NoteRow {...rest} dropZone={hoverZone} dndRef={ref} attributes={attributes} listeners={listeners} isDragging={isDragging} />
+    if (!layer) return row
+    return (
+        <TreeRowLayer rowKey={treeRowKey("note", props.note.id)} className="relative w-full">
+            <TreeRowGuides depth={(props.level ?? 1) - 1} origin={(props.level ?? 1) - 1} />
+            {row}
+        </TreeRowLayer>
+    )
 })
 
 const NoteRow = React.memo(({ note, dropZone, level = 1, dndRef, attributes, listeners, isDragging }: NoteRowProps) => {

@@ -38,7 +38,7 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
                                 aria-hidden
                                 data-testid="pane-dim"
                                 data-dimmed={dimmed}
-                                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/25 opacity-0 transition-opacity", dimmed && "opacity-100")}
+                                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/45 opacity-0 transition-opacity", dimmed && "opacity-100")}
                             />
                         </div>
                     </NoteSearchProvider>

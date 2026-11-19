@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { Loader2 } from "lucide-react"
 import { useDelayedFlag } from "@/hooks/use-delayed-flag"
 
@@ -15,6 +16,7 @@ export const LoadingPage = ({text}: LoadingPageProps) => {
         <div role="status" aria-live="polite" className="flex flex-col w-full h-full items-center justify-center gap-2">
             <p className={shown ? "text-lg font-semibold" : "sr-only"}>
                 {text}
+                {shown && <LoadingDots />}
             </p>
             {shown && <Loader2 className="animate-spin" aria-hidden="true" />}
         </div>

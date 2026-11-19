@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useTranslation } from "react-i18next"
 import { Progress } from "@/components/ui/progress"
 
@@ -9,7 +10,7 @@ export const UpdateInstallProgress = ({ percent, label }: { percent: number | nu
     const { t } = useTranslation()
     return (
         <>
-            <p className="text-muted-foreground">{label}</p>
+            <p className="text-muted-foreground">{label}<LoadingDots /></p>
             <Progress
                 value={percent}
                 aria-label={t("settings.about.update.progressLabel")}

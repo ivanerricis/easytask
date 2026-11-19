@@ -10,7 +10,7 @@ export const common: Translation["common"] = {
     system: "System",
     close: "Close",
     retry: "Try again",
-    loading: "Loading…",
+    loading: "Loading",
     noResults: "No results",
     counts: {
         group_one: "{{count}} group",

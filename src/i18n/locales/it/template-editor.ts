@@ -4,7 +4,7 @@ export const templateEditor = {
     edit: "Modifica",
     editAria: "Modifica il template {{name}}",
     pathRoot: "Template",
-    saving: "Salvataggio…",
+    saving: "Salvataggio",
     saved: "Salvato",
     saveError: "Salvataggio non riuscito",
     retry: "Riprova",

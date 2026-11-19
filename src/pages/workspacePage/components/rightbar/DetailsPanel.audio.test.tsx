@@ -55,7 +55,7 @@ describe("DetailsPanel audio half", () => {
     it("shows the information of the file chosen from the menu", async () => {
         vi.mocked(invoke).mockResolvedValue(metadata)
         renderPanel({ chosen: file(7, "canzone.mp3", "/musica/canzone.mp3") })
-        expect(screen.getByText("Lettura del file audio…")).toBeInTheDocument()
+        expect(screen.getByText("Lettura del file audio")).toBeInTheDocument()
         const heading = await screen.findByRole("heading", { name: /^Titolo del file audio/ })
         expect(heading).toHaveTextContent("Canzone")
         expect(invoke).toHaveBeenCalledWith("audio_metadata", { path: "/musica/canzone.mp3" })

@@ -300,6 +300,28 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
 :root[data-motion="slow"] .live-drag-slot { animation-duration: 250ms; }
 :root[data-motion="none"] .live-drag-slot { animation: none; }
 
+/* The dots after a loading text (LoadingDots): they appear one after the other. Still, all visible, with the animations off
+   (speed "none" of the app, or the reduced motion of the system when the speed has not been applied yet). */
+.loading-dot {
+  animation: loading-dot 1.2s infinite both;
+}
+
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loading-dot {
+  0%, 15% { opacity: 0; }
+  30%, 85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+:root[data-motion="slow"] .loading-dot { animation-duration: 2s; }
+:root[data-motion="none"] .loading-dot { animation: none !important; opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion]) .loading-dot { animation: none; opacity: 1; }
+}
+
 /* Windows forced colors (high contrast mode of the system): the browser drops the backgrounds, box-shadows and rings and
    uses the system palette, so the search marks, the focus and the borders have to be drawn with system colors. */
 @media (forced-colors: active) {

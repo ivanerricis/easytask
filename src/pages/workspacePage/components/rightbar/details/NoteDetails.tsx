@@ -1,3 +1,4 @@
+import { LoadingDots } from "@/components/loading-dots"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useActiveNote } from "@/contexts/use-active-note"
@@ -29,7 +30,7 @@ export function NoteOrTaskDetails() {
     }, [noteDataTree])
 
     if (!currentNote) return <p role="status" className="p-3 text-sm text-muted-foreground">{t("details.emptyNote")}</p>
-    if (!noteDataTree) return <p role="status" className="p-3 text-sm text-muted-foreground">{t("details.loading")}</p>
+    if (!noteDataTree) return <p role="status" className="p-3 text-sm text-muted-foreground">{t("details.loading")}<LoadingDots /></p>
 
     const task = selectedId !== null ? findTask(noteDataTree, selectedId)?.task : undefined
     if (task) {
