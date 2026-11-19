@@ -111,7 +111,7 @@ const EditorForm = ({ theme, onClose }: EditorFormProps) => {
 
     return (
         <form onSubmit={submit} className="flex min-h-0 flex-col gap-4">
-            <div className="grid min-h-0 gap-6 overflow-y-auto p-1 md:grid-cols-2">
+            <div className="scroll-inset grid min-h-0 gap-6 overflow-y-auto p-1 md:grid-cols-2">
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
                         <Label htmlFor={nameId}>{t("settings.themes.editor.name")}</Label>

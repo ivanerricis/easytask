@@ -263,7 +263,7 @@ export const BackupSettings = () => {
                 {backups.length === 0 ? (
                     <p className="text-xs text-muted-foreground">{t("settings.data.backup.list.empty")}</p>
                 ) : (
-                    <ul className="flex flex-col gap-1 max-h-48 overflow-y-auto rounded-xs border p-1" aria-label={t("settings.data.backup.list.title")}>
+                    <ul className="scroll-inset flex flex-col gap-1 max-h-48 overflow-y-auto rounded-xs border p-1" aria-label={t("settings.data.backup.list.title")}>
                         {backups.map(backup => {
                             const date = formatDateTime(backup.date)
                             return (
@@ -309,7 +309,7 @@ export const BackupSettings = () => {
                 <div className="flex flex-col gap-2">
                     <div className="text-sm">{t("settings.data.backup.list.preMigration.title")}</div>
                     <p className="text-xs text-muted-foreground">{t("settings.data.backup.list.preMigration.description")}</p>
-                    <ul className="flex flex-col gap-1 max-h-32 overflow-y-auto rounded-xs border p-1" aria-label={t("settings.data.backup.list.preMigration.title")}>
+                    <ul className="scroll-inset flex flex-col gap-1 max-h-32 overflow-y-auto rounded-xs border p-1" aria-label={t("settings.data.backup.list.preMigration.title")}>
                         {preMigration.map(copy => (
                             <li key={copy.name} className="flex items-center justify-between gap-2 text-sm">
                                 <span className="min-w-0 truncate">{copy.name}</span>

@@ -33,6 +33,24 @@ body,
   background: transparent;
 }
 
+/* A scroll area that keeps some padding on top and bottom (so the drop rings and lines of its first and last item are not cut, or because
+   it is a bordered list) would draw its scrollbar over that padding too: the thumb would start above the first item. With .scroll-inset the
+   track is shortened by the same amount (4px, or --scroll-inset), so the thumb starts and ends level with the first and the last item. */
+.scroll-inset::-webkit-scrollbar-track {
+  margin-block: var(--scroll-inset, 4px);
+}
+
+/* .scroll-gap: a clear space of --scroll-gap between the content and the scrollbar, only while the scrollbar is there (padding would
+   narrow the content always). The scrollbar is wider by that space and its thumb starts with a transparent border of the same size. */
+.scroll-gap::-webkit-scrollbar {
+  width: calc(9px + var(--scroll-gap, 6px));
+}
+
+.scroll-gap::-webkit-scrollbar-thumb {
+  border-left: var(--scroll-gap, 6px) solid transparent;
+  background-clip: padding-box;
+}
+
 @theme inline {
   --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --color-background: var(--background);

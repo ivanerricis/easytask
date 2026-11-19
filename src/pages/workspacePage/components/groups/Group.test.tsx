@@ -223,6 +223,14 @@ describe("Group scrolling area", () => {
         for (const token of ["overflow-y-auto", "-ml-1.5", "pl-1.5", "pr-0.5", "-my-1", "py-1"]) expect(classes).toContain(token)
     })
 
+    it("lines its scrollbar up with the first and the last task, 8px from them like from the border of the group", () => {
+        render(<Group group={makeGroup({ id: 303, sections: [makeSection({ id: 1 })] })} />)
+        const area = screen.getByText("section").parentElement as HTMLElement
+        const classes = area.className.split(/\s+/)
+        // The 4px of vertical padding are taken off the track (scroll-inset); 6px of space before the thumb + 2px of padding = 8px = the p-2 of the group
+        for (const token of ["scroll-inset", "scroll-gap", "[--scroll-gap:6px]", "pr-0.5", "py-1"]) expect(classes).toContain(token)
+    })
+
     it("leaves the audio files out of it, so they stay put while the sections scroll", () => {
         render(<Group group={makeGroup({ id: 302, sections: [makeSection({ id: 1 })] })} />)
         const area = screen.getByText("section").parentElement as HTMLElement

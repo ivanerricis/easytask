@@ -176,8 +176,11 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                         rings (2px) and lines (3px) drawn outside the first/last item and at the left side are not cut. On the right it ends
                         at the edge of the group, so its scrollbar sits entirely under the header (the resize handle is outside the group,
                         in the gap, and does not cover it); the 2px of padding keep the drop ring of an item from being cut. The tasks get
-                        narrower only while the scrollbar is there. */}
-                    <div data-group-list className="flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
+                        narrower only while the scrollbar is there.
+                        The scrollbar itself is lined up with the content: scroll-inset shortens its track by the 4px of vertical padding (the thumb starts
+                        level with the first task, not above it) and scroll-gap adds 6px of space before it, so with the 2px of padding the tasks are 8px
+                        from the scrollbar, the same as the scrollbar is from the border of the group (p-2). */}
+                    <div data-group-list className="scroll-inset scroll-gap [--scroll-gap:6px] flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
                         {group.sections.map((section, position) => (
                             <Fragment key={section.id}>
                                 {position === directIndex && <GroupTasks group={group} />}

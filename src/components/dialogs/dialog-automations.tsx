@@ -176,7 +176,7 @@ export const DialogAutomations = ({ noteId, isOpen, onOpenChange, sectionId, gro
                         <>
                             <StepIndicator step={editing.step} draft={editing.draft} onSelect={goTo} />
                             {/* Enter in the name field (the only text input) saves on the last step, goes on otherwise */}
-                            <form className="min-h-0 flex-1 overflow-y-auto -mx-1 px-1 py-1"
+                            <form className="scroll-inset min-h-0 flex-1 overflow-y-auto -mx-1 px-1 py-1"
                                 onSubmit={event => {
                                     event.preventDefault()
                                     if (editing.step === LAST_STEP) void save()
