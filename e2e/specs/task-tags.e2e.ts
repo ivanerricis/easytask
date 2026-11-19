@@ -136,7 +136,15 @@ describe("Tags of the tasks", () => {
         await domClick(byLabel(await tr("tags.manage", { name: TAG })))
         const field = byLabel(await tr("tags.renameLabel"))
         await field.waitForDisplayed({ timeoutMsg: "the tag menu did not open" })
-        await typeInto(field, RENAMED)
+        // The name goes in through the DOM (focus, native setter, input event), not with a click and typing: on WebKitGTK the
+        // click on the field of a popover inside the dialog closed the popover now and then (card 194). What is tested is Enter.
+        const element = (await field.getElement()) as unknown as HTMLInputElement
+        await browser.execute((el: HTMLInputElement, text: string) => {
+            el.focus()
+            Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), "value")?.set?.call(el, text)
+            el.dispatchEvent(new Event("input", { bubbles: true }))
+        }, element, RENAMED)
+        await browser.waitUntil(async () => (await field.getValue()) === RENAMED, { timeoutMsg: "the new name did not reach the field" })
         await browser.keys("Enter")
         await field.waitForDisplayed({ reverse: true, timeoutMsg: "the tag menu is still open after Enter" })
         await browser.waitUntil(async () => (await badgesOf(TASK)).join() === RENAMED, { timeoutMsg: "the pill was not renamed" })
