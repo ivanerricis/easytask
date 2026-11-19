@@ -7,6 +7,7 @@ import { reportError } from "@/lib/report-error"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
 import { ensureDBDefaultSection } from "@/db/queries/task"
 import { useNoteDndSelector, useNoteDrop } from "../note-dnd-state"
+import { useNoteDndOwner } from "../note-dnd-owner"
 import { AddTask } from "../tasks/AddTask"
 import { DropLine } from "../sidebar/DropLine"
 import { registerShiftNode, sectionNodeKey } from "../note-dnd-shift"
@@ -26,14 +27,15 @@ const DirectTasks = memo(({ section }: DirectTasksProps) => {
     const { t } = useTranslation()
     const { setNodeRef, zone, active } = useNoteDrop("section", section.id)
     const draggingSection = active?.kind === "section"
-    const taskDestination = useNoteDndSelector(state => state.active?.kind === "task" && state.hover.targetSectionId === section.id)
+    const taskDestination = useNoteDndSelector(state => (state.active ?? state.incoming)?.kind === "task" && state.hover.targetSectionId === section.id)
     const liveDrag = usePreference(preferences => preferences.liveDrag) ?? true
     // A row among the sections for the live drag of the sections: it steps aside with its tasks
     const sectionId = section.id
+    const owner = useNoteDndOwner()
     const setRef = useCallback((node: HTMLElement | null) => {
         setNodeRef(node)
-        registerShiftNode(sectionNodeKey(sectionId), node)
-    }, [setNodeRef, sectionId])
+        registerShiftNode(sectionNodeKey(sectionId), node, owner)
+    }, [setNodeRef, sectionId, owner])
 
     return (
         <div

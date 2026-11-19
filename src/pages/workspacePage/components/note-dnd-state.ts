@@ -1,6 +1,7 @@
 import i18n from "@/i18n"
 import { createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore, type HTMLAttributes } from "react"
 import { registerZone } from "./note-dnd-hit"
+import { newOwnerId } from "./note-dnd-owner"
 import { reportError } from "@/lib/report-error"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
@@ -28,7 +29,18 @@ export type NoteHover = {
     /** While dragging a task: the section that would receive it (highlighted as a whole), null otherwise. */
     targetSectionId?: number | null
 }
-type NoteDndState = { active: NoteDragRef | null, hover: NoteHover }
+export type NoteDndState = {
+    /** What is dragged from this note. */
+    active: NoteDragRef | null
+    hover: NoteHover
+    /**
+     * What is dragged from the OTHER note of the split view while crossing is allowed (Ctrl held): the droppables of this note show
+     * themselves for it (the slots of a new group), and the drag of the other note writes `hover` here when the pointer is over this note.
+     */
+    incoming: NoteDragRef | null
+    /** On the note the drag started in: the pointer is over a valid target of the other note (the cursor is not "not allowed"). */
+    remote: boolean
+}
 
 export const NO_HOVER: NoteHover = { overKey: null, zone: null }
 
@@ -38,10 +50,12 @@ export const NO_HOVER: NoteHover = { overKey: null, zone: null }
  * what concerns it (its own drop zone, the kind of item being dragged).
  */
 export type NoteDndStore = {
+    /** The id of the drag provider this store belongs to (see note-dnd-owner). */
+    owner: string
     getState: () => NoteDndState
     /** Called after every change. */
     subscribe: (listener: () => void) => () => void
-    /** Called only when the dragged item changes (a drag starts or ends). */
+    /** Called only when the dragged item changes (a drag starts or ends, or one from the other note comes in). */
     subscribeActive: (listener: () => void) => () => void
     /** Called only when the hover moves onto or off the droppable `key`, or changes its zone while on it: a change of the target wakes the two rows it concerns, not the hundreds of the others. */
     subscribeHover: (key: string, listener: () => void) => () => void
@@ -49,12 +63,13 @@ export type NoteDndStore = {
     set: (next: Partial<NoteDndState>) => void
 }
 
-export const createNoteDndStore = (): NoteDndStore => {
-    let state: NoteDndState = { active: null, hover: NO_HOVER }
+export const createNoteDndStore = (owner: string = newOwnerId()): NoteDndStore => {
+    let state: NoteDndState = { active: null, hover: NO_HOVER, incoming: null, remote: false }
     const listeners = new Set<() => void>()
     const activeListeners = new Set<() => void>()
     const hoverListeners = new Map<string, Set<() => void>>()
     return {
+        owner,
         getState: () => state,
         subscribe: listener => {
             listeners.add(listener)
@@ -76,9 +91,9 @@ export const createNoteDndStore = (): NoteDndStore => {
         set: next => {
             const before = state
             const merged = { ...state, ...next }
-            if (merged.active === before.active && merged.hover === before.hover) return
+            if (merged.active === before.active && merged.hover === before.hover && merged.incoming === before.incoming && merged.remote === before.remote) return
             state = merged
-            if (merged.active !== before.active) [...activeListeners].forEach(listener => listener())
+            if (merged.active !== before.active || merged.incoming !== before.incoming) [...activeListeners].forEach(listener => listener())
             if (merged.hover !== before.hover) {
                 const keys = new Set([before.hover.overKey, merged.hover.overKey])
                 for (const key of keys) if (key !== null) [...(hoverListeners.get(key) ?? [])].forEach(listener => listener())
@@ -89,7 +104,7 @@ export const createNoteDndStore = (): NoteDndStore => {
 }
 
 /** Without a provider (a row rendered alone) nothing is being dragged. */
-const idleStore = createNoteDndStore()
+const idleStore = createNoteDndStore("")
 
 export const NoteDndStoreContext = createContext<NoteDndStore>(idleStore)
 
@@ -106,6 +121,7 @@ export function useNoteDndSelector<T>(selector: (state: NoteDndState) => T): T {
 /** Droppable key of a target, also used as dnd-kit id. */
 export const noteKey = (kind: NoteOverKind, id: number) => `${kind}-${id}`
 
+
 /**
  * Registers a droppable of the note view. Returns the ref to attach and the drop zone currently
  * highlighted on it (null when it is not the active target).
@@ -114,14 +130,15 @@ export const noteKey = (kind: NoteOverKind, id: number) => `${kind}-${id}`
 export function useNoteDrop(kind: NoteOverKind, id: number) {
     const key = noteKey(kind, id)
     // Not a dnd-kit droppable (see note-dnd-hit): the node only goes in the registry the drag hit-tests
-    const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, ACCEPTS[kind], node), [key, kind, id])
     const store = useContext(NoteDndStoreContext)
+    const owner = store.owner
+    const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, ACCEPTS[kind], node, owner), [key, kind, id, owner])
     // Woken only when the hover goes onto or off this droppable (not at every change of the target, which would run the selector of every row of the note)
     const subscribeZone = useCallback((listener: () => void) => store.subscribeHover(key, listener), [store, key])
     const zone = useSyncExternalStore(subscribeZone, () => { const { hover } = store.getState(); return hover.overKey === key ? hover.zone : null })
     // A task row reads `active` only together with `zone`, which is null outside a drag: its value never changes, so a drag starting or ending does not re-render the rows (nor wake them)
     const subscribeKind = useCallback((listener: () => void) => kind === "task" ? () => undefined : store.subscribeActive(listener), [store, kind])
-    const activeKind = useSyncExternalStore(subscribeKind, () => kind === "task" ? "task" : store.getState().active?.kind ?? null)
+    const activeKind = useSyncExternalStore(subscribeKind, () => kind === "task" ? "task" : (store.getState().active ?? store.getState().incoming)?.kind ?? null)
     // Only the kind of the dragged item is used by the droppables
     const active = useMemo(() => activeKind ? { kind: activeKind } : null, [activeKind])
     return { setNodeRef, zone, active }

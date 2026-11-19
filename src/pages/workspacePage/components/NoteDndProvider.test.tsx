@@ -23,18 +23,19 @@ const handlers = {
         const { activatorEvent, delta } = event as { activatorEvent?: { clientX: number, clientY: number }, delta?: { x: number, y: number } }
         driver().move(activatorEvent ? { x: activatorEvent.clientX + (delta?.x ?? 0), y: activatorEvent.clientY + (delta?.y ?? 0) } : { x: -1, y: -1 })
     },
-    onDragEnd: () => driver().end(),
+    onDragEnd: () => driver().end({ ctrl: false, alt: false }),
     onDragCancel: () => driver().cancel(),
 }
 vi.mock("./note-dnd-pointer", async importActual => ({
     ...await importActual<typeof import("./note-dnd-pointer")>(),
     createPointerDrag: () => {
-        return { press: () => undefined, getPointer: () => null, isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
+        return { press: () => undefined, getPointer: () => null, getModifiers: () => ({ ctrl: false, alt: false }), isDragging: () => false, cancel: () => driver().cancel(), setHandlers: (next: PointerDragHandlers) => { latest = next } }
     },
 }))
 vi.mock("./tasks/note-announcer-store", () => ({ announce: vi.fn() }))
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNote: () => ({ noteDataTree: null }) }))
 vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ header: () => 0.5 }) }))
+vi.mock("./note-dnd-cross", () => ({ useCrossNoteMoves: () => ({ noteId: 1, getTree: () => null, dropAcross: vi.fn() }) }))
 vi.mock("./note-dnd-state", async importActual => ({
     ...await importActual<typeof import("./note-dnd-state")>(),
     useNoteMoves: () => ({ moveSectionTo: vi.fn(), moveTaskTo: vi.fn() }),

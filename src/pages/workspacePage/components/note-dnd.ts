@@ -80,6 +80,14 @@ export function computeDropZone(
 }
 
 /**
+ * Drop zone of a group dragged over a group of ANOTHER note: it has no resting order to follow, so the half of the column the
+ * pointer is in decides (left half = before it, right half = after it).
+ * @category Note DnD
+ */
+export const computeCrossGroupDropZone = (rect: { left: number, width: number }, pointerX: number): DropZone =>
+    pointerX < rect.left + rect.width / 2 ? "before" : "after"
+
+/**
  * Drop zone of a group dragged over another group: entering the column of the other group is enough, no half to pass. The side
  * is the one the dragged group comes from: "after" the other group when that one stands later in the row than the dragged
  * group at rest, "before" it when it stands earlier. The same rule is used while hovering and on the drop.
@@ -174,6 +182,8 @@ function isSameOrder(group: Group, activeId: number, index: number, beforeList: 
  * section dropped right above the list is a move before the list (`beforeList`), one dropped right below it a plain index.
  * The list itself is a drop target (top half = before it, bottom half = after it) but cannot be dragged.
  * Returns null when the drop is invalid or would not change anything.
+ * `tree` is the note that receives the section; `from` is the note the section is dragged out of when that is another one (the other
+ * pane of the split view): the section is looked up there and, in a note that is not its own, no drop is a no-op.
  * @category Note DnD
  */
 export function computeSectionTarget(
@@ -181,12 +191,14 @@ export function computeSectionTarget(
     activeId: number,
     over: NoteOverRef,
     zone: DropZone,
+    from: NoteDataTree = tree,
 ): SectionTarget | null {
     const { sections } = indexTree(tree)
-    const active = sections.get(activeId)
+    const active = indexTree(from).sections.get(activeId)
     if (!active || isDefaultSection(active.section)) return null
-    const sourceGroup = tree.groups.find(group => group.id === active.groupId)
+    const sourceGroup = from.groups.find(group => group.id === active.groupId)
     if (!sourceGroup) return null
+    const across = from !== tree
 
     // The list of a group is a row among the sections: before / after it by the half of the area, or the whole group as a drop on the group
     const overSection = over.kind === "section" ? sections.get(over.id) : undefined
@@ -195,8 +207,8 @@ export function computeSectionTarget(
 
     if (over.kind === "new-group") {
         const sourceIndex = tree.groups.findIndex(group => group.id === active.groupId)
-        // Pulling out the only section of a group next to that group is just a group reorder: not offered
-        if (sourceGroup.sections.length === 1 && (over.id === sourceIndex || over.id === sourceIndex + 1)) return null
+        // Pulling out the only section of a group next to that group is just a group reorder: not offered (in another note it is a move)
+        if (!across && sourceGroup.sections.length === 1 && (over.id === sourceIndex || over.id === sourceIndex + 1)) return null
         return { type: "new-group", index: over.id }
     }
 
@@ -230,7 +242,7 @@ export function computeSectionTarget(
         return null
     }
 
-    if (group.id === active.groupId && isSameOrder(group, activeId, index, beforeList)) return null
+    if (!across && group.id === active.groupId && isSameOrder(group, activeId, index, beforeList)) return null
     return { type: "group", groupId: group.id, index, ...(beforeList ? { beforeList: true as const } : {}) }
 }
 
@@ -239,6 +251,7 @@ export function computeSectionTarget(
  * new siblings once the task has been moved (the semantics of `moveTask`).
  * A task can never go under itself or one of its descendants.
  * Returns null when the drop is invalid or would not change anything.
+ * `tree` is the note that receives the task; `from` is the note it is dragged out of when that is another one (see {@link computeSectionTarget}).
  * @category Note DnD
  */
 export function computeTaskTarget(
@@ -246,9 +259,10 @@ export function computeTaskTarget(
     activeId: number,
     over: NoteOverRef,
     zone: DropZone,
+    from: NoteDataTree = tree,
 ): TaskTarget | null {
     const { sections, tasks } = indexTree(tree)
-    const active = tasks.get(activeId)
+    const active = indexTree(from).tasks.get(activeId)
     if (!active) return null
     const subtree = getTaskSubtreeIds(active.task)
 
@@ -316,9 +330,14 @@ export function findGroup(tree: NoteDataTree, id: number): { group: Group, index
  * position) once it has been moved. Returns null when the drop is invalid or would not change anything.
  * @category Note DnD
  */
-export function computeGroupTarget(tree: NoteDataTree, activeId: number, over: NoteOverRef, zone: DropZone): { index: number } | null {
+export function computeGroupTarget(tree: NoteDataTree, activeId: number, over: NoteOverRef, zone: DropZone, from: NoteDataTree = tree): { index: number } | null {
     if (over.kind !== "group" || over.id === activeId) return null
     const sorted = sortGroups(tree.groups)
+    if (from !== tree) {
+        // Another note: the group is not in this list, so there is nothing to take out and every drop is a move
+        const overAt = sorted.findIndex(group => group.id === over.id)
+        return overAt < 0 || !findGroup(from, activeId) ? null : { index: zone === "after" ? overAt + 1 : overAt }
+    }
     const activeIndex = sorted.findIndex(group => group.id === activeId)
     if (activeIndex < 0) return null
     const without = sorted.filter(group => group.id !== activeId)

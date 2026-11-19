@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import { groupsByPosition } from "@/lib/group-sections"
 import { useNoteBackgroundCss } from "@/hooks/use-note-background"
 import { groupNodeKey, registerShiftNode, SHIFT_ATTR } from "../note-dnd-shift"
+import { useNoteDndOwner } from "../note-dnd-owner"
 
 type GroupColumnProps = {
     groupId: number
@@ -32,10 +33,11 @@ type GroupColumnProps = {
 const GroupColumn = ({ groupId, fixedWidth, children }: GroupColumnProps) => {
     // The node is state (not only a ref) so the handle drawn in the column renders once it exists
     const [column, setColumn] = useState<HTMLElement | null>(null)
+    const owner = useNoteDndOwner()
     const setRef = useCallback((node: HTMLElement | null) => {
         setColumn(node)
-        registerShiftNode(groupNodeKey(groupId), node)
-    }, [groupId])
+        registerShiftNode(groupNodeKey(groupId), node, owner)
+    }, [groupId, owner])
     return (
         <div ref={setRef} {...{ [SHIFT_ATTR.groupWrap]: groupId }} className={cn("relative h-full w-fit", fixedWidth ? "shrink-0" : "max-w-full")}>
             <GroupColumnContext.Provider value={column}>

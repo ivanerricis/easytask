@@ -61,6 +61,8 @@ export const errors = {
         sectionTargetInvalid: "La sezione di destinazione non è valida.",
         taskTargetInvalid: "Il task di destinazione non è valido.",
         taskIntoItself: "Non puoi spostare un task dentro sé stesso o un suo sottotask.",
+        noteInvalid: "L'altra nota non è valida per questo spostamento: deve essere aperta nello stesso workspace.",
+        groupMissing: "Il gruppo da spostare non esiste.",
     },
     duplicate: {
         noteMissing: "La nota da duplicare non esiste più.",

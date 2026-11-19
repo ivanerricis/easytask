@@ -17,6 +17,7 @@ import { taskRowsWithInsert } from "./task-insert-rows"
 import { useTaskInsertStore } from "./task-insert-state"
 import { DialogTaskDescription } from "./DialogTaskDescription"
 import { useNoteDrag, useNoteDrop } from "../note-dnd-state"
+import { useNoteDndOwner } from "../note-dnd-owner"
 import { registerShiftNode, taskNodeKey } from "../note-dnd-shift"
 import type { DropZone } from "../note-dnd"
 import { useIsTaskSelected, useSubtasksOpen } from "@/contexts/use-tabs"
@@ -92,7 +93,8 @@ export const Task = React.memo((props: TaskProps) => {
 
     // The wrapper is registered by the shell, so the ref stays the same function and the memoized row does not re-render for it
     const taskId = props.task.id
-    const setWrapRef = useCallback((node: HTMLElement | null) => registerShiftNode(taskNodeKey(taskId), node), [taskId])
+    const owner = useNoteDndOwner()
+    const setWrapRef = useCallback((node: HTMLElement | null) => registerShiftNode(taskNodeKey(taskId), node, owner), [taskId, owner])
 
     // In a sorted section a drop would have no visible place: the row is no draggable (it stays a drop target)
     return <TaskRow {...props} setRowRef={setRowRef} setWrapRef={setWrapRef} dragProps={props.orderLocked ? NO_DRAG : dragProps} isDragging={isDragging} dropZone={active?.kind === "task" ? zone : null} />
