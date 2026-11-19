@@ -30,16 +30,20 @@ function bump(counter: Counter, amount = 1) {
     if (counter.count > MAX_IMPORT_ITEMS) tooMany()
 }
 
+/** A tag of a task, of a group or of the workspace list: a name, a color and (optional, new in the files) a shape. */
+function checkTags(tags: unknown, counter: Counter) {
+    if (!Array.isArray(tags)) malformed()
+    bump(counter, tags.length)
+    for (const tag of tags as unknown[])
+        if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color) || !(tag.shape === undefined || isNullableString(tag.shape))) malformed()
+}
+
 function checkTask(task: unknown, counter: Counter, depth = 0) {
     if (!isObject(task) || depth > 100) malformed()
     bump(counter)
     if (!isString(task.text) || !isNumber(task.position) || !Array.isArray(task.subtasks)) malformed()
     if (!isNullableString(task.description) || !isNullableString(task.color) || !isNullableString(task.archived_at)) malformed()
-    if (task.tags !== undefined) {
-        if (!Array.isArray(task.tags)) malformed()
-        bump(counter, task.tags.length)
-        for (const tag of task.tags as unknown[]) if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color)) malformed()
-    }
+    if (task.tags !== undefined) checkTags(task.tags, counter)
     for (const subtask of task.subtasks as unknown[]) checkTask(subtask, counter, depth + 1)
 }
 
@@ -52,6 +56,7 @@ function checkContent(content: unknown, counter: Counter): NoteTemplateContent {
             || !isNullableString(group.color) || !isNullableString(group.archived_at)) malformed()
         if (!(group.width === undefined || group.width === null || (Number.isInteger(group.width) && (group.width as number) > 0))) malformed()
         if (!(group.directIndex === undefined || (Number.isInteger(group.directIndex) && (group.directIndex as number) >= 0 && (group.directIndex as number) <= (group.sections as unknown[]).length))) malformed()
+        if (group.tags !== undefined) checkTags(group.tags, counter)
         if (group.tasks !== undefined) {
             if (!Array.isArray(group.tasks)) malformed()
             for (const task of group.tasks as unknown[]) checkTask(task, counter)
@@ -94,6 +99,7 @@ function normalizeTask(task: ContentTask) {
 function normalizeContent(content: NoteTemplateContent) {
     for (const group of content.groups) {
         group.color = cleanColor(group.color)
+        for (const tag of group.tags ?? []) tag.color = cleanColor(tag.color)
         for (const task of group.tasks ?? []) normalizeTask(task)
         const titles = new Set<string>()
         for (const section of group.sections) {
@@ -151,11 +157,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     for (const folder of folders as ExportFolder[])
         if (folder.parentRef !== null && !folderRefs.has(folder.parentRef)) malformed()
 
-    if (data.tags !== undefined) {
-        if (!Array.isArray(data.tags)) malformed()
-        bump(counter, data.tags.length)
-        for (const tag of data.tags as unknown[]) if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color)) malformed()
-    }
+    if (data.tags !== undefined) checkTags(data.tags, counter)
 
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {

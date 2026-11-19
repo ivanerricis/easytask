@@ -6,7 +6,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { getDB } from "../dbManager";
 import { rethrowTxError, Transaction, type TxRef } from "../transaction";
 import { getDBNoteData, getDBNotesData, type NoteData } from "./note";
-import { addEnsureTag, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
+import { addEnsureTag, WORKSPACE_OF_NOTE, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
 import { isTaskOrder } from "@/lib/task-order";
@@ -40,6 +40,11 @@ export function parseTemplateContent(json: string): NoteTemplateContent {
 const toTemplate = ({ content, ...row }: TemplateRow): NoteTemplate =>
     ({ ...row, sourceNoteName: row.sourceNoteName ?? null, content: parseTemplateContent(content) })
 
+/** The tags of a task or a group as a snapshot stores them (name, color and, when it is not the default pill, shape). */
+export function snapshotTags(tagIDs: readonly number[] | undefined, tagById: ReadonlyMap<number, UsedTag>): TemplateTag[] {
+    return (tagIDs ?? []).flatMap(id => tagById.get(id) ?? []).map(({ name, color, shape }) => ({ name, color: color ?? null, ...(shape ? { shape } : {}) }))
+}
+
 /**
  * Returns a function that snapshots a section (with its tasks and subtasks at any depth) out of a list of tasks.
  * A subtask whose ancestor is not in the list is left out with it.
@@ -59,8 +64,7 @@ export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[]
     }
 
     const tagById = new Map(tags.map(tag => [tag.id, tag]))
-    const tagsOf = (task: Task): TemplateTag[] =>
-        (task.tagIDs ?? []).flatMap(id => tagById.get(id) ?? []).map(({ name, color }) => ({ name, color: color ?? null }))
+    const tagsOf = (task: Task): TemplateTag[] => snapshotTags(task.tagIDs, tagById)
 
     const snapshotTask = (task: Task): TemplateTask => ({
         ...(task.archived_at ? { archived_at: task.archived_at } : {}),
@@ -98,6 +102,7 @@ export type NoteContent = { content: NoteTemplateContent, sectionIds: number[], 
  */
 export function buildContentFromRows({ groups, sections, tasks, tags }: NoteData): NoteContent {
     const snapshotSection = createSectionSnapshotter(tasks, tags)
+    const tagById = new Map(tags.map(tag => [tag.id, tag]))
     const sectionsByGroup = new Map<number, Section[]>()
     for (const section of sections) {
         const list = sectionsByGroup.get(section.groupID)
@@ -125,6 +130,7 @@ export function buildContentFromRows({ groups, sections, tasks, tags }: NoteData
                     color: group.color ?? null,
                     ...(group.archived_at ? { archived_at: group.archived_at } : {}),
                     ...(group.width ? { width: group.width } : {}),
+                    ...(snapshotTags(group.tagIDs, tagById).length > 0 ? { tags: snapshotTags(group.tagIDs, tagById) } : {}),
                     ...(directTasks.length > 0 ? { tasks: directTasks } : {}),
                     ...(directIndexOf(group) > 0 ? { directIndex: directIndexOf(group) } : {}),
                     position: group.position,
@@ -324,6 +330,7 @@ export function addNoteContent(tx: Transaction, noteRef: number | TxRef, content
     const { groups } = content
     const groupRefs = tx.insertRows("section_group", ["noteID", "position", "name", "color", "archived_at", "width"],
         groups.map(group => [noteRef, group.position, group.name ?? null, group.color || null, group.archived_at || null, group.width || null]))
+    addGroupTags(tx, noteRef, groups.map((group, i) => ({ groupRef: groupRefs[i], tags: group.tags ?? [] })))
 
     // Every group gets its default section (with the direct tasks of the group), the normal sections follow. They all share
     // one order: the list is at `directIndex` (clamped, 0 = on top) and the sections take the other numbers, in their order
@@ -388,6 +395,30 @@ const asciiFold = (name: string) => name.replace(/[A-Z]/g, letter => letter.toLo
 
 /** Rows per statement of the links (two parameters each). */
 const TAG_LINK_CHUNK = 200
+
+/**
+ * Adds to a transaction the statements that give tags to groups created in the same transaction: like addTaskTags, the tags
+ * missing in the workspace of the note are created first, a tag with the same name (the case ignored) is reused as it is.
+ * @param tx The transaction collecting the statements.
+ * @param noteRef The note the groups belong to (or its id): it tells the workspace.
+ * @param groups The groups (by reference) and their tags.
+ * @category Database Queries
+ */
+export function addGroupTags(tx: Transaction, noteRef: number | TxRef, groups: readonly { groupRef: TxRef | number, tags: readonly TemplateTag[] }[]): void {
+    const wanted = new Map<string, TemplateTag>()
+    for (const { tags } of groups)
+        for (const tag of tags) if (!wanted.has(asciiFold(tag.name.trim()))) wanted.set(asciiFold(tag.name.trim()), tag)
+    for (const tag of wanted.values()) addEnsureTag(tx, WORKSPACE_OF_NOTE, noteRef, tag)
+    const links = groups.flatMap(({ groupRef, tags }) => [...new Map(tags.map(tag => [asciiFold(tag.name.trim()), tag.name.trim()])).values()].map(name => [groupRef, name] as const))
+    for (let start = 0; start < links.length; start += TAG_LINK_CHUNK) {
+        const chunk = links.slice(start, start + TAG_LINK_CHUNK)
+        tx.add(
+            `WITH v(groupID, name) AS (VALUES ${chunk.map(() => "(?, ?)").join(", ")})
+             INSERT OR IGNORE INTO section_group_tag (groupID, tagID)
+             SELECT v.groupID, tg.id FROM v INNER JOIN tag tg ON tg.name = v.name AND tg.workspaceID = ${WORKSPACE_OF_NOTE}`,
+            [...chunk.flat(), noteRef])
+    }
+}
 
 /**
  * Adds to a transaction the statements that give tags to tasks created in the same transaction: the tags missing in the

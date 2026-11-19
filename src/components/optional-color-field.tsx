@@ -39,7 +39,7 @@ export const OptionalColorField = ({ value, onChange }: OptionalColorFieldProps)
                     </Button>
                 </PopoverTrigger>
             </TooltipCustom>
-            <PopoverContent side="left" align="start" collisionPadding={8} className="w-auto p-0">
+            <PopoverContent side="left" align="start" collisionPadding={8} className="w-auto p-1">
                 <DialogAddColor
                     item={{ id: 0, color: value }}
                     onPick={color => onChange(color ?? undefined)}

@@ -23,7 +23,7 @@ type PortableTrigger =
     | { type: GroupTriggerType, groupId: number | null }
 
 /** A tag of a portable rule: by name and color, since the ids belong to the workspace (the copy reuses or creates the tag by name). */
-export type PortableTag = { name: string, color: string | null }
+export type PortableTag = { name: string, color: string | null, shape?: string | null }
 
 /** An action of a portable rule: a move targets a position in the content, a tag action names its tag. */
 type PortableAction =
@@ -133,7 +133,7 @@ export function toPortable(
         if (action.type === "addTag" || action.type === "removeTag") {
             const tag = tagIndex?.get(action.tagId)
             if (!tag) return null
-            actions.push({ type: action.type, tag: { name: tag.name, color: tag.color } })
+            actions.push({ type: action.type, tag: { name: tag.name, color: tag.color, ...(tag.shape ? { shape: tag.shape } : {}) } })
             continue
         }
         if (action.type !== "moveTo") {

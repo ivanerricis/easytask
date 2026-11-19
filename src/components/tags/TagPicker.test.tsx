@@ -11,25 +11,25 @@ import { TagPicker } from "./TagPicker"
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 
-const mutations = { assign: vi.fn(), create: vi.fn(), rename: vi.fn(), recolor: vi.fn(), remove: vi.fn() }
+const mutations = { assign: vi.fn(), create: vi.fn(), rename: vi.fn(), recolor: vi.fn(), reshape: vi.fn(), remove: vi.fn() }
 vi.mock("@/hooks/use-tag-mutations", () => ({ useTagMutations: () => mutations }))
 
 let tree: NoteDataTree
 vi.mock("@/contexts/use-active-note", () => ({ useActiveNote: () => ({ noteDataTree: tree }) }))
 
-const tag = (id: number, name: string, color: string | null = null): Tag => ({ id, workspaceID: 1, name, color, position: id })
+const tag = (id: number, name: string, color: string | null = null): Tag => ({ id, workspaceID: 1, name, color, shape: null, position: id })
 const bug = tag(1, "Bug", "#e6194b")
 const urgent = tag(2, "Urgent")
 
 const undoLast = vi.fn()
 const skipped = { list: [] as string[] }
-const setup = (tags: Tag[], taskIds: number[] = [10]) => {
+const setup = (tags: Tag[], taskIds: number[] = [10], groupIds?: number[]) => {
     const store = createTagsStore()
     store.set({ workspaceId: 1, tags })
     return render(
         <PreferencesContext.Provider value={{ skippedConfirms: skipped.list, setSkippedConfirms: vi.fn() } as unknown as PreferencesContextType}>
             <UndoContext.Provider value={{ undo: undoLast } as never}>
-                <WorkspaceTagsContext.Provider value={store}><TagPicker taskIds={taskIds} /></WorkspaceTagsContext.Provider>
+                <WorkspaceTagsContext.Provider value={store}>{groupIds ? <TagPicker groupIds={groupIds} /> : <TagPicker taskIds={taskIds} />}</WorkspaceTagsContext.Provider>
             </UndoContext.Provider>
         </PreferencesContext.Provider>,
     )
@@ -41,8 +41,10 @@ beforeEach(() => {
     for (const fn of Object.values(mutations)) fn.mockResolvedValue(undefined)
     tree = {
         groups: [makeGroup({
+            id: 5,
+            tagIDs: [2],
             sections: [makeSection({ id: 1, tasks: [makeTask({ id: 10, tagIDs: [1] }), makeTask({ id: 11 })] })],
-        })],
+        }), makeGroup({ id: 6 })],
     }
 })
 
@@ -119,13 +121,41 @@ describe("TagPicker", () => {
         expect(mutations.recolor).toHaveBeenLastCalledWith(bug, null)
     })
 
+    it("changes the shape of a tag from its menu with a picker of samples, naming each shape", async () => {
+        const user = userEvent.setup()
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        const picker = await screen.findByRole("radiogroup", { name: "Forma" })
+        expect(picker).toBeInTheDocument()
+        // The current shape (the pill) is the pressed one
+        expect(screen.getByRole("radio", { name: "Pillola" })).toBeChecked()
+        await user.click(screen.getByRole("radio", { name: "Punto" }))
+        expect(mutations.reshape).toHaveBeenCalledWith(bug, "dot")
+        await user.click(screen.getByRole("radio", { name: "Cartellino" }))
+        expect(mutations.reshape).toHaveBeenLastCalledWith(bug, "tag")
+        // A click on the selected shape does nothing
+        await user.click(screen.getByRole("radio", { name: "Pillola" }))
+        expect(mutations.reshape).toHaveBeenCalledTimes(2)
+    })
+
+    it("has no empty gap under the name while there is no error, and shows the error when the rename fails", async () => {
+        const user = userEvent.setup()
+        mutations.rename.mockRejectedValueOnce(new Error("Esiste già"))
+        setup([bug])
+        await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
+        const field = await screen.findByRole("textbox", { name: "Nome del tag" })
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+        await user.type(field, "x{Enter}")
+        expect(await screen.findByRole("alert")).toHaveTextContent("Esiste già")
+    })
+
     it("deletes a tag only after the confirmation", async () => {
         const user = userEvent.setup()
         setup([bug])
         await user.click(screen.getByRole("button", { name: "Gestisci il tag Bug" }))
         await user.click(await screen.findByRole("button", { name: "Elimina il tag" }))
         expect(mutations.remove).not.toHaveBeenCalled()
-        expect(await screen.findByText(/Il tag "Bug" sarà tolto da tutti i task che lo hanno/)).toBeInTheDocument()
+        expect(await screen.findByText(/Il tag "Bug" sarà tolto da tutti i task e i gruppi che lo hanno/)).toBeInTheDocument()
         await user.click(screen.getByRole("button", { name: "Elimina tag" }))
         await waitFor(() => expect(mutations.remove).toHaveBeenCalledWith(bug))
     })
@@ -153,5 +183,26 @@ describe("TagPicker", () => {
         await waitFor(() => expect(mutations.remove).toHaveBeenCalledWith(bug))
         expect(screen.queryByText("Eliminare il tag?")).toBeNull()
         expect(toast.success).toHaveBeenCalledWith("Tag eliminato", expect.anything())
+    })
+})
+
+describe("TagPicker for groups", () => {
+    it("checks the tags the group has and gives or takes them for the group", async () => {
+        const user = userEvent.setup()
+        setup([bug, urgent], [], [5])
+        expect(screen.getByRole("checkbox", { name: "Urgent" })).toBeChecked()
+        expect(screen.getByRole("checkbox", { name: "Bug" })).not.toBeChecked()
+        await user.click(screen.getByRole("checkbox", { name: "Bug" }))
+        expect(mutations.assign).toHaveBeenLastCalledWith(bug, { kind: "groups", ids: [5] }, true)
+        await user.click(screen.getByRole("checkbox", { name: "Urgent" }))
+        expect(mutations.assign).toHaveBeenLastCalledWith(urgent, { kind: "groups", ids: [5] }, false)
+    })
+
+    it("shows how many of the groups have a tag, and creates a tag for them", async () => {
+        const user = userEvent.setup()
+        setup([bug, urgent], [], [5, 6])
+        expect(screen.getByText("1/2")).toBeInTheDocument()
+        await user.type(screen.getByRole("textbox", { name: "Nuovo tag" }), "Later{Enter}")
+        expect(mutations.create).toHaveBeenCalledWith("Later", { kind: "groups", ids: [5, 6] })
     })
 })

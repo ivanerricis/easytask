@@ -8,6 +8,8 @@ import type { TaskOrder } from "@/lib/task-order"
 export type TemplateTag = {
     name: string
     color: string | null
+    /** How the tag is drawn ("rounded", "dot", "tag"); absent = the default pill (and in snapshots created before the shapes existed). */
+    shape?: string | null
 }
 
 /**
@@ -55,6 +57,8 @@ export type TemplateGroup = {
     archived_at?: string | null
     /** Width in pixels; absent when the group has the default width. */
     width?: number | null
+    /** The tags of the group; absent when it has none (and in snapshots created before groups had tags). */
+    tags?: TemplateTag[]
     /** Tasks directly in the group (its hidden default section); absent when there are none. */
     tasks?: TemplateTask[]
     /** How many of the sections come before the list of the direct tasks (0..sections.length); absent = 0, the list is on top. */

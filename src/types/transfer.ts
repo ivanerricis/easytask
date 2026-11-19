@@ -80,6 +80,8 @@ export type ExportTemplate = {
 export type ExportTag = {
     name: string
     color: string | null
+    /** How the tag is drawn ("rounded", "dot", "tag"); absent = the default pill (and in files created before the shapes existed). */
+    shape?: string | null
 }
 
 /**

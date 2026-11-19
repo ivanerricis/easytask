@@ -5,7 +5,7 @@ import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 import { chunked, nextPositionSql, placeholders } from "./sql";
-import { attachTags, type TagLinkRow, type UsedTag } from "./tag";
+import { attachTags, type GroupTagLinkRow, type TagLinkRow, type UsedTag } from "./tag";
 
 /** SQL filter that hides the archived rows (nothing when they are kept); `alias` is the table alias of the column. */
 const notArchived = (includeArchived: boolean, alias = "") =>
@@ -29,7 +29,7 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
         const db = await getDB()
         const gA = notArchived(includeArchived)
         // Three independent selects (no transaction): the pooled connection can serve them in parallel
-        const [groups, sectionRows, tasks, links] = await Promise.all([
+        const [groups, sectionRows, tasks, links, groupLinks] = await Promise.all([
             db.select<Group[]>(
                 `SELECT * FROM section_group WHERE noteID=? AND deleted_at IS NULL${gA} ORDER BY position`, [noteId]),
             db.select<Section[]>(`
@@ -42,7 +42,7 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
                 SELECT id FROM section_group WHERE noteID=? AND deleted_at IS NULL${gA}))
                 ORDER BY position, id`, [noteId]),
             db.select<TagLinkRow[]>(`
-                SELECT tt.taskID, tg.id, tg.name, tg.color FROM task_tag tt
+                SELECT tt.taskID, tg.id, tg.name, tg.color, tg.shape, tg.position FROM task_tag tt
                 INNER JOIN tag tg ON tg.id = tt.tagID
                 INNER JOIN task t ON t.id = tt.taskID
                 INNER JOIN section s ON s.id = t.sectionID
@@ -50,9 +50,15 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
                 WHERE g.noteID = ? AND g.deleted_at IS NULL${notArchived(includeArchived, "g")} AND s.deleted_at IS NULL${notArchived(includeArchived, "s")}
                   AND t.deleted_at IS NULL${notArchived(includeArchived, "t")}
                 ORDER BY tg.position, tg.id`, [noteId]),
+            db.select<GroupTagLinkRow[]>(`
+                SELECT gt.groupID, tg.id, tg.name, tg.color, tg.shape, tg.position FROM section_group_tag gt
+                INNER JOIN tag tg ON tg.id = gt.tagID
+                INNER JOIN section_group g ON g.id = gt.groupID
+                WHERE g.noteID = ? AND g.deleted_at IS NULL${notArchived(includeArchived, "g")}
+                ORDER BY tg.position, tg.id`, [noteId]),
         ])
         const sections = sectionRows.map(withTitle)
-        const tags = attachTags(tasks, links)
+        const tags = attachTags(tasks, links, groups, groupLinks)
         return { groups, sections, tasks, tags }
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
@@ -80,7 +86,7 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
 
         for (const ids of chunked(noteIds)) {
             const marks = placeholders(ids.length)
-            const [groups, sections, tasks, links] = await Promise.all([
+            const [groups, sections, tasks, links, groupLinks] = await Promise.all([
                 db.select<Group[]>(
                     `SELECT * FROM section_group g WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} ORDER BY g.position, g.id`, ids),
                 db.select<(Section & { _noteID: number })[]>(
@@ -96,13 +102,19 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                        AND t.deleted_at IS NULL${arch("t")}
                      ORDER BY t.position, t.id`, ids),
                 db.select<(TagLinkRow & { _noteID: number })[]>(
-                    `SELECT tt.taskID, tg.id, tg.name, tg.color, g.noteID AS _noteID FROM task_tag tt
+                    `SELECT tt.taskID, tg.id, tg.name, tg.color, tg.shape, tg.position, g.noteID AS _noteID FROM task_tag tt
                      INNER JOIN tag tg ON tg.id = tt.tagID
                      INNER JOIN task t ON t.id = tt.taskID
                      INNER JOIN section s ON s.id = t.sectionID
                      INNER JOIN section_group g ON g.id = s.groupID
                      WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")} AND s.deleted_at IS NULL${arch("s")}
                        AND t.deleted_at IS NULL${arch("t")}
+                     ORDER BY tg.position, tg.id`, ids),
+                db.select<(GroupTagLinkRow & { _noteID: number })[]>(
+                    `SELECT gt.groupID, tg.id, tg.name, tg.color, tg.shape, tg.position, g.noteID AS _noteID FROM section_group_tag gt
+                     INNER JOIN tag tg ON tg.id = gt.tagID
+                     INNER JOIN section_group g ON g.id = gt.groupID
+                     WHERE g.noteID IN (${marks}) AND g.deleted_at IS NULL${arch("g")}
                      ORDER BY tg.position, tg.id`, ids),
             ])
             for (const group of groups) dataOf(group.noteID).groups.push(group)
@@ -114,9 +126,15 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                 if (list) list.push(link)
                 else linksByNote.set(_noteID, [link])
             }
-            for (const [noteID, list] of linksByNote) {
+            const groupLinksByNote = new Map<number, GroupTagLinkRow[]>()
+            for (const { _noteID, ...link } of groupLinks) {
+                const list = groupLinksByNote.get(_noteID)
+                if (list) list.push(link)
+                else groupLinksByNote.set(_noteID, [link])
+            }
+            for (const noteID of new Set([...linksByNote.keys(), ...groupLinksByNote.keys()])) {
                 const data = dataOf(noteID)
-                data.tags = attachTags(data.tasks, list)
+                data.tags = attachTags(data.tasks, linksByNote.get(noteID) ?? [], data.groups, groupLinksByNote.get(noteID) ?? [])
             }
         }
         return result

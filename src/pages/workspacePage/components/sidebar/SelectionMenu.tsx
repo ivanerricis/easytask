@@ -60,7 +60,7 @@ export const SelectionMenuItems = ({ menu }: { menu: ItemMenuState }) => {
                     <Palette className="size-4" />
                     {t("menu.selection.color")}
                 </MenuSubTrigger>
-                <MenuSubContent>
+                <MenuSubContent className="p-1">
                     <DialogAddColor onPick={color => actions.applyColor(color)} setDropDownOpen={menu.close} />
                 </MenuSubContent>
             </MenuSub>

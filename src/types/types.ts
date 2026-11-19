@@ -1,4 +1,5 @@
 import type { TaskOrder } from "@/lib/task-order"
+import type { StoredTagShape } from "@/lib/tag-shapes"
 
 export type Workspace = {
     id: number
@@ -70,6 +71,8 @@ export type Group = {
      * 0 = on top (the default), sections.length = after all of them. Absent = 0. Always kept in sync with the database order.
      */
     defaultIndex?: number
+    /** The tags of the group (ids of the tags of its workspace, in the order of the tag list); absent when it has none. */
+    tagIDs?: number[]
     /** Saved state of the group: true (or 1 from the database) = closed; absent/false = open. A state of the view: undo, templates, exports and copies do not carry it. */
     collapsed?: boolean | number
     sections: Section[]
@@ -129,6 +132,8 @@ export type Tag = {
     workspaceID: number
     name: string
     color: string | null
+    /** How the tag is drawn: "rounded", "dot" or "tag"; null = the default pill. */
+    shape?: StoredTagShape
     position: number
 }
 
