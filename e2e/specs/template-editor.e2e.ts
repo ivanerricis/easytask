@@ -85,6 +85,12 @@ describe("Template editor", () => {
         await waitForApp()
     })
 
+    after(async () => {
+        // The next specs expect the plain workspace: no dialog left open and the Settings button reachable
+        await closeAllDialogs()
+        await byLabel(await tr("settings.title")).waitForExist({ timeoutMsg: "the app is not in the workspace after the template editor spec" })
+    })
+
     it("creates a workspace, a note and a template from it", async () => {
         await createWorkspace(WORKSPACE)
         await openWorkspace(WORKSPACE)
