@@ -109,6 +109,19 @@ describe("Live drag of the sidebar", () => {
         expect(await labelsNow()).toEqual([FOLDER_A, FOLDER_B, ...NOTES])
     })
 
+    it("gives every row of the small (not virtualized) tree a layer the live drag can move", async () => {
+        // Under 200 rows the tree is the recursive one: its rows must register like the virtualized ones, or nothing steps aside
+        const counts = await browser.execute(() => ({
+            items: document.querySelectorAll("[role=treeitem]").length,
+            layers: document.querySelectorAll("[role=treeitem]").length
+                - Array.from(document.querySelectorAll("[role=treeitem]")).filter(item => !item.closest("[data-tree-shift-layer]")).length,
+            virtual: document.querySelectorAll("[data-testid=tree-row]").length,
+        }))
+        expect(counts.virtual).toBe(0)
+        expect(counts.items).toBe(5)
+        expect(counts.layers).toBe(5)
+    })
+
     it("opens the room and collapses the dragged note, with no line, then saves the visual order", async function () {
         if (process.platform === "linux") return this.skip()
         const before = { two: await row(NOTES[1]), three: await row(NOTES[2]) }

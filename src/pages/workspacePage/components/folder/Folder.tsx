@@ -4,6 +4,7 @@ import { DropLine } from "../sidebar/DropLine"
 import { useItemSize } from "../sidebar/item-size"
 import { isInsideZone, openOnKeyboardFocus, treeRowKey, treeRowKeyDown, useIsTreeTabStop, useTreeDropZone, useTreeRow } from "../sidebar/tree-row"
 import { SelectionMark } from "../sidebar/SelectionMark"
+import { TreeRowGuides, TreeRowLayer } from "../sidebar/TreeRowLayer"
 import { useFolderHoldsActiveNote } from "../sidebar/active-ancestors-object"
 import { useIsSelected } from "../sidebar/selection-context-object"
 import { useTreeRowHandlers } from "../sidebar/use-tree-row-handlers"
@@ -28,7 +29,15 @@ type ItemFolderProps = {
     onToggle: (folderId: number) => void
     /** Depth in the tree, starting at 1 (aria-level). */
     level?: number
+    /** The row is drawn by the recursive tree (not the virtualized one, which has its own layer): the row (not its children) makes its layer for the live drag. */
+    layer?: boolean
 }
+
+/** The layer of the live drag around the row of a folder (alone: the rows of its children have theirs), or nothing. */
+const RowLayer = ({ layer, folderId, depth, children }: { layer: boolean, folderId: number, depth: number, children: React.ReactNode }) =>
+    layer
+        ? <TreeRowLayer rowKey={treeRowKey("folder", folderId)} className="relative w-full"><TreeRowGuides depth={depth} origin={depth} />{children}</TreeRowLayer>
+        : <>{children}</>
 
 type FolderRowProps = ItemFolderProps & { dropZone: DropZone | null } & Omit<ReturnType<typeof useTreeRow>, "ref"> & { dndRef: ReturnType<typeof useTreeRow>["ref"] }
 
@@ -42,7 +51,7 @@ export const ItemFolder = React.memo((props: ItemFolderProps) => {
     return <FolderRow {...props} dropZone={hoverZone} dndRef={ref} attributes={attributes} listeners={listeners} isDragging={isDragging} />
 })
 
-const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, level = 1, dndRef, attributes, listeners, isDragging }: FolderRowProps) => {
+const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, level = 1, layer = false, dndRef, attributes, listeners, isDragging }: FolderRowProps) => {
     const { t } = useTranslation()
     const [isHovered, setIsHovered] = useState(false)
     // The sidebar tree is updated by the context: no reload
@@ -64,6 +73,7 @@ const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, le
 
     return (
         <Collapsible open={isOpen && hasContent} className="relative flex flex-col w-full">
+            <RowLayer layer={layer} folderId={folder.id} depth={level - 1}>
             <TreeRowTooltip
                 name={folder.name}
                 creationDate={folder.creation_date}
@@ -115,11 +125,13 @@ const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, le
                     </TooltipTrigger>
                 </ButtonMenuFolder>
             </TreeRowTooltip>
+            </RowLayer>
 
             {/* The children slide open and closed (the speed follows the animation setting); once closed they are unmounted */}
             {/* pr-1 and pb-0.5 (with the negative margins): room for the 2px focus ring of the rows, which the clipping of the animation would cut */}
             <CollapsibleContent className="relative -mr-1 pr-1 -mb-0.5 pb-0.5 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-                <div className={`absolute ${size.guide} h-full w-[1px] bg-foreground/25`} />
+                {/* With the layers the guides are the ones of the rows (they move with them in the live drag) */}
+                {!layer && <div className={`absolute ${size.guide} h-full w-[1px] bg-foreground/25`} />}
                 {/* pt-1: the gap between the folder row and its children is inside the animated part, so it does not jump when the animation ends */}
                 <div className={`${size.indent} flex flex-col gap-1 pt-1`}>
                     {children}
