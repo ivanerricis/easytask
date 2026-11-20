@@ -18,8 +18,11 @@ jobs:
   # both languages. The builds wait only for this job, not for the checks of `verify`, which run next to them.
   prepare:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     outputs:
       notes: ${{ steps.notes.outputs.notes }}
+      release_id: ${{ steps.draft.outputs.id }}
     steps:
       # workflow_dispatch can start this workflow from a branch: releases are only made from version tags
       - name: Require a version tag (vX.Y.Z)
@@ -65,6 +68,42 @@ jobs:
             echo "$NOTES"
             echo "CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
+      # One draft release, created here before the builds. The Windows and Linux jobs both upload to it by id: when
+      # each of them created the draft on its own, they could look at the same moment, find none and make two drafts
+      # (0.28.0), with the files and latest.json split between them. A rerun reuses the draft of the tag.
+      - name: Create the draft release
+        id: draft
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          NOTES: ${{ steps.notes.outputs.notes }}
+        run: |
+          find_release() {
+            gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq "[.[] | select(.tag_name == \"$TAG\")]"
+          }
+          FOUND=$(find_release)
+          if [ "$(echo "$FOUND" | jq '[.[] | select(.draft | not)] | length')" != "0" ]; then
+            echo "::error::A published release already exists for $TAG"
+            exit 1
+          fi
+          if [ "$(echo "$FOUND" | jq 'length')" -gt 1 ]; then
+            echo "::error::More than one draft exists for $TAG: delete the extra ones and run again"
+            exit 1
+          fi
+          ID=$(echo "$FOUND" | jq -r '.[0].id // empty')
+          if [ -z "$ID" ]; then
+            if [ -n "$NOTES" ]; then
+              echo "$NOTES" > notes.md
+              NOTE_ARGS=(--notes-file notes.md)
+            else
+              NOTE_ARGS=(--generate-notes)
+            fi
+            gh release create "$TAG" --draft --verify-tag --title "EasyTask $TAG" "${NOTE_ARGS[@]}"
+            ID=$(find_release | jq -r '.[0].id')
+          fi
+          echo "Draft release id: $ID"
+          echo "id=$ID" >> "$GITHUB_OUTPUT"
 
   # The checks of the CI, run again on the tagged commit. They do not hold the builds back: the release is only a
   # DRAFT, so if this job fails the run is red and the draft must not be published (see RELEASING.md).
@@ -113,19 +152,15 @@ jobs:
         with:
           workspaces: src-tauri -> target
       # Builds the installers (NSIS on Windows, deb + AppImage on Linux), signs the updater artifacts and uploads
-      # them, with latest.json (merged across the two jobs), to a DRAFT release. Nothing is published automatically.
+      # them, with latest.json (merged across the two jobs), to the DRAFT release created by `prepare`. Nothing is published automatically.
       - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'EasyTask ${{ github.ref_name }}'
-          releaseBody: ${{ needs.prepare.outputs.notes }}
-          generateReleaseNotes: ${{ needs.prepare.outputs.notes == '' }}
-          releaseDraft: true
-          prerelease: false
+          # The draft made by `prepare`: the action uploads to it and does not create a release of its own
+          releaseId: ${{ needs.prepare.outputs.release_id }}
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
       # Portable zip: EasyTask.exe + portable.txt (switches the app to <exe folder>/data) + a short README. It is built
@@ -148,4 +183,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" "$ZIP" --clobber --repo "${{ github.repository }}"
+        run: |
+          NAME=$(basename "$ZIP")
+          RELEASE="repos/${{ github.repository }}/releases/${{ needs.prepare.outputs.release_id }}"
+          # A rerun replaces the zip already uploaded
+          OLD=$(gh api "$RELEASE/assets" --jq ".[] | select(.name == \"$NAME\") | .id")
+          if [ -n "$OLD" ]; then gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$OLD"; fi
+          gh api -X POST -H "Content-Type: application/zip" --input "$ZIP" \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ needs.prepare.outputs.release_id }}/assets?name=$NAME"
