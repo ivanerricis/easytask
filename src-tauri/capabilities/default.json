@@ -35,13 +35,13 @@
       "identifier": "opener:allow-open-url",
       "allow": [
         {
-          "url": "https://github.com/ivanerricis/easytask"
+          "url": "https://*"
         },
         {
-          "url": "https://github.com/ivanerricis/easytask/*"
+          "url": "http://*"
         },
         {
-          "url": "https://ivanerricis.github.io/easytask/*"
+          "url": "mailto:*"
         }
       ]
     },

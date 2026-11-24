@@ -1,9 +1,11 @@
 import type { Task } from "@/types/types"
+// The rule only reads these two fields: it also applies to the tasks of a snapshot (template, export, Markdown)
+type TaskLike = { completed: boolean, subtasks?: readonly TaskLike[] }
 import type { TaskOrder } from "@/lib/task-order"
 import { passesTagFilter, type TagFilter } from "./tag-filter"
 
 /** Whether a task has at least one subtask, at any depth, that is not completed. */
-export const hasOpenDescendant = (task: Task): boolean =>
+export const hasOpenDescendant = (task: TaskLike): boolean =>
     (task.subtasks ?? []).some(subtask => !subtask.completed || hasOpenDescendant(subtask))
 
 /**
@@ -12,7 +14,7 @@ export const hasOpenDescendant = (task: Task): boolean =>
  * its own subtasks are then filtered by the same rule. Only a fully completed subtree disappears.
  * @category Note
  */
-export const isHiddenTask = (task: Task, hide: boolean): boolean =>
+export const isHiddenTask = (task: TaskLike, hide: boolean): boolean =>
     hide && !!task.completed && !hasOpenDescendant(task)
 
 /**

@@ -26,6 +26,8 @@ import { getErrorMessage } from "@/lib/utils"
 import { reportError } from "@/lib/report-error"
 import { toast } from "sonner"
 import { useItemTransfer } from "@/hooks/use-workspace-transfer"
+import { usePreference } from "@/contexts/use-preference"
+import { copyNoteAsMarkdown, printNoteAsPdf } from "@/lib/note-export"
 
 const DialogAutomations = lazyNamed(() => import("@/components/dialogs/dialog-automations"), "DialogAutomations")
 const DialogCreateTemplate = lazyNamed(() => import("@/components/dialogs/dialog-create-template"), "DialogCreateTemplate")
@@ -84,6 +86,7 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
     const { openNote } = useTabsActions()
     const recorder = useUndoRecorder()
     const { exportItem } = useItemTransfer()
+    const hideCompletedTasks = usePreference(p => p.hideCompletedTasks)
     const { request: requestDelete } = useDeleteRequest({
         item: note,
         itemType: "note",
@@ -113,6 +116,20 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
     const handleArchive = () => runAction(async () => {
         await archiveItem("note", note.id)
         recorder.archive("note", note.id, note.name)
+    })
+
+    const handleCopyMarkdown = () => runAction(async () => {
+        await copyNoteAsMarkdown(note.id, note.name, hideCompletedTasks)
+        toast.success(t("transfer.markdownCopied"))
+    })
+
+    // The print dialog is the system one: the page is only built here
+    const handlePrint = () => runAction(async () => {
+        try {
+            await printNoteAsPdf(note.id, note.name, hideCompletedTasks)
+        } catch (error) {
+            throw new Error(t("transfer.printUnavailable", { message: getErrorMessage(error) }), { cause: error })
+        }
     })
 
     const singleItems = () => (
@@ -162,6 +179,16 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
                 text={t("menu.export")}
                 type="export"
                 onClick={() => { menu.close(); void exportItem("note", note) }}
+            />
+            <ButtonInPopover
+                text={t("menu.copyMarkdown")}
+                type="copyMarkdown"
+                onClick={handleCopyMarkdown}
+            />
+            <ButtonInPopover
+                text={t("menu.exportPdf")}
+                type="exportPdf"
+                onClick={handlePrint}
             />
             <ButtonInPopover
                 text={t("menu.archive")}

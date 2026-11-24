@@ -68,6 +68,8 @@ export const menu: Translation["menu"] = {
     chooseBackgroundImage: "Choose image…",
     removeBackgroundImage: "Remove image",
     export: "Export",
+    copyMarkdown: "Copy as Markdown",
+    exportPdf: "Export PDF",
     importHere: "Import here",
     moveUp: "Move up",
     moveDown: "Move down",

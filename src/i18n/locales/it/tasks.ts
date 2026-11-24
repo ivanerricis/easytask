@@ -53,6 +53,7 @@ export const tasks = {
         copied_other: "{{count}} task copiati",
     },
     editText: "Modifica il testo del task",
+    openLink: "Ctrl+clic per aprire",
     list: "Task",
     listOf: "Task di {{name}}",
     keyboard: {
@@ -68,6 +69,8 @@ export const tasks = {
 
 export const transfer = {
     exported: "Workspace esportato",
+    markdownCopied: "Nota copiata come Markdown",
+    printUnavailable: "Impossibile aprire la stampa: {{message}}",
     imported: "Workspace importato",
     importedSkipped_one: "Workspace importato · {{count}} file saltato",
     importedSkipped_other: "Workspace importato · {{count}} file saltati",

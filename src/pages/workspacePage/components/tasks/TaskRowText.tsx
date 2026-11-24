@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next"
 import { AutoTextarea } from "@/components/auto-textarea"
 import { InlineErrorTooltip } from "@/components/inline-error-tooltip"
 import { cn } from "@/lib/utils"
+import { LinkedText } from "@/components/linked-text"
+import { findLinks } from "@/lib/links"
 import { SearchedTaskText } from "./SearchedTaskText"
 import { TASK_TEXT_CLASS, TASK_TEXT_WRAP } from "./task-row-styles"
 import type { useInlineEdit } from "@/hooks/use-inline-edit"
@@ -70,6 +72,17 @@ export function TaskRowText({ text, completed, textClass, editing, error, inputP
             text={text}
             query={searchQuery}
             active={searchActive}
+            label={t("tasks.editText")}
+            tabIndex={inner ?? 0}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
+            className={cn(TASK_TEXT_WRAP, textClass, state)}
+        />
+    )
+    // A text with a link is drawn as text (a textarea cannot underline a part of it); the others stay read only textareas
+    if (findLinks(text).length > 0) return (
+        <LinkedText
+            text={text}
             label={t("tasks.editText")}
             tabIndex={inner ?? 0}
             onClick={onClick}

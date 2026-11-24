@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { linkHint, openLinkAtCaret } from "@/lib/link-click"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import type { NoteDataTree, Task } from "@/types/types"
@@ -69,6 +70,8 @@ const TaskDescription = ({ task }: { task: Task }) => {
                 value={value}
                 placeholder={t("sidebar.info.placeholder")}
                 onChange={e => setDraft(e.target.value)}
+                onClick={openLinkAtCaret}
+                title={linkHint(value, t("tasks.openLink"))}
                 className="min-h-24 resize-y bg-background px-2 py-1 text-sm md:text-sm"
             />
             {dirty && (
