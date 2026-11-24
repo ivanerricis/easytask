@@ -4,7 +4,10 @@ import { useActiveNoteSelector, useTabsActions } from "@/contexts/use-tabs"
 import type { Note } from "@/types/types"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
 import { X } from "lucide-react"
-import React, { useEffect } from "react"
+import React, { useCallback, useEffect, useRef } from "react"
+import { useWorkspaceActions } from "@/contexts/workspace-data"
+import { reportError } from "@/lib/report-error"
+import { getErrorMessage } from "@/lib/utils"
 import { usePane } from "@/contexts/use-layout"
 import { useStoreSelector } from "@/lib/external-store"
 import { consumeTabRename, pendingRename } from "@/lib/pending-rename"
@@ -35,14 +38,51 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
     const draft = useDraftOfNote(note.id)
     const color = draft ? draft.color : note.color
     const closeLabel = useShortcutLabel("close-note")
-    const { editing, error, start: startRename, inputProps } = useInlineRename({ itemType: "note", id: note.id, name: note.name })
+    // `keep` is set while the name is provisional (a note just created): Escape cancels the creation, any other end keeps the note
+    const { deleteItem, purgeItem } = useWorkspaceActions()
+    const keep = useRef<(() => void) | null>(null)
+    const flushKeep = useCallback(() => {
+        const fn = keep.current
+        keep.current = null
+        fn?.()
+    }, [])
+    const discardCreation = useCallback(async () => {
+        try {
+            await deleteItem("note", note.id)
+            await purgeItem("note", note.id)
+        } catch (err) {
+            reportError(err, getErrorMessage(err))
+        }
+    }, [deleteItem, purgeItem, note.id])
+    // The creation goes into the undo history before the rename, so that undo steps back in the right order
+    const { editing, error, start: startRename, inputProps } = useInlineRename({ itemType: "note", id: note.id, name: note.name, beforeRecord: flushKeep })
 
     // A note just created with the "+" of the bar asks for its name as soon as its tab is here
     const pane = usePane()?.pane ?? 0
     const renameRequested = useStoreSelector(pendingRename, request => request?.noteId === note.id && request.pane === pane)
     useEffect(() => {
-        if (renameRequested && consumeTabRename(note.id, pane)) startRename()
+        if (!renameRequested) return
+        const request = consumeTabRename(note.id, pane)
+        if (!request) return
+        keep.current = request.onKeep ?? null
+        startRename()
     }, [renameRequested, note.id, pane, startRename])
+    const wasEditing = useRef(false)
+    useEffect(() => {
+        if (wasEditing.current && !editing) flushKeep()
+        wasEditing.current = editing
+    }, [editing, flushKeep])
+    useEffect(() => flushKeep, [flushKeep])
+    const nameInputProps = {
+        ...inputProps,
+        onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Escape" && keep.current) {
+                keep.current = null
+                void discardCreation()
+            }
+            inputProps.onKeyDown(e)
+        },
+    }
 
     const handleCloseHeader =(e: React.MouseEvent) => {
         e.stopPropagation()
@@ -65,7 +105,7 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
 
             {/* Same height as the sidebar header (32px buttons + padding + border), the content centered in it */}
             {editing && !draft && <div className="flex min-w-0 flex-1 items-center py-1 pl-2 pr-1">
-                <InlineNameInput {...inputProps} error={error} aria-label={t("common.name")} className="max-w-56 text-sm" />
+                <InlineNameInput {...nameInputProps} error={error} aria-label={t("common.name")} className="max-w-56 text-sm" />
             </div>}
             {(!editing || draft) && <button
                 type="button"

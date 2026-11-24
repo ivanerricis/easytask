@@ -42,7 +42,7 @@ describe("ClosedSidebarShortcuts", () => {
         ctrl("n")
         await waitFor(() => expect(openNote).toHaveBeenCalledWith(9))
         expect(createWorkspaceNote).toHaveBeenCalledWith(4, "Nuova nota")
-        expect(pendingRename.getState()).toEqual({ noteId: 9, pane: 1 })
+        expect(pendingRename.getState()).toEqual({ noteId: 9, pane: 1, onKeep: expect.any(Function) })
     })
 
     it("leaves Ctrl+N to the sidebar button while the sidebar is open (one handler only)", () => {
