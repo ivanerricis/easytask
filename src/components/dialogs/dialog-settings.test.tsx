@@ -18,6 +18,7 @@ const audioPrefs = {
     setAudioPlayerPinned: vi.fn(),
     setAudioRepeat: vi.fn(),
     setAudioResume: vi.fn(),
+    setAudioLoudnessMeter: vi.fn(),
     resetAudioSettings: vi.fn(),
 }
 import { DialogSettings } from "./dialog-settings"
@@ -66,6 +67,7 @@ vi.mock("@/contexts/use-preferences", () => ({
         audioPlayerPinned: false, setAudioPlayerPinned: (value: boolean) => audioPrefs.setAudioPlayerPinned(value),
         audioRepeat: false, setAudioRepeat: (value: boolean) => audioPrefs.setAudioRepeat(value),
         audioResume: false, setAudioResume: (value: boolean) => audioPrefs.setAudioResume(value),
+        audioLoudnessMeter: true, setAudioLoudnessMeter: (value: boolean) => audioPrefs.setAudioLoudnessMeter(value),
         resetAudioSettings: () => audioPrefs.resetAudioSettings(),
         colorIntensity: colorPrefs.colorIntensity, setColorIntensity: (value: number) => setColorIntensity(value),
         textZoom: 1, setTextZoom: vi.fn(),
@@ -195,6 +197,11 @@ describe("DialogSettings", () => {
         expect(resume).not.toBeChecked()
         await user.click(resume)
         expect(audioPrefs.setAudioResume).toHaveBeenCalledWith(true)
+
+        const meter = screen.getByRole("switch", { name: "Misuratore di loudness" })
+        expect(meter).toBeChecked()
+        await user.click(meter)
+        expect(audioPrefs.setAudioLoudnessMeter).toHaveBeenCalledWith(false)
 
         const size = screen.getByRole("radiogroup", { name: "Dimensione del player" })
         expect(within(size).getByRole("radio", { name: "Normale" })).toBeChecked()

@@ -47,6 +47,7 @@ export const AudioSettings = () => {
         audioPlayerPinned, setAudioPlayerPinned,
         audioRepeat, setAudioRepeat,
         audioResume, setAudioResume,
+        audioLoudnessMeter, setAudioLoudnessMeter,
         audioPlayerScale, setAudioPlayerScale,
         audioPlayerOpacity, setAudioPlayerOpacity,
     } = usePreferences()
@@ -94,6 +95,12 @@ export const AudioSettings = () => {
                     description={t("settings.audio.resume.description")}
                     checked={audioResume}
                     onCheckedChange={setAudioResume}
+                />
+                <SettingsSwitchRow
+                    label={t("settings.audio.loudnessMeter.label")}
+                    description={t("settings.audio.loudnessMeter.description")}
+                    checked={audioLoudnessMeter}
+                    onCheckedChange={setAudioLoudnessMeter}
                 />
                 <SettingsRow label={t("settings.audio.resetPlayer.label")} description={t("settings.audio.resetPlayer.description")}>
                     <Button variant="outline" size="sm" onClick={resetPlayerPosition}>

@@ -450,6 +450,10 @@ export const settings = {
             label: "Riprendi da dove eri",
             description: "Ogni brano riparte dal punto in cui lo avevi lasciato.",
         },
+        loudnessMeter: {
+            label: "Misuratore di loudness",
+            description: "Mostra nel player la loudness a breve termine e momentanea e il picco reale del punto che stai ascoltando.",
+        },
         playerSize: {
             label: "Dimensione del player",
             description: "Ingrandisce o riduce il player flottante.",
@@ -462,7 +466,7 @@ export const settings = {
             description: "Rende il player più o meno trasparente (minimo 40%).",
         },
         resetAll: {
-            description: "Volume, visibilità, fissaggio, dimensione, trasparenza, velocità, ripetizione e ripresa tornano ai valori predefiniti.",
+            description: "Volume, visibilità, fissaggio, dimensione, trasparenza, velocità, ripetizione, ripresa e misuratore di loudness tornano ai valori predefiniti.",
         },
     },
     search: {

@@ -1,6 +1,7 @@
 mod audio;
 mod db;
 mod files;
+mod loudness;
 mod media_session;
 mod paths;
 mod settings;
@@ -190,6 +191,7 @@ pub fn run() {
             transfer_zip::import_zip,
             transfer_zip::delete_extracted_files,
             audio::audio_metadata,
+            loudness::audio_loudness,
             db::db_transaction,
             paths::data_dir,
             paths::is_portable,

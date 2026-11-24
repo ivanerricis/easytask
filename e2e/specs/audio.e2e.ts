@@ -148,6 +148,14 @@ describe("Audio files and the floating player", () => {
         expect((await audioState()).duration).toBeGreaterThan(SECONDS - 0.5)
     })
 
+    it("measures the file: waveform instead of the plain bar, and the loudness meter", async () => {
+        await $('[data-testid="audio-waveform"]').waitForDisplayed({ timeout: 20_000, timeoutMsg: "the waveform did not appear" })
+        await $('[data-testid="loudness-meter"]').waitForDisplayed({ timeoutMsg: "the loudness meter is not shown" })
+        const meter = await $('[data-testid="loudness-meter"]').getText()
+        expect(meter).toContain("LUFS")
+        expect(meter).toContain("dBTP")
+    })
+
     it("pauses on the same row and resumes from where it was", async () => {
         await waitAudio((s) => s.time > 0.3, "the playback does not advance")
         await clickRow(FILE)
