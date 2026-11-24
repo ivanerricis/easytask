@@ -56,6 +56,9 @@ export type TabUiStore = {
     clearRevealed: (noteId: number) => void
     getSelectedItem: (noteId: number) => SelectedItem | null
     setSelectedItem: (noteId: number, item: SelectedItem | null) => void
+    /** The tags the note is filtered by (a view of the note, kept while its tab is open; not saved). Empty: no filter. A stable array until it changes. */
+    getTagFilter: (noteId: number) => readonly number[]
+    setTagFilter: (noteId: number, tagIds: readonly number[]) => void
     getScroll: (noteId: number) => ScrollPosition | undefined
     setScroll: (noteId: number, position: ScrollPosition) => void
     /** Drops the UI state of the notes that are not in `keep` (closed tabs). */

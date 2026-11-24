@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import { ButtonInPopover } from "@/components/button-in-popover"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { usePreferences } from "@/contexts/use-preferences"
+import { useTagFilter } from "@/contexts/use-tag-filter"
 import { useGroupMoves, useNoteMoves } from "./note-dnd-state"
 import { getDirectStep, getGroupStep, getSectionStep, getTaskStep, type Step } from "./note-steps"
 import { useTaskStepMove } from "./use-task-step-move"
@@ -41,11 +42,12 @@ type StepMovesProps = {
 export const TaskStepMoves = ({ taskId, onDone }: StepMovesProps & { taskId: number }) => {
     const { noteDataTree } = useActiveNote()
     const { hideCompletedTasks, completedTasksLast } = usePreferences()
+    const tagFilter = useTagFilter()
     const move = useTaskStepMove(taskId)
 
     const steps = useMemo(() => noteDataTree
-        ? { up: getTaskStep(noteDataTree, taskId, -1, hideCompletedTasks, completedTasksLast), down: getTaskStep(noteDataTree, taskId, 1, hideCompletedTasks, completedTasksLast) }
-        : { up: null, down: null }, [noteDataTree, taskId, hideCompletedTasks, completedTasksLast])
+        ? { up: getTaskStep(noteDataTree, taskId, -1, hideCompletedTasks, completedTasksLast, tagFilter), down: getTaskStep(noteDataTree, taskId, 1, hideCompletedTasks, completedTasksLast, tagFilter) }
+        : { up: null, down: null }, [noteDataTree, taskId, hideCompletedTasks, completedTasksLast, tagFilter])
 
     return (
         <StepButtons

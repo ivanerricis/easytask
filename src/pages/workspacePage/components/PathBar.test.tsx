@@ -33,7 +33,7 @@ const tree: TreeData = {
 }
 const notes = [makeNote({ id: 1, name: "Radice" }), nested, deep]
 
-vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceData: () => ({ workspaceDataTree: tree }) }))
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceData: () => ({ workspaceDataTree: tree }), useWorkspaceTags: () => [] }))
 const prefs = { hideCompletedTasks: false, setHideCompletedTasks: vi.fn() }
 vi.mock("@/contexts/use-preferences", () => ({ usePreferences: () => prefs }))
 vi.mock("@/lib/store/preferences", () => ({ getReopenNotes: vi.fn().mockResolvedValue(false) }))

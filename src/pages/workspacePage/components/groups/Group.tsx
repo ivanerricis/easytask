@@ -184,7 +184,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                         {group.sections.map((section, position) => (
                             <Fragment key={section.id}>
                                 {position === directIndex && <GroupTasks group={group} />}
-                                <Section section={section} />
+                                <Section section={section} groupTagIDs={group.tagIDs} />
                             </Fragment>
                         ))}
                         {directIndex >= group.sections.length && <GroupTasks group={group} />}

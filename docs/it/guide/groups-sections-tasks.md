@@ -177,6 +177,12 @@ Premi `Ctrl+F` o clicca la lente nella barra del percorso sopra i gruppi per apr
 
 Premi `Ctrl+Maiusc+H`, usa il pulsante a forma di occhio nella barra del percorso sopra i gruppi, oppure scegli **Visualizza > Nascondi task completati**. I task completati e i loro sottotask spariscono, e ogni sezione indica quanti sono nascosti. Un task completato che ha ancora un sottotask aperto resta visibile, così il lavoro aperto non si perde. Non viene eliminato nulla: premi di nuovo la scorciatoia per rivederli. Per partire con i task nascosti usa **Impostazioni > Note e sezioni > Nascondi task completati**.
 
+## Filtrare per tag
+
+Usa il pulsante dei tag nella barra del percorso sopra i gruppi e spunta uno o più tag: la nota mostra solo i task che hanno **uno qualsiasi** dei tag spuntati. Un task senza nessuno di essi sparisce, ma resta se uno dei suoi sottotask ha un tag (così il sottotask mantiene il suo posto), e un task con un tag spuntato mostra tutti i suoi sottotask. Un gruppo o una sezione con un tag spuntato mostra tutti i suoi task. Gruppi e sezioni restano al loro posto, quindi una sezione senza risultati è semplicemente vuota.
+
+Con il filtro attivo il pulsante è evidenziato e indica quanti tag sono spuntati. Clicca la **x** accanto (o **Togli il filtro per tag** nell'elenco del pulsante o nel menu del clic destro sull'area vuota della nota) per rivedere tutto. È solo una vista, come [Nascondi task completati](#nascondi-task-completati), e le due funzionano insieme: nulla viene modificato, spostato o eliminato, il trascinamento e la ricerca nella nota seguono ciò che è sullo schermo. Il filtro appartiene alla nota e dura finché la sua scheda è aperta; non viene salvato, quindi dopo un riavvio tutti i task tornano visibili. Un task che aggiungi con il filtro attivo resta nascosto finché non ha un tag spuntato.
+
 ## Task completati in fondo
 
 Attiva **Impostazioni > Note e sezioni > Task completati in fondo** per vedere i task completati dopo quelli da fare in ogni elenco: i task di una sezione, i task messi direttamente in un gruppo e i sottotask di un task. È solo una vista: ogni blocco mantiene il suo ordine, l'ordine salvato nella nota non cambia e non si sposta nulla quando completi o riapri un task (cambia solo posto sullo schermo). Funziona insieme a **Nascondi task completati**. Una singola sezione può ignorare questa impostazione, vedi sotto.

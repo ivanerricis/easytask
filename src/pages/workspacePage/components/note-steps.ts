@@ -1,7 +1,8 @@
-import type { NoteDataTree } from "@/types/types"
+import type { NoteDataTree, Task } from "@/types/types"
 import { findGroup, indexTree, type TaskTarget } from "./note-dnd"
 import { directIndexOf } from "@/lib/group-sections"
 import { isHiddenTask, orderedVisibleTasks } from "./section/hide-completed"
+import { containerTagFilter, passesTagFilter, subtaskTagFilter, type TagFilter } from "./section/tag-filter"
 import { effectiveTaskOrder } from "@/lib/task-order"
 
 /** One step of the "Sposta su / giù" menu items: towards the start (-1) or the end (+1) of the siblings. */
@@ -29,12 +30,13 @@ function stepIndex<T extends { id: number }>(siblings: T[], id: number, step: St
  * A step never crosses a section: the first/last task of a section (the direct tasks of a group included) has no step
  * further, the "Sposta in…" menu moves it to another section or to the direct area of a group.
  * @param hideCompleted Siblings hidden by the "hide completed" rule (isHiddenTask) are not on screen, so they are jumped over.
+ * @param tagFilter The tag filter of the note: siblings it leaves out are not on screen either (see containerTagFilter).
  * @param completedLast The preference "completed tasks last", the order of a section with no choice of its own. With a sorted order (that
  *   preference or the choice of the section) a step goes to the neighbour in the displayed order
  *   and never crosses from the open block to the completed one (or back). The stored order only changes between the two tasks.
  * @category Note DnD
  */
-export function getTaskStep(tree: NoteDataTree, taskId: number, step: Step, hideCompleted: boolean, completedLast = false): TaskTarget | null {
+export function getTaskStep(tree: NoteDataTree, taskId: number, step: Step, hideCompleted: boolean, completedLast = false, tagFilter: TagFilter = null): TaskTarget | null {
     const { tasks, sections } = indexTree(tree)
     const info = tasks.get(taskId)
     if (!info) return null
@@ -42,15 +44,25 @@ export function getTaskStep(tree: NoteDataTree, taskId: number, step: Step, hide
         ? sections.get(info.sectionId)?.section.tasks ?? []
         : tasks.get(info.parentId)?.task.subtasks ?? []
     const order = effectiveTaskOrder(sections.get(info.sectionId)?.section.task_order, completedLast)
+    // The tag filter of the list the task is in: the one of its section and group, narrowed by each ancestor that has a filter tag
+    const section = sections.get(info.sectionId)?.section
+    const group = tree.groups.find(candidate => candidate.id === sections.get(info.sectionId)?.groupId)
+    const ancestors: Task[] = []
+    for (let parent = info.parentId; parent !== null; parent = tasks.get(parent)?.parentId ?? null) {
+        const found = tasks.get(parent)
+        if (!found) break
+        ancestors.unshift(found.task)
+    }
+    const listFilter = ancestors.reduce((filter, ancestor) => subtaskTagFilter(ancestor, filter), containerTagFilter(tagFilter, group?.tagIDs, section?.tagIDs))
     if (order !== "manual") {
-        const displayed = orderedVisibleTasks(siblings, { hideCompleted, order })
+        const displayed = orderedVisibleTasks(siblings, { hideCompleted, order, tagFilter: listFilter })
         const neighbour = displayed[displayed.findIndex(task => task.id === taskId) + step]
         const task = displayed.find(candidate => candidate.id === taskId)
         // The neighbour is in the other block, or there is none: at the edge
         if (!task || !neighbour || !!neighbour.completed !== !!task.completed) return null
         return { sectionId: info.sectionId, parentTaskId: info.parentId, index: siblings.indexOf(neighbour) }
     }
-    const index = stepIndex(siblings, taskId, step, task => !isHiddenTask(task, hideCompleted))
+    const index = stepIndex(siblings, taskId, step, task => !isHiddenTask(task, hideCompleted) && passesTagFilter(task, listFilter))
     return index === null ? null : { sectionId: info.sectionId, parentTaskId: info.parentId, index }
 }
 

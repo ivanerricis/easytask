@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Filter by tag** in the note bar: check one or more tags to see only the tasks that have any of them (a group or section with the tag shows all its tasks). The button shows how many tags are checked and one click on the **x** removes the filter. It is only a view of the note, kept while its tab is open.
+
 ## [0.28.0] - 2026-11-20
 
 ### Added

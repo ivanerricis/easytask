@@ -13,9 +13,11 @@ import { usePreference } from "@/contexts/use-preference"
 
 type SectionProps = {
     section: SectionType
+    /** The tags of the group (for the tag filter: a group with a filter tag shows all its sections' tasks). */
+    groupTagIDs?: readonly number[]
 }
 
-export const Section = memo(({ section }: SectionProps) => {
+export const Section = memo(({ section, groupTagIDs }: SectionProps) => {
     // Kept per note, so it survives tab switches
     const [isOpen, toggleOpen] = useSectionOpen(section.id)
     const { setNodeRef: setDropRef, zone, active } = useNoteDrop("section", section.id)
@@ -64,7 +66,7 @@ export const Section = memo(({ section }: SectionProps) => {
                 section={section}
                 dragProps={dragProps}
             />
-            <SectionBody isOpen={isOpen} section={section} />
+            <SectionBody isOpen={isOpen} section={section} groupTagIDs={groupTagIDs} />
         </div>
     )
 })

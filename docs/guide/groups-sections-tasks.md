@@ -177,6 +177,12 @@ Press `Ctrl+F` or click the magnifier in the path bar above the groups to open t
 
 Press `Ctrl+Shift+H`, use the eye button in the path bar above the groups, or choose **View > Hide completed tasks**. Completed tasks and their subtasks disappear, and each section tells you how many are hidden. A completed task that still has an open subtask stays visible, so open work is never lost. Nothing is deleted: press the shortcut again to see them. To start hidden, use **Settings > Notes and sections > Hide completed tasks**.
 
+## Filter by tag
+
+Use the tags button in the path bar above the groups and check one or more tags: the note shows only the tasks that have **any** of the checked tags. A task that has none of them disappears, but a task stays when one of its subtasks has a tag (so the subtask keeps its place), and a task with a checked tag shows all its subtasks. A group or a section that has a checked tag shows all its tasks. Groups and sections themselves stay where they are, so a section with no match is simply empty.
+
+While a filter is on, the button is highlighted and shows how many tags are checked. Click the **x** next to it (or **Remove the tag filter** in the button's list or in the right-click menu of the empty area of the note) to see everything again. It is only a view, like [Hide completed tasks](#hide-completed-tasks) and the two work together: nothing is changed, moved or deleted, drag and drop and the search in the note follow what is on the screen. The filter belongs to the note and lasts while its tab is open; it is not saved, so after a restart every task is shown again. A task you add while a filter is on stays hidden until it has a checked tag.
+
 ## Completed tasks at the bottom
 
 Turn on **Settings > Notes and sections > Completed tasks at the bottom** to see the completed tasks after the open ones in every list: the tasks of a section, the tasks directly in a group and the subtasks of a task. It is only a view: each block keeps its order, the order saved in the note does not change and nothing is moved when you complete or reopen a task (it just changes place on screen). It works together with **Hide completed tasks**. A single section can ignore this setting, see below.

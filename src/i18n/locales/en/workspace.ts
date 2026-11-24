@@ -79,6 +79,14 @@ export const notes: Translation["notes"] = {
         previous: "Previous result",
         close: "Close the search",
     },
+    tagFilter: {
+        label: "Filter by tag",
+        active_one: "Filtered by {{count}} tag",
+        active_other: "Filtered by {{count}} tags",
+        description: "Show only the tasks with any of the checked tags. A group or section with the tag shows all its tasks.",
+        noTags: "No tags in this workspace yet.",
+        clear: "Remove the tag filter",
+    },
     hideCompleted: "Hide completed tasks",
     showCompleted: "Show completed tasks",
     path: {
