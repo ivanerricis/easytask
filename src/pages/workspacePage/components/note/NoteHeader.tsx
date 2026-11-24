@@ -47,13 +47,15 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
         fn?.()
     }, [])
     const discardCreation = useCallback(async () => {
+        // The tab is closed here too: with the sidebar closed the tree may not hold the note, so the delete alone would not close it
+        closeNote(note.id)
         try {
             await deleteItem("note", note.id)
             await purgeItem("note", note.id)
         } catch (err) {
             reportError(err, getErrorMessage(err))
         }
-    }, [deleteItem, purgeItem, note.id])
+    }, [closeNote, deleteItem, purgeItem, note.id])
     // The creation goes into the undo history before the rename, so that undo steps back in the right order
     const { editing, error, start: startRename, inputProps } = useInlineRename({ itemType: "note", id: note.id, name: note.name, beforeRecord: flushKeep })
 

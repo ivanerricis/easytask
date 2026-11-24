@@ -192,12 +192,14 @@ describe("NoteHeader rename request", () => {
         const onKeep = vi.fn()
         setup()
         await act(async () => { })
-        act(() => requestTabRename(1, 0, onKeep))
+        act(() => requestTabRename(2, 0, onKeep))
         const field = document.querySelector("input")!
         field.focus()
         await userEvent.keyboard("{Escape}")
-        expect(deleteItem).toHaveBeenCalledWith("note", 1)
-        await waitFor(() => expect(purgeItem).toHaveBeenCalledWith("note", 1))
+        expect(deleteItem).toHaveBeenCalledWith("note", 2)
+        // its tab (the active one) is closed even when the delete does not touch the tree (sidebar closed): the neighbour becomes active
+        expect(screen.getByRole("tab", { name: "Uno" })).toHaveAttribute("aria-selected", "true")
+        await waitFor(() => expect(purgeItem).toHaveBeenCalledWith("note", 2))
         expect(onKeep).not.toHaveBeenCalled()
     })
 
