@@ -20,7 +20,7 @@ npm run ui-tour                # screenshot tour (e2e/ui-tour), not part of the 
 - Windows: run from a NON-elevated terminal. In an Administrator shell WebView2 does not open its debug port ("DevToolsActivePort file doesn't exist"). `e2e/run-as-basic-user.cmd` runs the suite with a limited token. For the same reason the Windows e2e CI job runs only on `workflow_dispatch`; Linux runs on every push. The user parked that issue: do not reopen it unless asked.
 - Linux CI e2e can flake: rerun the failed jobs before investigating.
 - CI e2e job is `continue-on-error`; it uploads `e2e/output` as `e2e-output-<os>`.
-- Known: locally "empties the trash" fails on the Windows dev build (passes on Linux CI); there is no e2e for export/import yet (native dialogs, see the manual checklist in `e2e/README.md`).
+- Known: locally "empties the trash" fails on the Windows dev build (passes on Linux CI); export/import is covered by `transfer.e2e.ts`: the native pickers are bypassed by wrapping `window.__TAURI_INTERNALS__.invoke` in the page and answering `plugin:dialog|save` / `plugin:dialog|open` (the same trick works for any picker); the rest of the manual checklist is in `e2e/README.md`.
 - Keep the current @wdio major (9): the 10 upgrade was left out on purpose (needs expect-webdriverio 8 and rewriting e2e code: `executeAsync` is gone).
 
 ## Helpers (`e2e/helpers.ts`)
