@@ -24,7 +24,7 @@ export const toastMock = Object.assign(vi.fn(), {
  */
 export const sonnerMock = () => ({ toast: toastMock, Toaster: () => null })
 
-/** Every method of the real `UndoRecorder` (src/contexts/undo/commands.ts); the compile-time check below keeps the list in sync. */
+/** Every method of the real `UndoRecorder` (src/contexts/undo/commands/); the compile-time check below keeps the list in sync. */
 const UNDO_RECORDER_METHODS = [
     "rename", "color", "background", "backgroundImage", "taskCompletion", "taskPriority", "taskDescription", "remove", "create", "archive", "unarchive", "archiveMany", "createMany",
     "treeMove", "removeMany", "colorMany", "colorContent", "treeMoveMany", "sectionMove", "directMove", "sectionMoveToNewGroup",
