@@ -421,3 +421,23 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
     border: 1px solid ButtonBorder;
   }
 }
+
+/* Print of a note ("Export PDF"): only the block that printNote adds to the body is shown on paper */
+#note-print { display: none; }
+@media print {
+  @page { margin: 16mm; }
+  body.printing-note > :not(#note-print) { display: none !important; }
+  body.printing-note > #note-print {
+    display: block; color: #000; background: #fff; font: 11pt/1.45 system-ui, sans-serif;
+  }
+  #note-print h1 { font-size: 20pt; margin: 0 0 12pt; }
+  #note-print h2 { font-size: 15pt; margin: 18pt 0 6pt; break-after: avoid; }
+  #note-print h3 { font-size: 12pt; margin: 12pt 0 4pt; break-after: avoid; }
+  #note-print ul { list-style: none; margin: 0; padding: 0; }
+  #note-print ul ul { padding-left: 16pt; }
+  #note-print li { margin: 2pt 0; break-inside: avoid; }
+  #note-print .box { display: inline-block; width: 1.4em; }
+  #note-print li.done > .text { text-decoration: line-through; color: #555; }
+  #note-print .tag { margin-left: 6pt; padding: 0 5pt; border: 1px solid #888; border-radius: 8pt; font-size: 8.5pt; }
+  #note-print .description { margin: 1pt 0 2pt 1.4em; color: #333; font-size: 10pt; white-space: pre-wrap; }
+}

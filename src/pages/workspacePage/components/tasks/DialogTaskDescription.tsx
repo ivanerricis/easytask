@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { linkHint, openLinkAtCaret } from "@/lib/link-click"
 import type { Task } from "@/types/types";
 import { getErrorMessage } from "@/lib/utils"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogFooterActions, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -78,6 +79,8 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
                     placeholder={t("tasks.descriptionDialog.placeholder")}
                     className="resize-none border rounded-xs py-1 px-2 text-sm focus-visible:border-primary"
                     value={text}
+                    onClick={openLinkAtCaret}
+                    title={linkHint(text, t("tasks.openLink"))}
                     onChange={(e) => { setError(null); setText(e.target.value) }}
                     // The caret starts at the end of the existing text
                     onFocus={(e) => { const end = e.currentTarget.value.length; e.currentTarget.setSelectionRange(end, end) }}

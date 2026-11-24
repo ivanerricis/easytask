@@ -55,6 +55,7 @@ export const tasks: Translation["tasks"] = {
         copied_other: "{{count}} tasks copied",
     },
     editText: "Edit the task text",
+    openLink: "Ctrl+click to open",
     list: "Tasks",
     listOf: "Tasks of {{name}}",
     keyboard: {
@@ -70,6 +71,8 @@ export const tasks: Translation["tasks"] = {
 
 export const transfer: Translation["transfer"] = {
     exported: "Workspace exported",
+    markdownCopied: "Note copied as Markdown",
+    printUnavailable: "Could not open the print dialog: {{message}}",
     imported: "Workspace imported",
     importedSkipped_one: "Workspace imported · {{count}} file skipped",
     importedSkipped_other: "Workspace imported · {{count}} files skipped",

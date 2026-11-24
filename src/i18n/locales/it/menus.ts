@@ -66,6 +66,8 @@ export const menu = {
     chooseBackgroundImage: "Scegli immagine…",
     removeBackgroundImage: "Togli immagine",
     export: "Esporta",
+    copyMarkdown: "Copia come Markdown",
+    exportPdf: "Esporta PDF",
     importHere: "Importa qui",
     moveUp: "Sposta su",
     moveDown: "Sposta giù",

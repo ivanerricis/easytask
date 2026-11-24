@@ -37,12 +37,20 @@ vi.mock("@/components/dialogs/dialog-create-template", () => ({
 }))
 vi.mock("@/components/dialogs/dialog-delete", () => ({ DialogDeleteItem: () => null }))
 const onRename = vi.fn()
+let hideCompleted = false
+vi.mock("@/contexts/use-preference", () => ({ usePreference: (select: (p: { hideCompletedTasks: boolean }) => unknown) => select({ hideCompletedTasks: hideCompleted }) }))
+const copyNoteAsMarkdown = vi.fn()
+const printNoteAsPdf = vi.fn()
+vi.mock("@/lib/note-export", () => ({ copyNoteAsMarkdown: (...args: unknown[]) => copyNoteAsMarkdown(...args), printNoteAsPdf: (...args: unknown[]) => printNoteAsPdf(...args) }))
 
-const ENTRIES = ["Apri", "Rinomina", "Duplica", "Cambia colore", "Crea template", "Esporta", "Archivia", "Elimina"]
+const ENTRIES = ["Apri", "Rinomina", "Duplica", "Cambia colore", "Crea template", "Esporta", "Copia come Markdown", "Esporta PDF", "Archivia", "Elimina"]
 
 beforeEach(() => {
     vi.clearAllMocks()
     openTabs = []
+    hideCompleted = false
+    copyNoteAsMarkdown.mockResolvedValue(undefined)
+    printNoteAsPdf.mockResolvedValue(undefined)
     duplicateNote.mockResolvedValue(9)
     archiveItem.mockResolvedValue(undefined)
 })
@@ -60,6 +68,29 @@ const setup = () => {
 }
 
 describe("ButtonMenuNote", () => {
+    it("copies the note as Markdown (following hide completed) and confirms", async () => {
+        const user = userEvent.setup()
+        hideCompleted = true
+        const row = setup()
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Copia come Markdown"))
+        await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Nota copiata come Markdown"))
+        expect(copyNoteAsMarkdown).toHaveBeenCalledWith(4, expect.any(String), true)
+    })
+
+    it("opens the print of the note and reports a webview without print", async () => {
+        const user = userEvent.setup()
+        const row = setup()
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Esporta PDF"))
+        await waitFor(() => expect(printNoteAsPdf).toHaveBeenCalledWith(4, expect.any(String), false))
+
+        printNoteAsPdf.mockRejectedValueOnce(new Error("no print"))
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Esporta PDF"))
+        await waitFor(() => expect(toast.error).toHaveBeenCalled())
+    })
+
     it("has no tab moves for a note that is not open as a tab", async () => {
         const row = setup()
         fireEvent.contextMenu(row)

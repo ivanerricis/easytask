@@ -4,6 +4,8 @@ import { handleSelectionClick } from "../sidebar/selection"
 import { taskKey } from "./task-selection"
 import { useTaskSelectionStore } from "./use-task-selection"
 import { useTaskTabStopStore } from "./task-tab-stop"
+import { LINK_ATTRIBUTE } from "@/lib/link-click"
+import { isLinkClick } from "@/lib/links"
 import { isFocusKeepingDetails } from "./task-focus-intent"
 
 // Clicks on these keep their own action (checkbox, buttons) and do not select the row
@@ -25,13 +27,16 @@ export function useTaskRowPointer(taskId: number) {
         onClickCapture: (e: MouseEvent<HTMLElement>) => {
             gestureDown.current = false
             if ((e.target as HTMLElement).closest(SELECTION_IGNORED)) return
+            // Ctrl+click on a link of the text opens the link: it is not a selection gesture
+            if (isLinkClick(e) && (e.target as HTMLElement).closest(`[${LINK_ATTRIBUTE}]`)) return
             if (handleSelectionClick(selectionStore, taskKey(taskId), e)) {
                 e.preventDefault()
                 e.stopPropagation()
             }
         },
         onMouseDown: (e: MouseEvent<HTMLElement>) => {
-            gestureDown.current = !!selectionStore && (e.shiftKey || e.ctrlKey || e.metaKey)
+            const onLink = isLinkClick(e) && !e.shiftKey && !!(e.target as HTMLElement).closest(`[${LINK_ATTRIBUTE}]`)
+            gestureDown.current = !!selectionStore && !onLink && (e.shiftKey || e.ctrlKey || e.metaKey)
             // No text selection while extending a range with Shift
             if (selectionStore && e.shiftKey) e.preventDefault()
         },
