@@ -4,6 +4,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+### Aggiunto
+
+- **Filtro per tag** nella barra della nota: spunta uno o più tag per vedere solo i task che hanno uno qualsiasi di essi (un gruppo o una sezione con il tag mostra tutti i suoi task). Il pulsante indica quanti tag sono spuntati e un clic sulla **x** toglie il filtro. È solo una vista della nota, mantenuta finché la sua scheda è aperta.
+
 ## [0.28.0] - 2026-11-20
 
 ### Aggiunto

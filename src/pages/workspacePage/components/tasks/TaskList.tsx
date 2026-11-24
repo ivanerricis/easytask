@@ -2,12 +2,14 @@ import { memo } from "react"
 import { useTranslation } from "react-i18next"
 import type { Task as TaskType } from "@/types/types"
 import { usePreference } from "@/contexts/use-preference"
+import { useTagFilter } from "@/contexts/use-tag-filter"
 import { Task } from "./Task"
 import { TaskTree } from "./TaskTree"
 import { useTaskDensity } from "./task-density"
 import { taskRowsWithInsert } from "./task-insert-rows"
 import { effectiveTaskOrder, isTaskOrderLocked, type TaskOrder } from "@/lib/task-order"
 import { countHiddenCompleted, orderedVisibleTasks } from "../section/hide-completed"
+import { containerTagFilter } from "../section/tag-filter"
 
 type TaskListProps = {
     /** The top level tasks of a section (the default section of a group included), in order. */
@@ -20,6 +22,9 @@ type TaskListProps = {
     sectionOrder?: TaskOrder | null
     /** The list is the first thing of a box that clips its content (the line above the first task stays inside). */
     clipped?: boolean
+    /** The tags of the section and of its group (stable arrays, so the memo holds): with the tag filter on, a list whose section or group has a filter tag shows all its tasks. */
+    sectionTagIDs?: readonly number[]
+    groupTagIDs?: readonly number[]
     /** Accessible name of the list ("Tasks of <section>"). */
     label?: string
 }
@@ -29,19 +34,21 @@ type TaskListProps = {
  * Tasks are nested recursively: each Task renders its own subtasks (at any depth), so its memo holds. Only a fully completed
  * subtree is hidden (see isHiddenTask): a completed task with an open descendant stays, and its subtasks are filtered by the
  * same rule. The Task still receives the full task (its progress counts every subtask).
+ * The tag filter (see tag-filter.ts) leaves out the tasks that have none of the chosen tags, unless the section or the group has one.
  * @category Note
  */
-export const TaskList = memo(({ tasks, listKey, sectionId, sectionOrder, clipped, label }: TaskListProps) => {
+export const TaskList = memo(({ tasks, listKey, sectionId, sectionOrder, clipped, label, sectionTagIDs, groupTagIDs }: TaskListProps) => {
     const { t } = useTranslation()
     const hideCompletedTasks = usePreference(p => p.hideCompletedTasks)
     const completedTasksLast = usePreference(p => p.completedTasksLast) ?? false
     const showSubtaskCount = usePreference(p => p.showSubtaskCount) ?? true
     const renameOnClick = usePreference(p => p.renameOnClick) ?? true
     const density = useTaskDensity()
+    const tagFilter = containerTagFilter(useTagFilter(), sectionTagIDs, groupTagIDs)
     const hiddenCount = hideCompletedTasks ? countHiddenCompleted(tasks) : 0
     const order = effectiveTaskOrder(sectionOrder, completedTasksLast)
     const orderLocked = isTaskOrderLocked(sectionOrder)
-    const visible = orderedVisibleTasks(tasks, { hideCompleted: hideCompletedTasks, order })
+    const visible = orderedVisibleTasks(tasks, { hideCompleted: hideCompletedTasks, order, tagFilter })
 
     return (
         <>
@@ -54,7 +61,7 @@ export const TaskList = memo(({ tasks, listKey, sectionId, sectionOrder, clipped
                 depth: 0,
                 clipped,
                 order,
-                renderTask: task => <Task key={task.id} task={task} treeKey={listKey} isFirst={task === visible[0]} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompletedTasks} order={order} orderLocked={orderLocked} renameOnClick={renameOnClick} density={density} />,
+                renderTask: task => <Task key={task.id} task={task} treeKey={listKey} isFirst={task === visible[0]} showSubtaskCount={showSubtaskCount} hideCompleted={hideCompletedTasks} tagFilter={tagFilter} order={order} orderLocked={orderLocked} renameOnClick={renameOnClick} density={density} />,
                 })}
             </TaskTree>}
             {hiddenCount > 0 &&

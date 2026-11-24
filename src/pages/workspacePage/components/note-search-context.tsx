@@ -4,6 +4,7 @@ import { useActiveNote } from "@/contexts/use-active-note"
 import { usePaneRoot } from "@/contexts/use-layout"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
 import { usePreferences } from "@/contexts/use-preferences"
+import { useTagFilter } from "@/contexts/use-tag-filter"
 import { useStoreSelector } from "@/lib/external-store"
 import { collectMatches, searchKey, type SearchMatch, type SearchMatchKind } from "./note-search"
 import { activeMatch, activeOccurrenceOf, createNoteSearchStore, type NoteSearchStore } from "./note-search-store"
@@ -38,6 +39,7 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
     const noteId = useActiveNoteId()
     const uiStore = useTabUiStore()
     const { hideCompletedTasks, completedTasksLast } = usePreferences()
+    const tagFilter = useTagFilter()
     const paneRoot = usePaneRoot()
     const open = useStoreSelector(store, s => s.open)
     const query = useStoreSelector(store, s => s.query)
@@ -51,13 +53,13 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
         const fresh = scanned.current !== query
         const run = () => {
             scanned.current = query
-            store.setMatches(collectMatches(noteDataTree, query, { hideCompleted: hideCompletedTasks, completedLast: completedTasksLast }), fresh)
+            store.setMatches(collectMatches(noteDataTree, query, { hideCompleted: hideCompletedTasks, completedLast: completedTasksLast, tagFilter }), fresh)
         }
         // A new query waits for the typing to pause; a change of the tree is scanned at once
         if (!fresh || !query) { run(); return }
         const timer = setTimeout(run, TYPING_DELAY_MS)
         return () => clearTimeout(timer)
-    }, [open, query, noteDataTree, hideCompletedTasks, completedTasksLast, store])
+    }, [open, query, noteDataTree, hideCompletedTasks, completedTasksLast, tagFilter, store])
 
     // What the search opened closes again with it
     useEffect(() => {

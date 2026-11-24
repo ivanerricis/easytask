@@ -16,6 +16,7 @@ import { TaskList } from "../tasks/TaskList"
 
 type DirectTasksProps = {
     section: Section
+    groupTagIDs?: readonly number[]
 }
 
 /**
@@ -23,7 +24,7 @@ type DirectTasksProps = {
  * The area is a droppable of the default section: a task dropped on it goes at the end; a dragged section is dropped before (top half)
  * or after (bottom half) the whole area, like on a section card (the list itself cannot be dragged: it moves from the menu of the group).
  */
-const DirectTasks = memo(({ section }: DirectTasksProps) => {
+const DirectTasks = memo(({ section, groupTagIDs }: DirectTasksProps) => {
     const { t } = useTranslation()
     const { setNodeRef, zone, active } = useNoteDrop("section", section.id)
     const draggingSection = active?.kind === "section"
@@ -50,7 +51,7 @@ const DirectTasks = memo(({ section }: DirectTasksProps) => {
             {/* Without tasks only the button is left: the empty box would just be a double border */}
             {section.tasks.length > 0 &&
                 <div className="flex flex-col w-full border bg-body-surface">
-                    <TaskList tasks={section.tasks} listKey={`s-${section.id}`} sectionId={section.id} clipped label={t("tasks.selection.directTasks")} />
+                    <TaskList tasks={section.tasks} listKey={`s-${section.id}`} sectionId={section.id} groupTagIDs={groupTagIDs} clipped label={t("tasks.selection.directTasks")} />
                 </div>}
             {/* Like the "Add a card" of Trello: when the tasks are more than the group can show, the button stays at the bottom of the
                 scrolling area instead of scrolling away (the 4px are the offset of the scrolling area, taller than the group) */}
@@ -83,5 +84,5 @@ export const GroupTasks = memo(({ group }: GroupTasksProps) => {
             .catch(error => reportError(error, i18n.t("tasks.errors.createTask")))
     }, [missing, group.id, refreshActiveNote])
 
-    return group.defaultSection ? <DirectTasks section={group.defaultSection} /> : null
+    return group.defaultSection ? <DirectTasks section={group.defaultSection} groupTagIDs={group.tagIDs} /> : null
 })

@@ -1,5 +1,6 @@
 import type { Task } from "@/types/types"
 import type { TaskOrder } from "@/lib/task-order"
+import { passesTagFilter, type TagFilter } from "./tag-filter"
 
 /** Whether a task has at least one subtask, at any depth, that is not completed. */
 export const hasOpenDescendant = (task: Task): boolean =>
@@ -25,12 +26,15 @@ export const visibleTasks = (tasks: Task[], hide: boolean): Task[] =>
 /**
  * The tasks in the order they are drawn: `visibleTasks`, then (with `order` "open-first") the open tasks first and the
  * completed ones after them, or (with "done-first") the other way round, each block in its stored order. Only a view: the
- * stored order and every move index stay as they are. It is the same array when nothing changes, so a memoized list is
+ * stored order and every move index stay as they are. With a `tagFilter` the tasks that do not pass it are left out too. It is the same array when nothing changes, so a memoized list is
  * not invalidated.
  * @category Note
  */
-export const orderedVisibleTasks = (tasks: Task[], { hideCompleted, order }: { hideCompleted: boolean, order: TaskOrder }): Task[] => {
-    const visible = visibleTasks(tasks, hideCompleted)
+export const orderedVisibleTasks = (tasks: Task[], { hideCompleted, order, tagFilter = null }: { hideCompleted: boolean, order: TaskOrder, tagFilter?: TagFilter }): Task[] => {
+    const hidden = visibleTasks(tasks, hideCompleted)
+    // The tag filter is one more reason to leave a task out (see passesTagFilter); the same array when nothing changes
+    const filtered = tagFilter ? hidden.filter(task => passesTagFilter(task, tagFilter)) : hidden
+    const visible = filtered.length === hidden.length ? hidden : filtered
     if (order === "manual") return visible
     const isFirstBlock = (task: Task) => order === "open-first" ? !task.completed : !!task.completed
     let seenSecond = false

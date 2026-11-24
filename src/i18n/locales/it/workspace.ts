@@ -77,6 +77,14 @@ export const notes = {
         previous: "Risultato precedente",
         close: "Chiudi la ricerca",
     },
+    tagFilter: {
+        label: "Filtra per tag",
+        active_one: "Filtrato per {{count}} tag",
+        active_other: "Filtrato per {{count}} tag",
+        description: "Mostra solo i task con uno qualsiasi dei tag spuntati. Un gruppo o una sezione con il tag mostra tutti i suoi task.",
+        noTags: "Questo workspace non ha ancora tag.",
+        clear: "Togli il filtro per tag",
+    },
     hideCompleted: "Nascondi task completati",
     showCompleted: "Mostra task completati",
     path: {

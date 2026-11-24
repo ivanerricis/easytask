@@ -1,6 +1,7 @@
 import { taskSections } from "@/lib/group-sections"
 import type { NoteDataTree, Task } from "@/types/types"
 import { orderedVisibleTasks } from "./section/hide-completed"
+import { containerTagFilter, subtaskTagFilter, type TagFilter } from "./section/tag-filter"
 import { effectiveTaskOrder, type TaskOrder } from "@/lib/task-order"
 
 /** A range [start, end) of the original text. */
@@ -78,6 +79,8 @@ export type CollectOptions = {
     hideCompleted: boolean
     /** The preference "completed tasks last": the order of the sections that have no choice of their own (see effectiveTaskOrder). */
     completedLast?: boolean
+    /** The tag filter of the note: tasks it leaves out are not on the screen, so they are not counted either. */
+    tagFilter?: TagFilter
 }
 
 /**
@@ -85,7 +88,7 @@ export type CollectOptions = {
  * in it and their subtasks (depth first), then its sections by position (title, then tasks and subtasks).
  * @category Note
  */
-export function collectMatches(tree: NoteDataTree, query: string, { hideCompleted, completedLast = false }: CollectOptions): SearchMatch[] {
+export function collectMatches(tree: NoteDataTree, query: string, { hideCompleted, completedLast = false, tagFilter = null }: CollectOptions): SearchMatch[] {
     if (!normalizeForSearch(query)) return []
     const matches: SearchMatch[] = []
     const add = (kind: SearchMatchKind, itemId: number, text: string | null | undefined, groupId: number, sectionId: number | undefined, taskPath: number[]) => {
@@ -94,10 +97,10 @@ export function collectMatches(tree: NoteDataTree, query: string, { hideComplete
         for (let occurrence = 0; occurrence < count; occurrence++)
             matches.push({ id: `${key}#${occurrence}`, key, kind, itemId, groupId, sectionId, taskPath, occurrence })
     }
-    const visit = (list: Task[], groupId: number, sectionId: number, path: number[], order: TaskOrder) => {
-        for (const task of orderedVisibleTasks(list ?? [], { hideCompleted, order })) {
+    const visit = (list: Task[], groupId: number, sectionId: number, path: number[], order: TaskOrder, filter: TagFilter) => {
+        for (const task of orderedVisibleTasks(list ?? [], { hideCompleted, order, tagFilter: filter })) {
             add("task", task.id, task.text, groupId, sectionId, path)
-            visit(task.subtasks ?? [], groupId, sectionId, [...path, task.id], order)
+            visit(task.subtasks ?? [], groupId, sectionId, [...path, task.id], order, subtaskTagFilter(task, filter))
         }
     }
     for (const group of [...tree.groups].sort((a, b) => a.position - b.position)) {
@@ -105,7 +108,7 @@ export function collectMatches(tree: NoteDataTree, query: string, { hideComplete
         for (const section of taskSections(group)) {
             // The default section has no title: its tasks sit directly in the group
             if (group.defaultSection?.id !== section.id) add("section", section.id, section.title, group.id, section.id, [])
-            visit(section.tasks ?? [], group.id, section.id, [], effectiveTaskOrder(section.task_order, completedLast))
+            visit(section.tasks ?? [], group.id, section.id, [], effectiveTaskOrder(section.task_order, completedLast), containerTagFilter(tagFilter, group.tagIDs, section.tagIDs))
         }
     }
     return matches

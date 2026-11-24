@@ -4,6 +4,7 @@ import type { NoteDataTree, Section, Task } from "@/types/types"
 import { getGroupLabel } from "../groups/group-label"
 import { getSectionLabel } from "../section/section-label"
 import { orderedVisibleTasks } from "../section/hide-completed"
+import { containerTagFilter, subtaskTagFilter, type TagFilter } from "../section/tag-filter"
 import { effectiveTaskOrder, type TaskOrder } from "@/lib/task-order"
 
 /** Selection key of a task in the store of the task multi-selection ("task-12"). */
@@ -19,6 +20,8 @@ type FlattenOptions = {
     hideCompleted: boolean
     /** The preference "completed tasks last": the order of the sections that have no choice of their own (see effectiveTaskOrder). */
     completedLast?: boolean
+    /** The tag filter of the note: the tasks it leaves out are not in view. */
+    tagFilter?: TagFilter
     isGroupOpen: (groupId: number) => boolean
     isSectionOpen: (sectionId: number) => boolean
     /** Whether the subtasks of a task are shown (default: always). */
@@ -31,13 +34,13 @@ type FlattenOptions = {
  * Completed tasks are left out when they are hidden (see orderedVisibleTasks), and are drawn after (or before) the open ones of their list according to the order of its section. It is the order of the range selection.
  * @category Note
  */
-export function flattenVisibleTasks(tree: NoteDataTree, { hideCompleted, completedLast = false, isGroupOpen, isSectionOpen, isTaskOpen }: FlattenOptions): Task[] {
+export function flattenVisibleTasks(tree: NoteDataTree, { hideCompleted, completedLast = false, tagFilter = null, isGroupOpen, isSectionOpen, isTaskOpen }: FlattenOptions): Task[] {
     const result: Task[] = []
-    const visit = (list: Task[], order: TaskOrder) => {
-        for (const task of orderedVisibleTasks(list, { hideCompleted, order })) {
+    const visit = (list: Task[], order: TaskOrder, filter: TagFilter) => {
+        for (const task of orderedVisibleTasks(list, { hideCompleted, order, tagFilter: filter })) {
             result.push(task)
             // The subtasks of a closed task are hidden: they cannot be part of a range selection
-            if (!isTaskOpen || isTaskOpen(task.id)) visit(task.subtasks ?? [], order)
+            if (!isTaskOpen || isTaskOpen(task.id)) visit(task.subtasks ?? [], order, subtaskTagFilter(task, filter))
         }
     }
     for (const group of groupsByPosition(tree.groups)) {
@@ -45,7 +48,7 @@ export function flattenVisibleTasks(tree: NoteDataTree, { hideCompleted, complet
         for (const section of taskSections(group)) {
             // The default section has no header to close: it is open as long as the group is
             if (group.defaultSection?.id !== section.id && !isSectionOpen(section.id)) continue
-            visit(section.tasks ?? [], effectiveTaskOrder(section.task_order, completedLast))
+            visit(section.tasks ?? [], effectiveTaskOrder(section.task_order, completedLast), containerTagFilter(tagFilter, group.tagIDs, section.tagIDs))
         }
     }
     return result

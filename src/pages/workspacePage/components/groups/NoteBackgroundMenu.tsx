@@ -6,6 +6,7 @@ import { ItemMenu } from "@/components/item-menu"
 import { MenuGroup } from "@/components/menu-kind"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useShortcutKeys } from "@/contexts/use-shortcuts"
+import { useSetTagFilter, useTagFilter } from "@/contexts/use-tag-filter"
 import { useAfterMenuClose } from "@/hooks/use-after-menu-close"
 import { useItemMenuState } from "@/hooks/use-item-menu-state"
 import { requestAppCommand } from "@/lib/app-commands"
@@ -26,7 +27,7 @@ type NoteBackgroundMenuProps = {
 const newGroup = () => requestAppCommand("new-group")
 
 /**
- * Right click on the empty space of the note: a new group and the show/hide of the completed tasks.
+ * Right click on the empty space of the note: a new group, the show/hide of the completed tasks and, while a tag filter is on, its removal.
  * The menus of a group, a section and a task win over this one.
  * @category Groups
  */
@@ -34,6 +35,8 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
     const { t } = useTranslation()
     const menu = useItemMenuState()
     const { hideCompletedTasks, setHideCompletedTasks } = usePreferences()
+    const tagFilter = useTagFilter()
+    const setTagFilter = useSetTagFilter()
     const hideKeys = useShortcutKeys("toggle-hide-completed")
     // The form of the new group takes the focus: the command waits for the menu to give it back, or it would steal it
     const { request: requestNewGroup, onCloseAutoFocus } = useAfterMenuClose(newGroup)
@@ -85,6 +88,7 @@ export const NoteBackgroundMenu = ({ children }: NoteBackgroundMenuProps) => {
                 shortcut={hideKeys}
                 onClick={() => { menu.close(); setHideCompletedTasks(!hideCompletedTasks) }}
             />
+            {tagFilter && <ButtonInPopover text={t("notes.tagFilter.clear")} type="close" onClick={() => { menu.close(); setTagFilter([]) }} />}
             {noteId !== null && <>
                 <Separator />
                 <ColorSubmenu

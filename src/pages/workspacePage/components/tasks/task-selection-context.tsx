@@ -3,6 +3,7 @@ import { useActiveNote } from "@/contexts/use-active-note"
 import { usePaneFocusGetter } from "@/contexts/use-layout"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
 import { usePreferences } from "@/contexts/use-preferences"
+import { useTagFilter } from "@/contexts/use-tag-filter"
 import { collapsedIds } from "@/lib/collapsed"
 import { createSelectionStore, type SelectionStore } from "../sidebar/selection"
 import { flattenVisibleTasks, taskKey } from "./task-selection"
@@ -23,6 +24,7 @@ function TaskSelectionSync({ store }: { store: SelectionStore }) {
     const noteId = useActiveNoteId()
     const uiStore = useTabUiStore()
     const { hideCompletedTasks, completedTasksLast } = usePreferences()
+    const tagFilter = useTagFilter()
 
     useEffect(() => {
         const sync = () => {
@@ -32,6 +34,7 @@ function TaskSelectionSync({ store }: { store: SelectionStore }) {
             const tasks = flattenVisibleTasks(noteDataTree, {
                 hideCompleted: hideCompletedTasks,
                 completedLast: completedTasksLast,
+                tagFilter,
                 isGroupOpen: groupId => !closed.groups.has(groupId) || uiStore.isRevealed(noteId, "group", groupId),
                 isSectionOpen: sectionId => !closed.sections.has(sectionId) || uiStore.isRevealed(noteId, "section", sectionId),
                 isTaskOpen: taskId => !closed.tasks.has(taskId) || uiStore.isRevealed(noteId, "task", taskId),
@@ -40,7 +43,7 @@ function TaskSelectionSync({ store }: { store: SelectionStore }) {
         }
         sync()
         return uiStore.subscribe(sync)
-    }, [store, noteDataTree, noteId, uiStore, hideCompletedTasks, completedTasksLast])
+    }, [store, noteDataTree, noteId, uiStore, hideCompletedTasks, completedTasksLast, tagFilter])
 
     return null
 }

@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils"
 import { getNotePath, type NotePathSegment } from "./sidebar/note-path"
 import { DraftSaveStatus } from "./template-draft/DraftSaveStatus"
 import { NoteSearchField } from "./NoteSearchField"
+import { TagFilterButton } from "./TagFilterButton"
 import { useNoteSearchStore } from "./note-search-context"
 
 /** With more segments than this, only the first and the last two are shown, with an ellipsis between them. */
@@ -127,6 +128,7 @@ export const PathBar = () => {
                             <Search />
                         </Button>
                     </TooltipCustom>)}
+                {!draft && <TagFilterButton />}
                 <TooltipCustom text={splitText} shortcut={splitLabel}>
                     <Button type="button" variant="ghost" size="icon" className={cn(ghostIconButtonClass, "[&_svg]:!size-4")}
                         aria-label={splitText} onClick={toggleSplit}>
