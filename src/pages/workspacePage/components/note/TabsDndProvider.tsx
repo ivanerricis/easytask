@@ -13,13 +13,16 @@ import { usePreference } from "@/contexts/use-preference"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { DragEndGuard } from "@/components/dnd-end-guard"
+import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { announce } from "../tasks/note-announcer-store"
 import {
-    barDndId, computeTabZone, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabLivePending,
-    type TabHover,
+    barDndId, computeTabZone, isInArea, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, splitDropArea, tabLivePending,
+    type ScreenRect, type TabHover,
 } from "./tab-reorder"
 import { computeLiveShifts, computeLiveSlot, holdHalfZoneX, makeShiftFreeMeasure, type LiveSnapshot } from "../note-dnd-live"
 import { applyShifts, clearShifts, hasShifts, readLiveSnapshot, shiftOf, tabNodeKey } from "../note-dnd-shift"
+import { SplitDropPreview } from "./tab-split-preview"
+import { setSplitPreview } from "./tab-split-preview-store"
 import { TabsDndContext, type TabsDndContextType } from "./tabs-dnd-context-object"
 
 type Dragging = { pane: PaneIndex, noteId: number }
@@ -36,6 +39,15 @@ const LIVE_MEASURING = { droppable: { measure: makeShiftFreeMeasure(element => g
 
 /** How long the tabs stay shifted after a drop while the new order reaches the bars (ms), see NoteDndProvider. */
 const SETTLE_TIMEOUT = 500
+
+/** The area where a tab dropped opens the split view: the right half of the pane (the one of the single bar) under its tab bar. Null when it is not drawn. */
+function measureSplitArea(): ScreenRect | null {
+    const pane = document.querySelector<HTMLElement>("[data-pane-area]")
+    if (!pane) return null
+    const box = pane.getBoundingClientRect()
+    const barBottom = pane.querySelector('[role="tablist"]')?.parentElement?.getBoundingClientRect().bottom ?? box.top
+    return splitDropArea({ left: box.left, top: box.top, width: box.width, height: box.height }, barBottom)
+}
 
 /** A click without moving (5px) is not a drag. A module constant on purpose: a new object per render would change the sensors and the listeners of every tab. */
 const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 5 } }
@@ -89,7 +101,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
     const paneTabs = useContext(PaneTabsContext)
     const { tabs: ownTabs } = useTabs()
     const { reorderTabs } = useTabsActions()
-    const { moveToPane } = useLayoutActions()
+    const { moveToPane, openInPane } = useLayoutActions()
     const [hover, setHover] = useState<TabHover | null>(null)
     const hoverRef = useRef<TabHover | null>(null)
     const [dragging, setDragging] = useState<Dragging | null>(null)
@@ -101,6 +113,12 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
     /** What the tabs show now (the key of the place), to move them only when it changes. */
     const shownRef = useRef<string>("")
     const settleRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    /** Single bar only: where a drop opens the split view (the right half of the note), measured at the start, and whether the pointer is in it. */
+    const splitAreaRef = useRef<ScreenRect | null>(null)
+    const splitDropRef = useRef(false)
+    /** The pointer, read from the events themselves: with one bar the horizontal-axis modifier takes the vertical move out of dnd-kit's delta. */
+    const pointerRef = useRef<{ x: number, y: number } | null>(null)
+    const stopPointerRef = useRef<(() => void) | null>(null)
 
     // After a drop the tabs are put back in the very commit that moves the tab in the bars, so the old order is never painted
     const order = split && paneTabs ? `${paneTabs[0].tabs.tabs.map(n => n.id)}|${paneTabs[1].tabs.tabs.map(n => n.id)}` : ownTabs.map(n => n.id).join()
@@ -160,13 +178,41 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
         // The layout at rest, before anything moves: the sizes the shifts are computed from
         liveRef.current = live && tab ? { snapshot: readLiveSnapshot("tab"), dragged: tabNodeKey(tab.pane, tab.noteId) } : null
         shownRef.current = ""
+        splitDropRef.current = false
+        // With one open tab the split would leave the left pane empty, which the layout closes at once: no area (the drop only reorders). The news tab is not a note
+        splitAreaRef.current = split || ownTabs.length < 2 || (tab !== null && isWhatsNewTab(tab.noteId)) ? null : measureSplitArea()
+        if (!split) {
+            const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
+            pointerRef.current = typeof origin?.clientX === "number" && typeof origin.clientY === "number" ? { x: origin.clientX, y: origin.clientY } : null
+            const track = (move: PointerEvent) => { pointerRef.current = { x: move.clientX, y: move.clientY } }
+            window.addEventListener("pointermove", track, true)
+            stopPointerRef.current = () => window.removeEventListener("pointermove", track, true)
+        }
+    }
+
+    /** Ends the preview of the split view (a drop, a cancel, a lost pointer). */
+    const clearSplitPreview = () => {
+        stopPointerRef.current?.()
+        stopPointerRef.current = null
+        pointerRef.current = null
+        splitDropRef.current = false
+        splitAreaRef.current = null
+        setSplitPreview(null)
     }
 
     const handleDragMove = (event: DragMoveEvent) => {
         const { over, active, activatorEvent, delta } = event
         // Outside every bar there is nothing to drop the tab on: the cursor says so (over its own tab it is a reorder that changes nothing)
         setGrabCursorNotAllowed(!over)
-        const origin = activatorEvent as { clientX?: number } | null
+        const origin = activatorEvent as { clientX?: number, clientY?: number } | null
+        // Single bar: over the right half of the note a drop opens the split view (the tabs go back to rest, the preview shows where the note opens)
+        const point = pointerRef.current
+        const inSplitArea = !split && !!point && isInArea(splitAreaRef.current, point.x, point.y)
+        if (!split) {
+            splitDropRef.current = inSplitArea
+            setSplitPreview(inSplitArea ? splitAreaRef.current : null)
+            if (inSplitArea) { setGrabCursorNotAllowed(false); return show(null) }
+        }
         if (!over || over.id === active.id || typeof origin?.clientX !== "number") return show(null)
         const tab = parseId(over.id)
         if (tab) {
@@ -184,12 +230,20 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
     const handleDragEnd = (event: DragEndEvent) => {
         const from = parseId(event.active.id)
         const current = hoverRef.current
+        const toSplit = !split && splitDropRef.current
+        clearSplitPreview()
         const shifted = hasShifts()
         liveRef.current = null
         shownRef.current = ""
         setDragging(null)
         updateHover(null)
         if (!from || (split && !paneTabs)) return clearShifts(true)
+        if (toSplit) {
+            // Dropped on the right half of the note: the note opens in a new right pane, like "Open on the right" of its menu
+            clearShifts(true)
+            openInPane(from.noteId, 1)
+            return
+        }
         const idsByPane = split && paneTabs
             ? [paneTabs[0].tabs.tabs.map(n => n.id), paneTabs[1].tabs.tabs.map(n => n.id)] as const
             : [ownTabs.map(n => n.id), []] as const
@@ -206,6 +260,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
     }
 
     const handleDragCancel = () => {
+        clearSplitPreview()
         liveRef.current = null
         shownRef.current = ""
         setDragging(null)
@@ -234,6 +289,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
                 onDragCancel={handleDragCancel}
             >
                 {children}
+                <SplitDropPreview />
                 <DragEndGuard dragging={dragging !== null} onLost={handleDragCancel} />
                 {/* The tab follows the pointer outside the bar (which scrolls and clips its tabs); with the live drag also with one bar: the tab stays in its place, hidden, and the others step aside */}
                 {(split || live) && <DragOverlay dropAnimation={null}>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-    barDndId, computeCrossPaneIndex, computeTabMove, computeTabZone, keepInBar, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, tabDndId, tabLivePending,
+    barDndId, computeCrossPaneIndex, isInArea, computeTabMove, computeTabZone, keepInBar, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, splitDropArea, tabDndId, tabLivePending,
 } from "./tab-reorder"
 
 describe("tabLivePending", () => {
@@ -149,5 +149,26 @@ describe("keepInBar", () => {
         expect(keepInBar(null, rect, bar)).toBeNull()
         expect(keepInBar(move(900), null, bar)).toEqual(move(900))
         expect(keepInBar(move(900), rect, null)).toEqual(move(900))
+    })
+})
+
+describe("the area that opens the split view", () => {
+    const pane = { left: 100, top: 0, width: 800, height: 600 }
+
+    it("is the right half of the pane under its tab bar", () => {
+        expect(splitDropArea(pane, 42)).toEqual({ left: 500, top: 42, width: 400, height: 558 })
+    })
+
+    it("is null when the bar leaves no room", () => {
+        expect(splitDropArea(pane, 600)).toBeNull()
+        expect(splitDropArea({ ...pane, width: 0 }, 42)).toBeNull()
+    })
+
+    it("holds the points of the right half (not the bar, not the left half)", () => {
+        const area = splitDropArea(pane, 42)
+        expect(isInArea(area, 700, 300)).toBe(true)
+        expect(isInArea(area, 300, 300)).toBe(false)
+        expect(isInArea(area, 700, 20)).toBe(false)
+        expect(isInArea(null, 700, 300)).toBe(false)
     })
 })

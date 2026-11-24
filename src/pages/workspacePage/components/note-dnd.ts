@@ -41,6 +41,12 @@ export const ACCEPTS: Record<NoteOverKind, NoteDragKind[]> = {
     "new-group": ["section"],
 }
 
+/**
+ * What the "new group" zone of an EMPTY note accepts: its empty area is the place of the first group, so it takes a group (it becomes
+ * the first one), a section (a group created for it) and a task (a group created to hold it). With groups the slots only take sections.
+ */
+export const ACCEPTS_IN_EMPTY_NOTE: readonly NoteDragKind[] = ["section", "group", "task"]
+
 export type SectionTarget =
     | { type: "group", groupId: number, index: number, beforeList?: true }
     | { type: "new-group", index: number }
@@ -314,6 +320,17 @@ export function computeTaskTarget(
         if (currentIndex === index) return null
     }
     return { sectionId, parentTaskId, index }
+}
+
+/**
+ * Where a group or a task dropped on the empty area of an empty note goes (null: not offered). Only a drop coming from another note
+ * counts (an empty note has nothing to drag out of itself): a group becomes the first group (`index` 0), a task needs a new group.
+ * @category Note DnD
+ */
+export function computeFirstGroupTarget(tree: NoteDataTree, dragKind: NoteDragKind, fromOtherNote: boolean): { kind: "group", index: number } | { kind: "task" } | null {
+    if (!fromOtherNote || tree.groups.length > 0) return null
+    if (dragKind === "group") return { kind: "group", index: 0 }
+    return dragKind === "task" ? { kind: "task" } : null
 }
 
 const sortGroups = (groups: Group[]) => [...groups].sort((a, b) => a.position - b.position)

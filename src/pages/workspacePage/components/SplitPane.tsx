@@ -40,6 +40,8 @@ export const SplitPane = memo(function SplitPane({ pane, split }: SplitPaneProps
             role={split ? "region" : undefined}
             aria-label={split ? t(pane === 0 ? "notes.split.leftPane" : "notes.split.rightPane") : undefined}
             data-pane={split ? pane : undefined}
+            // The area a tab of the single bar is dropped on to open the split view (see TabsDndProvider)
+            data-pane-area={split ? undefined : ""}
             data-focused={split ? focused : undefined}
             className={cn(
                 "relative flex min-w-0 flex-col overflow-hidden",

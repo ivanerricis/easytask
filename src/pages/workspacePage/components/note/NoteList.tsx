@@ -13,6 +13,7 @@ import { registerShiftNode, SHIFT_ATTR, tabNodeKey } from "../note-dnd-shift"
 import { barDndId, keepInBar, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
 import { TabsDndProvider } from "./TabsDndProvider"
 import { NewNoteTabButton } from "./NewNoteTabButton"
+import { useVeilLifted } from "../note-dnd-veil"
 import { TabsDndContext } from "./tabs-dnd-context-object"
 import type { Note } from "@/types/types"
 
@@ -104,7 +105,8 @@ function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean
     const pane = usePane()?.pane ?? 0
     // Same veil as the note of the pane (PaneBody): the pane of the split workspace without the focus is dimmed, bar included
     const focused = useIsFocusedPane()
-    const dimmed = split && !focused
+    const lifted = useVeilLifted()
+    const dimmed = split && !focused && !lifted
     const { listRef, handleKeyDown } = useTabBar(tabs)
     const { setNodeRef } = useDroppable({ id: barDndId(pane), disabled: !split })
     const mine = hover?.pane === pane ? hover : null
@@ -141,7 +143,7 @@ function TabBar({ hover, split, live }: { hover: TabHover | null, split: boolean
                 aria-hidden
                 data-testid="tabbar-dim"
                 data-dimmed={dimmed}
-                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/45 opacity-0 transition-opacity", dimmed && "opacity-100")}
+                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/35 opacity-0 transition-opacity", dimmed && "opacity-100")}
             />
         </div>
     )

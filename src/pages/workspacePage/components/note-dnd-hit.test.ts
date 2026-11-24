@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { clearZones, hitTest, measureZones, registerZone, zoneRect } from "./note-dnd-hit"
-import { ACCEPTS } from "./note-dnd"
+import { ACCEPTS, ACCEPTS_IN_EMPTY_NOTE } from "./note-dnd"
 import type { NoteOverKind } from "./note-dnd"
 import { applyShifts, clearShifts, registerShiftNode, SHIFT_ATTR } from "./note-dnd-shift"
 
@@ -264,5 +264,34 @@ describe("note drag hit test", () => {
             flushFrame()
             expect(onResize).not.toHaveBeenCalled()
         })
+    })
+})
+
+describe("the empty area of an empty note", () => {
+    const emptyZone = (owner: string, box: { left: number, top: number, width: number, height: number }) => {
+        const node = document.createElement("div")
+        node.getBoundingClientRect = () => ({ ...box, right: box.left + box.width, bottom: box.top + box.height, x: box.left, y: box.top }) as DOMRect
+        document.body.appendChild(node)
+        registerZone("new-group-0", "new-group", 0, ACCEPTS_IN_EMPTY_NOTE, node, owner)
+        nodes.push(`${owner}~new-group-0`)
+    }
+
+    it("is hit by a group and by a task dragged from the other pane (crossing), where the slots between groups would not take them", () => {
+        emptyZone("b", { left: 500, top: 0, width: 400, height: 300 })
+        for (const kind of ["group", "task", "section"] as const) {
+            measureZones(kind)
+            expect(hitTest({ x: 700, y: 150 }, { owner: "a", cross: true })).toMatchObject({ ref: { kind: "new-group", id: 0 }, owner: "b" })
+        }
+    })
+
+    it("is ignored without Ctrl, and the slots of a note with groups still take only sections", () => {
+        emptyZone("b", { left: 500, top: 0, width: 400, height: 300 })
+        measureZones("group")
+        expect(hitTest({ x: 700, y: 150 }, { owner: "a", cross: false })).toBeNull()
+        zone("new-group", 3, { left: 0, top: 0, width: 16, height: 300 })
+        measureZones("group")
+        expect(hitTest({ x: 5, y: 150 }, { owner: "a", cross: true })).toBeNull()
+        measureZones("section")
+        expect(hitTest({ x: 5, y: 150 }, { owner: "a", cross: true })).toMatchObject({ ref: { kind: "new-group", id: 3 } })
     })
 })

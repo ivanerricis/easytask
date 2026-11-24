@@ -21,8 +21,9 @@ vi.mock("./NoteHeader", () => ({
 }))
 
 const moveToPane = vi.fn()
+const openInPane = vi.fn()
 const layoutActions: LayoutActionsType = {
-    split: vi.fn(), unsplit: vi.fn(), toggleSplit: vi.fn(), focusPane: vi.fn(), openInPane: vi.fn(), moveToPane, getLayout: () => ({ left: { openIds: [], activeId: null }, right: null, focused: 0, isSplit: false }),
+    split: vi.fn(), unsplit: vi.fn(), toggleSplit: vi.fn(), focusPane: vi.fn(), openInPane, moveToPane, getLayout: () => ({ left: { openIds: [], activeId: null }, right: null, focused: 0, isSplit: false }),
 }
 const reorder0 = vi.fn()
 const reorder1 = vi.fn()
@@ -36,6 +37,8 @@ const realRect = Element.prototype.getBoundingClientRect
 beforeEach(() => {
     liveDrag = true
     Element.prototype.getBoundingClientRect = function (this: Element) {
+        // The note of the single pane, below its tab bar: x 0-800, y 100-600
+        if (this.hasAttribute("data-pane-area")) return { left: 0, right: 800, top: 100, bottom: 600, width: 800, height: 500, x: 0, y: 100, toJSON: () => ({}) } as DOMRect
         if (this.getAttribute("role") === "tablist") return rect(this.getAttribute("aria-label")?.includes("sinistra") ? 0 : 400, 300)
         const bar = this.parentElement
         if (bar?.getAttribute("role") === "tablist") {
@@ -198,7 +201,7 @@ describe("TabsDndProvider with a single bar", () => {
             state={{ open0: [1, 2, 3], active0: 1, open1: [], active1: null, focused: 0 }}
             actions0={{ ...noopActions, reorderTabs: reorder0 }}
         >
-            <TabsDndProvider split={false}><NoteList /></TabsDndProvider>
+            <div data-pane-area><TabsDndProvider split={false}><NoteList /></TabsDndProvider></div>
         </SplitHarness>
     )
 
@@ -212,6 +215,58 @@ describe("TabsDndProvider with a single bar", () => {
         await settle()
         expect(reorder0).toHaveBeenCalledWith(0, 2)
         expect(moveToPane).not.toHaveBeenCalled()
+    })
+})
+
+describe("TabsDndProvider single bar: a tab over the right half of the note", () => {
+    const Single = ({ open = [1, 2, 3] }: { open?: number[] }) => (
+        <LayoutActionsContext.Provider value={layoutActions}>
+            <SplitHarness state={{ open0: open, active0: open[0], open1: [], active1: null, focused: 0 }} actions0={{ ...noopActions, reorderTabs: reorder0 }}>
+                <div data-pane-area><TabsDndProvider split={false}><NoteList /></TabsDndProvider></div>
+            </SplitHarness>
+        </LayoutActionsContext.Provider>
+    )
+
+    it("shows the preview box over the right half and opens the split with the note in the right pane on drop", async () => {
+        render(<Single />)
+        await drag(box(2), [550, 20], [650, 300], false)
+        const preview = screen.getByTestId("split-drop-preview")
+        expect(preview).toHaveStyle({ left: "400px", top: "100px", width: "400px", height: "500px" })
+        fireEvent.pointerUp(document, pointer(650, 300))
+        await settle()
+        expect(openInPane).toHaveBeenCalledWith(2, 1)
+        expect(reorder0).not.toHaveBeenCalled()
+        expect(screen.queryByTestId("split-drop-preview")).toBeNull()
+    })
+
+    it("offers no split with a single open tab (the left pane would be left empty and the layout closes it at once)", async () => {
+        render(<Single open={[1]} />)
+        await drag(box(1), [450, 20], [700, 300], false)
+        expect(screen.queryByTestId("split-drop-preview")).toBeNull()
+        fireEvent.pointerUp(document, pointer(700, 300))
+        await settle()
+        expect(openInPane).not.toHaveBeenCalled()
+    })
+
+    it("shows no preview over the left half and just reorders there", async () => {
+        render(<Single />)
+        await drag(box(1), [450, 20], [200, 300], false)
+        expect(screen.queryByTestId("split-drop-preview")).toBeNull()
+        fireEvent.pointerUp(document, pointer(200, 300))
+        await settle()
+        expect(openInPane).not.toHaveBeenCalled()
+    })
+
+    it("cancels with Escape: the preview goes and nothing opens", async () => {
+        render(<Single />)
+        await drag(box(2), [550, 20], [650, 300], false)
+        expect(screen.getByTestId("split-drop-preview")).toBeInTheDocument()
+        fireEvent.keyDown(document, { key: "Escape", code: "Escape" })
+        await settle()
+        expect(screen.queryByTestId("split-drop-preview")).toBeNull()
+        fireEvent.pointerUp(document, pointer(650, 300))
+        await settle()
+        expect(openInPane).not.toHaveBeenCalled()
     })
 })
 
