@@ -2,10 +2,8 @@
 // except the advisories listed below (npm audit has no ignore option). Remove an entry as soon as a fixed version exists.
 import { execFileSync } from "node:child_process"
 
-const ACCEPTED = {
-    // picomatch ReDoS (via vite/tinyglobby, build tooling only): no fixed picomatch yet (Nov 2026)
-    "https://github.com/advisories/GHSA-fc5q-39xc-vjpf": "picomatch ReDoS, no fixed version yet",
-}
+// Advisory URL -> reason. Empty: the picomatch ReDoS (GHSA-fc5q-39xc-vjpf) accepted in Nov 2026 is no longer reported.
+const ACCEPTED = {}
 const BLOCKING = new Set(["high", "critical"])
 
 let out
