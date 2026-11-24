@@ -185,6 +185,11 @@ describe("moveToPane", () => {
         expect(next.right).toEqual(tabs([2, 9], 2))
     })
 
+    it("con una sola nota aperta lo spostamento a destra non cambia nulla: l'area sinistra rimasta vuota viene sostituita da quella destra", () => {
+        const next = layoutReducer(layout(tabs([1], 1)), { type: "moveToPane", id: 1, pane: 1 })
+        expect(next).toEqual(layout(tabs([1], 1)))
+    })
+
     it("sposta a sinistra da destra", () => {
         const state = layout(tabs([1, 2], 1), tabs([3, 4], 4), 1)
         const next = layoutReducer(state, { type: "moveToPane", id: 4, pane: 0, index: 1 })

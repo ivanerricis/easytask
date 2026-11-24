@@ -123,3 +123,20 @@ export const keepInBar = (transform: { x: number, y: number, scaleX: number, sca
     const max = Math.max(box.right - rect.right, min)
     return { ...transform, x: Math.min(Math.max(transform.x, min), max) }
 }
+
+/** An area on screen, in viewport coordinates. */
+export type ScreenRect = { left: number, top: number, width: number, height: number }
+
+/**
+ * The area where dropping a tab opens the split view (workspace not split): the right half of the pane under its tab bar. The bar
+ * itself is not part of it, so reordering the tabs sideways never opens the split by mistake. Null when there is no room under the bar.
+ */
+export function splitDropArea(pane: ScreenRect, barBottom: number): ScreenRect | null {
+    const top = Math.max(pane.top, barBottom)
+    const height = pane.top + pane.height - top
+    return height > 0 && pane.width > 0 ? { left: pane.left + pane.width / 2, top, width: pane.width / 2, height } : null
+}
+
+/** Whether the point is inside the area (edges included). */
+export const isInArea = (area: ScreenRect | null, x: number, y: number): boolean =>
+    !!area && x >= area.left && x <= area.left + area.width && y >= area.top && y <= area.top + area.height

@@ -7,6 +7,7 @@ import { PathBar } from "./PathBar"
 import { WhatsNewPage } from "./whats-new/WhatsNewPage"
 import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { NoteSearchProvider } from "./note-search-context"
+import { useVeilLifted } from "./note-dnd-veil"
 
 type PaneBodyProps = {
     /** What takes the place of the note when the pane has no active note. */
@@ -23,6 +24,9 @@ type PaneBodyProps = {
  */
 export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = false }: PaneBodyProps) {
     const activeId = useActiveNoteId()
+    // A cross-note drag over this pane lifts its veil (see note-dnd-veil)
+    const lifted = useVeilLifted()
+    const veiled = dimmed && !lifted
     return (
         <>
             {(alwaysTabs || activeId !== null) && <NoteList />}
@@ -37,8 +41,8 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
                             <div
                                 aria-hidden
                                 data-testid="pane-dim"
-                                data-dimmed={dimmed}
-                                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/45 opacity-0 transition-opacity", dimmed && "opacity-100")}
+                                data-dimmed={veiled}
+                                className={cn("pointer-events-none absolute inset-0 z-10 bg-background/35 opacity-0 transition-opacity", veiled && "opacity-100")}
                             />
                         </div>
                     </NoteSearchProvider>

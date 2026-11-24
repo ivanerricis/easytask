@@ -5,6 +5,7 @@ import { makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
 import { NoteDndProvider } from "./NoteDndProvider"
 import { createNoteDndStore, NO_HOVER } from "./note-dnd-state"
 import { registerNoteOwner } from "./note-dnd-owner"
+import { getVeilLiftedPane, setVeilLiftedPane } from "./note-dnd-veil"
 import type { NoteOverRef } from "./note-dnd"
 import type { Modifiers, PointerDragHandlers } from "./note-dnd-pointer"
 
@@ -40,7 +41,10 @@ vi.mock("@/contexts/use-color-alpha", () => ({ useColorAlpha: () => ({ header: (
 vi.mock("./NoteDragOverlay", () => ({ NoteDragOverlay: () => null }))
 vi.mock("./tasks/note-announcer-store", () => ({ announce: vi.fn() }))
 const dropAcross = vi.fn()
-vi.mock("./note-dnd-cross", () => ({ useCrossNoteMoves: () => ({ noteId: 1, getTree: (id: number) => id === 2 ? noteB : null, dropAcross }) }))
+const dropTaskInEmptyNote = vi.fn()
+/** The tree of the other note (note 2): a test can empty it. */
+let remoteTree: NoteDataTree = noteB
+vi.mock("./note-dnd-cross", () => ({ useCrossNoteMoves: () => ({ noteId: 1, getTree: (id: number) => id === 2 ? remoteTree : null, dropAcross, dropTaskInEmptyNote }) }))
 const moveTaskTo = vi.fn()
 vi.mock("./note-dnd-state", async importActual => ({
     ...await importActual<typeof import("./note-dnd-state")>(),
@@ -63,11 +67,14 @@ beforeEach(() => {
     hit = null
     hitTest.mockClear()
     dropAcross.mockReset()
+    dropTaskInEmptyNote.mockReset()
+    remoteTree = noteB
+    setVeilLiftedPane(null)
     moveTaskTo.mockReset()
     lockUpdate.mockReset()
     startScrollLock.mockReset()
     other.set({ hover: NO_HOVER, incoming: null })
-    forgetOther = registerNoteOwner(other.owner, 2, other)
+    forgetOther = registerNoteOwner(other.owner, 2, other, { pane: 1 })
 })
 afterEach(() => { forgetOther?.() })
 
@@ -212,5 +219,103 @@ describe("crossing to the other note", () => {
         move()
         await end({ ctrl: true, alt: false })
         expect(dropAcross).not.toHaveBeenCalled()
+    })
+})
+
+describe("the empty area of an empty other note", () => {
+    const emptyNote = { groups: [] } as unknown as NoteDataTree
+
+    it("a group dropped there with Ctrl goes to the hook as the first group", async () => {
+        remoteTree = emptyNote
+        setup()
+        start("group", 1)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "new-group", id: 0 })
+        move()
+        expect(other.getState().hover).toMatchObject({ overKey: "new-group-0" })
+        await end({ ctrl: true, alt: false })
+        expect(dropAcross).toHaveBeenCalledWith({ kind: "group", id: 1, toNoteId: 2, index: 0, copy: false })
+    })
+
+    it("with Alt it is a copy", async () => {
+        remoteTree = emptyNote
+        setup()
+        start("group", 1)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "new-group", id: 0 })
+        move()
+        await end({ ctrl: true, alt: true })
+        expect(dropAcross).toHaveBeenCalledWith(expect.objectContaining({ kind: "group", index: 0, copy: true }))
+    })
+
+    it("a task dropped there asks the hook for a group that holds it", async () => {
+        remoteTree = emptyNote
+        setup()
+        start("task", 100)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "new-group", id: 0 })
+        move()
+        await end({ ctrl: true, alt: false })
+        expect(dropTaskInEmptyNote).toHaveBeenCalledWith({ id: 100, toNoteId: 2, copy: false })
+        expect(dropAcross).not.toHaveBeenCalled()
+    })
+
+    it("a section dropped there still creates a group in that note", async () => {
+        remoteTree = emptyNote
+        setup()
+        start("section", 10)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "new-group", id: 0 })
+        move()
+        await end({ ctrl: true, alt: false })
+        expect(dropAcross).toHaveBeenCalledWith(expect.objectContaining({ kind: "section", toNoteId: 2, target: { type: "new-group", index: 0 } }))
+    })
+
+    it("a group over the slot of a note that has groups is not a target (the slots take sections only)", async () => {
+        setup()
+        start("group", 1)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "new-group", id: 0 })
+        move()
+        expect(other.getState().hover).toBe(NO_HOVER)
+        await end({ ctrl: true, alt: false })
+        expect(dropAcross).not.toHaveBeenCalled()
+    })
+})
+
+describe("the veil of the pane the drag is over", () => {
+    it("is lifted while Ctrl is held over the other pane, and put back with Ctrl up, on the drop and on a cancel", async () => {
+        setup()
+        start("task", 100)
+        modifiers = { ctrl: true, alt: false }
+        overOther({ kind: "task", id: 300 })
+        move()
+        expect(getVeilLiftedPane()).toBe(1)
+        modifiers = { ctrl: false, alt: false }
+        move()
+        expect(getVeilLiftedPane()).toBeNull()
+        modifiers = { ctrl: true, alt: false }
+        move()
+        expect(getVeilLiftedPane()).toBe(1)
+        await end({ ctrl: true, alt: false })
+        expect(getVeilLiftedPane()).toBeNull()
+        start("task", 100)
+        move()
+        expect(getVeilLiftedPane()).toBe(1)
+        act(() => latest.cancel())
+        expect(getVeilLiftedPane()).toBeNull()
+    })
+
+    it("stays when the pointer is over the other pane's area but on none of its zones", () => {
+        setup()
+        const forget = registerNoteOwner(other.owner, 2, other, { pane: 1, bounds: () => ({ left: 100, right: 300, top: 0, bottom: 200 }) as DOMRect })
+        start("task", 100)
+        modifiers = { ctrl: true, alt: false }
+        hit = null
+        move(150, 50)
+        expect(getVeilLiftedPane()).toBe(1)
+        move(50, 50)
+        expect(getVeilLiftedPane()).toBeNull()
+        forget()
     })
 })

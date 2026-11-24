@@ -55,6 +55,8 @@ const db = vi.hoisted(() => ({
     copyDBTasksToNote: vi.fn(), copyDBSectionToNote: vi.fn(), copyDBGroupToNote: vi.fn(), moveDBDirectSection: vi.fn(),
 }))
 vi.mock("@/db/queries/cross-note", () => db)
+const createDBGroup = vi.hoisted(() => vi.fn())
+vi.mock("@/db/queries/group", () => ({ createDBGroup }))
 vi.mock("@/db/queries/move", () => ({ moveDBDirectSection: db.moveDBDirectSection }))
 
 import { useCrossNoteMoves } from "./note-dnd-cross"
@@ -204,5 +206,73 @@ describe("a copy (Alt)", () => {
         await dropAcross({ kind: "task", id: 100, toNoteId: 2, target: { sectionId: 30, parentTaskId: null, index: 0 }, copy: true })
         expect(reportError).toHaveBeenCalled()
         expect(recorded).toHaveLength(0)
+    })
+})
+
+describe("a task dropped on the empty area of an empty note", () => {
+    const withGroup = () => getNoteData.mockImplementationOnce(async () => {
+        cache.set(2, { groups: [makeGroup({ id: 9, noteID: 2, position: 0, defaultSection: makeDefaultSection({ id: 90, groupID: 9 }), sections: [] })] })
+        return undefined
+    })
+
+    it("creates a group in that note, reads the note again and moves the task into its default section", async () => {
+        cache.set(2, { groups: [] })
+        createDBGroup.mockResolvedValue({ groupId: 9, defaultSectionId: 90 })
+        withGroup()
+        const { dropTaskInEmptyNote } = setup()
+        await dropTaskInEmptyNote({ id: 100, toNoteId: 2, copy: false })
+        expect(createDBGroup).toHaveBeenCalledWith(2, "")
+        expect(db.moveDBTaskToNote).toHaveBeenCalledWith(100, { sectionId: 90, parentTaskId: null }, 0)
+        expect(findTask(cache.get(2)!, 100)).toMatchObject({ parent: { sectionId: 90 }, index: 0 })
+    })
+
+    it("is ONE undo step: undo trashes the group with the move, redo brings both back", async () => {
+        cache.set(2, { groups: [] })
+        createDBGroup.mockResolvedValue({ groupId: 9, defaultSectionId: 90 })
+        withGroup()
+        const { dropTaskInEmptyNote } = setup()
+        await dropTaskInEmptyNote({ id: 100, toNoteId: 2, copy: false })
+        expect(recorded).toHaveLength(1)
+        await recorded[0].undo()
+        expect(db.moveDBTaskToNote).toHaveBeenLastCalledWith(100, { sectionId: 10, parentTaskId: null }, 0)
+        expect(deleteItem).toHaveBeenCalledWith("section_group", 9)
+        await recorded[0].redo()
+        expect(restoreItem).toHaveBeenCalledWith("section_group", 9)
+        expect(db.moveDBTaskToNote).toHaveBeenLastCalledWith(100, { sectionId: 90, parentTaskId: null }, 0)
+    })
+
+    it("copies with Alt into the new group, and undoing the copy trashes the group", async () => {
+        cache.set(2, { groups: [] })
+        createDBGroup.mockResolvedValue({ groupId: 9, defaultSectionId: 90 })
+        db.copyDBTasksToNote.mockResolvedValue([501])
+        const { dropTaskInEmptyNote } = setup()
+        await dropTaskInEmptyNote({ id: 100, toNoteId: 2, copy: true })
+        expect(db.copyDBTasksToNote).toHaveBeenCalledWith(expect.anything(), { sectionId: 90, parentTaskId: null }, 0)
+        expect(db.moveDBTaskToNote).not.toHaveBeenCalled()
+        await recorded[0].undo()
+        expect(deleteItem).toHaveBeenCalledWith("section_group", 9)
+        expect(deleteItem).not.toHaveBeenCalledWith("task", 501)
+    })
+
+    it("trashes the new group again when the move fails", async () => {
+        cache.set(2, { groups: [] })
+        createDBGroup.mockResolvedValue({ groupId: 9, defaultSectionId: 90 })
+        withGroup()
+        db.moveDBTaskToNote.mockRejectedValue(new Error("boom"))
+        const { dropTaskInEmptyNote } = setup()
+        await dropTaskInEmptyNote({ id: 100, toNoteId: 2, copy: false })
+        expect(reportError).toHaveBeenCalled()
+        expect(deleteItem).toHaveBeenCalledWith("section_group", 9)
+        expect(recorded).toHaveLength(0)
+    })
+
+    it("reports the failure and moves nothing when the group cannot be created", async () => {
+        cache.set(2, { groups: [] })
+        createDBGroup.mockRejectedValue(new Error("boom"))
+        const { dropTaskInEmptyNote } = setup()
+        await dropTaskInEmptyNote({ id: 100, toNoteId: 2, copy: false })
+        expect(reportError).toHaveBeenCalled()
+        expect(db.moveDBTaskToNote).not.toHaveBeenCalled()
+        expect(deleteItem).not.toHaveBeenCalled()
     })
 })

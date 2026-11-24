@@ -12,7 +12,7 @@ import { getGroupLabel } from "./groups/group-label"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import {
-    computeCrossGroupDropZone, computeDropZone, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
+    computeCrossGroupDropZone, computeDropZone, computeFirstGroupTarget, computeGroupDropZone, computeGroupTarget, computeSectionTarget, findGroup, computeTaskTarget, findSection, findTask,
     type DropZone, type NoteDragRef, type NoteOverKind, type NoteOverRef, type SectionTarget, type TaskTarget,
 } from "./note-dnd"
 import { useTaskSelectionStore } from "./tasks/use-task-selection"
@@ -26,6 +26,8 @@ import { createOverlayFollower } from "./note-dnd-overlay"
 import { NoteDragOverlay } from "./NoteDragOverlay"
 import { getNoteOwner, hasOtherNote, NoteOwnerContext, otherOwners, ownerKey, ownerOfKey, registerNoteOwner, stripOwner, type OwnerInfo } from "./note-dnd-owner"
 import { useCrossNoteMoves } from "./note-dnd-cross"
+import { setVeilLiftedPane } from "./note-dnd-veil"
+import { usePane } from "@/contexts/use-layout"
 
 /** Where a drop goes when it crosses to the other note of the split view: that note and the provider (pane) it belongs to. */
 type Remote = { noteId: number, owner: string }
@@ -34,6 +36,8 @@ type PendingDrop = (
     | { kind: "section", id: number, target: SectionTarget }
     | { kind: "group", id: number, index: number }
     | { kind: "task", id: number, target: TaskTarget }
+    // A task dropped on the empty area of an empty note: a group is created there to hold it (only crossing)
+    | { kind: "task-new-group", id: number }
 ) & { remote?: Remote }
 
 /** The edges of a drop zone, as the hit test measures them. */
@@ -54,6 +58,17 @@ const DragCursor = () => {
         document.body.setAttribute("data-note-dragging", "")
         return () => document.body.removeAttribute("data-note-dragging")
     }, [active])
+    return null
+}
+
+/** The pane of the other note under the pointer (by its area, or by the zone the hit test found in it), null when none. */
+const paneUnder = (owner: string, pointer: Point, hitOwner: string | undefined, bounds: Map<OwnerInfo, DOMRect | null>): number | null => {
+    for (const info of otherOwners(owner)) {
+        if (info.pane === undefined || info.noteId === null) continue
+        if (hitOwner !== undefined && info.store.owner === hitOwner) return info.pane
+        const rect = bounds.get(info)
+        if (rect && pointer.x >= rect.left && pointer.x <= rect.right && pointer.y >= rect.top && pointer.y <= rect.bottom) return info.pane
+    }
     return null
 }
 
@@ -86,11 +101,17 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const selection = useTaskSelectionStore()
     const { noteDataTree } = useActiveNote()
     const { moveSectionTo, moveTaskTo } = useNoteMoves()
-    const { noteId, getTree, dropAcross } = useCrossNoteMoves()
+    const { noteId, getTree, dropAcross, dropTaskInEmptyNote } = useCrossNoteMoves()
     // What is being dragged and over what is in a store (see NoteDndStore): only the preview, the cursor and the dragged row depend on it
     const [store] = useState(createNoteDndStore)
     const owner = store.owner
-    useEffect(() => registerNoteOwner(owner, noteId, store), [owner, noteId, store])
+    const paneContext = usePane()
+    const pane = paneContext?.pane
+    const rootRef = paneContext?.rootRef
+    useEffect(
+        () => registerNoteOwner(owner, noteId, store, { pane, bounds: () => rootRef?.current?.getBoundingClientRect() ?? null }),
+        [owner, noteId, store, pane, rootRef],
+    )
     const { moveGroupTo } = useGroupMoves()
     const pendingRef = useRef<PendingDrop | null>(null)
     const lastMoveRef = useRef<{ key: string, tree: NoteDataTree } | null>(null)
@@ -111,6 +132,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
     const lockRef = useRef<ScrollLock | null>(null)
     /** The other note whose rows show the target now (so it can be told when the pointer leaves it). */
     const remoteShownRef = useRef<OwnerInfo | null>(null)
+    /** The area of the other panes, measured once at the start of a drag (the panes do not move meanwhile): the veil of the one under the pointer is lifted. */
+    const boundsRef = useRef(new Map<OwnerInfo, DOMRect | null>())
 
     // After a drop the rows are put back in the very commit that moves the task in the tree, so the old order is never painted
     const settle = () => {
@@ -177,6 +200,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         remoteShownRef.current?.store.set({ hover: NO_HOVER })
         remoteShownRef.current = null
         offerToOthers(null)
+        setVeilLiftedPane(null)
         store.set({ active: null, hover: NO_HOVER, remote: false })
     }
 
@@ -205,6 +229,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
 
     const handleDragStart: PointerDragHandlers["start"] = (data, { pointer, press, node }) => {
         lastMoveRef.current = null
+        boundsRef.current = new Map(otherOwners(owner).map(info => [info, info.bounds?.() ?? null]))
         measureZones(data.kind, () => refreshLive(data.kind))
         // What scrolls near an edge: this note's containers, and, while Ctrl is held and there is another note, only the containers of the other one
         const sources = scrollableAncestors(node)
@@ -245,6 +270,8 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         lockRef.current?.update(crossing)
         if (dragged) offerToOthers(crossing ? dragged : null)
         const hit = dragged ? hitTest(pointer, { owner, cross: crossing }) : null
+        // The pane the item is over (crossing): its veil is lifted, not only when the pointer is on a drop zone but over any part of it
+        setVeilLiftedPane(dragged && crossing ? paneUnder(owner, pointer, hit?.owner, boundsRef.current) : null)
         // What the zone under the pointer belongs to: this note, or (crossing) the other one, whose tree the target is computed on
         const remote = hit && hit.owner !== owner ? getNoteOwner(hit.owner) : undefined
         const remoteTree = remote && remote.noteId !== null ? getTree(remote.noteId) : null
@@ -348,7 +375,12 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         lastMoveRef.current = { key: moveKey, tree: targetTree }
 
         let pending: PendingDrop | null = null
-        if (dragged.kind === "group") {
+        if (overRef.kind === "new-group" && dragged.kind !== "section") {
+            // The empty area of an empty note of the other pane: a group is the first group, a task gets a new group
+            const first = computeFirstGroupTarget(targetTree, dragged.kind, otherNote)
+            if (first?.kind === "group") pending = { kind: "group", id: dragged.id, index: first.index }
+            else if (first) pending = { kind: "task-new-group", id: dragged.id }
+        } else if (dragged.kind === "group") {
             const target = computeGroupTarget(targetTree, dragged.id, overRef, zone, from)
             if (target) pending = { kind: "group", id: dragged.id, index: target.index }
         } else if (dragged.kind === "section") {
@@ -383,7 +415,7 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         announceEnd(store.getState().active, pending ? announcedRef.current : null, remoteTree ?? noteDataTree)
         reset()
         const copy = !!pending?.remote && modifiers.alt
-        if (shifted && !copy && (pending?.kind === "task" || pending?.kind === "group" || (pending?.kind === "section" && pending.target.type === "group"))) {
+        if (shifted && !copy && (pending?.kind === "task" || pending?.kind === "task-new-group" || pending?.kind === "group" || (pending?.kind === "section" && pending.target.type === "group"))) {
             // The optimistic update below replaces the tree: the rows go back in that commit (see the layout effect)
             settleRef.current = setTimeout(() => { settleRef.current = null; clearShifts(false) }, SETTLE_TIMEOUT)
         } else {
@@ -393,10 +425,12 @@ export const NoteDndProvider = ({ children }: { children: ReactNode }) => {
         if (pending.remote) {
             const toNoteId = pending.remote.noteId
             if (pending.kind === "group") await dropAcross({ kind: "group", id: pending.id, toNoteId, index: pending.index, copy })
+            else if (pending.kind === "task-new-group") await dropTaskInEmptyNote({ id: pending.id, toNoteId, copy })
             else if (pending.kind === "section") await dropAcross({ kind: "section", id: pending.id, toNoteId, target: pending.target, copy })
             else await dropAcross({ kind: "task", id: pending.id, toNoteId, target: pending.target, copy })
             return
         }
+        if (pending.kind === "task-new-group") return
         if (pending.kind === "group") await moveGroupTo(pending.id, pending.index)
         else if (pending.kind === "section") await moveSectionTo(pending.id, pending.target)
         else await moveTaskTo(pending.id, pending.target)

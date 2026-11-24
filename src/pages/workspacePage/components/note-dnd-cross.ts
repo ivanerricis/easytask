@@ -14,6 +14,7 @@ import {
     copyDBGroupToNote, copyDBSectionToNote, copyDBTasksToNote, moveDBGroupToNote, moveDBSectionToNewGroupOfNote, moveDBSectionToNote, moveDBTaskToNote,
 } from "@/db/queries/cross-note"
 import { moveDBDirectSection } from "@/db/queries/move"
+import { createDBGroup } from "@/db/queries/group"
 import { snapshotTasks } from "@/lib/task-clipboard"
 import { getGroupLabel } from "./groups/group-label"
 import { getSectionLabel } from "./section/section-label"
@@ -30,7 +31,7 @@ import type { SectionTarget, TaskTarget } from "./note-dnd"
 
 /** What is dropped and where, in the note that receives it. */
 export type CrossDrop =
-    | { kind: "task", id: number, toNoteId: number, target: TaskTarget, copy: boolean }
+    | { kind: "task", id: number, toNoteId: number, target: TaskTarget, copy: boolean, createdGroupId?: number }
     | { kind: "section", id: number, toNoteId: number, target: SectionTarget, copy: boolean }
     | { kind: "group", id: number, toNoteId: number, index: number, copy: boolean }
 
@@ -38,7 +39,7 @@ type Ids = { fromNoteId: number, toNoteId: number }
 
 /** A move, in the form both the drop and its undo/redo run. */
 type MoveOp =
-    | (Ids & { kind: "task", id: number, to: TaskTarget, name: string })
+    | (Ids & { kind: "task", id: number, to: TaskTarget, name: string, createdGroupId?: number })
     | (Ids & { kind: "section", id: number, to: SectionTarget, name: string })
     | (Ids & { kind: "group", id: number, index: number, name: string })
 
@@ -112,13 +113,26 @@ export function useCrossNoteMoves() {
         return place ? { ...back, kind: "section", id: op.id, name: op.name, to: { type: "group", groupId: place.groupId, index: place.index } } : null
     }, [])
 
+    /** Trashes a group made for a drop that failed, and reads the note again. */
+    const discardGroup = useCallback(async (groupId: number, noteId: number) => {
+        try {
+            await deleteItem("section_group", groupId)
+        } catch (error) {
+            reportError(error, getErrorMessage(error))
+        }
+        await getNoteData(noteId).catch(error => reportError(error))
+    }, [deleteItem, getNoteData])
+
     const move = useCallback((op: MoveOp) => recorder.track((async () => {
         const trees = treesOf(op)
         const back = reverseOf(op, trees)
         const fromSection = op.kind === "section" ? captureSectionPlace(trees.from, op.id) : null
         const first = op.kind === "section" && op.to.type === "new-group" ? null : optimistic(op, trees)
         if (op.kind !== "section" || op.to.type !== "new-group") {
-            if (!first) return
+            if (!first) {
+                if (op.kind === "task" && op.createdGroupId !== undefined) await discardGroup(op.createdGroupId, op.toNoteId)
+                return
+            }
             commit(op, first)
         }
         try {
@@ -134,11 +148,17 @@ export function useCrossNoteMoves() {
             if (op.toNoteId !== op.fromNoteId) void sync(op.toNoteId)
             if (!back) return
             const groupId = created?.groupId
+            const holderId = op.kind === "task" ? op.createdGroupId : undefined
             const itemType = op.kind === "group" ? "section_group" : op.kind
             const command: UndoCommand = {
                 label: makeLabel("move", itemType, op.name),
                 undo: async () => {
                     await replay(back)
+                    // The group that was made to hold the task goes away with the move
+                    if (holderId !== undefined) {
+                        await deleteItem("section_group", holderId)
+                        await reload(op)
+                    }
                     // The list of direct tasks that stood next to the section goes back where it was, and the group the move created goes away
                     if (fromSection?.listIndex !== undefined && back.kind === "section" && back.to.type === "group") {
                         await moveDBDirectSection(back.to.groupId, fromSection.listIndex).catch(error => reportError(error, getErrorMessage(error)))
@@ -150,6 +170,11 @@ export function useCrossNoteMoves() {
                     }
                 },
                 redo: async () => {
+                    if (holderId !== undefined) {
+                        await restoreItem("section_group", holderId)
+                        await replay(op)
+                        return
+                    }
                     if (groupId !== undefined) {
                         await restoreItem("section_group", groupId)
                         await replay({ ...op, to: { type: "group", groupId, index: 0 } } as MoveOp)
@@ -167,8 +192,10 @@ export function useCrossNoteMoves() {
             // Both notes go back to what they were before the drop
             if (trees.from && trees.to) commit(op, { from: trees.from, to: trees.to })
             reportError(error, getErrorMessage(error))
+            // The group made to hold the task does not stay empty behind
+            if (op.kind === "task" && op.createdGroupId !== undefined) await discardGroup(op.createdGroupId, op.toNoteId)
         }
-    })()), [recorder, treesOf, reverseOf, optimistic, commit, write, reload, replay, deleteItem, restoreItem, dispatch, sync])
+    })()), [recorder, treesOf, reverseOf, optimistic, commit, write, reload, replay, deleteItem, restoreItem, dispatch, sync, discardGroup])
 
     const copy = useCallback((drop: CrossDrop, fromNoteId: number) => recorder.track((async () => {
         const ids: Ids = { fromNoteId, toNoteId: drop.toNoteId }
@@ -182,7 +209,8 @@ export function useCrossNoteMoves() {
                 if (!task) return
                 name = task.text
                 const created = await copyDBTasksToNote(snapshotTasks([task], tags), { sectionId: drop.target.sectionId, parentTaskId: drop.target.parentTaskId }, drop.target.index)
-                undoIds = created.map(id => ({ itemType: "task", id }))
+                // A copy in a group made for it is undone by trashing the group (it takes the copy with it)
+                undoIds = drop.createdGroupId !== undefined ? [{ itemType: "section_group", id: drop.createdGroupId }] : created.map(id => ({ itemType: "task", id }))
             } else if (drop.kind === "section") {
                 const section = findSection(source, drop.id)?.section
                 if (!section) return
@@ -214,8 +242,9 @@ export function useCrossNoteMoves() {
             })
         } catch (error) {
             reportError(error, getErrorMessage(error))
+            if (drop.kind === "task" && drop.createdGroupId !== undefined) await discardGroup(drop.createdGroupId, drop.toNoteId)
         }
-    })()), [recorder, getCachedNoteTree, tags, reload, deleteItem, restoreItem, sync])
+    })()), [recorder, getCachedNoteTree, tags, reload, deleteItem, restoreItem, sync, discardGroup])
 
     /** Drops the item dragged from the note this provider belongs to (`noteId`) on the other note: a move, or a copy (Alt). */
     const dropAcross = useCallback(async (drop: CrossDrop) => {
@@ -224,7 +253,7 @@ export function useCrossNoteMoves() {
         const trees = treesOf({ fromNoteId: noteId, toNoteId: drop.toNoteId })
         const base = { fromNoteId: noteId, toNoteId: drop.toNoteId }
         if (drop.kind === "task") {
-            await move({ ...base, kind: "task", id: drop.id, to: drop.target, name: (trees.from && findTask(trees.from, drop.id)?.task.text) ?? "" })
+            await move({ ...base, kind: "task", id: drop.id, to: drop.target, createdGroupId: drop.createdGroupId, name: (trees.from && findTask(trees.from, drop.id)?.task.text) ?? "" })
         } else if (drop.kind === "section") {
             const section = trees.from ? findSection(trees.from, drop.id)?.section : undefined
             await move({ ...base, kind: "section", id: drop.id, to: drop.target, name: section ? getSectionLabel(section) : "" })
@@ -235,5 +264,25 @@ export function useCrossNoteMoves() {
         }
     }, [noteId, copy, move, treesOf])
 
-    return { noteId, getTree: getCachedNoteTree, dropAcross }
+    /**
+     * Drops a task of this note on the empty area of an empty note: a group is created there (with its default section), the note is
+     * read again so both notes know it, and the task goes in as its first one (a move or, with Alt, a copy). The group is part of the
+     * same undo step (undo trashes it, redo brings it back) and is trashed again if the drop fails.
+     */
+    const dropTaskInEmptyNote = useCallback((drop: { id: number, toNoteId: number, copy: boolean }) => recorder.track((async () => {
+        let created: { groupId: number, defaultSectionId: number }
+        try {
+            created = await createDBGroup(drop.toNoteId, "")
+            await getNoteData(drop.toNoteId)
+        } catch (error) {
+            reportError(error, getErrorMessage(error))
+            return
+        }
+        await dropAcross({
+            kind: "task", id: drop.id, toNoteId: drop.toNoteId, copy: drop.copy, createdGroupId: created.groupId,
+            target: { sectionId: created.defaultSectionId, parentTaskId: null, index: 0 },
+        })
+    })()), [recorder, getNoteData, dropAcross])
+
+    return { noteId, getTree: getCachedNoteTree, dropAcross, dropTaskInEmptyNote }
 }

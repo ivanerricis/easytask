@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 import { PaneProvider } from "@/contexts/pane-provider"
 import { LayoutActionsContext } from "@/contexts/layout-context-object"
@@ -6,6 +6,7 @@ import type { PaneIndex } from "@/contexts/layout-reducer"
 import { SplitHarness } from "@/test/split-harness"
 import type { SplitState } from "@/test/split-fixtures"
 import { SplitPane } from "./SplitPane"
+import { setVeilLiftedPane } from "./note-dnd-veil"
 
 vi.mock("./note/NoteList", () => ({ NoteList: () => <div data-testid="note-list" /> }))
 vi.mock("./groups/GroupContainer", () => ({ GroupContainer: () => <div data-testid="groups" /> }))
@@ -36,6 +37,14 @@ describe("SplitPane", () => {
         expect(screen.getByTestId("note-list").closest("[data-testid=pane-dim]")).toBeNull()
         expect(dim.parentElement).toContainElement(screen.getByTestId("groups"))
         expect(dim.parentElement).not.toContainElement(screen.getByTestId("note-list"))
+    })
+
+    it("lifts the veil of its note while a cross-note drag is over the pane", () => {
+        setup(1, { open0: [1], active0: 1, open1: [2], active1: 2, focused: 0 })
+        act(() => setVeilLiftedPane(1))
+        expect(screen.getByTestId("pane-dim")).toHaveAttribute("data-dimmed", "false")
+        act(() => setVeilLiftedPane(null))
+        expect(screen.getByTestId("pane-dim")).toHaveAttribute("data-dimmed", "true")
     })
 
     it("does not dim the focused pane", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import type { NoteDataTree } from "@/types/types"
 import { makeDefaultSection, makeGroup, makeSection, makeTask } from "@/test/ui-fixtures"
-import { computeCrossGroupDropZone, computeGroupTarget, computeSectionTarget, computeTaskTarget } from "./note-dnd"
+import { computeCrossGroupDropZone, computeFirstGroupTarget, computeGroupTarget, computeSectionTarget, computeTaskTarget } from "./note-dnd"
 
 /*
  * The targets of a drag that comes from ANOTHER note of the split view: the item is looked up in the note it leaves (`from`) and the
@@ -113,5 +113,28 @@ describe("computeCrossGroupDropZone", () => {
         expect(computeCrossGroupDropZone(rect, 199)).toBe("before")
         expect(computeCrossGroupDropZone(rect, 200)).toBe("after")
         expect(computeCrossGroupDropZone(rect, 290)).toBe("after")
+    })
+})
+
+describe("computeFirstGroupTarget (the empty area of an empty note)", () => {
+    const empty: NoteDataTree = { groups: [] }
+    const full = (): NoteDataTree => ({ groups: [makeGroup({ id: 1, noteID: 1, position: 0, sections: [] })] })
+
+    it("makes a group dragged from the other note the first one", () => {
+        expect(computeFirstGroupTarget(empty, "group", true)).toEqual({ kind: "group", index: 0 })
+    })
+
+    it("asks for a new group to hold a task coming from the other note", () => {
+        expect(computeFirstGroupTarget(empty, "task", true)).toEqual({ kind: "task" })
+    })
+
+    it("offers nothing for a section (its own target creates the group), for a note with groups, or for a drag inside the same note", () => {
+        expect(computeFirstGroupTarget(empty, "section", true)).toBeNull()
+        expect(computeFirstGroupTarget(full(), "group", true)).toBeNull()
+        expect(computeFirstGroupTarget(empty, "group", false)).toBeNull()
+    })
+
+    it("still creates a new group for a section dropped on slot 0 of an empty note", () => {
+        expect(computeSectionTarget(empty, 1, { kind: "new-group", id: 0 }, "inside", noteA())).toEqual({ type: "new-group", index: 0 })
     })
 })

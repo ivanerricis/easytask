@@ -20,7 +20,14 @@ export const ownerKey = (owner: string, key: string): string => owner ? `${owner
 /** The key without the owner it was prefixed with. */
 export const stripOwner = (key: string): string => key.slice(key.indexOf("~") + 1)
 
-export type OwnerInfo = { noteId: number | null, store: NoteDndStore }
+export type OwnerInfo = {
+    noteId: number | null
+    store: NoteDndStore
+    /** The pane of the split view the note is in (undefined outside the panes). */
+    pane?: number
+    /** The area of that pane on screen (to tell the pointer is over it), null when it is not drawn. */
+    bounds?: () => DOMRect | null
+}
 
 const notes = new Map<string, OwnerInfo>()
 
@@ -29,8 +36,8 @@ const notes = new Map<string, OwnerInfo>()
  * forgets it. The drag of one pane reads it to find the note under the pointer when that is the other pane, and to show the
  * drop target in that pane.
  */
-export function registerNoteOwner(owner: string, noteId: number | null, store: NoteDndStore): () => void {
-    const info = { noteId, store }
+export function registerNoteOwner(owner: string, noteId: number | null, store: NoteDndStore, place: Pick<OwnerInfo, "pane" | "bounds"> = {}): () => void {
+    const info: OwnerInfo = { noteId, store, ...place }
     notes.set(owner, info)
     return () => { if (notes.get(owner) === info) notes.delete(owner) }
 }

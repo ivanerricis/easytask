@@ -127,12 +127,12 @@ export const noteKey = (kind: NoteOverKind, id: number) => `${kind}-${id}`
  * highlighted on it (null when it is not the active target).
  * @category Note DnD
  */
-export function useNoteDrop(kind: NoteOverKind, id: number) {
+export function useNoteDrop(kind: NoteOverKind, id: number, accepts: readonly NoteDragKind[] = ACCEPTS[kind]) {
     const key = noteKey(kind, id)
     // Not a dnd-kit droppable (see note-dnd-hit): the node only goes in the registry the drag hit-tests
     const store = useContext(NoteDndStoreContext)
     const owner = store.owner
-    const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, ACCEPTS[kind], node, owner), [key, kind, id, owner])
+    const setNodeRef = useCallback((node: HTMLElement | null) => registerZone(key, kind, id, accepts, node, owner), [key, kind, id, accepts, owner])
     // Woken only when the hover goes onto or off this droppable (not at every change of the target, which would run the selector of every row of the note)
     const subscribeZone = useCallback((listener: () => void) => store.subscribeHover(key, listener), [store, key])
     const zone = useSyncExternalStore(subscribeZone, () => { const { hover } = store.getState(); return hover.overKey === key ? hover.zone : null })

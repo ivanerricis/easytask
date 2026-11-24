@@ -4,7 +4,7 @@ import { Group } from "./Group"
 import { GroupColumnContext } from "./group-column-context"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
-import { NewGroupEnd, NewGroupSlot } from "./NewGroupSlot"
+import { EmptyNoteDropZone, NewGroupEnd, NewGroupSlot } from "./NewGroupSlot"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useNoteAudioCounts } from "@/contexts/use-audio"
 import { useNoteMediaCounts } from "@/contexts/use-media"
@@ -89,6 +89,7 @@ export const GroupContainer = () => {
             {/* flex-1 + min-h-0: a tall note must scroll here instead of squeezing the tab bar above */}
             <div className="relative flex-1 min-h-0 w-full" data-testid="note-background" style={background}>
             {hasData && groups.length === 0 && <EmptyNoteHints />}
+            {hasData && groups.length === 0 && <EmptyNoteDropZone />}
             <SelectionBarInset
                 ref={scrollRef}
                 data-testid="group-scroll"
@@ -107,7 +108,7 @@ export const GroupContainer = () => {
                                 <Group group={group} index={index} audioCount={audioCounts[group.id] ?? 0} mediaCount={mediaCounts[group.id] ?? 0} />
                             </GroupColumn>
                         ))}
-                <NewGroupEnd index={groups?.length ?? 0}>
+                <NewGroupEnd index={groups?.length ?? 0} empty={hasData && groups.length === 0}>
                     <AddSection />
                 </NewGroupEnd>
             </SelectionBarInset>

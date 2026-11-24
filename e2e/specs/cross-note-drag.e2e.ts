@@ -14,6 +14,7 @@ import {
 const WORKSPACE = "Cross Drag Workspace"
 const NOTE_A = "Cross Note A"
 const NOTE_B = "Cross Note B"
+const NOTE_C = "Cross Note C"
 const GROUP_A = "Cross Group A"
 const GROUP_B = "Cross Group B"
 const SECTION_A = "Cross Section A"
@@ -96,6 +97,30 @@ const drag = async (
     await browser.pause(600)
 }
 
+/** Whether the note and the tab bar of a pane are under the veil of the pane without the focus ("true" / "false"). */
+const veilsOf = async (index: 0 | 1) => ({
+    note: await pane(index).$('[data-testid="pane-dim"]').getAttribute("data-dimmed"),
+    bar: await pane(index).$('[data-testid="tabbar-dim"]').getAttribute("data-dimmed"),
+})
+
+/** The notes that hold the live group with this name, from the database. */
+const notesOfGroup = async (name: string): Promise<string[]> => {
+    const rows = await sql<{ name: string }[]>(
+        "select",
+        "SELECT n.name AS name FROM section_group g JOIN note n ON n.id = g.noteID WHERE g.name = ? AND g.deleted_at IS NULL ORDER BY n.name",
+        [name],
+    )
+    return rows.map(row => row.name)
+}
+
+const waitForGroupIn = async (name: string, expected: string[]) =>
+    browser.waitUntil(async () => JSON.stringify(await notesOfGroup(name)) === JSON.stringify(expected), {
+        timeoutMsg: `group "${name}" is not in ${expected.join(", ")}: ${JSON.stringify(await notesOfGroup(name))}`,
+    })
+
+/** The empty area of the empty note of a pane (its drop zone). */
+const emptyArea = (index: 0 | 1) => $(`[data-pane="${index}"] [data-testid="empty-note-drop"]`)
+
 /** Moves a note with the "Open on the right" entry of its sidebar context menu. */
 const openOnRight = async (name: string) => {
     const menu = await openContextMenu(treeRow(name))
@@ -143,6 +168,8 @@ describe("Drag between the two notes of the split view", () => {
                 expect(await browser.execute(() => document.body.hasAttribute("data-note-dragging"))).toBe(true) // a real drag is going on
                 expect(await shiftedIn(1)).toBe(0)
                 expect(await $$("[data-live-slot]")).toHaveLength(0)
+                // Without Ctrl the other note is not the destination: its veil stays
+                expect(await veilsOf(1)).toEqual({ note: "true", bar: "true" })
             },
         })
         await waitForNotes(TASK, [NOTE_A])
@@ -157,6 +184,8 @@ describe("Drag between the two notes of the split view", () => {
             // Before the only task of the other note: it steps down to open the room
             where: 0.1,
             whilePressed: async () => {
+                // Over the destination note its veil is lifted (content and tab bar)
+                expect(await veilsOf(1)).toEqual({ note: "false", bar: "false" })
                 expect(await shiftedIn(1)).toBeGreaterThan(0)
                 expect(await $$('[data-pane="1"] [data-live-slot]')).toHaveLength(1)
             },
@@ -171,6 +200,8 @@ describe("Drag between the two notes of the split view", () => {
         await waitForNotes(TASK, [NOTE_A])
         await taskRow(0, TASK).waitForDisplayed({ timeoutMsg: "the task did not come back to the left pane" })
         await expect(taskRow(1, TASK)).not.toExist()
+        // The drag is over: the veil of the right pane is back
+        expect(await veilsOf(1)).toEqual({ note: "true", bar: "true" })
     })
 
     it("copies the task with Ctrl and Alt: it is in both notes, and Ctrl+Z removes the copy", async function () {
@@ -185,5 +216,50 @@ describe("Drag between the two notes of the split view", () => {
         await waitForNotes(TASK, [NOTE_A])
         await expect(taskRow(1, TASK)).not.toExist()
         await expect(pane(0)).toBeDisplayed()
+    })
+
+    it("opens an empty note on the right", async () => {
+        await createFromSidebar("sidebar.addNote", "dialogs.addNote.submit", NOTE_C)
+        await openOnRight(NOTE_C)
+        await paneTab(1, NOTE_C).waitForDisplayed({ timeoutMsg: "note C did not open in the right pane" })
+        await paneTab(1, NOTE_C).click()
+        await emptyArea(1).waitForExist({ timeoutMsg: "the empty note has no drop area" })
+        await paneTab(0, NOTE_A).click()
+        await taskRow(0, TASK).waitForDisplayed({ timeoutMsg: "the left pane does not show note A" })
+    })
+
+    it("moves a group with Ctrl into the empty note as its first group, and Ctrl+Z puts it back", async function () {
+        if (process.platform === "linux") return this.skip()
+        await drag(groupCard(GROUP_A).$("button[aria-expanded]"), emptyArea(1), {
+            ctrl: true,
+            where: 0.5,
+            whilePressed: async () => {
+                expect(await veilsOf(1)).toEqual({ note: "false", bar: "false" })
+            },
+        })
+        await waitForGroupIn(GROUP_A, [NOTE_C])
+        await expect(emptyArea(1)).not.toExist()
+
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupIn(GROUP_A, [NOTE_A])
+        await expect(emptyArea(1)).toExist()
+    })
+
+    it("copies a group with Ctrl and Alt into the empty note, and Ctrl+Z removes the copy", async function () {
+        if (process.platform === "linux") return this.skip()
+        await drag(groupCard(GROUP_A).$("button[aria-expanded]"), emptyArea(1), { ctrl: true, alt: true, where: 0.5 })
+        await waitForGroupIn(GROUP_A, [NOTE_A, NOTE_C])
+        await browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())
+        await browser.keys(["Control", "z"])
+        await waitForGroupIn(GROUP_A, [NOTE_A])
+    })
+
+    it("moves a task with Ctrl into the empty note: a group is created to hold it", async function () {
+        if (process.platform === "linux") return this.skip()
+        await drag(taskRow(0, TASK), emptyArea(1), { ctrl: true, where: 0.5 })
+        await waitForNotes(TASK, [NOTE_C])
+        await taskRow(1, TASK).waitForDisplayed({ timeoutMsg: "the task is not in the right pane" })
+        await expect(emptyArea(1)).not.toExist()
     })
 })
