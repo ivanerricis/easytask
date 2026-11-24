@@ -73,7 +73,7 @@ const renderAll = () => render(
 )
 
 // The lists also ask `files_exist` (missing markers): the tests of the playback look only at the commands about playing
-const playbackCalls = () => vi.mocked(invoke).mock.calls.filter(([command]) => command !== "files_exist")
+const playbackCalls = () => vi.mocked(invoke).mock.calls.filter(([command]) => command !== "files_exist" && command !== "audio_loudness")
 
 const audioElement = () => document.querySelector("audio") as HTMLAudioElement | null
 

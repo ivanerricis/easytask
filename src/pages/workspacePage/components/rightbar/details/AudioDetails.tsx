@@ -1,8 +1,10 @@
 import { LoadingDots } from "@/components/loading-dots"
 import { useContext, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { AudioFile } from "@/types/types"
-import { AudioContext, type AudioTrack } from "@/contexts/audio-context-object"
+import { AudioContext } from "@/contexts/audio-context-object"
+import { useAudioLoudness } from "@/hooks/use-audio-loudness"
+import { formatDbtp, formatLu, formatLufs } from "@/lib/audio-loudness"
+import { trackPath } from "@/lib/audio-track-path"
 import { formatBitDepth, formatBitrate, formatChannels, formatDuration, formatFileSize, formatPosition, formatSampleRate, getAudioMetadata, type AudioMetadata } from "@/lib/audio-metadata"
 import { formatDateTime } from "@/lib/utils"
 import { RightPanelContext } from "../right-panel-context-object"
@@ -10,19 +12,29 @@ import { Field, sectionTitle } from "./fields"
 
 type AudioInfoState = { path: string, metadata: AudioMetadata | null, failed: boolean }
 
-/** The path of the loaded track: from the lists already loaded, otherwise decoded from its asset URL. */
-const trackPath = (track: AudioTrack, filesCache: Map<number, AudioFile[]>): string | null => {
-    for (const files of filesCache.values()) {
-        const file = files.find(candidate => candidate.id === track.audioId)
-        if (file) return file.path
+/** The three loudness rows: dots while the file is measured, nothing when it cannot be (the others stay). */
+const LoudnessFields = ({ path }: { path: string }) => {
+    const { t } = useTranslation()
+    const loudness = useAudioLoudness(path)
+    const rows: [string, (report: Extract<typeof loudness, { status: "ready" }>["report"]) => string | null][] = [
+        [t("details.audio.loudness"), report => report.integratedLufs === null ? t("details.audio.loudnessSilent") : formatLufs(report.integratedLufs)],
+        [t("details.audio.truePeak"), report => report.truePeakDbtp === null ? t("details.audio.loudnessSilent") : formatDbtp(report.truePeakDbtp)],
+        [t("details.audio.lra"), report => formatLu(report.lra)],
+    ]
+    if (loudness.status === "error") {
+        return <Field label={t("details.audio.loudness")}><span className="text-muted-foreground">{t("details.audio.notMeasurable")}</span></Field>
     }
-    try {
-        // convertFileSrc: <scheme>://<host>/<encoded path>
-        const encoded = new URL(track.src).pathname.slice(1)
-        return encoded ? decodeURIComponent(encoded) : null
-    } catch {
-        return null
-    }
+    return (
+        <>
+            {rows.map(([label, format]) => (
+                <Field key={label} label={label}>
+                    {loudness.status === "ready"
+                        ? format(loudness.report)
+                        : <span role="status"><span className="sr-only">{t("details.audio.measuring")}</span><LoadingDots /></span>}
+                </Field>
+            ))}
+        </>
+    )
 }
 
 const AudioFields = ({ name, path, metadata }: { name: string, path: string, metadata: AudioMetadata }) => {
@@ -64,6 +76,7 @@ const AudioFields = ({ name, path, metadata }: { name: string, path: string, met
             </div>
             <Field label={t("details.audio.file")}><span className="break-all">{path}</span></Field>
             {rows.map(([label, value]) => value && <Field key={label} label={label}>{value}</Field>)}
+            <LoudnessFields path={path} />
         </div>
     )
 }

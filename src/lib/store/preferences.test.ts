@@ -507,6 +507,13 @@ describe("audio file count and section separators preferences", () => {
         }
     })
 
+    it("shows the loudness meter unless it is turned off", () => {
+        expect(normalizePref("audioLoudnessMeter", undefined)).toBe(true)
+        expect(normalizePref("audioLoudnessMeter", "no")).toBe(true)
+        expect(normalizePref("audioLoudnessMeter", false)).toBe(false)
+        expect(normalizePref("audioLoudnessMeter", true)).toBe(true)
+    })
+
     it("keeps the valid audio positions and at most 200, dropping the oldest", () => {
         expect(normalizePref("audioPositions", undefined)).toEqual({})
         expect(normalizePref("audioPositions", [1, 2])).toEqual({})
@@ -583,7 +590,7 @@ describe("preference table", () => {
 
     it("keeps the keys saved on disk", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
-            "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "autoBackupMode", "backupFolder",
+            "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioLoudnessMeter", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "autoBackupMode", "backupFolder",
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
             "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount", "showCollapsedOpenCount",
             "showGroupProgressBar", "showGroupSeparators", "showMediaWhenCollapsed", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",

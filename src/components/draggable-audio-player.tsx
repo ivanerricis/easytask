@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useDraggable } from "@dnd-kit/core"
 import { AudioPlayer } from "./audio-player"
 import { useAudio } from "@/contexts/use-audio"
 import { usePreferences } from "@/contexts/use-preferences"
+import { trackPath } from "@/lib/audio-track-path"
 import { useShortcut } from "@/hooks/use-shortcut"
 
 type Props = {
@@ -10,8 +11,9 @@ type Props = {
 }
 
 export const DraggableAudioPlayer = ({ position }: Props) => {
-    const { track, closePlayer, reportPlaybackError, toggleSeq, setPlaybackState, togglePlayback } = useAudio()
-    const { audioVolume, setAudioVolume, audioPlayerVisible, audioPlayerPinned, setAudioPlayerPinned, audioPlayerScale, audioPlayerOpacity, reportAudioPlayerSize, audioPlaybackRate, setAudioPlaybackRate, audioRepeat, audioResume } = usePreferences()
+    const { track, filesCache, closePlayer, reportPlaybackError, toggleSeq, setPlaybackState, togglePlayback } = useAudio()
+    const { audioVolume, setAudioVolume, audioPlayerVisible, audioPlayerPinned, setAudioPlayerPinned, audioPlayerScale, audioPlayerOpacity, reportAudioPlayerSize, audioPlaybackRate, setAudioPlaybackRate, audioRepeat, audioResume, audioLoudnessMeter } = usePreferences()
+    const path = useMemo(() => track && filesCache ? trackPath(track, filesCache) : null, [track, filesCache])
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
         id: "audio-player",
         disabled: audioPlayerPinned,
@@ -78,6 +80,8 @@ export const DraggableAudioPlayer = ({ position }: Props) => {
                     repeat={audioRepeat}
                     audioId={track.audioId}
                     resume={audioResume}
+                    path={path ?? undefined}
+                    loudnessMeter={audioLoudnessMeter}
                 />
             </div>
         </div>

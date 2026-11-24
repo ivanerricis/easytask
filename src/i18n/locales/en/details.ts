@@ -51,6 +51,12 @@ export const details: Translation["details"] = {
         genre: "Genre",
         composer: "Composer",
         comment: "Comment",
+        loudness: "Loudness (integrated LUFS)",
+        truePeak: "True peak",
+        lra: "LRA",
+        loudnessSilent: "Silence",
+        measuring: "Measuring",
+        notMeasurable: "Cannot be measured",
     },
 }
 

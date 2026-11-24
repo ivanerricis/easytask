@@ -41,6 +41,9 @@ serde_json = "1"
 sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
 lofty = "0.25.4"
 base64 = "0.23.1"
+# Loudness (EBU R128) of an audio file: decode with symphonia (only the formats of AUDIO_EXTENSIONS), measure with ebur128
+symphonia = { version = "0.6.1", default-features = false, features = ["flac", "mp3", "aac", "isomp4", "mkv", "ogg", "pcm", "vorbis", "wav"] }
+ebur128 = "0.1.11"
 zip = { version = "9.3.0", default-features = false, features = ["deflate"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]

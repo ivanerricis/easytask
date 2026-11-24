@@ -11,6 +11,8 @@ import type { DraggableAttributes, useDraggable } from "@dnd-kit/core"
 import type { PlaybackState } from "@/contexts/audio-context-object"
 import { useMediaSession, type MediaSessionActions } from "@/hooks/use-media-session"
 import { AUDIO_PLAYBACK_RATES, type AudioPlaybackRate } from "@/lib/store/preferences"
+import { LoudnessMeter, Waveform } from "@/components/audio-player-loudness"
+import { useAudioLoudness } from "@/hooks/use-audio-loudness"
 import { POSITION_SAVE_INTERVAL_MS, forgetPosition, getResumePosition, rememberPosition } from "@/lib/audio-positions"
 
 type SyntheticListenerMap = ReturnType<typeof useDraggable>["listeners"]
@@ -54,6 +56,10 @@ type Props = {
     audioId?: number
     /** Remember where each track is and start it again from there (default: always from the beginning). */
     resume?: boolean
+    /** Absolute path of the file: it is measured (loudness, waveform) when set. */
+    path?: string
+    /** Show the loudness meter (short-term, momentary, true peak) under the seek bar (default: hidden). */
+    loudnessMeter?: boolean
 }
 
 /** "3:05", or "1:05:09" from one hour on. */
@@ -100,16 +106,22 @@ type SeekBarProps = {
     currentTime: number
     duration: number
     onSeek: (time: number) => void
-    onKeyDown: (e: React.KeyboardEvent<HTMLSpanElement>) => void
+    onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
+    /** Waveform of the track, once measured: it takes the place of the slider. */
+    peaks?: number[]
 }
 
-/** The elapsed time, the seek slider and the length of the track. */
-const SeekBar = ({ currentTime, duration, onSeek, onKeyDown }: SeekBarProps) => {
+/** The elapsed time, the seek slider (the waveform when it is ready) and the length of the track. */
+const SeekBar = ({ currentTime, duration, onSeek, onKeyDown, peaks }: SeekBarProps) => {
     const { t } = useTranslation()
+    const valueText = t("audio.player.position", { current: formatTime(currentTime), total: formatTime(duration) })
 
     return (
-        <div className="w-full flex items-center gap-2 text-[13px] text-foreground tabular-nums">
+        <div className="w-full min-h-8 flex items-center gap-2 text-[13px] text-foreground tabular-nums">
             <span>{formatTime(currentTime)}</span>
+            {peaks && peaks.length > 0 ? (
+                <Waveform peaks={peaks} currentTime={currentTime} duration={duration} onSeek={onSeek} onKeyDown={onKeyDown} ariaValueText={valueText} />
+            ) : (
             <Slider
                 min={0}
                 max={duration > 0 ? duration : 1}
@@ -118,10 +130,11 @@ const SeekBar = ({ currentTime, duration, onSeek, onKeyDown }: SeekBarProps) => 
                 onValueChange={([time]) => onSeek(time)}
                 onKeyDown={onKeyDown}
                 aria-label={t("audio.player.seek")}
-                aria-valuetext={t("audio.player.position", { current: formatTime(currentTime), total: formatTime(duration) })}
+                aria-valuetext={valueText}
                 thumbClassName="size-5"
                 className="flex-1 min-w-0"
             />
+            )}
             <span>{formatTime(duration)}</span>
         </div>
     )
@@ -148,15 +161,16 @@ type ProgressProps = {
     playing: boolean
     actions: MediaSessionActions
     onSeek: (time: number) => void
-    onKeyDown: (e: React.KeyboardEvent<HTMLSpanElement>) => void
+    onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
+    peaks?: number[]
 }
 
 /** Follows the progress once (one set of listeners) for the seek bar and the system media session; only these re-render with it. */
-const PlayerProgress = ({ audioRef, title, playing, actions, onSeek, onKeyDown }: ProgressProps) => {
+const PlayerProgress = ({ audioRef, title, playing, actions, onSeek, onKeyDown, peaks }: ProgressProps) => {
     const { currentTime, duration } = useAudioProgress(audioRef)
     return (
         <>
-            <SeekBar currentTime={currentTime} duration={duration} onSeek={onSeek} onKeyDown={onKeyDown} />
+            <SeekBar currentTime={currentTime} duration={duration} onSeek={onSeek} onKeyDown={onKeyDown} peaks={peaks} />
             <MediaSessionSync currentTime={currentTime} duration={duration} title={title} playing={playing} actions={actions} />
         </>
     )
@@ -184,9 +198,11 @@ const SkipButton = ({ label, icon, onClick }: SkipButtonProps) => (
 export const AudioPlayer = ({
     src, fileName, listenersHandle, attributesHandle, onClose, autoPlayKey, toggleKey, onStateChange, onError,
     volume: volumeProp = 1, onVolumeChange, pinned = false, onPinnedChange,
-    playbackRate: rateProp = 1, onPlaybackRateChange, repeat = false, audioId, resume = false,
+    playbackRate: rateProp = 1, onPlaybackRateChange, repeat = false, audioId, resume = false, path, loudnessMeter = false,
 }: Props) => {
     const { t } = useTranslation()
+    // Measured (and cached) by the backend; the waveform needs it too, so it runs whatever the meter preference is
+    const loudness = useAudioLoudness(path ?? null)
     const audioRef = useRef<HTMLAudioElement>(null)
     const [isPlaying, setIsPlaying] = useState(false)
     // Played to the end (until it plays again, is moved back or another track is loaded)
@@ -329,7 +345,7 @@ export const AudioPlayer = ({
 
     // The arrows of a slider move it by its tiny step (0.1 s): here they jump by a few seconds, and Space plays or pauses
     // (a slider does not use it)
-    const handleSeekKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+    const handleSeekKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
         if (e.key === "ArrowRight" || e.key === "ArrowUp") {
             e.preventDefault()
             skip(KEY_SEEK_SECONDS)
@@ -415,7 +431,8 @@ export const AudioPlayer = ({
             <Separator className="-mx-2 data-[orientation=horizontal]:w-[calc(100%+1rem)]" />
             {/* The title has a row of its own, as wide as the player: two lines at most, the tooltip has the whole name */}
             <div className="w-full line-clamp-2 break-words text-sm font-medium text-foreground" title={title}>{title}</div>
-            <PlayerProgress audioRef={audioRef} title={title} playing={isPlaying} actions={mediaActions} onSeek={seekTo} onKeyDown={handleSeekKeyDown} />
+            <PlayerProgress audioRef={audioRef} title={title} playing={isPlaying} actions={mediaActions} onSeek={seekTo} onKeyDown={handleSeekKeyDown} peaks={loudness.status === "ready" ? loudness.report.peaks : undefined} />
+            {loudnessMeter && <LoudnessMeter audioRef={audioRef} loudness={loudness} playing={isPlaying} />}
             {/* Transport: start over, 15 s back, play / pause, 15 s forward, speed */}
             <div className="w-full flex items-center justify-center gap-1.5 text-xs">
                 <TooltipCustom text={t("audio.player.restart")}>

@@ -49,6 +49,12 @@ export const details = {
         genre: "Genere",
         composer: "Compositore",
         comment: "Commento",
+        loudness: "Loudness (LUFS integrati)",
+        truePeak: "Picco reale",
+        lra: "LRA",
+        loudnessSilent: "Silenzio",
+        measuring: "Misura in corso",
+        notMeasurable: "Non misurabile",
     },
 }
 

@@ -72,6 +72,7 @@ describe("PreferencesContext", () => {
             audioPlaybackRate: 1.5,
             audioRepeat: true,
             audioResume: true,
+            audioLoudnessMeter: false,
             hideCompletedTasks: true,
             showSubtaskCount: false,
         }
@@ -254,10 +255,12 @@ describe("PreferencesContext", () => {
         expect(result.current.audioPlaybackRate).toBe(1)
         expect(result.current.audioRepeat).toBe(false)
         expect(result.current.audioResume).toBe(false)
+        expect(result.current.audioLoudnessMeter).toBe(true)
         await waitFor(() => expect(result.current.audioVolume).toBe(0.3))
         expect(result.current.audioPlaybackRate).toBe(1.5)
         expect(result.current.audioRepeat).toBe(true)
         expect(result.current.audioResume).toBe(true)
+        expect(result.current.audioLoudnessMeter).toBe(false)
         expect(result.current.audioPlayerVisible).toBe(false)
         expect(result.current.audioPlayerPinned).toBe(true)
         expect(result.current.audioPlayerScale).toBe(1.2)
@@ -291,6 +294,9 @@ describe("PreferencesContext", () => {
         expect(prefs.savePref).toHaveBeenCalledWith("audioRepeat", true)
         act(() => result.current.setAudioResume(true))
         expect(prefs.savePref).toHaveBeenCalledWith("audioResume", true)
+        act(() => result.current.setAudioLoudnessMeter(true))
+        expect(prefs.savePref).toHaveBeenCalledWith("audioLoudnessMeter", true)
+        act(() => result.current.setAudioLoudnessMeter(false))
 
         act(() => result.current.setAudioVolume(0.2))
         act(() => result.current.resetAudioSettings())
@@ -298,6 +304,7 @@ describe("PreferencesContext", () => {
         expect(result.current.audioPlaybackRate).toBe(1)
         expect(result.current.audioRepeat).toBe(false)
         expect(result.current.audioResume).toBe(false)
+        expect(result.current.audioLoudnessMeter).toBe(true)
         expect(result.current.audioVolume).toBe(1)
         expect(result.current.audioPlayerScale).toBe(1)
         expect(result.current.audioPlayerOpacity).toBe(1)

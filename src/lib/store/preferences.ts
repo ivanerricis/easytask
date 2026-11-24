@@ -207,6 +207,8 @@ export const UI_PREFS = {
     audioRepeat: def({ key: "audioRepeat", default: false, normalize: value => value === true }),
     /** On: each track starts again from where it was left. */
     audioResume: def({ key: "audioResume", default: false, normalize: value => value === true }),
+    /** On: the player shows the short-term and momentary loudness and the true peak (from the precomputed curve). */
+    audioLoudnessMeter: def({ key: "audioLoudnessMeter", default: true, normalize: value => value !== false }),
     workspaceView: def<WorkspaceView>({ key: "workspaceView", default: "grid", normalize: value => value === "list" ? "list" : "grid" }),
     workspaceSort: def<WorkspaceSort>({
         key: "workspaceSort",

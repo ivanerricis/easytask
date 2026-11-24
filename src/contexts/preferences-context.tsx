@@ -165,6 +165,7 @@ export const PreferencesProvider = ({ children }: { children: React.ReactNode })
             setters.setAudioPlaybackRate(DEFAULT_AUDIO_PLAYBACK_RATE)
             setters.setAudioRepeat(false)
             setters.setAudioResume(false)
+            setters.setAudioLoudnessMeter(true)
         }
 
         const resetPlayerPosition = () => {

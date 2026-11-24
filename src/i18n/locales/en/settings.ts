@@ -452,6 +452,10 @@ export const settings: Translation["settings"] = {
             label: "Resume where you left off",
             description: "Each track starts again from where you left it.",
         },
+        loudnessMeter: {
+            label: "Loudness meter",
+            description: "Shows the short-term and momentary loudness and the true peak of the point you are listening to in the player.",
+        },
         playerSize: {
             label: "Player size",
             description: "Makes the floating player bigger or smaller.",
@@ -464,7 +468,7 @@ export const settings: Translation["settings"] = {
             description: "Makes the player more or less transparent (at least 40% opaque).",
         },
         resetAll: {
-            description: "Volume, visibility, pinning, size, transparency, speed, repeat and resume go back to their defaults.",
+            description: "Volume, visibility, pinning, size, transparency, speed, repeat, resume and the loudness meter go back to their defaults.",
         },
     },
     search: {
