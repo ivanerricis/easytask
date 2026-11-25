@@ -121,6 +121,11 @@ export const groups: Translation["groups"] = {
     mediaCount_other: "{{count}} images and videos",
     moreFiles_one: "One more file: open the group",
     moreFiles_other: "{{count}} more files: open the group",
+    dueColor: {
+        active: "Due dates color is on",
+        auto: "Due dates",
+        hint: "The color follows the nearest due date of the group's tasks: red overdue, yellow today or tomorrow, green later",
+    },
     progressColor: {
         active: "Automatic color is on",
         auto: "Automatic",

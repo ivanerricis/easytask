@@ -1,4 +1,5 @@
 import { $, browser } from "@wdio/globals"
+import { closeDialog, goCategory, openSettings } from "../ui-tour/tour-kit"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, menuButton, openMenuWithButton, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
     waitForApp,
@@ -102,5 +103,56 @@ describe("Due date of a task", () => {
         await domClick(byText(await tr("tasks.menu.removeDue"), menu))
         await browser.waitUntil(async () => (await badgeStatus(TASK)) === null, { timeoutMsg: "the badge is still on the row" })
         await browser.waitUntil(async () => (await savedDue(TASK))?.due_date === null, { timeoutMsg: "the date was not removed" })
+    })
+
+    const OTHER = "Due Other Note"
+    const openDueDialog = async () => {
+        await $(`(//button[.//span[normalize-space()=${xpathString(await tr("tasks.dueView.title"))}]])[last()]`).click()
+        const dialog = await topDialog()
+        await dialog.waitForDisplayed({ timeoutMsg: "the due dialog did not open" })
+        return dialog
+    }
+
+    it("shows the task in the agenda dialog and a click opens its note on the task", async () => {
+        // A due date today, then another note in front: the agenda must bring the first note back
+        await rowOf(TASK).moveTo()
+        const menu = await openMenuWithButton(await menuButton(rowOf(TASK)))
+        await domClick(byText(await tr("tasks.menu.setDue"), menu))
+        const picker = await topDialog()
+        await domClick(byText(await tr("tasks.due.today"), picker))
+        await domClick(byText(await tr("tasks.due.save"), picker))
+        await picker.waitForDisplayed({ reverse: true })
+        await createFromSidebar("sidebar.addNote", "dialogs.addNote.submit", OTHER)
+        await treeRow(OTHER).click()
+        await rowOf(TASK).waitForDisplayed({ reverse: true, timeoutMsg: "the first note is still in front" })
+
+        const dialog = await openDueDialog()
+        const item = dialog.$(`[data-testid="due-item"]`)
+        await item.waitForDisplayed({ timeoutMsg: "the task is not in the agenda" })
+        await expect(item).toHaveText(expect.stringContaining(TASK))
+        await item.click()
+        await dialog.waitForDisplayed({ reverse: true, timeoutMsg: "the dialog did not close" })
+        await rowOf(TASK).waitForDisplayed({ timeoutMsg: "the note of the task was not opened" })
+        await browser.waitUntil(
+            () => browser.execute((label: string) => {
+                const row = Array.from(document.querySelectorAll("[role='treeitem']")).find(node => node.getAttribute("aria-label") === label)
+                return row?.getAttribute("aria-selected") === "true" || row?.querySelector("[aria-selected='true']") !== null || !!row?.closest("[aria-selected='true']")
+            }, TASK),
+            { timeoutMsg: "the task is not selected" },
+        )
+    })
+
+    it("the settings switch of the due date notifications turns them off and on", async () => {
+        await openSettings()
+        await goCategory("system")
+        const label = await tr("settings.system.dueNotifications.label")
+        const toggle = $(`//*[normalize-space(text())=${xpathString(label)}]/ancestor::div[.//button[@role='switch']][1]//button[@role='switch']`)
+        await toggle.waitForDisplayed({ timeoutMsg: "the switch is not in the settings" })
+        await expect(toggle).toHaveAttribute("aria-checked", "true")
+        await domClick(toggle)
+        await browser.waitUntil(async () => (await toggle.getAttribute("aria-checked")) === "false", { timeoutMsg: "the switch did not turn off" })
+        await domClick(toggle)
+        await browser.waitUntil(async () => (await toggle.getAttribute("aria-checked")) === "true", { timeoutMsg: "the switch did not turn on again" })
+        await closeDialog()
     })
 })

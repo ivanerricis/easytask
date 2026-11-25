@@ -6,6 +6,7 @@ import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import type { DueValue } from "@/lib/due-date"
+import { markDueSeen } from "@/lib/due-notify"
 
 /**
  * Returns the function that sets or clears the due date of a task: the open note is updated at once (restored with an error
@@ -23,6 +24,7 @@ export function useSetTaskDue() {
         try {
             await updateTaskDue(task.id, after.date, after.time)
             recorder.taskDue(task.id, task.text, before, after)
+            if (after.date) void markDueSeen({ id: task.id, due_date: after.date, due_time: after.time })
             return true
         } catch {
             rollback()

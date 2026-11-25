@@ -49,6 +49,12 @@ export const tasks = {
         badge_other: "{{count}} task scaduti o in scadenza oggi",
         description: "Task aperti scaduti o in scadenza entro una settimana.",
     },
+    dueNotify: {
+        title: "Scadenza: {{text}}",
+        summaryTitle_one: "{{count}} task scaduto o in scadenza oggi",
+        summaryTitle_other: "{{count}} task scaduti o in scadenza oggi",
+        more: "+{{count}} altri",
+    },
     due: {
         title: "Scadenza",
         time: "Ora",

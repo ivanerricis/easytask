@@ -1,7 +1,6 @@
 import { useEffect } from "react"
 import { useActiveNote } from "@/contexts/use-active-note"
 import { useActiveNoteId, useSelectTask, useTabsActions, useTabUiStore } from "@/contexts/use-tabs"
-import { useWorkspace } from "@/contexts/use-workspace"
 import { usePaneRoot } from "@/contexts/use-layout"
 import { useStoreSelector } from "@/lib/external-store"
 import { claimOpenNote, finishOpenTask, openTaskStore } from "@/lib/open-task-request"
@@ -36,7 +35,6 @@ function pathOf(tree: NoteDataTree, taskId: number): { groupId: number, sectionI
  */
 export function OpenTaskEffect() {
     const request = useStoreSelector(openTaskStore, state => state)
-    const { currentWorkspace } = useWorkspace()
     const { openNote } = useTabsActions()
     const activeId = useActiveNoteId()
     const { noteDataTree } = useActiveNote()
@@ -46,9 +44,9 @@ export function OpenTaskEffect() {
 
     // 1. Open the note once the workspace of the task is the open one
     useEffect(() => {
-        if (!request || request.noteOpened || currentWorkspace?.id !== request.workspaceId) return
+        if (!request || !request.ready || request.noteOpened) return
         if (claimOpenNote()) openNote(request.noteId)
-    }, [request, currentWorkspace, openNote])
+    }, [request, openNote])
 
     // 2. The note is the active one of this pane and drawn: select the task, open what hides it, scroll to it
     useEffect(() => {

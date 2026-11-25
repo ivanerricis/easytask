@@ -119,6 +119,11 @@ export const groups = {
     mediaCount_other: "{{count}} immagini e video",
     moreFiles_one: "Altro file: apri il gruppo",
     moreFiles_other: "Altri {{count}} file: apri il gruppo",
+    dueColor: {
+        active: "Colore per scadenze attivo",
+        auto: "Scadenze",
+        hint: "Il colore segue la scadenza più vicina dei task del gruppo: rosso scaduto, giallo oggi o domani, verde più avanti",
+    },
     progressColor: {
         active: "Colore automatico attivo",
         auto: "Automatico",

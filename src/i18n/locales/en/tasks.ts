@@ -51,6 +51,12 @@ export const tasks: Translation["tasks"] = {
         badge_other: "{{count}} tasks overdue or due today",
         description: "Open tasks that are overdue or due within a week.",
     },
+    dueNotify: {
+        title: "Due: {{text}}",
+        summaryTitle_one: "{{count}} task overdue or due today",
+        summaryTitle_other: "{{count}} tasks overdue or due today",
+        more: "+{{count}} more",
+    },
     due: {
         title: "Due date",
         time: "Time",

@@ -7,7 +7,7 @@ import { isPortable } from "@/db/appPaths"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { relaunch } from "@tauri-apps/plugin-process"
 import {
-    getAlwaysOnTop, getCloseToTray, getHardwareAcceleration, getRememberWindowState, saveAlwaysOnTop, saveCloseToTray, saveHardwareAcceleration,
+    getAlwaysOnTop, getCloseToTray, getDueNotifications, saveDueNotifications, getHardwareAcceleration, getRememberWindowState, saveAlwaysOnTop, saveCloseToTray, saveHardwareAcceleration,
     saveRememberWindowState,
 } from "@/lib/store/preferences"
 import { flushStore } from "@/lib/store/save-soon"
@@ -54,6 +54,21 @@ const CloseToTraySetting = () => {
         <SettingsSwitchRow
             label={t("settings.system.closeToTray.label")}
             description={t("settings.system.closeToTray.description")}
+            checked={checked}
+            onCheckedChange={value => void change(value)}
+        />
+    )
+}
+
+/** Notifications of the due dates (a task with a time at that time, the others in one summary when the app opens). */
+const DueNotificationsSetting = () => {
+    const { t } = useTranslation()
+    const { checked, change } = useStoredSwitch(getDueNotifications, saveDueNotifications, { initial: true })
+
+    return (
+        <SettingsSwitchRow
+            label={t("settings.system.dueNotifications.label")}
+            description={t("settings.system.dueNotifications.description")}
             checked={checked}
             onCheckedChange={value => void change(value)}
         />
@@ -149,6 +164,7 @@ export const SystemSettings = () => {
             <SettingsCard>
                 <AutostartSetting />
                 <CloseToTraySetting />
+                <DueNotificationsSetting />
                 <RememberWindowStateSetting />
                 <AlwaysOnTopSetting />
                 <HardwareAccelerationSetting />

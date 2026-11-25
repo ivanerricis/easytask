@@ -8,7 +8,7 @@ import { useUndoRecorder } from "@/contexts/undo/use-undo"
 import { getItemName, isUndoableType } from "@/contexts/undo/commands"
 import { Button } from "@/components/ui/button"
 import { ColorPalette } from "@/components/color-palette"
-import { GROUP_COLOR_PROGRESS } from "@/lib/colors"
+import { isAutoGroupColor } from "@/lib/colors"
 
 export type DialogAddColorProps<T> = {
     /** The item to color; not needed with `onPick`. */
@@ -65,7 +65,7 @@ export const DialogAddColor = <T extends defaultItemType>({ item, itemType, getI
         // A fixed width: the palette and the "No color" row share it (the container around brings its own padding)
         <div className="flex w-40 flex-col gap-1">
             {/* The automatic color of a group is a rule, not a swatch: no swatch is marked (nor the "+" one) */}
-            <ColorPalette value={item?.color === GROUP_COLOR_PROGRESS ? null : item?.color} onPick={handleSaveColor} />
+            <ColorPalette value={isAutoGroupColor(item?.color) ? null : item?.color} onPick={handleSaveColor} />
             {/* The same row as the entries of a menu (the "Automatic" one of a group): same padding and size */}
             <Button
                 type="button"

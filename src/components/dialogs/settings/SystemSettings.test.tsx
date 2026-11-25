@@ -20,6 +20,8 @@ let hardwareAcceleration = true
 let alwaysOnTop = false
 let closeToTray = false
 let rememberWindowState = true
+let dueNotifications = true
+const saveDueNotifications = vi.fn()
 
 vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 vi.mock("@tauri-apps/plugin-autostart", () => ({
@@ -28,6 +30,8 @@ vi.mock("@tauri-apps/plugin-autostart", () => ({
     disable: () => disable(),
 }))
 vi.mock("@/lib/store/preferences", () => ({
+    getDueNotifications: async () => dueNotifications,
+    saveDueNotifications: (...a: unknown[]) => saveDueNotifications(...a),
     getCloseToTray: async () => closeToTray,
     saveCloseToTray: (...a: unknown[]) => saveCloseToTray(...a),
     getAlwaysOnTop: async () => alwaysOnTop,
@@ -46,6 +50,8 @@ vi.mock("@/lib/tray", () => ({ notifyCloseToTrayChanged: (...a: unknown[]) => no
 beforeEach(() => {
     vi.clearAllMocks()
     closeToTray = false
+    dueNotifications = true
+    saveDueNotifications.mockResolvedValue(undefined)
     rememberWindowState = true
     alwaysOnTop = false
     hardwareAcceleration = true
@@ -162,5 +168,17 @@ describe("SystemSettings", () => {
         await waitFor(() => expect(toast.error).toHaveBeenCalled())
         expect(toggle).not.toBeChecked()
         expect(saveAlwaysOnTop).not.toHaveBeenCalled()
+    })
+})
+
+describe("due date notifications", () => {
+    it("is on by default and saves the change", async () => {
+        const user = userEvent.setup()
+        render(<SystemSettings />)
+        const toggle = await screen.findByRole("switch", { name: "Notifiche delle scadenze" })
+        await waitFor(() => expect(toggle).toBeChecked())
+        await user.click(toggle)
+        await waitFor(() => expect(saveDueNotifications).toHaveBeenCalledWith(false))
+        expect(toggle).not.toBeChecked()
     })
 })

@@ -11,6 +11,8 @@ export type AutomationTrigger =
     | { type: "task.reopened", sectionId: number | null }
     /** A task is created. */
     | { type: "task.created", sectionId: number | null }
+    /** A task becomes overdue: its due date (or due time) has passed and it is not completed (at any depth). */
+    | { type: "task.overdue", sectionId: number | null }
     /** A task arrives in a section from another one. */
     | { type: "task.movedInto", sectionId: number }
     /** The last open subtask of a task is completed (the actions apply to that task). */
@@ -74,10 +76,12 @@ export type AutomationEvent =
     | { type: "task.completed", taskId: number }
     | { type: "task.reopened", taskId: number }
     | { type: "task.created", taskId: number }
+    /** The clock passed the due date of the task (see dueStatus); sent once per due date. */
+    | { type: "task.overdue", taskId: number }
     /** `fromSectionId` is the section the task was in before the move. */
     | { type: "task.moved", taskId: number, fromSectionId: number }
 
-export const TRIGGER_TYPES: readonly AutomationTriggerType[] = ["task.completed", "task.reopened", "task.created", "task.movedInto", "subtasks.completed", "group.completed",
+export const TRIGGER_TYPES: readonly AutomationTriggerType[] = ["task.completed", "task.reopened", "task.created", "task.overdue", "task.movedInto", "subtasks.completed", "group.completed",
     "section.noOpenTasks", "section.hasOpenTasks", "group.noOpenTasks", "group.hasOpenTasks"]
 
 /**
