@@ -10,7 +10,7 @@ import { useItemMenuState } from "@/hooks/use-item-menu-state"
 const importItems = vi.fn()
 vi.mock("@/hooks/use-workspace-transfer", () => ({ useItemTransfer: () => ({ importItems, exportItem: vi.fn(), isBusy: false }) }))
 // The creation dialogs need the workspace data: here only whether they are open matters
-vi.mock("../AddNoteDialog", () => ({ AddNoteDialog: ({ open }: { open: boolean }) => open ? <div>dialog-note</div> : null }))
+vi.mock("../AddNoteDialog", () => ({ AddNoteDialog: ({ open, kind }: { open: boolean, kind?: string }) => open ? <div>dialog-{kind ?? "note"}</div> : null }))
 vi.mock("../AddFolderDialog", () => ({ AddFolderDialog: ({ open }: { open: boolean }) => open ? <div>dialog-folder</div> : null }))
 
 const renderMenu = (props: { allCollapsed?: boolean, hasFolders?: boolean, onToggleAll?: () => void } = {}) =>
@@ -41,6 +41,13 @@ describe("TreeBackgroundMenu", () => {
         fireEvent.contextMenu(screen.getByTestId("area"))
         await userEvent.setup().click(screen.getByRole("menuitem", { name: "Nuova cartella" }))
         expect(await screen.findByText("dialog-folder")).toBeInTheDocument()
+    })
+
+    it("creates a page in the root", async () => {
+        renderMenu()
+        fireEvent.contextMenu(screen.getByTestId("area"))
+        await userEvent.setup().click(screen.getByRole("menuitem", { name: "Nuova pagina" }))
+        expect(await screen.findByText("dialog-page")).toBeInTheDocument()
     })
 
     it("asks for a note from a template and imports into the root", async () => {

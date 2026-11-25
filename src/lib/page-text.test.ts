@@ -127,3 +127,50 @@ describe("page text history", () => {
         setPageStepSink(null)
     })
 })
+
+describe("page text loading", () => {
+    it("reports a page that cannot be read and does not accept typing in it", async () => {
+        mocks.read.mockRejectedValueOnce(new Error("locked"))
+        acquirePage(3)
+        await vi.waitFor(() => expect(getPageSnapshot(3).status).toBe("failed"))
+        expect(mocks.report).toHaveBeenCalledTimes(1)
+        editPageText(3, "x")
+        expect(getPageSnapshot(3)).toEqual({ status: "failed", text: "" })
+        expect(mocks.write).not.toHaveBeenCalled()
+    })
+
+    it("shows nothing for no page, and forgets a page nobody shows once released", async () => {
+        expect(getPageSnapshot(null).status).toBe("loading")
+        const release = await loaded(4, "kept")
+        release()
+        release()
+        expect(getPageSnapshot(4).status).toBe("loading")
+    })
+
+    it("tells the listeners when a page is loaded and edited, and stops after unsubscribing", async () => {
+        const { subscribePages } = await import("./page-text")
+        const listener = vi.fn()
+        const stop = subscribePages(listener)
+        await loaded(5, "a")
+        editPageText(5, "ab")
+        expect(listener.mock.calls.length).toBeGreaterThanOrEqual(2)
+        stop()
+        const count = listener.mock.calls.length
+        editPageText(5, "abc")
+        expect(listener).toHaveBeenCalledTimes(count)
+    })
+
+    it("writes the text typed during a write in a second write", async () => {
+        await loaded(6, "a")
+        let release: () => void = () => {}
+        mocks.write.mockImplementationOnce(() => new Promise<void>(resolve => { release = resolve }))
+        editPageText(6, "ab")
+        const first = flushPage(6)
+        editPageText(6, "abc")
+        release()
+        await first
+        await flushPage(6)
+        expect(mocks.write).toHaveBeenCalledTimes(2)
+        expect(mocks.write).toHaveBeenLastCalledWith(6, "abc")
+    })
+})
