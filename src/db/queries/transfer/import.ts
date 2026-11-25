@@ -170,10 +170,11 @@ async function insertItems(
         ]
         const images = await resolveBackgroundImages(data.notes, checks)
         skippedFiles += images.skipped
-        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "bg_image", "archived_at", "position"],
+        noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "bg_image", "archived_at", "kind", "body", "position"],
             data.notes.map((note, i) => [
                 workspaceRef, note.folderRef === null ? rootParent : folderRefs.get(note.folderRef) ?? null,
-                note.name.trim(), note.color ?? null, note.bg_color || null, images.paths[i], note.archived_at || null, note.position,
+                note.name.trim(), note.color ?? null, note.bg_color || null, images.paths[i], note.archived_at || null,
+                note.kind === "page" ? "page" : "note", note.kind === "page" ? note.body ?? "" : null, note.position,
             ]))
 
         for (const [i, note] of data.notes.entries()) {

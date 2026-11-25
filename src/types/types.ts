@@ -51,8 +51,15 @@ export type Note = {
     bg_image?: string | null
     /** Set on the working copy (draft) of a template while it is edited: the template it belongs to. Such a note has no workspace. */
     templateID?: number | null
+    /** "page" for a Markdown page (its text is the `body`, loaded when it is opened); a plain note (or no value) has groups. */
+    kind?: NoteKind
+    /** The Markdown text of a page: not part of the sidebar tree (read when the page opens); only the rows of the export carry it. */
+    body?: string | null
     groups: Group[]
 }
+
+/** What a note is: a list of groups of tasks ("note") or a Markdown text ("page"). */
+export type NoteKind = "note" | "page"
 
 export type Group = {
     id: number

@@ -30,7 +30,7 @@ async function sqliteTransaction(command: string, args?: { statements?: { sql: s
         throw error
     }
 }
-import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, latestSchema, mediaFileSchema, noteBackgroundSchema, noteBackgroundImageSchema, tagSchema, groupTagSchema, sectionTagSchema, taskDueSchema, sectionOrderSchema, sectionTaskOrderSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial"
+import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, latestSchema, mediaFileSchema, noteBackgroundSchema, noteBackgroundImageSchema, tagSchema, groupTagSchema, sectionTagSchema, taskDueSchema, notePageSchema, sectionOrderSchema, sectionTaskOrderSchema, taskArchiveSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial"
 import { automationSchema } from "./schema/automation"
 import { addGroupColorColumn } from "./schema/section_group"
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit"
@@ -164,7 +164,7 @@ describe("initDB behaviour", () => {
         await initDB(db as unknown as Database)
         const plain = [
             [1, initialSchema], [2, [addGroupColorColumn]], [3, createWorkspaceEditTriggers], [4, archiveSchema], [5, automationSchema], [6, taskArchiveSchema],
-            [8, groupStructureSchema], [11, templateDraftSchema], [12, trashIndexesSchema], [13, noteBackgroundSchema], [14, customThemeSchema], [15, mediaFileSchema], [16, tagSchema], [17, sectionTaskOrderSchema], [18, groupTagSchema], [19, noteBackgroundImageSchema], [20, sectionTagSchema],
+            [8, groupStructureSchema], [11, templateDraftSchema], [12, trashIndexesSchema], [13, noteBackgroundSchema], [14, customThemeSchema], [15, mediaFileSchema], [16, tagSchema], [17, sectionTaskOrderSchema], [18, groupTagSchema], [19, noteBackgroundImageSchema], [20, sectionTagSchema], [21, notePageSchema],
         ] as const
         expect(recorder.calls.map(call => call.map(s => s.sql))).toEqual(plain.map(([version, queries]) => [...queries, `PRAGMA user_version = ${version}`]))
         // v7, v9, v10 and v21 are scripts with their own transaction: the bump is written inside, right before the COMMIT, and never separately
@@ -183,7 +183,7 @@ describe("initDB behaviour", () => {
         vi.mocked(invoke).mockImplementation(recorder.invoke as unknown as typeof invoke)
         await initDB(db as unknown as Database)
         expect(recorder.calls[0].at(-1)?.sql).toBe("PRAGMA user_version = 1")
-        expect(recorder.calls.at(-1)?.at(-1)?.sql).toBe("PRAGMA user_version = 20")
+        expect(recorder.calls.at(-1)?.at(-1)?.sql).toBe("PRAGMA user_version = 21")
     })
 
     it("refuses a legacy database (user_version > 0 without the application id) and leaves it untouched", async () => {

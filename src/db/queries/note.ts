@@ -1,5 +1,5 @@
 import i18n from "@/i18n"
-import type { Group, Section, Task } from "@/types/types";
+import type { Group, NoteKind, Section, Task } from "@/types/types";
 import { getDB } from "../dbManager";
 import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
@@ -168,15 +168,16 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
  * @param workspaceId The ID of the workspace to which the note belongs.
  * @param name The name of the note.
  * @param color The color of the note (optional).
+ * @param kind "page" creates a Markdown page (default "note").
  * @category Database
  */
-export async function createDBWorkspaceNote(workspaceId: number, name: string, color?: string | null) {
+export async function createDBWorkspaceNote(workspaceId: number, name: string, color?: string | null, kind: NoteKind = "note") {
     return withDBErrors("NOTE", NOTE_MESSAGES, async () => {
         const db = await getDB()
         const result = await db.execute(
-            `INSERT INTO note (workspaceID, name, color, position)
-             SELECT ?, ?, ?, ${nextPositionSql("note", "workspaceID = ? AND folderID IS NULL AND deleted_at IS NULL")}`,
-            [workspaceId, name, color ?? null, workspaceId]);
+            `INSERT INTO note (workspaceID, name, color, kind, position)
+             SELECT ?, ?, ?, ?, ${nextPositionSql("note", "workspaceID = ? AND folderID IS NULL AND deleted_at IS NULL")}`,
+            [workspaceId, name, color ?? null, kind, workspaceId]);
         return result.lastInsertId as number
     })
 }
@@ -186,16 +187,16 @@ export async function createDBWorkspaceNote(workspaceId: number, name: string, c
  * @param workspaceId The ID of the workspace of the folder.
  * @param folderId The ID of the folder where the note will be created.
  * @param name The name of the note.
-
+ * @param kind "page" creates a Markdown page (default "note").
  * @category Database
  */
-export async function createDBNoteInFolder(workspaceId: number, folderId: number, name: string) {
+export async function createDBNoteInFolder(workspaceId: number, folderId: number, name: string, kind: NoteKind = "note") {
     return withDBErrors("NOTE", NOTE_MESSAGES, async () => {
         const db = await getDB()
         const result = await db.execute(
-            `INSERT INTO note (workspaceID, folderID, name, position)
-             SELECT ?, ?, ?, ${nextPositionSql("note", "folderID = ? AND deleted_at IS NULL")}`,
-            [workspaceId, folderId, name, folderId]);
+            `INSERT INTO note (workspaceID, folderID, name, kind, position)
+             SELECT ?, ?, ?, ?, ${nextPositionSql("note", "folderID = ? AND deleted_at IS NULL")}`,
+            [workspaceId, folderId, name, kind, folderId]);
         return result.lastInsertId as number
     })
 }
@@ -247,5 +248,38 @@ export async function updateDBNoteBackgroundImage(noteId: number, path?: string 
         await db.execute('UPDATE note SET bg_image=? WHERE id=?', [path ?? null, noteId])
     } catch (error: unknown) {
         handleDBError(error, "NOTE", { CHECK: i18n.t("errors.item.colorCheck") })
+    }
+}
+
+/**
+ * Reads the Markdown text of a page, exactly as it was saved.
+ * @param noteId The ID of the page.
+ * @returns The text ("" for a page never written, or for a note that is not a page).
+ * @throws A createError('NOTE_DATA_LOAD_FAILED') error when the query fails.
+ * @category Database Queries
+ */
+export async function getDBPageBody(noteId: number): Promise<string> {
+    try {
+        const db = await getDB()
+        const rows = await db.select<{ body: string | null }[]>(`SELECT body FROM note WHERE id = ? AND kind = 'page'`, [noteId])
+        return rows[0]?.body ?? ""
+    } catch (error: unknown) {
+        throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
+    }
+}
+
+/**
+ * Saves the Markdown text of a page as it is (no trimming). The edit date of the page refreshes by the note trigger.
+ * Only a page is written: the id of a plain note changes nothing.
+ * @param noteId The ID of the page.
+ * @param body The new text.
+ * @category Database Queries
+ */
+export async function updateDBPageBody(noteId: number, body: string) {
+    try {
+        const db = await getDB()
+        await db.execute(`UPDATE note SET body = ? WHERE id = ? AND kind = 'page'`, [body, noteId])
+    } catch (error: unknown) {
+        handleDBError(error, "NOTE", {})
     }
 }
