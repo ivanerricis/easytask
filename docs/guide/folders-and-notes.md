@@ -16,9 +16,11 @@ The top of the sidebar has a row of buttons:
 | **Collapse all folders** / **Expand all folders** | Closes or opens every folder at once.                  |
 | **Close all notes**                      | Closes every open tab.                                          |
 
-At the bottom you find **Templates**, **Archive**, **Trash** (with a counter of what they hold) and the workspace selector, to jump to another workspace. See [Templates](./templates) and [Trash and archive](./trash-and-archive).
+At the bottom you find the **Tools** section and the workspace selector, to jump to another workspace.
 
-Right-click an empty area of the tree to create a note, a folder or a note from a template, to import, and to collapse or expand all folders.
+**Tools** is a section you can collapse, just above the workspace selector. It has **Due**, **Statistics**, **Templates**, **Archive** and **Trash**. Each one shows a count (**Due** in red: the tasks that are overdue or due today). The counts stay visible when the section is collapsed, and the section remembers if it was open or closed. See [Due dates](./due-dates), [Statistics](./statistics), [Templates](./templates) and [Trash and archive](./trash-and-archive).
+
+Right-click an empty area of the tree to create a note, a [page](./pages), a folder or a note from a template, to import, and to collapse or expand all folders.
 
 ### Show, hide and resize
 
@@ -33,6 +35,7 @@ To make rows smaller or larger, go to **Settings > Appearance > Size of folders 
 | Action                          | How                                                                                             |
 | ------------------------------- | ----------------------------------------------------------------------------------------------- |
 | New note in the workspace root  | **New note** button, `Ctrl+N`, or **File > New note**                                           |
+| New page in the workspace root  | **New page** in the header of the sidebar, `Ctrl+Shift+N`, or **File > New page**. See [Pages](./pages) |
 | New folder in the workspace root| **New folder** button, `Ctrl+M`, or **File > New folder**                                       |
 | New note or folder inside a folder | Open the menu of the folder and choose **New note** or **New folder**                        |
 | New note from a template        | **New note from template** button, or **File > New note from template…**                        |
@@ -42,6 +45,8 @@ To make rows smaller or larger, go to **Settings > Appearance > Size of folders 
 In the **New note** dialog type a **Name**. You can also pick a template in **From template** (the default is **No template**). In the workspace root you can give the note a color right away.
 
 Names must be unique inside the same folder. If a name is already used, the dialog shows an error.
+
+A note created at the root with the **+** button of the tabs or with `Ctrl+N` is named right away in a text field: `Esc` cancels and the note is not created.
 
 ## Rename, color and move
 
@@ -63,6 +68,8 @@ Click the menu button of a row (it appears when you point at it) or right-click 
 | **Move tab left**, **Move tab right** |  | yes | Reorders the tab (only if the note is open).                              |
 | **Create template**  |        | yes  | Saves the note as a template. See [Templates](./templates).                         |
 | **Automations…**     |        | yes  | Opens the automations of the note. See [Automations](./automations).                |
+| **Copy as Markdown** |        | yes  | Copies the note to the clipboard as Markdown: the title, groups, sections, tasks as `- [ ]` / `- [x]`, tags and descriptions. It follows **Hide completed tasks**. |
+| **Export PDF**       |        | yes  | Opens the print window of the system with only the note: choose **Save as PDF**. It follows **Hide completed tasks**. |
 | **Import here**      | yes    |      | Imports a note or folder file inside the folder.                                    |
 | **Export**           | yes    | yes  | Saves the item to a `.easytask.json` file (or a `.easytask.zip` with the linked files).                                          |
 | **Archive**          | yes    | yes  | Hides the item without deleting it.                                                 |
@@ -117,9 +124,12 @@ You can keep two notes side by side. Each area has its own tab bar and its own o
 - Click **Split into two areas** on the right of the path bar, or press `Ctrl+\` (`Cmd+\` on macOS). An empty area appears on the right. Click **Close the split** (or press the same shortcut) to go back to one area: this closes the tabs of the right area.
 - A note is open in one area at a time. If you open a note that is already open in the other area, EasyTask switches to it there.
 - To move a note, drag its tab to the other tab bar (or drop it in the empty bar). While you drag, the other tabs step aside to open the room where it would land and the room it leaves closes; with **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections** a line shows where it lands instead. The same happens when you reorder the tabs of one bar. Without the mouse, use **Open on the right** / **Open on the left** in the menu of the note or of its tab, or press `Ctrl+Alt+→` (also `Ctrl+Alt+←`) to move the active note to the other area. **Open on the right** creates the split if there is none.
+- With only one area, you can drag a tab onto the right half of the note: a highlighted preview shows where it will go, and when you drop it the split opens with that note on the right. `Esc` cancels the drag.
 - `Ctrl+Alt+\` moves the focus to the other area.
 - The area you clicked last is the focused one. The sidebar, the command menu, the details panel and the shortcuts (close the note, next or previous note, search in the note, new group, undo and redo) act on it.
 - Drag the divider between the areas to resize them. With the divider focused, the arrow keys change the size (`Shift` for bigger steps), and a double click brings it back to 50%. Each area is at least 320 pixels wide, and the sidebars close by themselves when there is not enough room.
+
+The area that does not have the focus is covered by a light veil (35%), also over its tab bar. While you drag tasks, sections or groups to the other note with `Ctrl` (see [Move tasks](./groups-sections-tasks#move-tasks)), the veil is lifted from the note under the pointer, and you can drop them into an empty note too: a group or a section becomes its first group, and a task gets a new group.
 
 The split and the tabs of each workspace are reopened at the next start when **Reopen notes at startup** is on. There can be at most two areas.
 
@@ -127,7 +137,7 @@ The three shortcuts for the split can be changed in **Settings > Shortcuts**, ex
 
 ### The path bar
 
-Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find four buttons: **New group**, **Search in the note**, **Split into two areas** (it reads **Close the split** while the view is split) and **Hide completed tasks**.
+Under the tabs, a thin bar shows the path of the open note, for example `Work > Projects > Plan`. Click a folder or the note in the path to show it in the sidebar: the sidebar opens if it was closed, the folders above it expand and the item is selected. A long path keeps the first folder and the last two items. On the right of the same bar you find these buttons: **New group**, **Search in the note**, **Filter by tag** (see [Filter by tag](./groups-sections-tasks#filter-by-tag)), **Split into two areas** (it reads **Close the split** while the view is split) and **Hide completed tasks**. With a [page](./pages) open the bar has the text / preview button instead of the group, tag and hide buttons.
 
 ![The path bar above a note: the name of the note on the left, and on the right the buttons for a new group, search in the note, split into two areas and hide completed tasks](../screenshots/en/path-bar-light.png){.wide-strip}
 

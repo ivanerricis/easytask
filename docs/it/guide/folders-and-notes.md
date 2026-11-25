@@ -16,9 +16,11 @@ In cima alla barra laterale c'è una fila di pulsanti:
 | **Comprimi tutte le cartelle** / **Espandi tutte le cartelle** | Chiude o apre tutte le cartelle in un colpo. |
 | **Chiudi tutte le note**                  | Chiude tutti i tab aperti.                                  |
 
-In basso trovi **Template**, **Archivio**, **Cestino** (con un contatore di quanto contengono) e il selettore del workspace, per passare a un altro workspace. Vedi [Template](./templates) e [Cestino e archivio](./trash-and-archive).
+In basso trovi la sezione **Strumenti** e il selettore del workspace, per passare a un altro workspace.
 
-Fai clic destro su un'area vuota dell'albero per creare una nota, una cartella o una nota da template, per importare e per comprimere o espandere tutte le cartelle.
+**Strumenti** è una sezione che puoi comprimere, subito sopra il selettore del workspace. Contiene **Scadenze**, **Statistiche**, **Template**, **Archivio** e **Cestino**. Ognuna mostra un conteggio (**Scadenze** in rosso: i task scaduti o in scadenza oggi). I conteggi restano visibili anche con la sezione compressa, e la sezione ricorda se era aperta o chiusa. Vedi [Scadenze](./due-dates), [Statistiche](./statistics), [Template](./templates) e [Cestino e archivio](./trash-and-archive).
+
+Fai clic destro su un'area vuota dell'albero per creare una nota, una [pagina](./pages), una cartella o una nota da template, per importare e per comprimere o espandere tutte le cartelle.
 
 ### Mostrare, nascondere e ridimensionare
 
@@ -33,6 +35,7 @@ Per rendere le righe più piccole o più grandi vai in **Impostazioni > Aspetto 
 | Azione                              | Come                                                                                         |
 | ----------------------------------- | -------------------------------------------------------------------------------------------- |
 | Nuova nota nella radice del workspace | Pulsante **Nuova nota**, `Ctrl+N`, oppure **File > Nuova nota**                            |
+| Nuova pagina nella radice | **Nuova pagina** nell'intestazione della barra laterale, `Ctrl+Maiusc+N`, oppure **File > Nuova pagina**. Vedi [Pagine](./pages) |
 | Nuova cartella nella radice         | Pulsante **Nuova cartella**, `Ctrl+M`, oppure **File > Nuova cartella**                      |
 | Nuova nota o cartella dentro una cartella | Apri il menu della cartella e scegli **Nuova nota** o **Nuova cartella**               |
 | Nuova nota da un template           | Pulsante **Nuova nota da template**, oppure **File > Nuova nota da template…**               |
@@ -40,6 +43,8 @@ Per rendere le righe più piccole o più grandi vai in **Impostazioni > Aspetto 
 ![La finestra Nuova nota con il campo Nome, un pulsante per scegliere un colore e i pulsanti Annulla e Crea](../../screenshots/it/new-note-dialog-light.png)
 
 Nella finestra **Nuova nota** scrivi un **Nome**. Puoi anche scegliere un template in **Da template** (di default **Nessun template**). Nella radice del workspace puoi dare subito un colore alla nota.
+
+Una nota creata nella radice con il pulsante **+** dei tab o con `Ctrl+N` si nomina subito in un campo di testo: `Esc` annulla e la nota non viene creata.
 
 I nomi devono essere unici nella stessa cartella. Se un nome è già usato, la finestra mostra un errore.
 
@@ -63,6 +68,8 @@ Fai clic sul pulsante del menu di una riga (compare quando ci passi sopra) oppur
 | **Sposta tab a sinistra**, **Sposta tab a destra** | | sì | Riordina il tab (solo se la nota è aperta).                      |
 | **Crea template**    |          | sì   | Salva la nota come template. Vedi [Template](./templates).                     |
 | **Automazioni…**     |          | sì   | Apre le automazioni della nota. Vedi [Automazioni](./automations).             |
+| **Copia come Markdown** |       | sì   | Copia la nota negli appunti come Markdown: il titolo, i gruppi, le sezioni, i task come `- [ ]` / `- [x]`, i tag e le descrizioni. Segue **Nascondi task completati**. |
+| **Esporta PDF**      |          | sì   | Apre la finestra di stampa del sistema con la sola nota: scegli **Salva come PDF**. Segue **Nascondi task completati**. |
 | **Importa qui**      | sì       |      | Importa dentro la cartella un file di una nota o di una cartella.              |
 | **Esporta**          | sì       | sì   | Salva l'elemento in un file `.easytask.json` (o `.easytask.zip` con i file collegati). |
 | **Archivia**         | sì       | sì   | Nasconde l'elemento senza eliminarlo.                                          |
@@ -117,9 +124,12 @@ Puoi tenere due note affiancate. Ogni area ha la sua barra di tab e la sua nota 
 - Fai clic su **Dividi in due aree** a destra della barra del percorso, oppure premi `Ctrl+\` (`Cmd+\` su macOS). A destra compare un'area vuota. Fai clic su **Chiudi la divisione** (o premi la stessa scorciatoia) per tornare a una sola area: questo chiude i tab dell'area destra.
 - Una nota è aperta in una sola area alla volta. Se apri una nota già aperta nell'altra area, EasyTask passa a quella.
 - Per spostare una nota, trascina il suo tab nell'altra barra di tab (o rilasciala nella barra vuota). Mentre trascini, gli altri tab si scostano per aprire lo spazio dove atterrerebbe e lo spazio che lascia si richiude; con **Task, sezioni, gruppi, note, cartelle e tab che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** una linea mostra invece dove cade. Lo stesso vale per riordinare i tab di una sola barra. Senza il mouse, usa **Apri a destra** / **Apri a sinistra** nel menu della nota o del suo tab, oppure premi `Ctrl+Alt+→` (anche `Ctrl+Alt+←`) per spostare la nota attiva nell'altra area. **Apri a destra** crea la divisione se non c'è.
+- Con una sola area, puoi trascinare un tab sulla metà destra della nota: un'anteprima evidenziata mostra dove andrà, e quando lo rilasci la divisione si apre con quella nota a destra. `Esc` annulla il trascinamento.
 - `Ctrl+Alt+\` sposta il focus sull'altra area.
 - L'area su cui hai fatto clic per ultima è quella con il focus. La barra laterale, il menu comandi, il pannello dettagli e le scorciatoie (chiudi la nota, nota successiva o precedente, cerca nella nota, nuovo gruppo, annulla e ripeti) agiscono su di essa.
 - Trascina il divisore tra le aree per ridimensionarle. Con il divisore selezionato, le frecce cambiano la dimensione (`Maiusc` per passi più grandi) e il doppio clic la riporta al 50%. Ogni area è larga almeno 320 pixel e le barre laterali si chiudono da sole quando manca lo spazio.
+
+L'area che non ha il focus è coperta da un leggero velo (35%), anche sopra la sua barra di tab. Mentre trascini task, sezioni o gruppi nell'altra nota con `Ctrl` (vedi [Spostare i task](./groups-sections-tasks#spostare-i-task)), il velo si toglie dalla nota sotto il puntatore, e puoi rilasciarli anche in una nota vuota: un gruppo o una sezione diventa il suo primo gruppo, e un task ottiene un nuovo gruppo.
 
 La divisione e i tab di ogni workspace vengono riaperte al prossimo avvio se **Riapri le note all'avvio** è attivo. Le aree possono essere al massimo due.
 
@@ -127,7 +137,7 @@ Le tre scorciatoie della divisione si possono cambiare in **Impostazioni > Scorc
 
 ### La barra del percorso
 
-Sotto i tab, una barra sottile mostra il percorso della nota aperta, ad esempio `Lavoro > Progetti > Piano`. Fai clic su una cartella o sulla nota nel percorso per mostrarla nella barra laterale: la barra si apre se era chiusa, le cartelle sopra si espandono e l'elemento viene selezionato. Un percorso lungo mantiene la prima cartella e gli ultimi due elementi. A destra della stessa barra ci sono quattro pulsanti: **Nuovo gruppo**, **Cerca nella nota**, **Dividi in due aree** (diventa **Chiudi la divisione** quando la vista è divisa) e **Nascondi task completati**.
+Sotto i tab, una barra sottile mostra il percorso della nota aperta, ad esempio `Lavoro > Progetti > Piano`. Fai clic su una cartella o sulla nota nel percorso per mostrarla nella barra laterale: la barra si apre se era chiusa, le cartelle sopra si espandono e l'elemento viene selezionato. Un percorso lungo mantiene la prima cartella e gli ultimi due elementi. A destra della stessa barra ci sono questi pulsanti: **Nuovo gruppo**, **Cerca nella nota**, **Filtra per tag** (vedi [Filtrare per tag](./groups-sections-tasks#filtrare-per-tag)), **Dividi in due aree** (diventa **Chiudi la divisione** quando la vista è divisa) e **Nascondi task completati**. Con una [pagina](./pages) aperta la barra ha il pulsante testo / anteprima al posto dei pulsanti per gruppo, tag e nascondi.
 
 ![La barra del percorso sopra una nota: a sinistra il nome della nota, a destra i pulsanti per nuovo gruppo, cerca nella nota, dividi in due aree e nascondi task completati](../../screenshots/it/path-bar-light.png){.wide-strip}
 

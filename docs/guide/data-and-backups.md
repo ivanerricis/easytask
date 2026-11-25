@@ -100,11 +100,17 @@ Export saves one workspace to a single file you can keep, share or open on anoth
 - **Export**: open the workspace, then use **Settings > Data > Import / Export > Export current workspace** (or **File > Export workspace…**). If the notes link audio, image or video files, EasyTask asks whether to include them: you get a `<name>.easytask.zip` with the files, or a `<name>.easytask.json` with only their paths.
 - **Import**: use **Settings > Data > Import / Export > Import workspace** and pick the `.easytask.json` or `.easytask.zip` file. EasyTask creates a new workspace. Nothing already in your app is changed.
 
-The file holds folders, notes with their content (groups, sections and tasks, including the tasks you created directly in a group, and the width of each group), templates, the tags of the workspace (with the tags of each task) and the audio, image and video files linked to the groups (their paths, or the files themselves in a `.easytask.zip`). Items in the trash are not exported.
+The file holds folders, notes with their content (groups, sections and tasks, including the tasks you created directly in a group, and the width of each group), templates, the tags of the workspace (with the tags of each task) the audio, image and video files linked to the groups, and the files attached to the tasks (their paths, or the files themselves in a `.easytask.zip`). It also holds pages, due dates and completion dates. Items in the trash are not exported.
 
 The export file has a format version (now 3). EasyTask only imports files of the current version: a file exported by an older version of the app, before images and videos could be linked to a group, is rejected.
 
 If an audio file is not found on the computer where you import, it is skipped and EasyTask tells you how many.
+
+## Older versions of EasyTask
+
+When a new version of EasyTask starts for the first time, it upgrades the database and saves a copy first (see above). **A database upgraded by a newer version cannot be opened by an older one.** Version 0.29.0 upgrades the database to version 24, with the due dates (21), the pages (22), the attached files (23) and the completion date of the tasks (24). To go back to an older version of the app, restore a backup made before the upgrade (the copies in `backups/pre-migration/` are for this).
+
+Export files are more forgiving. The format is still version 3. A file exported by 0.29.0 opens in an older version, but that version does not read what it does not know: due dates, attached files and completion dates are ignored, and a page is shown as an empty note.
 
 ## Move to another computer
 

@@ -14,7 +14,7 @@ Deleting is always reversible while the item is in the trash. You can also undo 
 
 ## The trash of a workspace
 
-Open it with the **Trash** button at the bottom of the sidebar (it shows how many items it holds) or with **File > Trash…**.
+Open it with **Trash** in the **Tools** section of the sidebar (it shows how many items it holds) or with **File > Trash…**.
 
 ![The Trash dialog with a list of types on the left (Folders, Notes, Groups, Sections, Tasks, Audio files, Templates) and a deleted task with restore and delete buttons, plus the Empty trash button](../screenshots/en/trash-light.png)
 
@@ -64,7 +64,7 @@ An [automation](./automations) can also archive a group.
 
 ## The archive dialog
 
-Open it with the **Archive** button at the bottom of the sidebar (with the number of archived items) or with **File > Archive…**.
+Open it with **Archive** in the **Tools** section of the sidebar (with the number of archived items) or with **File > Archive…**.
 
 ![The Archive dialog with the archived items grouped by type](../screenshots/en/archive-light.png)
 

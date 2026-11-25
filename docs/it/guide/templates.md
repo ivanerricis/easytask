@@ -29,6 +29,7 @@ Il template è un'istantanea indipendente della nota in quel momento. Le modific
 | Descrizioni dei task, stato di completamento e priorità | Gruppi, sezioni e task archiviati |
 | I [tag](./groups-sections-tasks#tag) dei task, per nome e colore: una nota creata dal template riusa il tag del workspace con lo stesso nome, oppure lo crea | |
 | I colori della nota, dei gruppi, delle sezioni e dei task | Elementi nel cestino |
+| I file allegati ai task (i loro percorsi) | Scadenze e date di completamento dei task |
 | Le [automazioni](./automations) della nota, che puntano alle sezioni e ai gruppi della nuova nota (le regole che si riferiscono a qualcosa non copiato restano fuori). Non girano mai dentro l'editor del template | |
 
 ## Creare una nota da un template
@@ -43,7 +44,7 @@ La finestra **Nuova nota da template** chiede un **Nome** e una **Destinazione**
 
 ## La finestra dei template
 
-Aprila dal pulsante **Template** in fondo alla barra laterale (mostra quanti template hai) oppure da **File > Template…**.
+Aprila da **Template** nella sezione **Strumenti** della barra laterale (mostra quanti template hai) oppure da **File > Template…**.
 
 ![La finestra Template con un template e i suoi pulsanti per creare una nota, modificare, altre azioni ed eliminare, più il pulsante Nuovo](../../screenshots/it/templates-light.png)
 

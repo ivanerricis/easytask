@@ -39,6 +39,8 @@ The color menu of a group (not of the other items) starts with **Automatic**. Th
 
 Tasks and subtasks count as in the progress ring of the group. While it is on, no swatch of the palette is marked; choose a fixed color or **No color** to turn it off. The automatic color is kept by duplicates, templates, undo and redo, and exports.
 
+The same menu has **Due dates**: the group takes the color of the nearest [due date](./due-dates) among its open tasks and subtasks: red when one is overdue, yellow when the nearest is today or tomorrow, green when it is later. A group with no due dates has no color.
+
 ::: warning Older versions of EasyTask
 Versions before 0.26.0 do not know the automatic color. If you import a workspace with an automatic group in one of them, the group is shown without that color. Choose a fixed color before exporting if you need the workspace in an older version.
 :::

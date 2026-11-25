@@ -99,6 +99,8 @@ Apri il menu del task (pulsante del menu o clic destro):
 | **Aggiungi sottotask**                       | Aggiunge un sottotask.                                               |
 | **Aggiungi descrizione** / **Rimuovi descrizione** | Apre una finestra dove scrivi la **Descrizione**. `Maiusc+Invio` va a capo, `Ctrl+Invio` salva. |
 | **Aggiungi priorità** / **Rimuovi priorità** | Segna il task come ad alta priorità. Sul task compare una bandierina. |
+| **Imposta scadenza…** / **Cambia scadenza…** / **Rimuovi scadenza** | Dà al task una data e un'ora facoltativa. Vedi [Scadenze](./due-dates). |
+| **Allega file…**                             | Allega al task file di qualsiasi tipo. Vedi [File allegati](./attachments). |
 | **Tag…**                                     | Apre l'elenco dei tag del workspace per darli al task (vedi [Tag](#tag)). |
 | **Rinomina**                                 | Modifica il testo.                                                   |
 | **Cambia colore**                            | Colora il task con una barra laterale (e uno sfondo leggero, se lo vuoi). |
@@ -109,7 +111,26 @@ Apri il menu del task (pulsante del menu o clic destro):
 
 ![Un task con una descrizione, mostrata nel pannello dei dettagli a destra](../../screenshots/it/task-description-light.png)
 
-Un task con una descrizione mostra una piccola icona: fai clic per leggerla. L'aspetto dei task dipende da **Densità dei task** (**Compatta**, **Normale**, **Ampia**) e da **Sfondo colorato dei task**.
+Un task con una descrizione mostra una piccola icona: fai clic per leggerla.
+
+### Markdown nella descrizione
+
+La descrizione capisce un Markdown leggero:
+
+| Scrivi | Ottieni |
+| --- | --- |
+| `**testo**` | **grassetto** |
+| `*testo*` | *corsivo* |
+| `- voce` o `* voce` | elenco puntato |
+| `1. voce` | elenco numerato |
+| `- [ ] voce` e `- [x] voce` | lista di controllo, con caselle su cui puoi cliccare |
+| `https://example.com` | un link |
+
+Quando non stai modificando, la descrizione è mostrata formattata: fai clic su di essa (o premi `Invio`) per modificare il testo. Nella finestra della descrizione, una descrizione già esistente si apre formattata. Fai clic su una casella di una lista di controllo per spuntarla: cambia solo quella riga, si salva subito e `Ctrl+Z` la annulla. L'HTML grezzo è mostrato come testo, e nelle descrizioni dei task non sono supportati elenchi annidati, titoli, codice e link `[testo](indirizzo)` (nelle [pagine](./pages) sì). Il Markdown resta testo nelle esportazioni e in **Copia come Markdown**.
+
+### Link nei task
+
+Gli indirizzi web (`http`, `https`) e di posta (`mailto`) nel testo e nella descrizione di un task sono sottolineati. `Ctrl`+clic li apre nel browser (in una descrizione, il link sotto il cursore). Un clic semplice avvia ancora la rinomina. I link a file e script non vengono mai aperti. L'aspetto dei task dipende da **Densità dei task** (**Compatta**, **Normale**, **Ampia**) e da **Sfondo colorato dei task**.
 
 ### Tag
 
@@ -138,8 +159,9 @@ Trascina un task dalla sua riga. Mentre trascini, gli altri task si scostano per
 
 Con **Task, sezioni, gruppi, note, cartelle e tab che si spostano mentre li trascini** spento in **Impostazioni > Note e sezioni** i task restano fermi e si vede solo l'indicatore del punto di rilascio. La velocità con cui le righe si scostano segue **Animazioni** in **Impostazioni > Aspetto**: più lente con **Lente**, nessun movimento con **Assenti**. **Sposta su**, **Sposta giù** e **Sposta in…** nel menu fanno lo stesso senza trascinare. Con [Task completati in fondo](#task-completati-in-fondo) attivo, un task rilasciato viene messo dove lo rilasci e l'elenco è poi mostrato con i completati in fondo. I task di una sezione impostata su **Prima i task aperti** o **Prima i task completati** (vedi [ordine dei task](#ordine-dei-task-di-una-sezione)) non si possono trascinare: usa **Sposta in…**.
 
-### Usare la tastiera
+Nella [vista divisa](./folders-and-notes#dividere-in-due-aree) puoi anche trascinare task, sezioni e gruppi nell'altra nota: tieni premuto `Ctrl` per tutto il trascinamento per spostarli, e tieni premuto anche `Alt` quando rilasci per copiarli. Un solo **Annulla** rimette tutto a posto.
 
+### Usare la tastiera
 Ogni lista di task è un albero per la tastiera e per gli screen reader: `Tab` entra nella lista su un solo task (l'ultimo che ha avuto il focus, o il primo) e il `Tab` successivo ne esce, così non devi attraversare ogni task. Dentro la lista:
 
 ![Un task con l'anello del focus da tastiera intorno alla sua riga](../../screenshots/it/task-keyboard-light.png)
@@ -171,7 +193,7 @@ Porta il focus su un task, o selezionane più d'uno, e premi `Ctrl+C` (`Cmd+C` s
 
 ## Cercare in una nota
 
-Premi `Ctrl+F` o clicca la lente nella barra del percorso sopra i gruppi per aprire il campo di ricerca. Mentre scrivi, le corrispondenze vengono evidenziate nel testo di task e sottotask e nei nomi di sezioni e gruppi (non nelle descrizioni dei task), senza distinguere maiuscole e accenti, e il contatore, dentro il campo, indica a quale sei arrivato, ad esempio "3 di 12", oppure "Nessun risultato". **Invio** va alla corrispondenza successiva e **Maiusc+Invio** alla precedente; quella corrente è arancione con un anello, viene portata in vista e apre il gruppo o la sezione compressi che la contengono. Oltre a **Invio** e **Maiusc+Invio** puoi usare i pulsanti **Risultato successivo** e **Risultato precedente**. I task completati nascosti non vengono cercati. **Esc** (o il pulsante di chiusura) chiude il campo e toglie le evidenziazioni.
+Premi `Ctrl+F` o clicca la lente nella barra del percorso sopra i gruppi per aprire il campo di ricerca (funziona anche in una [pagina](./pages)). Mentre scrivi, le corrispondenze vengono evidenziate nel testo di task e sottotask e nei nomi di sezioni e gruppi (non nelle descrizioni dei task), senza distinguere maiuscole e accenti, e il contatore, dentro il campo, indica a quale sei arrivato, ad esempio "3 di 12", oppure "Nessun risultato". **Invio** va alla corrispondenza successiva e **Maiusc+Invio** alla precedente; quella corrente è arancione con un anello, viene portata in vista e apre il gruppo o la sezione compressi che la contengono. Oltre a **Invio** e **Maiusc+Invio** puoi usare i pulsanti **Risultato successivo** e **Risultato precedente**. I task completati nascosti non vengono cercati. **Esc** (o il pulsante di chiusura) chiude il campo e toglie le evidenziazioni.
 
 ## Nascondere i task completati
 
@@ -208,7 +230,7 @@ Il pannello a destra ha due tab. Aprilo o chiudilo con `Ctrl+Maiusc+B` o **Visua
 
 **Dettagli** mostra:
 
-- per un task selezionato (fai clic su di esso): il percorso, lo stato, un interruttore per **Priorità alta**, il **Colore**, i **Tag** (con un pulsante per cambiarli), la **Descrizione** (modificabile, con **Salva** e **Annulla**), l'avanzamento dei sottotask e le date;
+- per un task selezionato (fai clic su di esso): il percorso, lo stato, un interruttore per **Priorità alta**, il **Colore**, i **Tag** (con un pulsante per cambiarli), la **Descrizione** (modificabile, con **Salva** e **Annulla**), la **Scadenza**, i file allegati, l'avanzamento dei sottotask e le date;
 - per la nota, quando nessun task è selezionato: il numero di gruppi, sezioni e task, l'avanzamento complessivo, il colore e le date.
 
 **Cronologia** elenca le azioni che puoi annullare e ripetere. Vedi [Annulla e cronologia](./undo-and-history).

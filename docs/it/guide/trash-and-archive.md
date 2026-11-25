@@ -14,7 +14,7 @@ Finché l'elemento è nel cestino, l'eliminazione è sempre reversibile. Puoi an
 
 ## Il cestino di un workspace
 
-Aprilo con il pulsante **Cestino** in fondo alla barra laterale (mostra quanti elementi contiene) oppure con **File > Cestino…**.
+Aprilo con **Cestino** nella sezione **Strumenti** della barra laterale (mostra quanti elementi contiene) oppure con **File > Cestino…**.
 
 ![La finestra Cestino con a sinistra l'elenco dei tipi (Cartelle, Note, Gruppi, Sezioni, Task, File audio, Template) e un task eliminato con i pulsanti per ripristinarlo ed eliminarlo, più il pulsante Svuota cestino](../../screenshots/it/trash-light.png)
 
@@ -64,7 +64,7 @@ Anche un'[automazione](./automations) può archiviare un gruppo.
 
 ## La finestra dell'archivio
 
-Aprila con il pulsante **Archivio** in fondo alla barra laterale (con il numero di elementi archiviati) oppure con **File > Archivio…**.
+Aprila con **Archivio** nella sezione **Strumenti** della barra laterale (con il numero di elementi archiviati) oppure con **File > Archivio…**.
 
 ![La finestra Archivio con gli elementi archiviati raggruppati per tipo](../../screenshots/it/archive-light.png)
 

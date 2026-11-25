@@ -74,9 +74,10 @@ The theme gallery shows a preview of each theme; move between them with the arro
 | Player transparency | Slider from 40% to 100% opacity | 100% |
 | Repeat the track (it starts over when it ends) | On / Off | Off |
 | Resume where you left off (each track restarts from where you left it) | On / Off | Off |
+| Loudness meter (short-term, momentary and true peak in the player) | On / Off | On |
 | Reset the audio player position | Button | |
 
-When **Show the floating player** is off, audio files are not played. The playback speed chosen in the player is remembered too and has no row here. **Reset all** puts volume, visibility, pinning, size, transparency, speed, repeat and resume back to their defaults. See [Audio files](./audio).
+When **Show the floating player** is off, audio files are not played. The playback speed chosen in the player is remembered too and has no row here. **Reset all** puts volume, visibility, pinning, size, transparency, speed, repeat, resume and the loudness meter back to their defaults. See [Audio files](./audio).
 
 ## Shortcuts
 
@@ -114,6 +115,7 @@ With **Off**, **Automatic backup frequency** and **Backups to keep** are disable
 | Minimize to the notification area | Closing the window keeps EasyTask running in the notification area. Use **Quit** in the menu of its icon to exit. The icon menu also has **Open EasyTask** | Off |
 | Remember window position and size | The window comes back where you left it at the next start. Not available in the portable version | On |
 | Keep the window on top | EasyTask stays above the other windows; applies at once and is remembered at startup | Off |
+| Due date notifications | Notifies a task at its due time, and sends one summary of the overdue and today tasks at startup and every morning. See [Due dates](./due-dates#notifications) | On |
 | Hardware acceleration | Uses the graphics card to draw the app. Turn it off only if you see graphics problems (black screen, flicker). It applies at the next start: a message offers **Restart now**. When off, EasyTask starts with `--disable-gpu` | On |
 
 ## About

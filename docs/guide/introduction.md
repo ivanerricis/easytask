@@ -26,6 +26,10 @@ Folders and sub-tasks nest without limit. Groups and sections can be left withou
 
 - **Workspaces** with their own folders and notes. See [Workspaces](./workspaces) and [Folders and notes](./folders-and-notes).
 - **Groups, sections, tasks and sub-tasks**, with rename in place and drag and drop. See [Groups, sections and tasks](./groups-sections-tasks).
+- **Due dates** with a badge, an agenda by day and notifications. See [Due dates](./due-dates).
+- **Pages**: Markdown documents in the sidebar, with a formatted preview. See [Pages](./pages).
+- **Attached files** on tasks. See [Attached files](./attachments).
+- **Statistics**: tasks completed per week, progress of the notes, stale notes. See [Statistics](./statistics).
 - **Colors** on any element. See [Colors](./colors).
 - **Automations**: per-note rules that act on tasks and groups when something happens. See [Automations](./automations).
 - **Templates**: save a note as a template and create new notes from it. See [Templates](./templates).
