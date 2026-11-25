@@ -210,6 +210,17 @@ describe("the room shown is the one of the real move", () => {
     }
 })
 
+describe("computeTreeShifts in the place of the source (to show the room at another depth)", () => {
+    const rows = rowsOf(tree)
+    const index = indexRows(rows)
+    it("is null by default; with `force` it hides the source and moves nothing", () => {
+        expect(computeTreeShifts(rows, index, "note-10", 3, RS)).toBeNull()
+        const shifts = computeTreeShifts(rows, index, "note-10", 3, RS, true)!
+        expect(shifts.isHidden("note-10")).toBe(true)
+        expect(rows.map(row => shifts.dyOf(row.key))).toEqual(rows.map(() => 0))
+    })
+})
+
 function listFolderIds(data: TreeData): number[] {
     const ids: number[] = []
     const walk = (folders: Folder[]) => folders.forEach(f => { ids.push(f.id); walk(f.subfolders) })

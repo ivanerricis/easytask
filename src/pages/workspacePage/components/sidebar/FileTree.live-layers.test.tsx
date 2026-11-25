@@ -69,4 +69,12 @@ describe("the recursive tree (below the virtualization threshold) takes part in 
         expect([guides("Esterna"), guides("Interna"), guides("Profonda"), guides("Figlia"), guides("Radice")]).toEqual([0, 1, 2, 1, 0])
         expect(container.querySelector(".bg-foreground\\/25")).toBeNull()
     })
+
+    // The content of a folder clips (the open/close animation): its box must reach the left edge of the tree, or the guides of the
+    // levels above it (drawn left of that box) are cut and only the one of the parent folder shows
+    it("the content of a folder starts at the left edge of the tree (negative margin and padding of its depth)", () => {
+        const { container } = renderSmallTree()
+        const contents = [...container.querySelectorAll<HTMLElement>("[data-slot='collapsible-content']")]
+        expect(contents.map(content => [content.style.marginLeft, content.style.paddingLeft])).toEqual([["", ""], ["-20px", "20px"]])
+    })
 })
