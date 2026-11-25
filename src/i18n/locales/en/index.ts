@@ -14,6 +14,7 @@ import { details, rightPanel } from "./details"
 import { automations } from "./automations"
 import { templateEditor } from "./template-editor"
 import { tags } from "./tags"
+import { taskFiles } from "./task-files"
 
 export const en: Translation = {
     common,
@@ -51,4 +52,5 @@ export const en: Translation = {
     automations,
     templateEditor,
     tags,
+    taskFiles,
 }

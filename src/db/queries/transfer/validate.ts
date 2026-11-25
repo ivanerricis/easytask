@@ -6,6 +6,7 @@ import { isPortableAutomation } from "@/lib/automations/portable"
 import { uniqueName } from "../names"
 import { isTaskOrder } from "@/lib/task-order"
 import { normalizeDue } from "@/lib/due-date"
+import { getFileName } from "../audio"
 
 const INVALID_FILE_MESSAGE = () => i18n.t("errors.transfer.invalidFile")
 const MALFORMED_MESSAGE = () => i18n.t("errors.transfer.malformed")
@@ -39,6 +40,14 @@ function checkTags(tags: unknown, counter: Counter) {
         if (!isObject(tag) || !isNonEmpty(tag.name) || !isNullableString(tag.color) || !(tag.shape === undefined || isNullableString(tag.shape))) malformed()
 }
 
+/** The files attached to a task: a path, a name (optional) and, in a zip, the entry of the archive. */
+function checkTaskFiles(files: unknown, counter: Counter) {
+    if (!Array.isArray(files)) malformed()
+    bump(counter, files.length)
+    for (const file of files as unknown[])
+        if (!isObject(file) || !isNonEmpty(file.path) || !isNullableString(file.name) || !(file.file === undefined || isNonEmpty(file.file))) malformed()
+}
+
 function checkTask(task: unknown, counter: Counter, depth = 0) {
     if (!isObject(task) || depth > 100) malformed()
     bump(counter)
@@ -47,6 +56,7 @@ function checkTask(task: unknown, counter: Counter, depth = 0) {
     // The due date and time are optional (older files have none); a value that is not a date or a time is dropped when normalized
     if (!isNullableString(task.due_date) || !isNullableString(task.due_time)) malformed()
     if (task.tags !== undefined) checkTags(task.tags, counter)
+    if (task.files !== undefined) checkTaskFiles(task.files, counter)
     for (const subtask of task.subtasks as unknown[]) checkTask(subtask, counter, depth + 1)
 }
 
@@ -97,6 +107,8 @@ function normalizeTask(task: ContentTask) {
     if (due.date) { task.due_date = due.date; if (due.time) task.due_time = due.time; else delete task.due_time }
     else { delete task.due_date; delete task.due_time }
     for (const tag of task.tags ?? []) tag.color = cleanColor(tag.color)
+    // The name is optional in a file: the file name of the path (the same as when it was attached)
+    for (const file of task.files ?? []) file.name = file.name?.trim() || getFileName(file.path)
     for (const subtask of task.subtasks) normalizeTask(subtask)
 }
 

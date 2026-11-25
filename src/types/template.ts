@@ -14,6 +14,17 @@ export type TemplateTag = {
 }
 
 /**
+ * A file attached to a task in a snapshot: the path of the file (it stays where it is) and the name shown.
+ * @category Types
+ */
+export type TemplateFile = {
+    name: string
+    path: string
+    /** Export zip only: the entry of the archive that holds the file (`files/...`); the path is then the one of the machine that exported. */
+    file?: string
+}
+
+/**
  * Snapshot of a task (and, recursively, of its subtasks) stored in a template.
  * @category Types
  */
@@ -30,6 +41,8 @@ export type TemplateTask = {
     due_time?: string | null
     /** The tags of the task; absent when it has none (and in snapshots created before the tags existed). */
     tags?: TemplateTag[]
+    /** The files attached to the task, in order; absent when it has none (and in snapshots created before the attachments existed). */
+    files?: TemplateFile[]
     position: number
     subtasks: TemplateTask[]
 }
@@ -110,6 +123,26 @@ export type NoteTemplate = {
     edit_date: string
     edit_time: string
     deleted_at?: string | null
+}
+
+/**
+ * Calls `visit` on every task of a template content, subtasks at any depth included (the direct tasks of a group, then the
+ * tasks of its sections).
+ * @param content The template content.
+ * @param visit What to do with each task.
+ * @category Types
+ */
+export function forEachTemplateTask(content: NoteTemplateContent, visit: (task: TemplateTask) => void) {
+    const walk = (list: TemplateTask[]) => {
+        for (const task of list) {
+            visit(task)
+            walk(task.subtasks)
+        }
+    }
+    for (const group of content.groups) {
+        walk(group.tasks ?? [])
+        for (const section of group.sections) walk(section.tasks)
+    }
 }
 
 /**

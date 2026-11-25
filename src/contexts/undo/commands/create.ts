@@ -4,6 +4,7 @@ import { pageCommands } from "./page"
 import { sectionCommands } from "./section"
 import { tagCommands } from "./tag"
 import { taskCommands } from "./task"
+import { taskFileCommands } from "./task-file"
 import { treeCommands } from "./tree"
 import type { UndoDeps } from "./types"
 
@@ -20,6 +21,7 @@ export function createUndoCommands(deps: UndoDeps) {
         ...treeCommands(helpers),
         ...sectionCommands(helpers),
         ...taskCommands(helpers),
+        ...taskFileCommands(helpers),
         ...tagCommands(helpers),
         ...pageCommands(),
     }

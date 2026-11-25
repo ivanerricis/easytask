@@ -11,6 +11,7 @@ import { addNoteContent, addSections, addTaskTree, buildContentFromRows, createS
 import { uniqueCopyName } from "./duplicate"
 import { getDBNoteData } from "./note"
 import { loadSectionTags } from "./tag"
+import { loadTaskFiles } from "./task-file"
 import { DEFAULT_SECTION_SQL } from "./sql"
 
 /**
@@ -142,6 +143,7 @@ export async function copyDBSectionToNote(sectionId: number, target: CopySection
         // The tags of the section itself go with the copy, like the ones of its tasks
         const section = { ...source, title: source.title ?? "" } as typeof source & { title: string, tagIDs?: number[] }
         const tags = await loadSectionTags(sectionId, tasks, section)
+        await loadTaskFiles(tasks)
         const snapshot = createSectionSnapshotter(tasks, tags)(section)
 
         const tx = new Transaction()

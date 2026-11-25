@@ -2,6 +2,7 @@ import i18n from "@/i18n"
 import type Database from "@tauri-apps/plugin-sql"
 import { invoke } from "@tauri-apps/api/core"
 import { type ExportAudio, type ExportFolder, type WorkspaceExport } from "@/types/transfer"
+import { forEachTemplateTask, type NoteTemplateContent } from "@/types/template"
 import { createError, handleDBError, toAppError } from "@/types/error"
 import { getErrorMessage } from "@/lib/utils"
 import { toStoredShape } from "@/lib/tag-shapes"
@@ -124,6 +125,26 @@ async function resolveBackgroundImages(
     return { paths, skipped }
 }
 
+/**
+ * Points the files attached to the tasks of a content to what the import can use (in place): in a zip, the extracted copy of the
+ * archive entry (a file whose entry the archive lacks is dropped), in a plain file the path as it is (the file may not exist
+ * on this machine: it shows as missing and can be relinked). The entry name is not kept.
+ * @returns How many files were dropped.
+ */
+function resolveTaskFiles(content: NoteTemplateContent, checks: FileChecks): number {
+    let dropped = 0
+    forEachTemplateTask(content, task => {
+        if (!task.files) return
+        const kept = task.files.flatMap(file => {
+            const path = pathOfFile(file, checks.extractedFiles)
+            return path === undefined ? [] : [{ name: file.name, path }]
+        })
+        dropped += task.files.length - kept.length
+        task.files = kept
+    })
+    return dropped
+}
+
 type PendingFolder = { folder: ExportFolder, parentRef: TxRef | number | null }
 
 type InsertedItems = { skippedFiles: number, folderRefs: Map<string, TxRef>, noteRefs: TxRef[] }
@@ -170,6 +191,7 @@ async function insertItems(
         ]
         const images = await resolveBackgroundImages(data.notes, checks)
         skippedFiles += images.skipped
+        for (const note of data.notes) skippedFiles += resolveTaskFiles(note.content, checks)
         noteRefs = tx.insertRows("note", ["workspaceID", "folderID", "name", "color", "bg_color", "bg_image", "archived_at", "kind", "body", "position"],
             data.notes.map((note, i) => [
                 workspaceRef, note.folderRef === null ? rootParent : folderRefs.get(note.folderRef) ?? null,
@@ -252,6 +274,7 @@ export async function importDBWorkspace(
         if (data.templates.length > 0) {
             const images = await resolveBackgroundImages(data.templates, checks)
             skippedFiles += images.skipped
+            for (const template of data.templates) skippedFiles += resolveTaskFiles(template.content, checks)
             tx.insertRows("note_template", ["workspaceID", "sourceNoteID", "name", "color", "bg_color", "bg_image", "content"],
                 data.templates.map((template, i) => [workspaceRef, null, template.name.trim(), template.color ?? null, template.bg_color || null, images.paths[i], JSON.stringify(template.content)]))
         }

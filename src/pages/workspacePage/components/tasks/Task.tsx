@@ -38,6 +38,7 @@ import { useTaskRowPointer } from "./use-task-row-pointer"
 import { TaskConnectorTick } from "./TaskConnectors"
 import { TaskRowText } from "./TaskRowText"
 import { TaskRowBadges } from "./TaskRowBadges"
+import { TaskFilesButton } from "./TaskFilesButton"
 import { TaskTagBadges } from "./TaskTagBadges"
 import { TaskRowToolbar } from "./TaskRowToolbar"
 
@@ -264,6 +265,7 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
                                 due={task}
                                 onOpenDescription={openDescription}
                             />
+                            <TaskFilesButton task={task} />
                             <TaskRowToolbar taskText={task.text} hasDescription={hasDescription} inner={inner} onOpenDescription={openDescription} onAddSubtask={startAddSubtask} />
                         </div>
                     </div>

@@ -11,6 +11,7 @@ import { createWorkspaceEditTriggers, updateTriggerOf } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
 import { mediaFileSchema } from "./media_file";
 import { groupTagSchema, sectionTagSchema, tagSchema } from "./tag";
+import { taskFileSchema } from "./task_file";
 import { trashIndexSchema } from "./trash_index";
 import { createWorkspaceIndexes, createWorkspaceTable, createWorkspaceTrigger } from "./workspace";
 
@@ -121,7 +122,7 @@ export const customThemeSchema: string[] = [...createCustomThemeTable]
  * Migration v15: table of the images and videos linked to the groups.
  * @category Database Schema
  */
-export { mediaFileSchema, tagSchema, groupTagSchema, sectionTagSchema }
+export { mediaFileSchema, tagSchema, groupTagSchema, sectionTagSchema, taskFileSchema }
 
 /**
  * Migration v17: how the tasks of a section are ordered on screen (`section.task_order`, NULL = the global preference).
@@ -153,5 +154,5 @@ export const notePageSchema: string[] = [...addNotePage]
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema, ...notePageSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema, ...notePageSchema, ...taskFileSchema,
 ]

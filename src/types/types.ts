@@ -134,9 +134,22 @@ export type Task = {
     description: string
     /** The tags of the task (ids of the tags of its workspace, in the order of the tag list); absent when it has none. */
     tagIDs?: number[]
+    /** The files attached to the task, in order (paths of files that stay where they are); absent when it has none. */
+    files?: TaskFile[]
     /** Saved state of the subtasks of the task (closed = hidden): true (or 1 from the database) = closed; absent/false = open. A state of the view: undo, templates, exports and copies do not carry it. */
     collapsed?: boolean | number
     subtasks: Task[]
+}
+
+/**
+ * A file attached to a task: the path of a file that stays where it is, and the name shown.
+ */
+export type TaskFile = {
+    id: number
+    taskID: number
+    name: string
+    path: string
+    position: number
 }
 
 /**

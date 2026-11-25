@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react"
-import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, NoteKind, Tag, TrashItem, WorkspaceDataTree } from "@/types/types"
+import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, NoteKind, Tag, TaskFile, TrashItem, WorkspaceDataTree } from "@/types/types"
 import type { TaskOrder } from "@/lib/task-order"
 import type { CollapsibleKind } from "@/db/queries/collapsed"
 import type { DBItemType } from "@/db/queries/shared_queries"
@@ -64,6 +64,10 @@ export type WorkspaceActionsType = {
     updateTaskDue: (taskID: number, date: string | null, time: string | null) => Promise<void>
     updateTaskCompletion: (taskID: number, isCompleted: boolean) => Promise<void>
     updateTaskDescription: (taskID: number, description?: string) => Promise<void>
+    /** Attaches files (by path) to a task, after its others; resolves with the list of the task as stored. Does not touch the open note: the caller patches it. */
+    attachTaskFiles: (taskID: number, paths: readonly string[]) => Promise<TaskFile[]>
+    /** Writes the whole list of files of a task (removal, relink, undo, redo); resolves with the list as stored. Does not touch the open note. */
+    setTaskFiles: (taskID: number, files: readonly { name: string, path: string }[]) => Promise<TaskFile[]>
     /**
      * Reads the tags of the open workspace again. For the writes that create tags by themselves (a template applied or opened in the
      * editor brings its tags): a failure is reported, not thrown.

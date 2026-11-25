@@ -1,0 +1,15 @@
+export const taskFiles = {
+    title: "File allegati",
+    badge_one: "{{count}} file allegato",
+    badge_other: "{{count}} file allegati",
+    attach: "Allega file…",
+    addMore: "Aggiungi file",
+    open: "Apri {{name}}",
+    remove: "Rimuovi {{name}}",
+    empty: "Nessun file allegato.",
+    attached_one: "File allegato",
+    attached_other: "{{count}} file allegati",
+    attachError: "Impossibile allegare i file: {{message}}",
+    openError: "Impossibile aprire il file: {{message}}",
+    blocked: "Per sicurezza i programmi e gli script non si aprono da EasyTask: mostrali nella loro cartella.",
+}
