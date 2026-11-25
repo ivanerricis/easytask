@@ -86,7 +86,8 @@ describe("Pages", () => {
         const input = $(`input[aria-label=${JSON.stringify(await tr("notes.noteSearch.inNote"))}]`)
         await typeInto(input, "bold")
         await browser.waitUntil(async () => (await $$('[data-testid="page-text-marks"] mark').length) === 1, { timeoutMsg: "the match was not marked in the text" })
-        await expect(byText(await tr("notes.noteSearch.counter", { current: 1, total: 1 }))).toBeDisplayed()
+        const counter = $('[role="search"] [aria-live="polite"]')
+        await browser.waitUntil(async () => (await counter.getText()) === await tr("notes.noteSearch.counter", { current: 1, total: 1 }), { timeoutMsg: "the counter does not show 1 of 1" })
         await byLabel(await tr("notes.page.showPreview")).click()
         await browser.waitUntil(async () => (await $$('[data-testid="page-preview"] mark').length) === 1, { timeoutMsg: "the match was not marked in the preview" })
         await byLabel(await tr("notes.noteSearch.close")).click()
@@ -98,8 +99,10 @@ describe("Pages", () => {
         const search = $(`input[placeholder=${JSON.stringify(await tr("notes.search.placeholder"))}]`)
         await search.waitForDisplayed()
         await typeInto(search, "not html")
-        await $('[data-testid="search-snippet"]').waitForDisplayed({ timeoutMsg: "no snippet of the text was shown" })
-        await expect($('[data-testid="search-snippet"]')).toHaveText(expect.stringContaining("not html"))
+        await $('[data-testid="search-snippet"]').waitForExist({ timeoutMsg: "no snippet of the text was shown" })
+        // textContent: getText is unreliable on a truncated line on WebKitGTK
+        const snippet = await browser.execute(() => document.querySelector('[data-testid="search-snippet"]')?.textContent ?? "")
+        expect(snippet).toContain("not html")
         await browser.keys("Escape")
     })
 
