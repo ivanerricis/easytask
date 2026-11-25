@@ -16,7 +16,7 @@ export default defineConfig({
     // The first test of a file pays for the cold module transform (slow on Windows under parallel load)
     testTimeout: 15000,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.{mjs,ts}"],
     coverage: {
       provider: "v8",
       // clover.xml feeds Codecov (ci.yml); lcov for editors/other tools; html + json are the vitest defaults

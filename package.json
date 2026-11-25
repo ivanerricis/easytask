@@ -21,7 +21,8 @@
     "ui-tour": "wdio run e2e/ui-tour/wdio.ui-tour.conf.ts",
     "bench:drag": "wdio run e2e/bench/wdio.bench.conf.ts",
     "docs:screenshots": "wdio run e2e/docs-shots/wdio.docs-shots.conf.ts",
-    "e2e:typecheck": "tsc -p e2e/tsconfig.json"
+    "e2e:typecheck": "tsc -p e2e/tsconfig.json",
+    "seed:demo": "tsx --tsconfig tsconfig.app.json scripts/seed-demo.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -103,6 +104,7 @@
     "eslint-plugin-react-refresh": "^0.5.8",
     "globals": "^17.14.0",
     "jsdom": "^30.1.3",
+    "tsx": "^4.23.15",
     "typescript": "6.0",
     "typescript-eslint": "^8.73.0",
     "vite": "^8.3.8",
