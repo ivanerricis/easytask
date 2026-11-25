@@ -69,7 +69,9 @@ describe("Markdown in the description of a task", () => {
         const boxes = dialog.$$('[role="checkbox"]')
         await browser.waitUntil(async () => (await boxes.length) === 2, { timeoutMsg: "the checklist was not drawn with two boxes" })
         await expect(dialog.$("strong")).toHaveText("today")
-        await boxes[1].click()
+        // The dialog zooms in: a WebDriver click during the animation fails with "element not interactable"
+        await dialog.waitForStable().catch(() => undefined)
+        await domClick(boxes[1])
         await browser.waitUntil(async () => (await savedDescription()) === "Plan **today**\n- [ ] first\n- [x] second", {
             timeoutMsg: `the tick was not saved on the second line (got ${JSON.stringify(await savedDescription())})`,
         })
