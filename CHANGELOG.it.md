@@ -4,6 +4,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-25
+
 ### Aggiunto
 
 - **Scadenze**: un task può avere una data e un'ora facoltativa (**Imposta scadenza…** nel suo menu, o il pannello dei dettagli). Un badge sul task la mostra in grigio, giallo (oggi o domani) o rosso (scaduto), con un'icona e una parola, mai solo con il colore. I task completati non sono mai scaduti.
@@ -710,7 +712,8 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 Prima versione pubblica.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.28.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.29.0...HEAD
+[0.29.0]: https://github.com/ivanerricis/easytask/compare/v0.28.0...v0.29.0
 [0.28.0]: https://github.com/ivanerricis/easytask/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
