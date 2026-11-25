@@ -54,6 +54,10 @@ export const tasks = {
     },
     editText: "Modifica il testo del task",
     openLink: "Ctrl+clic per aprire",
+    markdown: {
+        toggleItem: "Spunta o togli la spunta alla voce",
+        clickToEdit: "Clic per modificare",
+    },
     list: "Task",
     listOf: "Task di {{name}}",
     keyboard: {

@@ -31,6 +31,19 @@ describe("noteToPrintDom", () => {
         expect(root.querySelector("li ul li.done")).not.toBeNull()
     })
 
+    it("prints the Markdown of a description as bold, lists and checkboxes, never as markup", () => {
+        const withMd: NoteTemplateContent = { version: 1, groups: [{ name: "G", position: 0, sections: [{ title: "S", color: null, position: 0, tasks: [
+            task("t", { description: "**bold** <i>x</i>\n- a\n1. b\n- [x] c\n- [ ] d" }),
+        ] }] }] }
+        const description = noteToPrintDom(document, withMd, options).querySelector(".description")!
+        expect(description.querySelector("strong")?.textContent).toBe("bold")
+        expect(description.querySelector("i")).toBeNull()
+        expect(description.querySelector("p")?.textContent).toBe("bold <i>x</i>")
+        expect(description.querySelectorAll("ul:not(.checklist) > li")).toHaveLength(1)
+        expect(description.querySelectorAll("ol > li")).toHaveLength(1)
+        expect([...description.querySelectorAll("ul.checklist > li")].map(li => li.textContent)).toEqual(["☑c", "☐d"])
+    })
+
     it("never turns a task text into markup", () => {
         const root = noteToPrintDom(document, tree, options)
         expect(root.querySelector("b")).toBeNull()

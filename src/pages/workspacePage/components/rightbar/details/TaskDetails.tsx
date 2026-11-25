@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { useActiveNoteActions } from "@/contexts/use-active-note"
+import { useTaskDescriptionWriter } from "@/hooks/use-task-description"
+import { DescriptionPreview } from "../../tasks/DescriptionPreview"
 import { useActiveNoteId } from "@/contexts/use-tabs"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
@@ -33,29 +35,39 @@ const findTaskPlace = (tree: NoteDataTree, taskId: number): { group: string, sec
     return null
 }
 
-/** Editable description: the text is saved only with "Save" (same flow as the description dialog). */
+/**
+ * Editable description. Not being edited it is drawn from its Markdown (click to edit, checklist boxes tick and save at once);
+ * being edited it is a textarea, saved only with "Save" (same flow as the description dialog).
+ */
 const TaskDescription = ({ task }: { task: Task }) => {
     const { t } = useTranslation()
-    const { updateTaskDescription } = useWorkspaceActions()
-    const { patchTask } = useActiveNoteActions()
-    const recorder = useUndoRecorder()
+    const { write, toggleItem } = useTaskDescriptionWriter(task)
     // null = not being edited: the field follows the task (so an undo shows up at once)
     const [draft, setDraft] = useState<string | null>(null)
+    const [editing, setEditing] = useState(false)
     const { saving, run } = useSubmitOnce()
     const value = draft ?? task.description ?? ""
     const dirty = draft !== null && draft !== (task.description ?? "")
 
+    const stopEditing = () => { setDraft(null); setEditing(false) }
+
     const save = async () => {
         if (draft === null) return
         await run(async () => {
-            // Optimistic: the cached tree is updated at once and restored if the write fails
-            const rollback = patchTask(task.id, { description: draft })
             try {
-                await updateTaskDescription(task.id, draft !== "" ? draft : undefined)
-                if (draft !== (task.description ?? "")) recorder.taskDescription(task.id, task.text, task.description ?? "", draft)
-                setDraft(null)
+                await write(draft)
+                stopEditing()
             } catch (err) {
-                rollback()
+                reportError(err, getErrorMessage(err))
+            }
+        })
+    }
+
+    const toggle = (line: number) => {
+        void run(async () => {
+            try {
+                await toggleItem(line)
+            } catch (err) {
                 reportError(err, getErrorMessage(err))
             }
         })
@@ -64,19 +76,31 @@ const TaskDescription = ({ task }: { task: Task }) => {
     return (
         <div className="flex flex-col gap-1">
             <Label htmlFor="details-description" className={sectionTitle}>{t("sidebar.info.description")}</Label>
-            <Textarea
-                id="details-description"
-                rows={4}
-                value={value}
-                placeholder={t("sidebar.info.placeholder")}
-                onChange={e => setDraft(e.target.value)}
-                onClick={openLinkAtCaret}
-                title={linkHint(value, t("tasks.openLink"))}
-                className="min-h-24 resize-y bg-background px-2 py-1 text-sm md:text-sm"
-            />
+            {editing || dirty
+                ? <Textarea
+                    id="details-description"
+                    rows={4}
+                    autoFocus={editing}
+                    value={value}
+                    placeholder={t("sidebar.info.placeholder")}
+                    onChange={e => setDraft(e.target.value)}
+                    // Leaving the field untouched goes back to the rendered text; with changes it stays until Save or Cancel
+                    onBlur={() => { if (!dirty) stopEditing() }}
+                    onClick={openLinkAtCaret}
+                    title={linkHint(value, t("tasks.openLink"))}
+                    className="min-h-24 resize-y bg-background px-2 py-1 text-sm md:text-sm"
+                />
+                : <DescriptionPreview
+                    text={value}
+                    placeholder={t("sidebar.info.placeholder")}
+                    label={t("sidebar.info.description")}
+                    onEdit={() => setEditing(true)}
+                    onToggle={toggle}
+                    className="min-h-24"
+                />}
             {dirty && (
                 <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" disabled={saving} onClick={() => setDraft(null)}>{t("common.cancel")}</Button>
+                    <Button variant="outline" size="sm" disabled={saving} onClick={stopEditing}>{t("common.cancel")}</Button>
                     <Button size="sm" disabled={saving} onClick={() => { void save() }}>{t("common.save")}</Button>
                 </div>
             )}

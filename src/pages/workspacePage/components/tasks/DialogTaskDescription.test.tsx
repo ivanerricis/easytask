@@ -16,6 +16,9 @@ vi.mock("@/contexts/use-active-note", () => ({ useActiveNoteActions: () => ({ pa
 const recorder = makeUndoRecorderMock({ taskDescription })
 vi.mock("@/contexts/undo/use-undo", () => ({ useUndoRecorder: () => recorder }))
 
+// A description opens drawn from its Markdown: a click on it gives the textarea
+const edit = (user: ReturnType<typeof userEvent.setup>) => user.click(screen.getByRole("group", { name: "Descrizione" }))
+
 const setup = (description = "") => {
     const onOpenChange = vi.fn()
     render(<DialogTaskDescription task={makeTask({ id: 4, text: "Write the report", description })} open onOpenChange={onOpenChange} />)
@@ -38,8 +41,10 @@ describe("DialogTaskDescription", () => {
         expect(field).toHaveFocus()
     })
 
-    it("starts with the caret at the end of the existing description", () => {
+    it("starts with the caret at the end of the existing description", async () => {
+        const user = userEvent.setup()
         setup("Existing text")
+        await edit(user)
         const field = screen.getByRole("textbox", { name: "Descrizione" }) as HTMLTextAreaElement
         expect(field.selectionStart).toBe("Existing text".length)
     })
@@ -47,6 +52,7 @@ describe("DialogTaskDescription", () => {
     it("keeps Save disabled until the text changes", async () => {
         const user = userEvent.setup()
         setup("Old")
+        await edit(user)
         expect(screen.getByRole("button", { name: "Salva" })).toBeDisabled()
         await user.type(screen.getByRole("textbox", { name: "Descrizione" }), "er")
         expect(screen.getByRole("button", { name: "Salva" })).toBeEnabled()
@@ -55,6 +61,7 @@ describe("DialogTaskDescription", () => {
     it("saves, records the undo step and closes", async () => {
         const user = userEvent.setup()
         const { onOpenChange } = setup("Old")
+        await edit(user)
         await user.type(screen.getByRole("textbox", { name: "Descrizione" }), " text")
         await user.click(screen.getByRole("button", { name: "Salva" }))
 
@@ -85,6 +92,7 @@ describe("DialogTaskDescription", () => {
     it("removes the description when it is cleared", async () => {
         const user = userEvent.setup()
         setup("Old")
+        await edit(user)
         await user.clear(screen.getByRole("textbox", { name: "Descrizione" }))
         await user.click(screen.getByRole("button", { name: "Salva" }))
         await waitFor(() => expect(updateTaskDescription).toHaveBeenCalledWith(4, undefined))
@@ -118,6 +126,7 @@ describe("DialogTaskDescription", () => {
         const task = makeTask({ id: 4, text: "Write the report", description: "Old" })
         const ui = (open: boolean) => <DialogTaskDescription task={task} open={open} onOpenChange={onOpenChange} />
         const { rerender } = render(ui(true))
+        await edit(user)
         await user.type(screen.getByRole("textbox", { name: "Descrizione" }), "xyz")
         await user.keyboard("{Escape}")
 
@@ -126,6 +135,20 @@ describe("DialogTaskDescription", () => {
 
         rerender(ui(false))
         rerender(ui(true))
+        expect(screen.getByRole("group", { name: "Descrizione" })).toHaveTextContent("Old")
+        await edit(user)
         expect(screen.getByRole("textbox", { name: "Descrizione" })).toHaveValue("Old")
+    })
+
+    it("ticks a checklist item of the drawn description, saves it at once and stays open", async () => {
+        const user = userEvent.setup()
+        const before = "Todo:\n- [ ] one\n- [x] two"
+        const after = "Todo:\n- [x] one\n- [x] two"
+        const { onOpenChange } = setup(before)
+        await user.click(screen.getAllByRole("checkbox")[0])
+        await waitFor(() => expect(updateTaskDescription).toHaveBeenCalledWith(4, after))
+        expect(taskDescription).toHaveBeenCalledWith(4, "Write the report", before, after)
+        expect(onOpenChange).not.toHaveBeenCalled()
+        expect(screen.queryByRole("textbox", { name: "Descrizione" })).toBeNull()
     })
 })

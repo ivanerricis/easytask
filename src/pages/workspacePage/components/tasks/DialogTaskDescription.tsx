@@ -7,10 +7,9 @@ import TextareaAutosize from "react-textarea-autosize"
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { useState } from "react";
-import { useWorkspaceActions } from "@/contexts/workspace-data";
-import { useActiveNoteActions } from "@/contexts/use-active-note"
-import { useUndoRecorder } from "@/contexts/undo/use-undo";
 import { useSubmitOnce } from "@/hooks/use-submit-once"
+import { useTaskDescriptionWriter } from "@/hooks/use-task-description"
+import { DescriptionPreview } from "./DescriptionPreview"
 
 type Props = {
     task: Task
@@ -23,23 +22,30 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
     const [text, setText] = useState(task.description)
     const { saving, run } = useSubmitOnce()
     const [error, setError] = useState<string | null>(null)
-    const { updateTaskDescription } = useWorkspaceActions()
-    const { patchTask } = useActiveNoteActions()
-    const recorder = useUndoRecorder()
+    const { write, toggleItem } = useTaskDescriptionWriter(task)
+    // A description opens drawn from its Markdown (boxes can be ticked); a click on it, or no description yet, gives the textarea
+    const [editing, setEditing] = useState(!task.description?.trim())
     const changed = text !== (task.description ?? "")
 
     const save = async () => {
         if (!changed) return
         await run(async () => {
             setError(null)
-            // Optimistic: the cached tree is updated at once and restored if the write fails
-            const rollback = patchTask(task.id, { description: text })
             try {
-                await updateTaskDescription(task.id, text !== "" ? text : undefined)
-                recorder.taskDescription(task.id, task.text, task.description ?? "", text)
+                await write(text)
                 onOpenChange(false)
             } catch (err) {
-                rollback()
+                setError(getErrorMessage(err))
+            }
+        })
+    }
+
+    // A tick saves at once (and can be undone), the dialog stays open
+    const toggle = (line: number) => {
+        void run(async () => {
+            try {
+                await toggleItem(line)
+            } catch (err) {
                 setError(getErrorMessage(err))
             }
         })
@@ -54,6 +60,7 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
     const handleOpenChange = (value: boolean) => {
         if (!value) {
             setText(task.description)
+            setEditing(!task.description?.trim())
             setError(null)
         }
         onOpenChange(value)
@@ -71,26 +78,39 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
                     <DialogTitle>{t("tasks.descriptionDialog.title")}</DialogTitle>
                     <DialogDescription className="min-w-0 truncate" title={task.text}>{task.text}</DialogDescription>
                 </DialogHeader>
-                <TextareaAutosize
-                    autoFocus
-                    minRows={5}
-                    maxRows={12}
-                    aria-label={t("tasks.descriptionDialog.label")}
-                    placeholder={t("tasks.descriptionDialog.placeholder")}
-                    className="resize-none border rounded-xs py-1 px-2 text-sm focus-visible:border-primary"
-                    value={text}
-                    onClick={openLinkAtCaret}
-                    title={linkHint(text, t("tasks.openLink"))}
-                    onChange={(e) => { setError(null); setText(e.target.value) }}
-                    // The caret starts at the end of the existing text
-                    onFocus={(e) => { const end = e.currentTarget.value.length; e.currentTarget.setSelectionRange(end, end) }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                            e.preventDefault()
-                            void save()
-                        }
-                    }}
-                />
+                {editing
+                    ? (
+                    <TextareaAutosize
+                        autoFocus
+                        minRows={5}
+                        maxRows={12}
+                        aria-label={t("tasks.descriptionDialog.label")}
+                        placeholder={t("tasks.descriptionDialog.placeholder")}
+                        className="resize-none border rounded-xs py-1 px-2 text-sm focus-visible:border-primary"
+                        value={text}
+                        onClick={openLinkAtCaret}
+                        title={linkHint(text, t("tasks.openLink"))}
+                        onChange={(e) => { setError(null); setText(e.target.value) }}
+                        // The caret starts at the end of the existing text
+                        onFocus={(e) => { const end = e.currentTarget.value.length; e.currentTarget.setSelectionRange(end, end) }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                e.preventDefault()
+                                void save()
+                            }
+                        }}
+                    />
+                    )
+                    : (
+                        <DescriptionPreview
+                            text={task.description ?? ""}
+                            placeholder={t("tasks.descriptionDialog.placeholder")}
+                            label={t("tasks.descriptionDialog.label")}
+                            onEdit={() => { setText(task.description); setEditing(true) }}
+                            onToggle={toggle}
+                            className="max-h-72 min-h-28 overflow-y-auto"
+                        />
+                    )}
                 {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
                 <DialogFooter className="items-center sm:justify-between">
                     <span className="hidden text-xs text-muted-foreground sm:inline">{t("tasks.descriptionDialog.hint")}</span>
@@ -98,7 +118,7 @@ export const DialogTaskDescription = ({ task, open, onOpenChange }: Props) => {
                         <Button variant="outline" onClick={handleClose}>
                             {t("common.cancel")}
                         </Button>
-                        <Button onClick={handleSave} disabled={!changed || saving}>
+                        <Button onClick={handleSave} disabled={!editing || !changed || saving}>
                             <Check />
                             {t("common.save")}
                         </Button>
