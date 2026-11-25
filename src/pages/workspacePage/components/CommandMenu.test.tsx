@@ -46,6 +46,14 @@ describe("CommandMenu search in the text of the pages", () => {
         expect(mocks.openNote).toHaveBeenCalledWith(2)
     })
 
+    it("has an action that opens the statistics tab", async () => {
+        const user = userEvent.setup()
+        render(<CommandMenu />)
+        act(() => mocks.shortcut.handler?.())
+        await user.click(await screen.findByText("Statistiche"))
+        expect(mocks.openNote).toHaveBeenCalledWith(-2)
+    })
+
     it("does not read the database for an empty query", async () => {
         render(<CommandMenu />)
         act(() => mocks.shortcut.handler?.())

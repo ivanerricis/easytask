@@ -66,6 +66,15 @@ describe("StatsView", () => {
         expect(screen.getAllByTestId("stats-task")).toHaveLength(6)
     })
 
+    it("lists the tasks due this week and says so when there are no notes", () => {
+        state.stats = stats({ dueThisWeek: [due(3, "2026-11-26")], notes: [], stale: [] })
+        render(<StatsView />)
+        expect(screen.getByText("In scadenza questa settimana (1)")).toBeInTheDocument()
+        expect(screen.getByText("Task 3")).toBeInTheDocument()
+        expect(screen.getByText("Ancora nessuna nota")).toBeInTheDocument()
+        expect(screen.getByText("Tutte le note sono state modificate di recente")).toBeInTheDocument()
+    })
+
     it("asks to open the task on its note when an overdue task is clicked", async () => {
         state.stats = stats({ overdue: [due(5)] })
         render(<StatsView />)
