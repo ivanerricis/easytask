@@ -3,7 +3,8 @@ import { Fragment, useEffect, useState, type ReactNode } from "react"
 import { getName, getTauriVersion, getVersion } from "@tauri-apps/api/app"
 import { ensureAppFolder } from "@/db/appPaths"
 import { openUrl } from "@tauri-apps/plugin-opener"
-import { Copy } from "lucide-react"
+import { CopyIcon } from "@/components/copy-icon"
+import { useCopiedFlash } from "@/hooks/use-copied-flash"
 import { toast } from "sonner"
 import { getErrorMessage } from "@/lib/utils"
 import { docsUrl } from "@/lib/docs"
@@ -43,14 +44,17 @@ const InfoRow = ({ label, value }: { label: string, value: string }) => (
 /** Copies `text` to the clipboard, with the result in a toast. */
 const useCopy = (successKey: "settings.about.copied" | "settings.about.pathCopied") => {
     const { t } = useTranslation()
-    return async (text: string) => {
+    const [copied, flash] = useCopiedFlash()
+    const copy = async (text: string) => {
         try {
             await navigator.clipboard.writeText(text)
+            flash()
             toast.success(t(successKey))
         } catch (err) {
             toast.error(t("settings.about.copyError", { message: getErrorMessage(err) }))
         }
     }
+    return { copied, copy }
 }
 
 /** A path that wraps only after its separators, never in the middle of a name. */
@@ -67,7 +71,7 @@ const WrappablePath = ({ path }: { path: string }) => (
 
 const DatabaseRow = ({ path }: { path: string }) => {
     const { t } = useTranslation()
-    const copy = useCopy("settings.about.pathCopied")
+    const { copied, copy } = useCopy("settings.about.pathCopied")
     return (
         <AboutRow label={t("settings.about.database")}>
             <span className="flex min-w-0 items-center gap-1.5 text-right">
@@ -75,7 +79,7 @@ const DatabaseRow = ({ path }: { path: string }) => {
                 {path !== EMPTY && (
                     <TooltipCustom text={t("settings.about.copyPath")}>
                         <Button type="button" variant="ghost" size="icon" onClick={() => void copy(path)} aria-label={t("settings.about.copyPath")} className="shrink-0 self-center text-muted-foreground">
-                            <Copy />
+                            <CopyIcon copied={copied} />
                         </Button>
                     </TooltipCustom>
                 )}
@@ -95,7 +99,7 @@ const LinkRow = ({ label, url }: { label: string, url: string }) => {
         }
     }
 
-    const copy = useCopy("settings.about.copied")
+    const { copied, copy } = useCopy("settings.about.copied")
     const handleCopy = () => copy(url)
 
     return (
@@ -113,7 +117,7 @@ const LinkRow = ({ label, url }: { label: string, url: string }) => {
                 </TooltipCustom>
                 <TooltipCustom text={t("settings.about.copyLink")}>
                     <Button type="button" variant="ghost" size="icon" onClick={() => void handleCopy()} aria-label={t("settings.about.copyLink")} className="self-center text-muted-foreground">
-                        <Copy />
+                        <CopyIcon copied={copied} />
                     </Button>
                 </TooltipCustom>
             </span>

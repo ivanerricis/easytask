@@ -205,7 +205,7 @@ const TopLevelAddTask = ({ sectionId, inGroup, emptySection }: { sectionId: numb
             <form
                 ref={formRef}
                 onSubmit={onSubmit}
-                className="flex flex-col items-center justify-center w-full"
+                className="animate-in fade-in-0 flex flex-col items-center justify-center w-full"
             >
                 <div className="flex items-center justify-center w-full bg-background">
                     <Input

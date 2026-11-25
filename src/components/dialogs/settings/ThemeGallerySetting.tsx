@@ -62,7 +62,7 @@ export const ThemeGallerySetting = () => {
                             <ThemePreview theme={item} size="sm" className="h-20 w-full" />
                             <span className="flex items-center justify-between gap-2 text-sm">
                                 <span className="truncate">{name}</span>
-                                {selected && <Check className="size-4 shrink-0 text-primary" aria-label={t("settings.themes.gallery.selected")} />}
+                                {selected && <Check className="size-4 shrink-0 text-primary animate-in zoom-in-50 fade-in-0" aria-label={t("settings.themes.gallery.selected")} />}
                             </span>
                         </button>
                     )

@@ -15,7 +15,7 @@ export const UpdateInstallProgress = ({ percent, label }: { percent: number | nu
                 value={percent}
                 aria-label={t("settings.about.update.progressLabel")}
                 aria-valuetext={label ?? undefined}
-                className={percent === null ? "animate-pulse bg-primary/30" : undefined}
+                className={percent === null ? "busy-pulse bg-primary/30" : undefined}
             />
             <p className="text-xs text-muted-foreground">{t("settings.about.update.keepOpenHint")}</p>
         </>

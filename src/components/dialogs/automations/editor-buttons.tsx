@@ -35,7 +35,7 @@ export const EditorButtons = ({ step, valid, saving, onCancel, onGoTo, onSave }:
                 </Button>
             ) : (
                 <Button type="button" onClick={onSave} disabled={saving || !valid}>
-                    {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : <Check />}
+                    {saving ? <Loader2 className="animate-spin" /> : <Check />}
                     {t("common.save")}
                 </Button>
             )}

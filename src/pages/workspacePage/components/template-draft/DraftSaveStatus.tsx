@@ -21,17 +21,19 @@ export const DraftSaveStatus = ({ status, onRetry, className }: DraftSaveStatusP
 
     return (
         <div role="status" aria-live="polite" className={cn("flex items-center gap-1 text-xs text-muted-foreground", className)}>
-            {status === "saving" && <><Loader2 className="size-3.5 animate-spin" aria-hidden />{t("templateEditor.saving")}<LoadingDots /></>}
-            {status === "saved" && <><Check className="size-3.5" aria-hidden />{t("templateEditor.saved")}</>}
-            {status === "error" && (
-                <>
-                    <AlertCircle className="size-3.5 text-destructive" aria-hidden />
-                    <span className="text-destructive">{t("templateEditor.saveError")}</span>
-                    <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onRetry}>
-                        {t("templateEditor.retry")}
-                    </Button>
-                </>
-            )}
+            {status !== "idle" && <span key={status} className="flex items-center gap-1 animate-in fade-in-0">
+                {status === "saving" && <><Loader2 className="size-3.5 animate-spin" aria-hidden />{t("templateEditor.saving")}<LoadingDots /></>}
+                {status === "saved" && <><Check className="size-3.5 animate-in zoom-in-50 fade-in-0" aria-hidden />{t("templateEditor.saved")}</>}
+                {status === "error" && (
+                    <>
+                        <AlertCircle className="size-3.5 text-destructive" aria-hidden />
+                        <span className="text-destructive">{t("templateEditor.saveError")}</span>
+                        <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={onRetry}>
+                            {t("templateEditor.retry")}
+                        </Button>
+                    </>
+                )}
+            </span>}
         </div>
     )
 }

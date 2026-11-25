@@ -69,6 +69,6 @@ describe("DialogImportNames", () => {
         await user.click(screen.getByRole("button", { name: "Importa" }))
         const button = screen.getByRole("button", { name: "Importa" })
         expect(button).toHaveAttribute("aria-busy", "true")
-        expect(button.querySelector("svg")).toHaveClass("motion-reduce:animate-none")
+        expect(button.querySelector("svg")).toHaveClass("animate-spin")
     })
 })

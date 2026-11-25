@@ -128,7 +128,7 @@ export const AddSection = ({ inGroup, groupId, open, onClose }: AddSectionFormPr
         <form
             ref={formRef}
             onSubmit={handleSubmit}
-            className={`flex items-center bg-background border ${inGroup ? 'w-full' : 'w-fit'}`}
+            className={`animate-in fade-in-0 flex items-center bg-background border ${inGroup ? 'w-full' : 'w-fit'}`}
         >
             <Input
                     value={name}

@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { Button } from "../ui/button"
-import { AlertCircle, ArrowLeft, ChevronRight, Copy, RotateCcw } from "lucide-react"
+import { CopyIcon } from "@/components/copy-icon"
+import { useCopiedFlash } from "@/hooks/use-copied-flash"
+import { AlertCircle, ArrowLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 import { writeText } from "@tauri-apps/plugin-clipboard-manager"
@@ -19,14 +21,17 @@ type ErrorPageProps = {
 /** Copies the technical details of an error to the clipboard, with a toast for the result. */
 const useCopyDetails = () => {
     const { t } = useTranslation()
-    return async (details: string) => {
+    const [copied, flash] = useCopiedFlash()
+    const copy = async (details: string) => {
         try {
             await writeText(details)
+            flash()
             toast.success(t("crash.copied"))
         } catch (e) {
             reportError(e, t("crash.copyFailed"))
         }
     }
+    return { copied, copy }
 }
 
 /** The error alert: a translated message, and the raw (often English) message folded in "Technical details". */
@@ -44,7 +49,7 @@ const ErrorAlert = ({ message }: { message: string | null }) => {
                             <ChevronRight className="size-3.5 transition-transform group-data-[state=open]/details:rotate-90" />
                             {t("errorPage.details")}
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                             <code className="text-xs">{message}</code>
                         </CollapsibleContent>
                     </Collapsible>
@@ -59,7 +64,7 @@ export const ErrorPage = ({ error, onRetry }: ErrorPageProps) => {
     const navigate = useNavigate()
     const { resetWorkspace } = useWorkspace()
     const { resetData } = useWorkspaceData()
-    const copyDetails = useCopyDetails()
+    const { copied, copy: copyDetails } = useCopyDetails()
 
     const handleClick = () => {
         resetWorkspace()
@@ -83,7 +88,7 @@ export const ErrorPage = ({ error, onRetry }: ErrorPageProps) => {
                 </Button>
                 {error && (
                     <Button variant="outline" onClick={() => void copyDetails(error)}>
-                        <Copy />
+                        <CopyIcon copied={copied} />
                         {t("crash.copyDetails")}
                     </Button>
                 )}
@@ -100,7 +105,7 @@ type CrashScreenProps = {
 export const CrashScreen = ({ error }: CrashScreenProps) => {
     const { t } = useTranslation()
 
-    const copyDetails = useCopyDetails()
+    const { copied, copy: copyDetails } = useCopyDetails()
     const handleCopy = () => copyDetails([`${error.name}: ${error.message}`, error.stack].filter(Boolean).join("\n"))
 
     return (
@@ -112,7 +117,7 @@ export const CrashScreen = ({ error }: CrashScreenProps) => {
                     {t("crash.reload")}
                 </Button>
                 <Button variant="outline" onClick={() => void handleCopy()}>
-                    <Copy />
+                    <CopyIcon copied={copied} />
                     {t("crash.copyDetails")}
                 </Button>
             </div>

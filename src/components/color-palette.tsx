@@ -56,7 +56,7 @@ export const ColorPalette = ({ value, onPick, className }: ColorPaletteProps) =>
                         style={{ backgroundColor: color }}
                     >
                         {/* Not only a ring: the check reads on any swatch (dark or white, whichever contrasts) */}
-                        {selected && <Check className="size-5" style={{ color: textColorOn(color) }} aria-hidden="true" />}
+                        {selected && <Check className="size-5 animate-in zoom-in-50 fade-in-0" style={{ color: textColorOn(color) }} aria-hidden="true" />}
                     </ToggleGroupItem>
                 )
             })}
@@ -76,7 +76,7 @@ export const ColorPalette = ({ value, onPick, className }: ColorPaletteProps) =>
                     value={customColor}
                     onChange={e => setCustom(e.target.value)}
                 />
-                {customSelected && <Check className="absolute pointer-events-none size-5" style={{ color: textColorOn(customColor) }} aria-hidden="true" />}
+                {customSelected && <Check className="absolute pointer-events-none size-5 animate-in zoom-in-50 fade-in-0" style={{ color: textColorOn(customColor) }} aria-hidden="true" />}
                 {!customSelected && <Plus className="absolute pointer-events-none size-5" style={{ color: textColorOn(customColor) }} />}
             </div>
         </ToggleGroup>

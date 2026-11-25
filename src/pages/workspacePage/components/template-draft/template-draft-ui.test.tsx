@@ -17,6 +17,8 @@ describe("DraftSaveStatus", () => {
         rerender(<DraftSaveStatus status="saved" onRetry={vi.fn()} />)
         expect(screen.getByRole("status")).toHaveTextContent("Salvato")
         expect(screen.queryByRole("button")).not.toBeInTheDocument()
+        // The check zooms in when it appears (class only: jsdom does not animate)
+        expect(screen.getByRole("status").querySelector("svg")).toHaveClass("animate-in", "zoom-in-50")
     })
 
     it("after an error it offers a retry", async () => {

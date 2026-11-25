@@ -180,7 +180,7 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
                         The scrollbar itself is lined up with the content: scroll-inset shortens its track by the 4px of vertical padding (the thumb starts
                         level with the first task, not above it) and scroll-gap adds 6px of space before it, so with the 2px of padding the tasks are 8px
                         from the scrollbar, the same as the scrollbar is from the border of the group (p-2). */}
-                    <div data-group-list className="scroll-inset scroll-gap [--scroll-gap:6px] flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
+                    <div data-group-list className="animate-in fade-in-0 scroll-inset scroll-gap [--scroll-gap:6px] flex flex-col gap-1 min-h-0 overflow-y-auto -ml-1.5 pl-1.5 pr-0.5 -my-1 py-1">
                         {group.sections.map((section, position) => (
                             <Fragment key={section.id}>
                                 {position === directIndex && <GroupTasks group={group} />}
