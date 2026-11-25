@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import zlib from "node:zlib"
 import { $, browser, expect } from "@wdio/globals"
-import { byLabel, byText, createWorkspace, dataDir, sql, tr, typeInto, waitForApp } from "../helpers"
+import { byLabel, byText, createWorkspace, dataDir, sql, tr, waitForApp } from "../helpers"
 
 // Export a complete workspace to a `.easytask.zip` (with the linked files) and import it back through the real UI.
 //
@@ -55,6 +55,9 @@ const makePng = ([r, g, b]: [number, number, number]) => {
 }
 const PICTURE_BYTES = makePng([220, 40, 40])
 const BACKGROUND_BYTES = makePng([40, 70, 220])
+
+/** A toast with the given text and no "·" suffix (the import message must not be "... n files skipped"). */
+const toastWith = (text: string) => $(`//*[@data-sonner-toast][contains(normalize-space(.), ${JSON.stringify(text)}) and not(contains(., "·"))]`)
 
 type Row = Record<string, unknown>
 const select = <T = Row>(query: string, values: unknown[] = []) => sql<T[]>("select", query, values)
@@ -308,7 +311,7 @@ describe("Export and import of a whole workspace", () => {
         await expect(question).toHaveText(expect.stringContaining(await tr("transfer.includeFilesTitle")))
         await byText(await tr("transfer.includeFilesYes"), question).click()
 
-        await $(`[data-sonner-toast]=${await tr("transfer.exported")}`).waitForDisplayed({ timeoutMsg: "the export did not finish" })
+        await toastWith(await tr("transfer.exported")).waitForDisplayed({ timeoutMsg: "the export did not finish" })
         expect(await pickerCalls()).toEqual(["plugin:dialog|save"])
         const zip = fs.readFileSync(zipPath)
         expect(zip.subarray(0, 2).toString("latin1")).toBe("PK")
@@ -326,7 +329,7 @@ describe("Export and import of a whole workspace", () => {
         await byText(await tr("transfer.importAction"), dialog).click()
 
         // The exact "imported" message (no "n files skipped"): every linked file was found and kept
-        await $(`[data-sonner-toast]=${await tr("transfer.imported")}`).waitForDisplayed({ timeoutMsg: "the import did not finish (or skipped files)" })
+        await toastWith(await tr("transfer.imported")).waitForDisplayed({ timeoutMsg: "the import did not finish (or skipped files)" })
         expect(await pickerCalls()).toEqual(["plugin:dialog|open"])
         const rows = await select<{ id: number }>("SELECT id FROM workspace WHERE name = ?", [importedName])
         expect(rows.length).toBe(1)
