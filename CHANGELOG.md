@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-11-25
+
 ### Added
 
 - **Due dates**: a task can have a date and an optional time (**Set due date…** in its menu, or the details panel). A badge on the task shows it in grey, yellow (today or tomorrow) or red (overdue), with an icon and a word, never the color alone. Completed tasks are never overdue.
@@ -713,7 +715,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 First public release.
 
-[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.28.0...HEAD
+[Unreleased]: https://github.com/ivanerricis/easytask/compare/v0.29.0...HEAD
+[0.29.0]: https://github.com/ivanerricis/easytask/compare/v0.28.0...v0.29.0
 [0.28.0]: https://github.com/ivanerricis/easytask/compare/v0.27.0...v0.28.0
 [0.27.0]: https://github.com/ivanerricis/easytask/compare/v0.26.0...v0.27.0
 [0.26.0]: https://github.com/ivanerricis/easytask/compare/v0.25.0...v0.26.0
