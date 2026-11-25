@@ -63,13 +63,20 @@ describe("Markdown in the description of a task", () => {
     })
 
     it("draws the checklist and a click on a box rewrites only that line", async () => {
+        // The task menu used to add the description can still be open over the row: close it first
+        for (let i = 0; i < 3 && (await $('[role="menu"]').isExisting()); i++) {
+            await browser.keys("Escape")
+            await $('[role="menu"]').waitForExist({ reverse: true, timeout: 2_000 }).catch(() => undefined)
+        }
         await rowOf(TASK).moveTo()
         await byLabel(await tr("tasks.showDescription")).click()
         const dialog = await topDialog()
         const boxes = dialog.$$('[role="checkbox"]')
         await browser.waitUntil(async () => (await boxes.length) === 2, { timeoutMsg: "the checklist was not drawn with two boxes" })
         await expect(dialog.$("strong")).toHaveText("today")
-        await boxes[1].click()
+        // The dialog zooms in: a WebDriver click during the animation fails with "element not interactable"
+        await dialog.waitForStable().catch(() => undefined)
+        await domClick(boxes[1])
         await browser.waitUntil(async () => (await savedDescription()) === "Plan **today**\n- [ ] first\n- [x] second", {
             timeoutMsg: `the tick was not saved on the second line (got ${JSON.stringify(await savedDescription())})`,
         })
