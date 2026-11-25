@@ -93,8 +93,9 @@ function normalizeTask(task: ContentTask) {
     task.text = untitled(task.text)
     task.color = cleanColor(task.color)
     const due = normalizeDue(task.due_date, task.due_time)
-    task.due_date = due.date
-    task.due_time = due.time
+    // No empty fields: a task without a due date has none (the content of an imported template stays as it was)
+    if (due.date) { task.due_date = due.date; if (due.time) task.due_time = due.time; else delete task.due_time }
+    else { delete task.due_date; delete task.due_time }
     for (const tag of task.tags ?? []) tag.color = cleanColor(tag.color)
     for (const subtask of task.subtasks) normalizeTask(subtask)
 }

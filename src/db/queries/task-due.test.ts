@@ -156,7 +156,8 @@ describe("export and import", () => {
         first.due_time = "10:00"
         const checked = validateWorkspaceExport(bad)
         const clean = checked.notes.find(note => note.content.groups.length > 0)!.content.groups[0].sections[0].tasks[0]
-        expect(clean).toMatchObject({ due_date: null, due_time: null })
+        expect(clean).not.toHaveProperty("due_date")
+        expect(clean).not.toHaveProperty("due_time")
     })
 })
 
