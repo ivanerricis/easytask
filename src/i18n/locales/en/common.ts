@@ -56,6 +56,9 @@ export const ui: Translation["ui"] = {
 
 export const layout: Translation["layout"] = {
     resizeSidebar: "Resize the sidebar",
+    leftLandmark: "Notes and folders",
+    rightLandmark: "Details of the note",
+    skipToNote: "Skip to the note",
     resizeValue: "{{width}} pixels",
     showSidebar: "Show the sidebar",
     hideSidebar: "Hide the sidebar",

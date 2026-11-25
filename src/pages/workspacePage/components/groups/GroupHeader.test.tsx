@@ -81,6 +81,7 @@ describe("GroupHeader unnamed label and rename on click", () => {
     it("shows no text for an unnamed group by default", () => {
         render(<GroupHeader group={makeGroup({ name: null })} index={2} />)
         expect(screen.getByRole("button", { name: "Nome gruppo: Gruppo 3, premi Invio per rinominare" })).toBeEmptyDOMElement()
+        expect(screen.getByRole("heading", { level: 2 })).toContainElement(screen.getByRole("button", { name: "Nome gruppo: Gruppo 3, premi Invio per rinominare" }))
     })
 
     it("shows the fallback label in muted text when the preference is on", () => {

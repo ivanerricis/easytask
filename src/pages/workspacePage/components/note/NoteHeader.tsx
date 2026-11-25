@@ -13,7 +13,7 @@ import { useStoreSelector } from "@/lib/external-store"
 import { consumeTabRename, pendingRename } from "@/lib/pending-rename"
 import { ButtonMenuNote } from "./ButtonMenuNote"
 import { Button } from "@/components/ui/button"
-import { focusRing } from "@/lib/a11y"
+import { focusRing, tabElementId, tabPanelId } from "@/lib/a11y"
 import { cn } from "@/lib/utils"
 import { useInlineRename } from "@/hooks/use-inline-rename"
 import { InlineNameInput } from "@/components/inline-name-input"
@@ -113,6 +113,8 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
+                id={tabElementId(pane, note.id)}
+                aria-controls={isActive ? tabPanelId(pane) : undefined}
                 tabIndex={isActive ? 0 : -1}
                 data-note-id={note.id}
                 title={draft ? t("templateEditor.tab", { name: draft.templateName }) : note.name}

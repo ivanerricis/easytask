@@ -8,6 +8,10 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 - **Filtro per tag** nella barra della nota: spunta uno o più tag per vedere solo i task che hanno uno qualsiasi di essi (un gruppo o una sezione con il tag mostra tutti i suoi task). Il pulsante indica quanti tag sono spuntati e un clic sulla **x** toglie il filtro. È solo una vista della nota, mantenuta finché la sua scheda è aperta.
 
+### Modificato
+
+- Correzioni di accessibilità (WCAG 2.2 AA): anello di focus più marcato su campi di testo, selezioni e barra di scorrimento dell'audio, e più chiaro sul tema scuro; il rosso degli errori è un po' più scuro sul tema chiaro; le barre laterali sono annunciate come navigazione e dettagli, il link **Vai alla nota** è il primo nell'ordine del Tab, i nomi di gruppi e sezioni sono titoli, le schede sono collegate al pannello della loro nota e il titolo della finestra segue la nota aperta. L'avviso del riavvio per l'accelerazione hardware resta più a lungo e il player audio fissato non ha più una sosta del Tab.
+
 ## [0.28.0] - 2026-11-20
 
 ### Aggiunto

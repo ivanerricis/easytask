@@ -36,6 +36,7 @@ export const TaskInsertLine = memo(function TaskInsertLine({ listKey, afterTaskI
                 className={first ? "group/insert absolute inset-x-0 top-0 h-1" : "group/insert absolute inset-x-0 -top-[3px] h-1.5"}
             >
                 <div className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-primary opacity-0 pointer-events-none group-hover/insert:opacity-100" />
+                {/* 16px on purpose: a pointer shortcut. WCAG 2.5.8 is met by the equivalent control (the "Add task" button and the menus), so it is aria-hidden and out of the Tab order */}
                 <Button
                     type="button"
                     variant="default"

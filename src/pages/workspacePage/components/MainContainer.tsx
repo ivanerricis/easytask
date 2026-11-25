@@ -12,6 +12,7 @@ import { AUDIO_PLAYER_MEASURING } from "@/lib/audio-player-dnd"
 import { usePreference } from "@/contexts/use-preference"
 import { useTabShortcuts } from "@/hooks/use-tab-shortcuts"
 import { useAutoCloseSidebars } from "./use-auto-close-sidebars"
+import { useDocumentTitle } from "@/hooks/use-document-title"
 import { WhatsNewTrigger } from "./whats-new/WhatsNewTrigger"
 
 
@@ -54,6 +55,7 @@ export const MainContainer = () => {
     const audioPlayerContainerRef = usePreference(p => p.audioPlayerContainerRef)
     useTabShortcuts()
     useAutoCloseSidebars()
+    useDocumentTitle()
 
     return (
         <div ref={audioPlayerContainerRef} className="flex flex-1 w-full h-full relative">

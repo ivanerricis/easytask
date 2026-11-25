@@ -143,7 +143,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                 className="size-6 shrink-0">
                 <ChevronDown className={`transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`} />
             </Button>
-            {!isEditing && <button
+            {!isEditing && <div role="heading" aria-level={2} className="contents"><button
                 type="button"
                 onClick={renameOnClick ? startEditing : undefined}
                 // Enter renames even when the click does not
@@ -154,7 +154,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                 aria-label={t("groups.renameAria", { name: label })}
                 className={`text-sm font-semibold mr-1 min-w-[6ch] max-w-72 flex-1 h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!name ? "text-muted-foreground" : ""}`}>
                 {search.query ? <Highlight text={name} query={search.query} active={search.active} /> : name || (showUnnamedLabels ? label : "")}
-            </button>}
+            </button></div>}
             {isEditing && <InlineErrorTooltip message={error}>
                 <Input
                     {...inputProps}

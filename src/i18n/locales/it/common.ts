@@ -54,6 +54,9 @@ export const ui = {
 
 export const layout = {
     resizeSidebar: "Ridimensiona la barra laterale",
+    leftLandmark: "Note e cartelle",
+    rightLandmark: "Dettagli della nota",
+    skipToNote: "Vai alla nota",
     resizeValue: "{{width}} pixel",
     showSidebar: "Mostra la barra laterale",
     hideSidebar: "Nascondi la barra laterale",

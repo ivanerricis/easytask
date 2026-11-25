@@ -12,6 +12,8 @@ import { isStatsTab, isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { OpenTaskEffect } from "./OpenTaskEffect"
 import { NoteSearchProvider } from "./note-search-context"
 import { useVeilLifted } from "./note-dnd-veil"
+import { usePane } from "@/contexts/use-layout"
+import { tabElementId, tabPanelId } from "@/lib/a11y"
 
 type PaneBodyProps = {
     /** What takes the place of the note when the pane has no active note. */
@@ -29,6 +31,7 @@ type PaneBodyProps = {
 export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = false }: PaneBodyProps) {
     const activeId = useActiveNoteId()
     const isPage = useIsActivePage()
+    const pane = usePane()?.pane ?? 0
     // A cross-note drag over this pane lifts its veil (see note-dnd-veil)
     const lifted = useVeilLifted()
     const veiled = dimmed && !lifted
@@ -37,12 +40,12 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
             <OpenTaskEffect />
             {(alwaysTabs || activeId !== null) && <NoteList />}
             {isWhatsNewTab(activeId)
-                ? <WhatsNewPage />
+                ? <WhatsNewPage panelId={tabPanelId(pane)} tabId={tabElementId(pane, activeId!)} />
                 : isStatsTab(activeId)
-                    ? <StatsPage />
+                    ? <StatsPage panelId={tabPanelId(pane)} tabId={tabElementId(pane, activeId!)} />
                     : activeId !== null
                     ? <NoteSearchProvider>
-                        <div className="relative flex min-h-0 flex-1 flex-col">
+                        <div role="tabpanel" id={tabPanelId(pane)} aria-labelledby={tabElementId(pane, activeId)} className="relative flex min-h-0 flex-1 flex-col">
                             <PathBar />
                             {isPage ? <PageView /> : <GroupContainer />}
                             {/* Token-based veil, so it follows light, dark and custom themes. It lets the pointer through: pressing the pane still gives it the focus. */}

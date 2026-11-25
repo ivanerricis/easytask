@@ -70,7 +70,11 @@ describe("AudioPlayer", () => {
         const onPointerDown = vi.fn()
         const onPinnedChange = vi.fn()
         render(<AudioPlayer src="a.mp3" listenersHandle={{ onPointerDown }} attributesHandle={attributes} pinned onPinnedChange={onPinnedChange} />)
-        const header = screen.getByLabelText("Sposta il player")
+        // Pinned: not draggable, so no "move" label, no button role and no tab stop
+        expect(screen.queryByLabelText("Sposta il player")).toBeNull()
+        const header = screen.getByRole("button", { name: "Sblocca la posizione del lettore" }).closest("div.cursor-default") as HTMLElement
+        expect(header).not.toHaveAttribute("role")
+        expect(header).not.toHaveAttribute("tabindex")
         expect(header).toHaveClass("cursor-default")
         expect(header).not.toHaveClass("cursor-grab")
 
