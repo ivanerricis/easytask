@@ -54,11 +54,9 @@ describe("Markdown in the description of a task", () => {
         await domClick(byText(await tr("tasks.menu.addDescription"), menu))
         const dialog = await topDialog()
         await dialog.waitForDisplayed({ timeoutMsg: "the description dialog did not open" })
-        const field = dialog.$("textarea")
-        await field.waitForDisplayed()
-        await field.click()
-        await field.setValue(DESCRIPTION)
-        await browser.keys(["Control", "Enter"])
+        // typeInto falls back to the native setter when WebKitWebDriver drops Shift ("*") or newlines
+        await typeInto(dialog.$("textarea"), DESCRIPTION)
+        await domClick(byText(await tr("common.save"), dialog))
         await browser.waitUntil(async () => (await savedDescription()) === DESCRIPTION, {
             timeoutMsg: `the description was not saved as typed (got ${JSON.stringify(await savedDescription())})`,
         })
