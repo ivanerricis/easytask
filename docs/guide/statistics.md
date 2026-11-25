@@ -2,6 +2,8 @@
 
 The Statistics tab shows how the work of the workspace is going. Open it from **Statistics** in the **Tools** section of the sidebar (see [The sidebar](./folders-and-notes#the-sidebar)), from the **View** menu, or from the command menu (`Ctrl+K`). It opens as a tab, like **What's new**: if it is already open it comes to the front, and it is not reopened at the next start.
 
+![The Statistics tab with the completed tasks per week and the progress of the notes](../screenshots/en/statistics-light.png)
+
 ## What it shows
 
 | Block | What it tells you |

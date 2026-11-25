@@ -2,6 +2,8 @@
 
 La scheda Statistiche mostra come sta andando il lavoro del workspace. Aprila da **Statistiche** nella sezione **Strumenti** della barra laterale (vedi [La barra laterale](./folders-and-notes#la-barra-laterale)), dal menu **Visualizza** o dal menu comandi (`Ctrl+K`). Si apre come un tab, come **Novità**: se è già aperta passa in primo piano, e non viene riaperta al prossimo avvio.
 
+![La scheda Statistiche con i task completati per settimana e l'avanzamento delle note](../../screenshots/it/statistics-light.png)
+
 ## Cosa mostra
 
 | Blocco | Cosa ti dice |

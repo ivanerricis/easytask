@@ -13,7 +13,11 @@ A page lives in the tree like a note: you can put it in a folder, rename it, mov
 
 A page opens as a text editor. Type in Markdown. The text is saved by itself shortly after you stop typing, and when you close the page.
 
+![A page in the text editor, with Markdown](../screenshots/en/page-text-light.png)
+
 To see the formatted page, click the **text / preview** button in the path bar above the page (**Show the formatted preview**, then **Show the Markdown text**). The choice is kept for each page and each area.
+
+![The same page in the formatted preview](../screenshots/en/page-preview-light.png)
 
 The preview supports:
 

@@ -7,6 +7,8 @@ A task can have a due date, with an optional time. EasyTask shows it on the task
 - Open the menu of the task and choose **Set due date…**. The entry reads **Change due date…** when the task already has one, and **Remove due date** takes it away.
 - Or use the **Due date** field in the [details panel](./groups-sections-tasks#the-details-panel).
 
+![The Due date window with a calendar, the shortcuts Today, Tomorrow and Next week, and a time field](../screenshots/en/due-picker-light.png)
+
 The window has a calendar, the shortcuts **Today**, **Tomorrow** and **Next week**, and a **Time** field. The time is optional: **No time** removes it. Click **Set** to save. Setting or removing a due date can be undone with `Ctrl+Z`.
 
 ## The badge on the task
@@ -19,6 +21,8 @@ A task with a due date shows a small badge under its text with the date ("Today,
 | Yellow | Due today or tomorrow |
 | Red | Overdue |
 
+![A note with tasks that have a due date: badges Today and Tomorrow in yellow and a later date in grey](../screenshots/en/due-badges-light.png)
+
 Each state has its own icon, so the color is never the only signal, and a screen reader reads "Due" or "Overdue". A completed task is never overdue: its badge stays neutral.
 
 ## The Due agenda
@@ -29,6 +33,8 @@ Open **Due** from the **Tools** section of the sidebar (see [The sidebar](./fold
 - days with no tasks are folded into one line;
 - on the current week, the tasks that are overdue from before are in an **Overdue** block on top;
 - use the arrows (or the `←` and `→` keys) to change week, and **Today** (or `Home`) to come back to the current week.
+
+![The Due agenda for one week, with the tasks due today and tomorrow](../screenshots/en/due-agenda-light.png)
 
 Click a task, or press `Enter` on it: EasyTask opens its note, selects the task and scrolls to it, in another workspace too. Completed tasks, and tasks in the trash or the archive, are not listed.
 

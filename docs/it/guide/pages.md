@@ -13,7 +13,11 @@ Una pagina sta nell'albero come una nota: puoi metterla in una cartella, rinomin
 
 Una pagina si apre come editor di testo. Scrivi in Markdown. Il testo si salva da solo poco dopo che smetti di scrivere, e quando chiudi la pagina.
 
+![Una pagina nell'editor di testo, con Markdown](../../screenshots/it/page-text-light.png)
+
 Per vedere la pagina formattata, clicca il pulsante **testo / anteprima** nella barra del percorso sopra la pagina (**Mostra l'anteprima formattata**, poi **Mostra il testo Markdown**). La scelta è ricordata per ogni pagina e ogni area.
+
+![La stessa pagina nell'anteprima formattata](../../screenshots/it/page-preview-light.png)
 
 L'anteprima supporta:
 

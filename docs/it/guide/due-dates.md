@@ -7,6 +7,8 @@ Un task può avere una scadenza, con un'ora facoltativa. EasyTask la mostra sul 
 - Apri il menu del task e scegli **Imposta scadenza…**. La voce diventa **Cambia scadenza…** quando il task ne ha già una, e **Rimuovi scadenza** la toglie.
 - Oppure usa il campo **Scadenza** nel [pannello dei dettagli](./groups-sections-tasks#il-pannello-dei-dettagli).
 
+![La finestra della scadenza con un calendario, le scorciatoie Oggi, Domani e Settimana prossima e il campo dell'ora](../../screenshots/it/due-picker-light.png)
+
 La finestra ha un calendario, le scorciatoie **Oggi**, **Domani** e **Settimana prossima**, e un campo **Ora**. L'ora è facoltativa: **Nessuna ora** la toglie. Clicca **Imposta** per salvare. Impostare o rimuovere una scadenza si può annullare con `Ctrl+Z`.
 
 ## Il badge sul task
@@ -19,6 +21,8 @@ Un task con una scadenza mostra sotto il testo un piccolo badge con la data ("Og
 | Giallo | Scade oggi o domani |
 | Rosso | Scaduto |
 
+![Una nota con task che hanno una scadenza: badge Oggi e Domani in giallo e una data più lontana in grigio](../../screenshots/it/due-badges-light.png)
+
 Ogni stato ha la sua icona, quindi il colore non è mai l'unico segnale, e uno screen reader legge "Scade" o "Scaduto". Un task completato non è mai scaduto: il suo badge resta neutro.
 
 ## L'agenda delle scadenze
@@ -29,6 +33,8 @@ Apri **Scadenze** dalla sezione **Strumenti** della barra laterale (vedi [La bar
 - i giorni senza task sono riuniti in una sola riga;
 - nella settimana corrente, i task scaduti da prima stanno in un blocco **Scaduti** in cima;
 - usa le frecce (o i tasti `←` e `→`) per cambiare settimana, e **Oggi** (o `Home`) per tornare alla settimana corrente.
+
+![L'agenda delle scadenze di una settimana, con i task in scadenza oggi e domani](../../screenshots/it/due-agenda-light.png)
 
 Clicca un task, o premi `Invio` su di esso: EasyTask apre la sua nota, seleziona il task e scorre fino a lui, anche in un altro workspace. I task completati e quelli nel cestino o nell'archivio non sono elencati.
 
