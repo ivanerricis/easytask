@@ -486,6 +486,10 @@ export const settings = {
             label: "Riduci nell'area di notifica",
             description: "Chiudendo la finestra EasyTask resta attivo nell'area di notifica. Per uscire usa \"Esci\" dal menu della sua icona.",
         },
+        dueNotifications: {
+            label: "Notifiche delle scadenze",
+            description: "Un task con un'ora di scadenza viene notificato a quell'ora; le altre scadenze (scadute e di oggi) arrivano in un solo riepilogo all'avvio di EasyTask e ogni mattina. Ogni scadenza viene notificata una volta sola.",
+        },
         rememberWindowState: {
             label: "Ricorda posizione e dimensione della finestra",
             description: "All'avvio la finestra torna dove l'hai lasciata. Ha effetto dal prossimo avvio.",

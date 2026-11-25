@@ -7,6 +7,7 @@ const TRIGGER_KEYS = {
     "task.completed": "taskCompleted",
     "task.reopened": "taskReopened",
     "task.created": "taskCreated",
+    "task.overdue": "taskOverdue",
     "task.movedInto": "taskMovedInto",
     "subtasks.completed": "subtasksCompleted",
     "group.completed": "groupCompleted",

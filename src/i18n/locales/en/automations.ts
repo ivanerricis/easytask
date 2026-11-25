@@ -57,6 +57,7 @@ export const automations: Translation["automations"] = {
         taskCompleted: "a task is completed",
         taskReopened: "a task is reopened",
         taskCreated: "a task is created",
+        taskOverdue: "a task becomes overdue",
         taskMovedInto: "a task arrives in the section",
         subtasksCompleted: "all the subtasks of a task are completed",
         groupCompleted: "all the tasks of a group are completed",

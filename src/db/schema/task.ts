@@ -83,3 +83,37 @@ export const dropTaskArchivedColumn: string[] = [
 export const addTaskArchivedAt: string[] = [
     `ALTER TABLE task ADD COLUMN archived_at TEXT DEFAULT NULL;`,
 ]
+
+/**
+ * Migration v21: due date (`due_date`, YYYY-MM-DD) and optional due time (`due_time`, HH:MM, only with a date) on the tasks.
+ * A partial index serves the "due" views across a workspace. Both columns are content, so the edit-timestamp trigger of the task
+ * and the workspace edit trigger list them: the two triggers are recreated in ONE transactional script (a failure rolls back and
+ * the migration is simply run again); the ADD COLUMN steps are retried safely by initDb.
+ * @param workspaceUpdateTrigger The recreated update trigger of the workspace edit date (see updateTriggerOf), listing the new columns.
+ * @category Database Schema
+ */
+export function addTaskDue(workspaceUpdateTrigger: string): string[] {
+    return [
+        `ALTER TABLE task ADD COLUMN due_date TEXT DEFAULT NULL;`,
+        `ALTER TABLE task ADD COLUMN due_time TEXT DEFAULT NULL;`,
+        `CREATE INDEX IF NOT EXISTS idx_task_due ON task(due_date) WHERE due_date IS NOT NULL AND deleted_at IS NULL;`,
+        `
+    BEGIN IMMEDIATE;
+    DROP TRIGGER IF EXISTS workspace_edit_on_task_update;
+    ${workspaceUpdateTrigger}
+    DROP TRIGGER IF EXISTS update_task_edit_timestamp;
+
+    CREATE TRIGGER update_task_edit_timestamp
+    AFTER UPDATE OF sectionID, taskID, text, description, completed, priority, color, due_date, due_time ON task
+    FOR EACH ROW
+    BEGIN
+        UPDATE task
+        SET
+            edit_date = DATE('now', 'localtime'),
+            edit_time = strftime('%H:%M', 'now', 'localtime')
+        WHERE id = OLD.id;
+    END;
+    COMMIT;
+`,
+    ]
+}

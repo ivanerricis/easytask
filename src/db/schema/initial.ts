@@ -4,10 +4,10 @@ import { addFolderArchivedAt, createFolderIndexes, createFolderTable, createFold
 import { addNoteArchivedAt, addNoteBackground, addNoteBackgroundImage, addNoteTemplateDraft, createNoteIndexes, createNoteTable, createNoteTrigger } from "./note";
 import { createNoteTemplateIndexes, createNoteTemplateTable, createNoteTemplateTrigger } from "./note_template";
 import { addSectionArchivedAt, addSectionDefaultFlag, addSectionSharedOrder, addSectionTaskOrder, makeSectionTitleOptional, createSectionIndexes, createSectionTable, createSectionTrigger } from "./section";
-import { addCollapsedColumns } from "./collapsed";
+import { addCollapsedColumns, TASK_EDIT_COLUMNS } from "./collapsed";
 import { addGroupArchivedAt, addGroupColorColumn, addGroupWidthColumn, createSectionGroupIndexes, createSectionGroupTable } from "./section_group";
-import { createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
-import { createWorkspaceEditTriggers } from "./workspace_edit";
+import { addTaskDue, createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
+import { createWorkspaceEditTriggers, updateTriggerOf } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
 import { mediaFileSchema } from "./media_file";
 import { groupTagSchema, sectionTagSchema, tagSchema } from "./tag";
@@ -136,10 +136,16 @@ export const sectionTaskOrderSchema: string[] = [...addSectionTaskOrder]
 export const noteBackgroundImageSchema: string[] = [...addNoteBackgroundImage]
 
 /**
+ * Migration v21: due date and optional due time of the tasks (`task.due_date`, `task.due_time`).
+ * @category Database Schema
+ */
+export const taskDueSchema: string[] = addTaskDue(updateTriggerOf("task", TASK_EDIT_COLUMNS))
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema,
 ]

@@ -591,7 +591,7 @@ describe("preference table", () => {
     it("keeps the keys saved on disk", () => {
         expect(Object.values(all).map(definition => definition.key).sort()).toEqual([
             "activeThemeCache", "alwaysOnTop", "animationSpeed", "audioLoudnessMeter", "audioPlaybackRate", "audioPlayerOpacity", "audioPlayerPinned", "audioPlayerPosition", "audioPlayerScale", "audioPlayerVisible", "audioPositions", "audioRepeat", "audioResume", "audioVolume", "autoBackup", "autoBackupMode", "backupFolder",
-            "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
+            "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "dueNotifications", "dueNotified", "dueOverdueFired", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
             "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount", "showCollapsedOpenCount",
             "showGroupProgressBar", "showGroupSeparators", "showMediaWhenCollapsed", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
             "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth",

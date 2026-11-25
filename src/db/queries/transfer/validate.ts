@@ -5,6 +5,7 @@ import { createError } from "@/types/error"
 import { isPortableAutomation } from "@/lib/automations/portable"
 import { uniqueName } from "../names"
 import { isTaskOrder } from "@/lib/task-order"
+import { normalizeDue } from "@/lib/due-date"
 
 const INVALID_FILE_MESSAGE = () => i18n.t("errors.transfer.invalidFile")
 const MALFORMED_MESSAGE = () => i18n.t("errors.transfer.malformed")
@@ -43,6 +44,8 @@ function checkTask(task: unknown, counter: Counter, depth = 0) {
     bump(counter)
     if (!isString(task.text) || !isNumber(task.position) || !Array.isArray(task.subtasks)) malformed()
     if (!isNullableString(task.description) || !isNullableString(task.color) || !isNullableString(task.archived_at)) malformed()
+    // The due date and time are optional (older files have none); a value that is not a date or a time is dropped when normalized
+    if (!isNullableString(task.due_date) || !isNullableString(task.due_time)) malformed()
     if (task.tags !== undefined) checkTags(task.tags, counter)
     for (const subtask of task.subtasks as unknown[]) checkTask(subtask, counter, depth + 1)
 }
@@ -89,6 +92,10 @@ type ContentTask = NoteTemplateContent["groups"][number]["sections"][number]["ta
 function normalizeTask(task: ContentTask) {
     task.text = untitled(task.text)
     task.color = cleanColor(task.color)
+    const due = normalizeDue(task.due_date, task.due_time)
+    // No empty fields: a task without a due date has none (the content of an imported template stays as it was)
+    if (due.date) { task.due_date = due.date; if (due.time) task.due_time = due.time; else delete task.due_time }
+    else { delete task.due_date; delete task.due_time }
     for (const tag of task.tags ?? []) tag.color = cleanColor(tag.color)
     for (const subtask of task.subtasks) normalizeTask(subtask)
 }

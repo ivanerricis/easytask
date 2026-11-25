@@ -1,6 +1,7 @@
 import type { Group, NoteDataTree, Task } from "@/types/types"
 import { isDefaultSection, taskSections } from "@/lib/group-sections"
 import { findGroup, findSection, findTask, mapTask, moveGroupInList, moveTask, patchGroup, patchSection, patchTask, removeGroup } from "@/contexts/note-tree-ops"
+import { dueStatus } from "@/lib/due-date"
 import { isStateTrigger, isValidRule, referencedGroups, referencedSections, referencedTags, type Automation, type AutomationAction, type AutomationEvent, type AutomationTrigger } from "./types"
 
 /**
@@ -68,6 +69,7 @@ function matches(trigger: AutomationTrigger, event: EngineEvent, tree: NoteDataT
         case "task.completed": return event.type === "task.completed" && topLevel && inSection && !!found.task.completed
         case "task.reopened": return event.type === "task.reopened" && topLevel && inSection && !found.task.completed
         case "task.created": return event.type === "task.created" && topLevel && inSection
+        case "task.overdue": return event.type === "task.overdue" && inSection && dueStatus(found.task) === "overdue"
         case "task.movedInto": return event.type === "task.moved" && topLevel && section === trigger.sectionId && event.fromSectionId !== section
         case "subtasks.completed": return event.type === "subtasks.completed" && inSection && allSubtasksCompleted(found.task)
         default: return false

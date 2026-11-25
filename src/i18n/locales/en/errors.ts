@@ -91,6 +91,9 @@ export const errors: Translation["errors"] = {
         load: "Failed to load the template: {{message}}",
         apply: "Failed to create the note from the template: {{message}}",
     },
+    due: {
+        load: "Failed to load the due tasks: {{message}}",
+    },
     archive: {
         archive: "Failed to archive the item: {{message}}",
         load: "Failed to load the archive: {{message}}",

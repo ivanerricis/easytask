@@ -89,6 +89,9 @@ export const errors = {
         load: "Impossibile caricare il template: {{message}}",
         apply: "Impossibile creare la nota dal template: {{message}}",
     },
+    due: {
+        load: "Impossibile caricare i task in scadenza: {{message}}",
+    },
     archive: {
         archive: "Impossibile archiviare l'elemento: {{message}}",
         load: "Impossibile caricare l'archivio: {{message}}",

@@ -26,6 +26,8 @@ import { useIsActiveDraft } from "@/contexts/use-template-drafts"
 import { useIsInTaskMultiSelection } from "./use-task-selection"
 import { TaskSelectionMenuItems } from "./TaskSelectionMenu"
 import { DialogTaskTags } from "@/components/tags/DialogTaskTags"
+import { DialogTaskDue } from "@/components/due/DialogTaskDue"
+import { useSetTaskDue } from "@/components/due/use-set-task-due"
 
 type ButtonMenuTaskProps = {
     task: Task
@@ -49,6 +51,8 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
     const menu = useItemMenuState()
     const [isDeleteTaskOpen, setDeleteTaskOpen] = useState(false)
     const [isTagsOpen, setTagsOpen] = useState(false)
+    const [isDueOpen, setDueOpen] = useState(false)
+    const setDue = useSetTaskDue()
     const { updateTaskPriority, updateTaskDescription } = useWorkspaceActions()
     const activeId = useActiveNoteId()
     const isDraft = useIsActiveDraft()
@@ -135,6 +139,17 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
                 onClick={() => { handleEditPriority(); menu.close() }}
             />
             <ButtonInPopover
+                text={task.due_date ? t("tasks.menu.editDue") : t("tasks.menu.setDue")}
+                type="setDue"
+                onClick={() => { setDueOpen(true); menu.close() }}
+            />
+            {task.due_date &&
+                <ButtonInPopover
+                    text={t("tasks.menu.removeDue")}
+                    type="removeDue"
+                    onClick={() => { void setDue(task, { date: null, time: null }); menu.close() }}
+                />}
+            <ButtonInPopover
                 text={t("tags.menu")}
                 type="tags"
                 onClick={() => { setTagsOpen(true); menu.close() }}
@@ -185,6 +200,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
 
     const dialogs = (
         <>
+            {isDueOpen && <DialogTaskDue open={isDueOpen} onOpenChange={setDueOpen} task={task} />}
             {isTagsOpen && <DialogTaskTags open={isTagsOpen} onOpenChange={setTagsOpen} taskIds={[task.id]} />}
             {isDeleteTaskOpen &&
                 <DialogDeleteItem

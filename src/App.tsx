@@ -17,6 +17,7 @@ import { TextContextMenu } from './components/text-context-menu'
 import { CloseBackupOverlay } from './components/close-backup-overlay'
 import { getEditableTarget } from './lib/editable-target'
 import { useCloseToTray } from './lib/use-close-to-tray'
+import { DueBackground } from './components/due/DueBackground'
 
 import { ErrorBoundary } from './components/error-boundary'
 import { LoadingPage } from './components/pages/loading-page'
@@ -66,6 +67,7 @@ function App() {
             <ImportNamesProvider>
             <ExportFilesProvider>
             <HashRouter useTransitions={false}>
+              <DueBackground />
               <Routes>
                 <Route path='/' element={
                   <ErrorBoundary>

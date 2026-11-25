@@ -1,5 +1,5 @@
 import { MenuItem, MenuShortcut } from "@/components/menu-kind"
-import { Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Copy, Download, FilePlus, FileText, FileX, FolderInput, FolderPlus, Info, ImagePlus, ImageOff, Link2, LayoutTemplate, ListPlus, Music, OctagonAlert, OctagonX, PaintBucket, Palette, Pen, SquareArrowOutUpRight, Trash2, Upload, Zap, ListCollapse, ListChevronsUpDown, Eye, EyeOff, Columns3, Rows3, X, PanelLeft, PanelRight, Tags, ClipboardCopy, Printer } from "lucide-react"
+import { Archive, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Copy, Download, FilePlus, FileText, FileX, FolderInput, FolderPlus, Info, ImagePlus, ImageOff, Link2, LayoutTemplate, ListPlus, Music, OctagonAlert, OctagonX, PaintBucket, Palette, Pen, SquareArrowOutUpRight, Trash2, Upload, Zap, ListCollapse, ListChevronsUpDown, Eye, EyeOff, Columns3, Rows3, X, PanelLeft, PanelRight, Tags, ClipboardCopy, Printer, CalendarClock, CalendarX2 } from "lucide-react"
 import React from "react"
 import { cn } from "@/lib/utils"
 
@@ -40,6 +40,8 @@ const iconMap = {
     removeDescription: FileX,
     addSubtask: ListPlus,
     tags: Tags,
+    setDue: CalendarClock,
+    removeDue: CalendarX2,
     addAudio: Music,
     addMedia: ImagePlus,
     removeImage: ImageOff,

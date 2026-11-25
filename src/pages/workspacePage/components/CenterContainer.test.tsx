@@ -19,6 +19,7 @@ vi.mock("./PathBar", () => ({ PathBar: () => <div data-testid="path-bar" /> }))
 vi.mock("./BlankNote", () => ({ BlankNote: () => <div data-testid="blank" /> }))
 vi.mock("./note/TabsDndProvider", () => ({ TabsDndProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs-dnd">{children}</div> }))
 vi.mock("./note-search-context", () => ({ NoteSearchProvider: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
+vi.mock("./OpenTaskEffect", () => ({ OpenTaskEffect: () => null }))
 vi.mock("@/lib/store/split", () => ({ getSplitRatio: vi.fn(), saveSplitRatio: vi.fn() }))
 
 const state: SplitState = { open0: [1], active0: 1, open1: [], active1: null, focused: 0 }

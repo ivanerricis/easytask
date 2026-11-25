@@ -6,10 +6,11 @@ import type { NoteTemplate } from "@/types/template"
 
 const DialogTrash = lazyNamed(() => import("@/components/dialogs/dialog-trash"), "DialogTrash")
 const DialogArchive = lazyNamed(() => import("@/components/dialogs/dialog-archive"), "DialogArchive")
+const DialogDue = lazyNamed(() => import("@/components/dialogs/dialog-due"), "DialogDue")
 const DialogTemplates = lazyNamed(() => import("@/components/dialogs/dialog-templates"), "DialogTemplates")
 const DialogPickTemplate = lazyNamed(() => import("@/components/dialogs/dialog-pick-template"), "DialogPickTemplate")
 const DialogNoteFromTemplate = lazyNamed(() => import("@/components/dialogs/dialog-note-from-template"), "DialogNoteFromTemplate")
-preloadWhenIdle(DialogTrash, DialogArchive, DialogTemplates, DialogPickTemplate, DialogNoteFromTemplate)
+preloadWhenIdle(DialogTrash, DialogArchive, DialogDue, DialogTemplates, DialogPickTemplate, DialogNoteFromTemplate)
 
 /**
  * Trash, archive, templates and note-from-template dialogs of the workspace. They are opened with the app commands (from the
@@ -19,11 +20,13 @@ preloadWhenIdle(DialogTrash, DialogArchive, DialogTemplates, DialogPickTemplate,
 export const SidebarDialogs = () => {
     const [trashOpen, setTrashOpen] = useState(false)
     const [archiveOpen, setArchiveOpen] = useState(false)
+    const [dueOpen, setDueOpen] = useState(false)
     const [templatesOpen, setTemplatesOpen] = useState(false)
     const [picking, setPicking] = useState(false)
     const [template, setTemplate] = useState<NoteTemplate | null>(null)
     useAppCommand("open-trash", () => setTrashOpen(true))
     useAppCommand("open-archive", () => setArchiveOpen(true))
+    useAppCommand("open-due", () => setDueOpen(true))
     useAppCommand("open-templates", () => setTemplatesOpen(true))
     useAppCommand("note-from-template", () => setPicking(true))
 
@@ -34,6 +37,9 @@ export const SidebarDialogs = () => {
             </LazyMount>
             <LazyMount active={archiveOpen}>
                 <DialogArchive isOpen={archiveOpen} onOpenChange={setArchiveOpen} />
+            </LazyMount>
+            <LazyMount active={dueOpen}>
+                <DialogDue isOpen={dueOpen} onOpenChange={setDueOpen} />
             </LazyMount>
             <LazyMount active={templatesOpen}>
                 <DialogTemplates isOpen={templatesOpen} onOpenChange={setTemplatesOpen} />

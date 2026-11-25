@@ -12,6 +12,7 @@ import { SelectionProvider } from "./selection-context"
 import { SelectionActionsProvider } from "./selection-actions"
 import { ButtonTrash } from "./ButtonTrash"
 import { ButtonArchive } from "./ButtonArchive"
+import { ButtonDue } from "./ButtonDue"
 import { ButtonTemplates } from "./ButtonTemplates"
 import { DialogAddFolder } from "./DialogAddFolder"
 import { DialogAddNote } from "./DialogAddNote"
@@ -119,6 +120,7 @@ export const SideBarLeft = () => {
                             </div>
                         </SideBarHeader>}
                         footer={<div className="flex flex-col gap-1 border-t p-1 w-full">
+                            <ButtonDue />
                             <ButtonTemplates />
                             <ButtonArchive />
                             <ButtonTrash />

@@ -6,8 +6,8 @@ import { getDBGroupAudioFiles } from "@/db/queries/audio";
 import { getDBGroupMediaFiles } from "@/db/queries/media";
 import { groupHasContent } from "@/lib/delete-content";
 import { MenuGroup, MenuItem } from "@/components/menu-kind";
-import { Check, Gauge } from "lucide-react";
-import { GROUP_COLOR_PROGRESS } from "@/lib/colors";
+import { CalendarClock, Check, Gauge } from "lucide-react";
+import { GROUP_COLOR_DUE, GROUP_COLOR_PROGRESS } from "@/lib/colors";
 import { useUndoRecorder } from "@/contexts/undo/use-undo";
 import { getItemName } from "@/contexts/undo/commands";
 import { reportError } from "@/lib/report-error";
@@ -61,13 +61,14 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
     const { addColorItem, archive } = useItemMutations("section_group", patchGroup, removeGroup)
     const recorder = useUndoRecorder()
     const isAutoColor = group.color === GROUP_COLOR_PROGRESS
-    // "Automatic": the color follows the progress of the group until a fixed color (or none) is picked
-    const pickAutoColor = async () => {
+    const isDueColor = group.color === GROUP_COLOR_DUE
+    // "Automatic": the color follows the progress of the group ("Due dates": its nearest due date) until a fixed color (or none) is picked
+    const pickAutoColor = async (rule: typeof GROUP_COLOR_PROGRESS | typeof GROUP_COLOR_DUE = GROUP_COLOR_PROGRESS) => {
         menu.close()
-        if (isAutoColor) return
+        if (group.color === rule) return
         try {
-            await addColorItem("section_group", group.id, GROUP_COLOR_PROGRESS)
-            recorder.color("section_group", group.id, getItemName(group), group.color ?? null, GROUP_COLOR_PROGRESS)
+            await addColorItem("section_group", group.id, rule)
+            recorder.color("section_group", group.id, getItemName(group), group.color ?? null, rule)
         } catch (err) {
             reportError(err, getErrorMessage(err))
         }
@@ -133,13 +134,23 @@ export const ButtonMenuGroup = ({ group, onRename, onAddSection, children }: Pro
                     {/* Short label, so the entry is not wider than the palette under it; the tooltip says what "automatic" means */}
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <MenuItem onSelect={() => { void pickAutoColor() }} className={isAutoColor ? "font-medium" : undefined}>
+                            <MenuItem onSelect={() => { void pickAutoColor(GROUP_COLOR_PROGRESS) }} className={isAutoColor ? "font-medium" : undefined}>
                                 <Gauge />
                                 {t("groups.progressColor.auto")}
                                 {isAutoColor && <Check className="ml-auto" role="img" aria-label={t("groups.progressColor.active")} />}
                             </MenuItem>
                         </TooltipTrigger>
                         <TooltipContent side="right">{t("groups.progressColor.hint")}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <MenuItem onSelect={() => { void pickAutoColor(GROUP_COLOR_DUE) }} className={isDueColor ? "font-medium" : undefined}>
+                                <CalendarClock />
+                                {t("groups.dueColor.auto")}
+                                {isDueColor && <Check className="ml-auto" role="img" aria-label={t("groups.dueColor.active")} />}
+                            </MenuItem>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">{t("groups.dueColor.hint")}</TooltipContent>
                     </Tooltip>
                     <Separator className="my-1" />
                 </>}

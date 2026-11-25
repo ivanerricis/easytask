@@ -35,6 +35,8 @@ export const undo: Translation["undo"] = {
         reopen: "Reopen {{type}}",
         addPriority: "Add priority to {{type}}",
         removePriority: "Remove priority from {{type}}",
+        setDue: "Set due date of {{type}}",
+        removeDue: "Remove due date from {{type}}",
         description: "Edit description of {{type}}",
         delete: "Delete {{type}}",
         create: "Create {{type}}",

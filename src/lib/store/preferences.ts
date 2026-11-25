@@ -47,6 +47,12 @@ const clampAudioPlayerOpacity = (value: unknown): number => {
 const normalizeAudioPlayerScale = (value: unknown): AudioPlayerScale =>
     AUDIO_PLAYER_SCALES.find(scale => scale === value) ?? DEFAULT_AUDIO_PLAYER_SCALE
 
+/** A map of task id -> text read from the store: anything else in it is dropped. */
+const normalizeKeyMap = (value: unknown): Record<string, string> => {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return {}
+    return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"))
+}
+
 /** Playback speeds the speed button of the player cycles through; the chosen one is remembered. */
 export const AUDIO_PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const
 export type AudioPlaybackRate = typeof AUDIO_PLAYBACK_RATES[number]
@@ -305,6 +311,12 @@ export const APP_PREFS = {
     /** A folder chosen by the user for the backups; null = the "backups" folder in the data folder. */
     backupFolder: def<string | null>({ key: "backupFolder", default: null, normalize: value => typeof value === "string" && value.trim().length > 0 ? value : null }),
     closeToTray: def({ key: "closeToTray", default: false, normalize: value => value === true }),
+    /** Notifications of the due dates (see lib/due-notifications.ts). */
+    dueNotifications: def({ key: "dueNotifications", default: true, normalize: value => value !== false }),
+    /** The due dates already notified: task id -> the due date and time notified (a changed date is notified again). */
+    dueNotified: def<Record<string, string>>({ key: "dueNotified", default: {}, normalize: normalizeKeyMap }),
+    /** The due dates whose "overdue" automations already ran: task id -> the due date and time. */
+    dueOverdueFired: def<Record<string, string>>({ key: "dueOverdueFired", default: {}, normalize: normalizeKeyMap }),
     // The two keys below are also read by the Rust side at startup (src-tauri/src/settings.rs, read in the setup of lib.rs): keep the names identical there
     /** Restore the position and size of the window at the next start. */
     rememberWindowState: def({ key: "rememberWindowState", default: true, normalize: value => value !== false }),
@@ -390,6 +402,12 @@ export const getBackupFrequency = () => getPref("backupFrequency")
 export const saveBackupFrequency = (value: BackupFrequency) => savePref("backupFrequency", value)
 export const getBackupFolder = () => getPref("backupFolder")
 export const saveBackupFolder = (path: string | null) => savePref("backupFolder", path)
+export const getDueNotifications = () => getPref("dueNotifications")
+export const saveDueNotifications = (value: boolean) => savePref("dueNotifications", value)
+export const getDueNotified = () => getPref("dueNotified")
+export const saveDueNotified = (value: Record<string, string>) => savePref("dueNotified", value)
+export const getDueOverdueFired = () => getPref("dueOverdueFired")
+export const saveDueOverdueFired = (value: Record<string, string>) => savePref("dueOverdueFired", value)
 export const getCloseToTray = () => getPref("closeToTray")
 export const saveCloseToTray = (value: boolean) => savePref("closeToTray", value)
 export const getRememberWindowState = () => getPref("rememberWindowState")

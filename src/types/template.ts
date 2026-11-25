@@ -25,6 +25,9 @@ export type TemplateTask = {
     completed: boolean
     priority: boolean
     color: string | null
+    /** Due date (YYYY-MM-DD) and time (HH:MM); absent when the task has none (and in snapshots created before the due dates existed). Templates do not keep them. */
+    due_date?: string | null
+    due_time?: string | null
     /** The tags of the task; absent when it has none (and in snapshots created before the tags existed). */
     tags?: TemplateTag[]
     position: number

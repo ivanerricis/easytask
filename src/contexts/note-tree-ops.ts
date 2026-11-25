@@ -76,7 +76,7 @@ export function buildTask(id: number, sectionId: number | null, parentTaskId: nu
     return {
         id, sectionID: sectionId, taskID: parentTaskId, position: nextPosition(siblings),
         creation_date: date, creation_time: time, edit_date: date, edit_time: time,
-        deleted_at: null, color: null, text, completed: false, priority: false,
+        deleted_at: null, color: null, due_date: null, due_time: null, text, completed: false, priority: false,
         description: "", subtasks: [],
     }
 }

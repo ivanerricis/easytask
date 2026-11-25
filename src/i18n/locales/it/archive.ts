@@ -33,6 +33,8 @@ export const undo = {
         reopen: "Riapri {{type}}",
         addPriority: "Aggiungi priorità a {{type}}",
         removePriority: "Rimuovi priorità da {{type}}",
+        setDue: "Imposta scadenza di {{type}}",
+        removeDue: "Rimuovi scadenza da {{type}}",
         description: "Modifica descrizione di {{type}}",
         delete: "Elimina {{type}}",
         create: "Crea {{type}}",

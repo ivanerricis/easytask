@@ -21,6 +21,10 @@ import {
 import { automationName, type SectionName } from "@/lib/automations/describe"
 import { isStateTrigger, type Automation, type AutomationEvent } from "@/lib/automations/types"
 import { reportError } from "@/lib/report-error"
+import { newlyOverdueTasks } from "@/lib/automations/overdue"
+import { markNotified } from "@/lib/due-notifications"
+import { getDueOverdueFired, saveDueOverdueFired } from "@/lib/store/preferences"
+import { useNow } from "@/hooks/use-now"
 import { getErrorMessage } from "@/lib/utils"
 import { getGroupLabel } from "@/pages/workspacePage/components/groups/group-label"
 import { AutomationsContext } from "./automations-context-object"
@@ -238,6 +242,25 @@ export function AutomationsProvider({ children }: { children: ReactNode }) {
         if (signature === null) return
         void syncRules(activeId)
     }, [signature, activeId, syncRules])
+
+    // "A task becomes overdue": the clock (a tick a minute) and any change of the open note look for tasks whose due date has passed.
+    // Each due date fires once (remembered in the store, so a restart does not fire it again), and only when a rule wants it.
+    const now = useNow()
+    const overdueRunning = useRef(false)
+    useEffect(() => {
+        if (activeId === null || !noteDataTree || overdueRunning.current || isDraftNote(activeId)) return
+        overdueRunning.current = true
+        void (async () => {
+            const rules = await getRules(activeId)
+            if (!rules.some(rule => rule.enabled && rule.trigger.type === "task.overdue")) return
+            const fired = await getDueOverdueFired()
+            const tree = getCachedNoteTree(activeId) ?? noteDataTree
+            const todo = newlyOverdueTasks(tree, fired, now)
+            if (todo.length === 0) return
+            await saveDueOverdueFired(markNotified(fired, todo.map(task => ({ id: task.id, due_date: task.due_date, due_time: task.due_time ?? null })), now))
+            for (const task of todo) await dispatch({ type: "task.overdue", taskId: task.id }, activeId)
+        })().catch(error => reportError(error)).finally(() => { overdueRunning.current = false })
+    }, [activeId, noteDataTree, now, getRules, getCachedNoteTree, isDraftNote, dispatch])
 
     const value = useMemo(() => ({ dispatch, sync }), [dispatch, sync])
     return <AutomationsContext.Provider value={value}>{children}</AutomationsContext.Provider>

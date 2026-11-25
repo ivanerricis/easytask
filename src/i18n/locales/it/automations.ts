@@ -55,6 +55,7 @@ export const automations = {
         taskCompleted: "un task viene completato",
         taskReopened: "un task viene riaperto",
         taskCreated: "un task viene creato",
+        taskOverdue: "un task scade",
         taskMovedInto: "un task arriva nella sezione",
         subtasksCompleted: "tutti i sottotask di un task sono completati",
         groupCompleted: "tutti i task di un gruppo sono completati",

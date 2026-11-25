@@ -12,6 +12,15 @@ export const PALETTE_COLORS = [
  */
 export const GROUP_COLOR_PROGRESS = "progress"
 
+/**
+ * Value of `section_group.color` for the "Due dates" automatic color of a group: a rule too, the color follows the nearest due date
+ * of its open tasks (red overdue, yellow today or tomorrow, green later, none without due dates; see `resolveGroupColor`).
+ */
+export const GROUP_COLOR_DUE = "due"
+
+/** Whether the color of a group is one of the automatic rules and not a color. */
+export const isAutoGroupColor = (color: string | null | undefined): boolean => color === GROUP_COLOR_PROGRESS || color === GROUP_COLOR_DUE
+
 export const isPaletteColor = (color: string | null | undefined): boolean =>
     !!color && (PALETTE_COLORS as readonly string[]).includes(color.toLowerCase())
 

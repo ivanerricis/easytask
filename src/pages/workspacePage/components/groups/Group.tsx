@@ -26,6 +26,7 @@ import { DropLine } from "../sidebar/DropLine"
 import { directIndexOf } from "@/lib/group-sections"
 import { usePreference } from "@/contexts/use-preference"
 import { resolveGroupColor } from "./group-progress"
+import { useNow } from "@/hooks/use-now"
 import { GroupStripFiles } from "./GroupStripFiles"
 
 type GroupProps = {
@@ -116,7 +117,8 @@ export const Group = memo(({ group, index = 0, audioCount = 0, mediaCount = 0 }:
     const colorAlpha = useColorAlpha()
 
     // The "Automatic" color follows the progress of the group; any other is used as it is
-    const color = useMemo(() => resolveGroupColor(group), [group])
+    const now = useNow()
+    const color = useMemo(() => resolveGroupColor(group, undefined, now), [group, now])
     // The panel of the group: a light tint of its color (gray without one) with the color as a band at the top
     const panel: CSSProperties = color
         ? { backgroundColor: hexToRgba(colorAlpha.panel(), color), borderTopColor: color }

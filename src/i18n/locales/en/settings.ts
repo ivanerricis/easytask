@@ -488,6 +488,10 @@ export const settings: Translation["settings"] = {
             label: "Minimize to the notification area",
             description: "Closing the window keeps EasyTask running in the notification area. To quit, use \"Quit\" in the menu of its icon.",
         },
+        dueNotifications: {
+            label: "Due date notifications",
+            description: "A task with a due time is notified at that time; the other due dates (overdue and today) come in one summary when EasyTask starts and every morning. Each due date is notified once.",
+        },
         rememberWindowState: {
             label: "Remember window position and size",
             description: "At startup the window comes back where you left it. Takes effect at the next start.",

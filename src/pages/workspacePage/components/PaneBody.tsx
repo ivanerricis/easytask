@@ -6,6 +6,7 @@ import { NoteList } from "./note/NoteList"
 import { PathBar } from "./PathBar"
 import { WhatsNewPage } from "./whats-new/WhatsNewPage"
 import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
+import { OpenTaskEffect } from "./OpenTaskEffect"
 import { NoteSearchProvider } from "./note-search-context"
 import { useVeilLifted } from "./note-dnd-veil"
 
@@ -29,6 +30,7 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
     const veiled = dimmed && !lifted
     return (
         <>
+            <OpenTaskEffect />
             {(alwaysTabs || activeId !== null) && <NoteList />}
             {isWhatsNewTab(activeId)
                 ? <WhatsNewPage />

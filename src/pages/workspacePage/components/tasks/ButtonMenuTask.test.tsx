@@ -11,13 +11,14 @@ vi.mock("sonner", async () => (await import("@/test/mocks")).sonnerMock())
 const updateTaskPriority = vi.fn()
 const updateTaskDescription = vi.fn()
 const updateItemColor = vi.fn()
+const updateTaskDue = vi.fn()
 const patchTask = vi.fn()
 const removeTask = vi.fn()
 const rollback = vi.fn()
 const archiveItem = vi.fn()
 const archive = vi.fn()
 vi.mock("@/contexts/workspace-data", () => ({
-    useWorkspaceActions: () => ({ updateTaskPriority, updateTaskDescription, updateItemColor, archiveItem }),
+    useWorkspaceActions: () => ({ updateTaskDue, updateTaskPriority, updateTaskDescription, updateItemColor, archiveItem }),
 }))
 // Only the archive step is observed: every other recorder method is a no-op
 const recorder = makeUndoRecorderMock({ archive })
@@ -44,6 +45,7 @@ vi.mock("@/components/dialogs/dialog-add-color", () => ({
         <button onClick={() => { addColorItem("task", 5, "#ff0000").catch(() => { }) }}>pick color</button>
     ),
 }))
+vi.mock("@/components/due/DialogTaskDue", () => ({ DialogTaskDue: () => <output data-testid="due-dialog" /> }))
 vi.mock("./DialogTaskDescription", () => ({ DialogTaskDescription: () => null }))
 vi.mock("@/components/tags/DialogTaskTags", () => ({ DialogTaskTags: ({ taskIds }: { taskIds: number[] }) => <output data-testid="tags-dialog">{taskIds.join(",")}</output> }))
 
@@ -53,6 +55,7 @@ beforeEach(() => {
     draftActive = false
     updateTaskPriority.mockResolvedValue(undefined)
     updateTaskDescription.mockResolvedValue(undefined)
+    updateTaskDue.mockResolvedValue(undefined)
     updateItemColor.mockResolvedValue(undefined)
     patchTask.mockReturnValue(rollback)
     archiveItem.mockResolvedValue(undefined)
@@ -224,5 +227,26 @@ describe("ButtonMenuTask tags", () => {
         fireEvent.contextMenu(screen.getByTestId("row"))
         await user.click(await screen.findByRole("menuitem", { name: "Tag…" }))
         expect(await screen.findByTestId("tags-dialog")).toHaveTextContent("5")
+    })
+})
+
+describe("ButtonMenuTask due date", () => {
+    const open = (task = makeTask({ id: 5 })) => {
+        render(<ButtonMenuTask onEditDescription={vi.fn()} task={task}><div data-testid="row">Task</div></ButtonMenuTask>)
+        fireEvent.contextMenu(screen.getByTestId("row"))
+    }
+
+    it("'Imposta scadenza' opens the due date dialog and there is nothing to remove yet", async () => {
+        open()
+        await userEvent.click(await screen.findByRole("menuitem", { name: "Imposta scadenza…" }))
+        expect(await screen.findByTestId("due-dialog")).toBeInTheDocument()
+    })
+
+    it("a task with a date offers to change it and to remove it (saved and undoable)", async () => {
+        open(makeTask({ id: 5, due_date: "2030-05-06", due_time: null }))
+        expect(await screen.findByRole("menuitem", { name: "Cambia scadenza…" })).toBeInTheDocument()
+        await userEvent.click(screen.getByRole("menuitem", { name: "Rimuovi scadenza" }))
+        await waitFor(() => expect(updateTaskDue).toHaveBeenCalledWith(5, null, null))
+        expect(patchTask).toHaveBeenCalledWith(5, { due_date: null, due_time: null })
     })
 })

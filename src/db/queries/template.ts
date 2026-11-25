@@ -10,6 +10,7 @@ import { addEnsureTag, WORKSPACE_OF_NOTE, WORKSPACE_OF_SECTION, type UsedTag } f
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
 import { isTaskOrder } from "@/lib/task-order"
+import { normalizeDue } from "@/lib/due-date"
 import { isPortableAutomation, type PortableAutomation } from "@/lib/automations/portable"
 import { addNoteAutomations, getDBPortableAutomations } from "./automation";
 
@@ -75,6 +76,7 @@ export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[]
         completed: !!task.completed,
         priority: !!task.priority,
         color: task.color ?? null,
+        ...(task.due_date ? { due_date: task.due_date, ...(task.due_time ? { due_time: task.due_time } : {}) } : {}),
         ...(tagsOf(task).length > 0 ? { tags: tagsOf(task) } : {}),
         position: task.position,
         subtasks: (childrenOf.get(task.id) ?? []).map(snapshotTask),
@@ -161,6 +163,24 @@ export async function buildContentWithSectionIds(noteId: number, includeArchived
     return buildContentFromRows(await getDBNoteData(noteId, includeArchived))
 }
 
+/** A copy of the content with the due dates and times of the tasks removed: a date in a template would be in the past (overdue) the moment the template is used. */
+function withoutDueDates(content: NoteTemplateContent): NoteTemplateContent {
+    const clean = (task: TemplateTask): TemplateTask => {
+        const rest: TemplateTask = { ...task, subtasks: task.subtasks.map(clean) }
+        delete rest.due_date
+        delete rest.due_time
+        return rest
+    }
+    return {
+        ...content,
+        groups: content.groups.map(group => ({
+            ...group,
+            ...(group.tasks ? { tasks: group.tasks.map(clean) } : {}),
+            sections: group.sections.map(section => ({ ...section, tasks: section.tasks.map(clean) })),
+        })),
+    }
+}
+
 /**
  * The content of a note as a template stores it: its visible content plus its automations (see getDBPortableAutomations;
  * a rule that refers to something left out, like an archived section, is dropped).
@@ -170,7 +190,8 @@ export async function buildContentWithSectionIds(noteId: number, includeArchived
 export async function buildTemplateSnapshot(noteId: number): Promise<NoteTemplateContent> {
     const { content, sectionIds, groupIds, defaultSectionIds } = await buildContentWithSectionIds(noteId)
     const automations = await getDBPortableAutomations(noteId, content, sectionIds, groupIds, defaultSectionIds)
-    return automations.length > 0 ? { ...content, automations } : content
+    const withoutDue = withoutDueDates(content)
+    return automations.length > 0 ? { ...withoutDue, automations } : withoutDue
 }
 
 /**
@@ -383,11 +404,14 @@ export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, leve
     let firstLevel: TxRef[] | null = null
     while (level.length > 0) {
         const refs = tx.insertRows("task",
-            ["sectionID", "taskID", "text", "description", "completed", "priority", "color", "archived_at", "position"],
-            level.map(({ sectionRef, parentRef, task }) => [
-                sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
-                task.priority ? 1 : 0, task.color ?? null, task.archived_at || null, task.position,
-            ]))
+            ["sectionID", "taskID", "text", "description", "completed", "priority", "color", "due_date", "due_time", "archived_at", "position"],
+            level.map(({ sectionRef, parentRef, task }) => {
+                const due = normalizeDue(task.due_date, task.due_time)
+                return [
+                    sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
+                    task.priority ? 1 : 0, task.color ?? null, due.date, due.time, task.archived_at || null, task.position,
+                ]
+            }))
         firstLevel ??= refs
         level.forEach(({ task }, i) => { if (task.tags?.length) tagged.push({ taskRef: refs[i], tags: task.tags }) })
         level = level.flatMap(({ sectionRef, task }, i) =>
