@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import type { NoteTemplateContent, TemplateTask } from "@/types/template"
-import { noteToPrintDom, printNote, PRINT_ROOT_ID, PRINTING_CLASS } from "./note-print"
+import { noteToPrintDom, pageToPrintDom, printNote, printPage, PRINT_ROOT_ID, PRINTING_CLASS } from "./note-print"
 
 const task = (text: string, extra: Partial<TemplateTask> = {}): TemplateTask =>
     ({ text, description: null, completed: false, priority: false, color: null, position: 0, subtasks: [], ...extra })
@@ -76,5 +76,38 @@ describe("printNote", () => {
         expect(() => printNote(tree, options)).toThrow("no print")
         expect(document.getElementById(PRINT_ROOT_ID)).toBeNull()
         expect(document.body.classList.contains(PRINTING_CLASS)).toBe(false)
+    })
+})
+
+describe("pageToPrintDom and printPage", () => {
+    it("draws the Markdown of a page as plain elements, never as markup", () => {
+        const root = pageToPrintDom(document, "# Title\n\nSome **bold** and `code` <i>x</i>\n\n- one\n- [x] done\n\n> quote\n\n```\nlet a = 1\n```\n---\n1. first")
+        expect(root.id).toBe(PRINT_ROOT_ID)
+        expect(root.querySelector("h1")?.textContent).toBe("Title")
+        expect(root.querySelector("p strong")?.textContent).toBe("bold")
+        expect(root.querySelector("p code")?.textContent).toBe("code")
+        expect(root.querySelector("i")).toBeNull()
+        expect(root.querySelector("p")?.textContent).toContain("<i>x</i>")
+        expect(root.querySelector("ul:not(.checklist) > li")?.textContent).toBe("one")
+        expect(root.querySelector("ul.checklist > li")?.textContent).toBe("☑done")
+        expect(root.querySelector("blockquote")?.textContent).toBe("quote")
+        expect(root.querySelector("pre code")?.textContent).toBe("let a = 1")
+        expect(root.querySelector("hr")).not.toBeNull()
+        expect(root.querySelector("ol > li")?.textContent).toBe("first")
+        expect(root.querySelector("script, img")).toBeNull()
+    })
+
+    it("prints with the name of the page as the title of the document, then cleans up", () => {
+        const print = vi.spyOn(window, "print").mockImplementation(() => {
+            expect(document.getElementById(PRINT_ROOT_ID)?.querySelector("h1")?.textContent).toBe("T")
+            expect(document.title).toBe("My page")
+            expect(document.body.classList.contains(PRINTING_CLASS)).toBe(true)
+        })
+        const before = document.title
+        printPage("# T", "My page")
+        expect(print).toHaveBeenCalledTimes(1)
+        window.dispatchEvent(new Event("afterprint"))
+        expect(document.getElementById(PRINT_ROOT_ID)).toBeNull()
+        expect(document.title).toBe(before)
     })
 })

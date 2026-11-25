@@ -27,7 +27,7 @@ import { reportError } from "@/lib/report-error"
 import { toast } from "sonner"
 import { useItemTransfer } from "@/hooks/use-workspace-transfer"
 import { usePreference } from "@/contexts/use-preference"
-import { copyNoteAsMarkdown, copyPageAsMarkdown, printNoteAsPdf } from "@/lib/note-export"
+import { copyNoteAsMarkdown, copyPageAsMarkdown, printNoteAsPdf, printPageAsPdf } from "@/lib/note-export"
 
 const DialogAutomations = lazyNamed(() => import("@/components/dialogs/dialog-automations"), "DialogAutomations")
 const DialogCreateTemplate = lazyNamed(() => import("@/components/dialogs/dialog-create-template"), "DialogCreateTemplate")
@@ -132,7 +132,8 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
     // The print dialog is the system one: the page is only built here
     const handlePrint = () => runAction(async () => {
         try {
-            await printNoteAsPdf(note.id, note.name, hideCompletedTasks)
+            if (isPage) await printPageAsPdf(note.id, note.name)
+            else await printNoteAsPdf(note.id, note.name, hideCompletedTasks)
         } catch (error) {
             throw new Error(t("transfer.printUnavailable", { message: getErrorMessage(error) }), { cause: error })
         }
@@ -191,11 +192,11 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
                 type="copyMarkdown"
                 onClick={handleCopyMarkdown}
             />
-            {!isPage && <ButtonInPopover
+            <ButtonInPopover
                 text={t("menu.exportPdf")}
                 type="exportPdf"
                 onClick={handlePrint}
-            />}
+            />
             <ButtonInPopover
                 text={t("menu.archive")}
                 type="archive"

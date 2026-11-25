@@ -464,4 +464,14 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
   #note-print .description ul { list-style: disc; padding-left: 1.4em; }
   #note-print .description ol { list-style: decimal; padding-left: 1.6em; }
   #note-print .description ul.checklist { list-style: none; padding-left: 0; }
+  /* A Page: its Markdown as a document */
+  #note-print .page-doc > * { margin: 0 0 8pt; }
+  #note-print .page-doc p, #note-print .page-doc blockquote { white-space: pre-wrap; }
+  #note-print .page-doc ul { list-style: disc; padding-left: 1.4em; }
+  #note-print .page-doc ol { list-style: decimal; padding-left: 1.6em; }
+  #note-print .page-doc ul.checklist { list-style: none; padding-left: 0; }
+  #note-print .page-doc blockquote { border-left: 2pt solid #999; padding-left: 8pt; color: #444; }
+  #note-print .page-doc pre { padding: 6pt; background: #f2f2f2; border-radius: 3pt; white-space: pre-wrap; break-inside: avoid; }
+  #note-print .page-doc code { font-family: ui-monospace, monospace; font-size: 9.5pt; }
+  #note-print .page-doc hr { border: 0; border-top: 1px solid #999; }
 }

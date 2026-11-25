@@ -17,6 +17,8 @@ type Entry = {
     snapshot: PageSnapshot
     /** Typed text not written yet. */
     dirty: boolean
+    /** The text in the database: where the next undo step starts from. */
+    saved: string
     timer: ReturnType<typeof setTimeout> | null
     /** The write in progress (writes of a page never overlap). */
     writing: Promise<void> | null
@@ -25,6 +27,11 @@ type Entry = {
 }
 
 const LOADING: PageSnapshot = { status: "loading", text: "" }
+
+/** Receives each saved burst of typing as an undo step (before, after). Set by the page view; it stays set when the view goes away. */
+type StepSink = (noteId: number, before: string, after: string) => void
+let sink: StepSink | null = null
+export const setPageStepSink = (next: StepSink | null) => { sink = next }
 
 const entries = new Map<number, Entry>()
 const listeners = new Set<() => void>()
@@ -39,12 +46,20 @@ async function write(noteId: number, entry: Entry): Promise<void> {
     if (!entry.dirty) return
     entry.dirty = false
     const text = entry.snapshot.text
+    let failed = false
     entry.writing = updateDBPageBody(noteId, text).catch((error: unknown) => {
         // Kept as unsaved: the next change (or the next flush) tries again
+        failed = true
         entry.dirty = true
         reportError(error, i18n.t("errors.page.save", { message: getErrorMessage(error) }))
     })
     await entry.writing
+    // What was typed between two pauses is one step of the history, recorded once it is saved
+    if (!failed && text !== entry.saved) {
+        const before = entry.saved
+        entry.saved = text
+        sink?.(noteId, before, text)
+    }
     entry.writing = null
     if (entry.dirty && !entry.timer && entry.users > 0) schedule(noteId, entry)
     drop(noteId, entry)
@@ -67,12 +82,13 @@ function drop(noteId: number, entry: Entry) {
 export function acquirePage(noteId: number): () => void {
     let entry = entries.get(noteId)
     if (!entry) {
-        const created: Entry = { snapshot: LOADING, dirty: false, timer: null, writing: null, users: 0 }
+        const created: Entry = { snapshot: LOADING, dirty: false, saved: "", timer: null, writing: null, users: 0 }
         entry = created
         entries.set(noteId, created)
         getDBPageBody(noteId).then(text => {
             if (created.dirty) return
             created.snapshot = { status: "ready", text }
+            created.saved = text
             emit()
         }, (error: unknown) => {
             created.snapshot = { status: "failed", text: "" }
@@ -112,6 +128,23 @@ export function editPageText(noteId: number, text: string): void {
     }
     schedule(noteId, entry)
     emit()
+}
+
+/**
+ * Puts a text in a page from the history (undo or redo): shown and saved at once, and not recorded as a new step.
+ * A page nobody shows is written in the database directly.
+ */
+export async function applyPageText(noteId: number, text: string): Promise<void> {
+    const entry = entries.get(noteId)
+    if (entry && entry.snapshot.status === "ready") {
+        if (entry.timer) { clearTimeout(entry.timer); entry.timer = null }
+        if (entry.writing) await entry.writing
+        entry.dirty = false
+        entry.saved = text
+        entry.snapshot = { status: "ready", text }
+        emit()
+    }
+    await updateDBPageBody(noteId, text)
 }
 
 /** Writes the typed text of a page now (a page with nothing pending resolves at once). */

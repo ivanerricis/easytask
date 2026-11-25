@@ -76,3 +76,19 @@ describe("MarkdownText rich (a page)", () => {
         expect(openUrl).toHaveBeenCalledWith("https://example.com")
     })
 })
+
+describe("MarkdownText search (a page)", () => {
+    it("marks every match in the drawing order and makes the active one stand out", () => {
+        const { container } = render(<MarkdownText rich search={{ query: "fox", active: 2 }} text={"# Fox\nthe **fox** and `fox`\n- a fox\n```\nfox\n```"} />)
+        const marks = [...container.querySelectorAll("mark")]
+        expect(marks.map(mark => mark.textContent)).toEqual(["Fox", "fox", "fox", "fox", "fox"])
+        expect(marks.map(mark => mark.hasAttribute("data-active"))).toEqual([false, false, true, false, false])
+        expect(container.querySelector("strong mark")).not.toBeNull()
+        expect(container.querySelector("code mark")).not.toBeNull()
+    })
+
+    it("draws nothing extra without a query", () => {
+        const { container } = render(<MarkdownText rich search={{ query: " ", active: 0 }} text="fox" />)
+        expect(container.querySelector("mark")).toBeNull()
+    })
+})

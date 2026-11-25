@@ -1,4 +1,4 @@
-import { $, browser, expect } from "@wdio/globals"
+import { $, $$, browser, expect } from "@wdio/globals"
 import {
     byLabel, byText, createFromSidebar, createWorkspace, openContextMenu, openWorkspace, sql, topDialog, tr, treeRow, typeInto, waitForApp,
 } from "../helpers"
@@ -60,6 +60,47 @@ describe("Pages", () => {
         await byLabel(await tr("notes.page.text")).waitForExist({ reverse: true })
         await treeRow(PAGE).click()
         await expect(byLabel(await tr("notes.page.text"))).toHaveValue(TEXT)
+    })
+
+    it("undoes and redoes the typed text with Ctrl+Z / Ctrl+Y, also after the preview was shown", async () => {
+        const field = byLabel(await tr("notes.page.text"))
+        // The first text was saved some time ago: this second burst is another step of the history
+        await typeInto(field, `${TEXT} more`)
+        await browser.waitUntil(async () => (await savedBody()) === `${TEXT} more`, { timeoutMsg: "the second burst was not saved" })
+        await byLabel(await tr("notes.page.showPreview")).click()
+        await $('[data-testid="page-preview"]').waitForDisplayed()
+        await byLabel(await tr("notes.page.showText")).click()
+        await expect(byLabel(await tr("notes.page.text"))).toHaveValue(`${TEXT} more`)
+        await byLabel(await tr("notes.page.text")).click()
+        await browser.keys(["Control", "z"])
+        await browser.waitUntil(async () => (await savedBody()) === TEXT, { timeoutMsg: "the undo did not bring back the text" })
+        await expect(byLabel(await tr("notes.page.text"))).toHaveValue(TEXT)
+        await browser.keys(["Control", "y"])
+        await browser.waitUntil(async () => (await savedBody()) === `${TEXT} more`, { timeoutMsg: "the redo did not bring back the text" })
+        await browser.keys(["Control", "z"])
+        await browser.waitUntil(async () => (await savedBody()) === TEXT, { timeoutMsg: "the second undo did not bring back the text" })
+    })
+
+    it("searches in the page from the path bar, in the text and in the preview", async () => {
+        await byLabel(await tr("notes.noteSearch.inNote")).click()
+        const input = $(`input[aria-label=${JSON.stringify(await tr("notes.noteSearch.inNote"))}]`)
+        await typeInto(input, "bold")
+        await browser.waitUntil(async () => (await $$('[data-testid="page-text-marks"] mark').length) === 1, { timeoutMsg: "the match was not marked in the text" })
+        await expect(byText(await tr("notes.noteSearch.counter", { current: 1, total: 1 }))).toBeDisplayed()
+        await byLabel(await tr("notes.page.showPreview")).click()
+        await browser.waitUntil(async () => (await $$('[data-testid="page-preview"] mark').length) === 1, { timeoutMsg: "the match was not marked in the preview" })
+        await byLabel(await tr("notes.noteSearch.close")).click()
+        await byLabel(await tr("notes.page.showText")).click()
+    })
+
+    it("finds the page by a word of its text from the search of the notes", async () => {
+        await browser.keys(["Control", "k"])
+        const search = $(`input[placeholder=${JSON.stringify(await tr("notes.search.placeholder"))}]`)
+        await search.waitForDisplayed()
+        await typeInto(search, "not html")
+        await $('[data-testid="search-snippet"]').waitForDisplayed({ timeoutMsg: "no snippet of the text was shown" })
+        await expect($('[data-testid="search-snippet"]')).toHaveText(expect.stringContaining("not html"))
+        await browser.keys("Escape")
     })
 
     it("moves the page to the trash and restores it with its text", async () => {

@@ -67,6 +67,7 @@ export const notes = {
         placeholder: "Cerca una nota…",
         empty: "Nessun risultato.",
         suggestions: "Suggerimenti",
+        inText: "Nel testo delle pagine",
         short: "Cerca…",
     },
     noteSearch: {

@@ -23,6 +23,7 @@ export const shortcuts: Translation["shortcuts"] = {
         "search-notes": "Search a note",
         "search-in-note": "Search in the note",
         "new-note": "New note",
+        "new-page": "New page",
         "new-folder": "New folder",
         "close-note": "Close the active note",
         "close-all-notes": "Close all notes",

@@ -13,6 +13,9 @@ vi.mock("@/components/dialogs/dialog-note-from-template", () => ({
     DialogNoteFromTemplate: ({ template }: { template: NoteTemplate }) => <div>Nota da {template.name}</div>,
 }))
 
+// SidebarDialogs also listens to the "new page" shortcut: these tests have no ShortcutsProvider
+vi.mock("@/hooks/use-shortcut", () => ({ useShortcut: () => {} }))
+
 describe("ButtonNoteFromTemplate", () => {
     it("chooses a template, then opens the new note dialog for it", async () => {
         const user = userEvent.setup()

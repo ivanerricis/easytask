@@ -79,3 +79,51 @@ describe("page text store", () => {
         expect(mocks.write).not.toHaveBeenCalled()
     })
 })
+
+describe("page text history", () => {
+    it("hands each saved burst to the history as one step, from the last saved text", async () => {
+        const { setPageStepSink } = await import("./page-text")
+        const steps: [number, string, string][] = []
+        setPageStepSink((id, before, after) => steps.push([id, before, after]))
+        await loaded(1, "start")
+        editPageText(1, "start a")
+        editPageText(1, "start ab")
+        await flushPage(1)
+        editPageText(1, "start abc")
+        await flushPage(1)
+        expect(steps).toEqual([[1, "start", "start ab"], [1, "start ab", "start abc"]])
+        setPageStepSink(null)
+    })
+
+    it("does not record a step when the write fails or the text came back to the saved one", async () => {
+        const { setPageStepSink } = await import("./page-text")
+        const sink = vi.fn()
+        setPageStepSink(sink)
+        await loaded(1, "same")
+        mocks.write.mockRejectedValueOnce(new Error("disk"))
+        editPageText(1, "other")
+        await flushPage(1)
+        expect(sink).not.toHaveBeenCalled()
+        editPageText(1, "same")
+        await flushPage(1)
+        expect(sink).not.toHaveBeenCalled()
+        setPageStepSink(null)
+    })
+
+    it("applies a text from the history: shown and saved at once, and not recorded again", async () => {
+        const { applyPageText, setPageStepSink } = await import("./page-text")
+        const sink = vi.fn()
+        setPageStepSink(sink)
+        await loaded(1, "a")
+        editPageText(1, "ab")
+        await applyPageText(1, "zzz")
+        expect(getPageSnapshot(1).text).toBe("zzz")
+        expect(mocks.write).toHaveBeenLastCalledWith(1, "zzz")
+        await flushPage(1)
+        expect(sink).not.toHaveBeenCalled()
+        // A page nobody shows is written straight in the database
+        await applyPageText(7, "other page")
+        expect(mocks.write).toHaveBeenLastCalledWith(7, "other page")
+        setPageStepSink(null)
+    })
+})

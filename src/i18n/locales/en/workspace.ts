@@ -69,6 +69,7 @@ export const notes: Translation["notes"] = {
         placeholder: "Search a note…",
         empty: "No results.",
         suggestions: "Suggestions",
+        inText: "In the text of pages",
         short: "Search…",
     },
     noteSearch: {

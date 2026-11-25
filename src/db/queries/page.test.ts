@@ -24,7 +24,7 @@ vi.mock("@tauri-apps/api/core", async () => {
     }
 })
 
-import { createDBNoteInFolder, createDBWorkspaceNote, getDBPageBody, updateDBPageBody } from "./note"
+import { createDBNoteInFolder, createDBWorkspaceNote, getDBPageBody, pageSnippet, searchDBPageText, updateDBPageBody } from "./note"
 import { getDBWorkspaceData } from "./workspace"
 import { duplicateDBNote } from "./duplicate"
 import { moveDBTreeItem } from "./tree"
@@ -162,5 +162,47 @@ describe("export and import of a page", () => {
         expect(() => validateWorkspaceExport(exported)).not.toThrow()
         expect(() => validateWorkspaceExport({ ...exported, notes: [{ ...exported.notes[0], kind: "book" }] })).toThrow()
         expect(() => validateWorkspaceExport({ ...exported, notes: [{ ...exported.notes[0], kind: "page", body: 5 }] })).toThrow()
+    })
+})
+
+describe("search in the text of the pages", () => {
+    it("finds the pages whose text contains the words, with a snippet, ignoring case and the escape characters of LIKE", async () => {
+        const first = await createDBWorkspaceNote(1, "First", null, "page")
+        const second = await createDBWorkspaceNote(1, "Second", null, "page")
+        const plain = await createDBWorkspaceNote(1, "Plain note")
+        await updateDBPageBody(first, "Intro\n\nThe Quick brown fox jumps over the lazy dog, then rests for a long, long time in the shade")
+        await updateDBPageBody(second, "100% sure_thing and back\\slash")
+        sqlite.exec(`UPDATE note SET body = 'quick but not a page' WHERE id = ${plain}`)
+        const quick = await searchDBPageText(1, "  QUICK ")
+        expect(quick.map(match => match.id)).toEqual([first])
+        expect(quick[0].snippet).toContain("Quick brown fox")
+        expect(quick[0].snippet).not.toContain("\n")
+        expect((await searchDBPageText(1, "100%")).map(match => match.id)).toEqual([second])
+        expect((await searchDBPageText(1, "sure_thing")).map(match => match.id)).toEqual([second])
+        expect((await searchDBPageText(1, "s_re")).map(match => match.id)).toEqual([])
+        expect((await searchDBPageText(1, "back\\slash")).map(match => match.id)).toEqual([second])
+        expect(await searchDBPageText(1, "   ")).toEqual([])
+    })
+
+    it("leaves out the pages in the trash and the archive, and the ones of another workspace", async () => {
+        const live = await createDBWorkspaceNote(1, "Live", null, "page")
+        const trashed = await createDBWorkspaceNote(1, "Trashed", null, "page")
+        const archived = await createDBWorkspaceNote(1, "Archived", null, "page")
+        for (const id of [live, trashed, archived]) await updateDBPageBody(id, "needle")
+        await deleteDBItem("note", trashed)
+        await archiveDBItem("note", archived)
+        sqlite.exec("INSERT INTO workspace (id, name) VALUES (2, 'Other')")
+        sqlite.exec("INSERT INTO note (workspaceID, name, kind, body) VALUES (2, 'Else', 'page', 'needle')")
+        expect((await searchDBPageText(1, "needle")).map(match => match.id)).toEqual([live])
+    })
+
+    it("cuts the snippet around the first match with an ellipsis where the text goes on", () => {
+        const body = `${"a ".repeat(60)}TARGET${" b".repeat(60)}`
+        const snippet = pageSnippet(body, "target")
+        expect(snippet.startsWith("…")).toBe(true)
+        expect(snippet.endsWith("…")).toBe(true)
+        expect(snippet).toContain("TARGET")
+        expect(pageSnippet("short TARGET", "target")).toBe("short TARGET")
+        expect(pageSnippet("nothing", "x")).toBe("")
     })
 })

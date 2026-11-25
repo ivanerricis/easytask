@@ -2,6 +2,7 @@ import { useState } from "react"
 import { lazyNamed, preloadWhenIdle } from "@/lib/lazy-preload"
 import { LazyMount } from "@/components/lazy-mount"
 import { useAppCommand } from "@/lib/app-commands"
+import { useShortcut } from "@/hooks/use-shortcut"
 import type { NoteTemplate } from "@/types/template"
 import { AddNoteDialog } from "../AddNoteDialog"
 
@@ -31,7 +32,7 @@ export const SidebarDialogs = () => {
     useAppCommand("open-due", () => setDueOpen(true))
     useAppCommand("open-templates", () => setTemplatesOpen(true))
     useAppCommand("note-from-template", () => setPicking(true))
-    useAppCommand("new-page", () => setPageOpen(true))
+    useShortcut("new-page", () => setPageOpen(true))
 
     return (
         <>

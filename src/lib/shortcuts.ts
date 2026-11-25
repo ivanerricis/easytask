@@ -61,6 +61,7 @@ export const SHORTCUTS: Shortcut[] = [
     { id: "search-notes", defaultBinding: { key: "k", ctrl: true }, editable: true, scope: "workspace", category: "notes" },
     { id: "search-in-note", defaultBinding: { key: "f", ctrl: true }, editable: true, scope: "workspace", category: "notes" },
     { id: "new-note", defaultBinding: { key: "n", ctrl: true }, editable: true, scope: "workspace", category: "notes" },
+    { id: "new-page", defaultBinding: { key: "n", ctrl: true, shift: true }, editable: true, scope: "workspace", category: "notes" },
     { id: "new-folder", defaultBinding: { key: "m", ctrl: true }, editable: true, scope: "workspace", category: "notes" },
     { id: "close-note", defaultBinding: { key: "l", ctrl: true }, editable: true, scope: "workspace", category: "notes" },
     { id: "close-all-notes", defaultBinding: { key: "t", ctrl: true }, editable: true, scope: "workspace", category: "notes" },

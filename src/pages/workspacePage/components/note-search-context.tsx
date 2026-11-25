@@ -5,6 +5,7 @@ import { usePaneRoot } from "@/contexts/use-layout"
 import { useActiveNoteId, useTabUiStore } from "@/contexts/use-tabs"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useTagFilter } from "@/contexts/use-tag-filter"
+import { useIsActivePage } from "@/contexts/use-page"
 import { useStoreSelector } from "@/lib/external-store"
 import { collectMatches, searchKey, type SearchMatch, type SearchMatchKind } from "./note-search"
 import { activeMatch, activeOccurrenceOf, createNoteSearchStore, type NoteSearchStore } from "./note-search-store"
@@ -37,6 +38,8 @@ function openAncestors(match: SearchMatch, noteId: number, ui: ReturnType<typeof
 function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
     const { noteDataTree } = useActiveNote()
     const noteId = useActiveNoteId()
+    // A page is searched by the page itself (see PageView), not by its (empty) groups
+    const isPage = useIsActivePage()
     const uiStore = useTabUiStore()
     const { hideCompletedTasks, completedTasksLast } = usePreferences()
     const tagFilter = useTagFilter()
@@ -49,7 +52,7 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
 
     useEffect(() => {
         if (!open) scanned.current = ""
-        if (!open || !noteDataTree) return
+        if (!open || !noteDataTree || isPage) return
         const fresh = scanned.current !== query
         const run = () => {
             scanned.current = query
@@ -59,7 +62,7 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
         if (!fresh || !query) { run(); return }
         const timer = setTimeout(run, TYPING_DELAY_MS)
         return () => clearTimeout(timer)
-    }, [open, query, noteDataTree, hideCompletedTasks, completedTasksLast, tagFilter, store])
+    }, [open, query, noteDataTree, hideCompletedTasks, completedTasksLast, tagFilter, store, isPage])
 
     // What the search opened closes again with it
     useEffect(() => {
@@ -68,7 +71,7 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
     }, [open, noteId, uiStore])
 
     useEffect(() => {
-        if (revealTick === 0 || noteId === null) return
+        if (revealTick === 0 || noteId === null || isPage) return
         const match = activeMatch(store.getState())
         if (!match) return
         openAncestors(match, noteId, uiStore)
@@ -85,7 +88,7 @@ function NoteSearchEngine({ store }: { store: NoteSearchStore }) {
         }
         frame = requestAnimationFrame(seek)
         return () => cancelAnimationFrame(frame)
-    }, [revealTick, noteId, store, uiStore, paneRoot])
+    }, [revealTick, noteId, store, uiStore, paneRoot, isPage])
 
     return null
 }

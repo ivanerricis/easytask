@@ -1,5 +1,6 @@
 import { createUndoHelpers } from "./helpers"
 import { itemCommands } from "./item"
+import { pageCommands } from "./page"
 import { sectionCommands } from "./section"
 import { tagCommands } from "./tag"
 import { taskCommands } from "./task"
@@ -20,5 +21,6 @@ export function createUndoCommands(deps: UndoDeps) {
         ...sectionCommands(helpers),
         ...taskCommands(helpers),
         ...tagCommands(helpers),
+        ...pageCommands(),
     }
 }

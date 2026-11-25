@@ -64,8 +64,7 @@ export const PathBar = () => {
 
     // Opens the search field (it takes the focus when it appears); already open, it takes the focus and selects the query
     useShortcut("search-in-note", () => {
-        // A page has no tasks to search
-        if (!search || isPage) return
+        if (!search) return
         if (search.getState().open) {
             searchInputRef.current?.focus()
             searchInputRef.current?.select()
@@ -136,7 +135,7 @@ export const PathBar = () => {
                     </Button>
                 </TooltipCustom>
                 )}
-                {!isPage && search && (searchOpen
+                {search && (searchOpen
                     ? <NoteSearchField store={search} inputRef={searchInputRef} />
                     : <TooltipCustom text={t("notes.noteSearch.inNote")} shortcut={searchLabel}>
                         <Button type="button" variant="ghost" size="icon" className={cn(ghostIconButtonClass, "[&_svg]:!size-4")}

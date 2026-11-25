@@ -284,3 +284,43 @@ export async function updateDBPageBody(noteId: number, body: string) {
         handleDBError(error, "NOTE", {})
     }
 }
+
+/** A page whose text contains the searched words, with the short piece of text around the first match. */
+export type PageTextMatch = { id: number, snippet: string }
+
+const SNIPPET_BEFORE = 28
+const SNIPPET_AFTER = 60
+
+/** The words of `body` around the first occurrence of `query` (case-insensitive), on one line, with "…" where it is cut. */
+export function pageSnippet(body: string, query: string): string {
+    const at = body.toLowerCase().indexOf(query.toLowerCase())
+    if (at < 0) return ""
+    const from = Math.max(0, at - SNIPPET_BEFORE)
+    const to = Math.min(body.length, at + query.length + SNIPPET_AFTER)
+    const text = body.slice(from, to).replace(/\s+/g, " ").trim()
+    return `${from > 0 ? "…" : ""}${text}${to < body.length ? "…" : ""}`
+}
+
+/**
+ * The pages of a workspace (not in the trash or the archive) whose text contains `query`, case-insensitive, most recently
+ * edited first.
+ * @param workspaceId The workspace to search.
+ * @param query The text to find (at least one character after trimming; shorter returns nothing).
+ * @param limit The most pages returned (default 20).
+ * @category Database Queries
+ */
+export async function searchDBPageText(workspaceId: number, query: string, limit = 20): Promise<PageTextMatch[]> {
+    const needle = query.trim()
+    if (needle === "") return []
+    try {
+        const db = await getDB()
+        const escaped = needle.replace(/[\\%_]/g, char => "\\" + char)
+        const rows = await db.select<{ id: number, body: string }[]>(
+            `SELECT id, body FROM note WHERE workspaceID = ? AND kind = 'page' AND deleted_at IS NULL AND archived_at IS NULL
+             AND body LIKE ? ESCAPE '\\' ORDER BY edit_date DESC, edit_time DESC, id LIMIT ?`,
+            [workspaceId, `%${escaped}%`, limit])
+        return rows.map(row => ({ id: row.id, snippet: pageSnippet(row.body, needle) }))
+    } catch (error: unknown) {
+        throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
+    }
+}
