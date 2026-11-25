@@ -215,14 +215,33 @@ body,
 }
 
 /* 1ms instead of 0: the components wait for the end of their exit animation to unmount. The spinners keep turning. */
-:root[data-motion="none"] *:not(.animate-spin, .animate-pulse),
-:root[data-motion="none"] *:not(.animate-spin, .animate-pulse)::before,
-:root[data-motion="none"] *:not(.animate-spin, .animate-pulse)::after {
+:root[data-motion="none"] *:not(.animate-spin, .animate-pulse, .busy-pulse),
+:root[data-motion="none"] *:not(.animate-spin, .animate-pulse, .busy-pulse)::before,
+:root[data-motion="none"] *:not(.animate-spin, .animate-pulse, .busy-pulse)::after {
   animation-duration: 1ms !important;
   animation-delay: 0s !important;
   transition-duration: 1ms !important;
   transition-delay: 0s !important;
   scroll-behavior: auto !important;
+}
+
+/* Toasts (sonner) set their own durations (400ms for the slide, the fade and the height, 200ms for the shadow), not the default one:
+   "normal" halves them, "slow" makes them a half longer; "none" is covered by the 1ms rule above. */
+:root[data-motion="normal"] [data-sonner-toaster] [data-sonner-toast] {
+  transition: transform 200ms, opacity 200ms, height 200ms, box-shadow 100ms;
+}
+:root[data-motion="slow"] [data-sonner-toaster] [data-sonner-toast] {
+  transition: transform 600ms, opacity 600ms, height 600ms, box-shadow 300ms;
+}
+
+/* The bar of an update of unknown size pulses to say that work is going on: like a spinner it keeps moving with "none"
+   (opacity only). */
+.busy-pulse {
+  animation: busy-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes busy-pulse {
+  50% { opacity: 0.5; }
 }
 
 /* The decorative pulse (skeletons) stops with "none"; only the spinners keep turning, they are the sign that something is running. */
@@ -344,6 +363,7 @@ html[data-font]:not([data-font="system"]) .font-sans { font-family: var(--app-fo
 
 /* The speed of the animations of the app (data-motion, see applyAnimationSpeed), not the system one: the shifts of the live drag
    take their duration from it too (shiftDurationMs). */
+:root[data-motion="normal"] .live-drag-slot { animation-duration: 90ms; }
 :root[data-motion="slow"] .live-drag-slot { animation-duration: 250ms; }
 :root[data-motion="none"] .live-drag-slot { animation: none; }
 

@@ -128,7 +128,7 @@ const AudioFileRow = ({ file, groupId, missing = false, variant = "row" }: Audio
                         aria-label={file.name}
                         onClick={() => void playFile(file)}
                         className={cn("relative size-7 shrink-0 bg-background", isCurrent && "border-primary", missing && "border-destructive")}>
-                        <StateIcon className={cn("size-4", state === "ended" && "size-3.5 fill-current", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
+                        <StateIcon key={state ?? "idle"} className={cn("size-4", state && "animate-in zoom-in-50 fade-in-0", state === "ended" && "size-3.5 fill-current", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
                         {missing && <TriangleAlert className="absolute -right-1 -top-1 size-3 text-destructive" role="img" aria-label={t("audio.missing.title")} />}
                     </Button>
                 </TooltipCustom>
@@ -153,7 +153,7 @@ const AudioFileRow = ({ file, groupId, missing = false, variant = "row" }: Audio
                     onClick={() => void playFile(file)}
                     className={cn(focusRing, "flex min-w-0 flex-1 items-center gap-2 py-1 rounded-xs cursor-pointer text-left")}
                 >
-                    <StateIcon className={cn("shrink-0", state === "ended" ? "size-3.5 mx-px fill-current" : "size-4", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
+                    <StateIcon key={state ?? "idle"} className={cn("shrink-0", state && "animate-in zoom-in-50 fade-in-0", state === "ended" ? "size-3.5 mx-px fill-current" : "size-4", isCurrent ? "text-primary" : "text-muted-foreground", state === "playing" && "motion-safe:animate-pulse")} />
                     <span className={cn("flex-1 truncate", missing && "text-muted-foreground")}>{file.name}</span>
                     {missing && <TriangleAlert className="size-4 shrink-0 text-destructive" role="img" aria-label={t("audio.missing.title")} />}
                     {state && <span className="sr-only">{t(`audio.${state === "playing" ? "nowPlaying" : state}`)}</span>}

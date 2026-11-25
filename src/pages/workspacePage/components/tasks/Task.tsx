@@ -271,7 +271,7 @@ const TaskRow = React.memo(({ task, depth = 0, showSubtaskCount = true, hideComp
             </ButtonMenuTask>
             {isSubtask && <TaskConnectorTick depth={depth} sizes={sizes} />}
             {/* Subtasks hang from the checkbox of their parent (see the tree connectors above) */}
-            {showChildren && <div role="group" className={cn("flex flex-col self-stretch", sizes.subtasks, isSubtask ? "ml-[22px]" : "ml-6")}>
+            {showChildren && <div role="group" className={cn("animate-in fade-in-0 flex flex-col self-stretch", sizes.subtasks, isSubtask ? "ml-[22px]" : "ml-6")}>
                 {taskRowsWithInsert({
                     all: task.subtasks,
                     visible: orderedVisibleTasks(task.subtasks, { hideCompleted, order, tagFilter: subtaskFilter }),

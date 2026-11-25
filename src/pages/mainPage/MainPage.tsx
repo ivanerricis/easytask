@@ -102,7 +102,7 @@ const MainPage = () => {
                         variant="outline"
                         onClick={() => void importWorkspace()}
                         disabled={isImporting}
-                        className="flex items-center justify-center w-full min-w-0 p-6 rounded-xs gap-2 text-lg border-primary transition-all"
+                        className="flex items-center justify-center w-full min-w-0 p-6 rounded-xs gap-2 text-lg border-primary transition-colors"
                     >
                         {isImporting ? <Loader2 className="h-5! w-5! animate-spin" /> : <Download className="h-5! w-5!" />}
                         {t("home.import")}

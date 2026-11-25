@@ -51,7 +51,7 @@ export const Navbar = React.memo(({ leftContainer, centerContainer, rightContain
                         <Minus className="w-5 h-5" />
                     </ButtonNavbar>
                     <ButtonNavbar onClick={() => void appWindow.toggleMaximize()} className={`${WINDOW_BUTTON} !p-2.5`} label={maximizeLabel} textTooltip={maximizeLabel} window>
-                        {maximized ? <Copy className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                        {maximized ? <Copy key="restore" className="w-4 h-4 animate-in fade-in-0" /> : <Square key="maximize" className="w-4 h-4 animate-in fade-in-0" />}
                     </ButtonNavbar>
                     <ButtonNavbar onClick={() => void appWindow.close()} className={CLOSE_BUTTON} label={t("window.close")} textTooltip={t("window.close")} window>
                         <X className="w-5 h-5" />

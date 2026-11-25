@@ -94,7 +94,7 @@ describe("DialogAutomations", () => {
         const status = await screen.findByRole("status")
         expect(status).toHaveAttribute("aria-busy", "true")
         expect(status).toHaveTextContent("Caricamento")
-        expect(status.querySelector("svg")).toHaveClass("motion-reduce:animate-none")
+        expect(status.querySelector("svg")).toHaveClass("animate-spin")
     })
 
     it("annuncia il passo corrente in una regione aria-live", async () => {

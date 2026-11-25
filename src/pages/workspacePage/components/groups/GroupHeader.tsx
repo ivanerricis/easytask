@@ -141,7 +141,7 @@ export const GroupHeader = memo(({ group, index = 0, dragProps, audioCount = 0, 
                 aria-label={isOpen ? t("groups.collapse") : t("groups.expand")}
                 aria-expanded={isOpen}
                 className="size-6 shrink-0">
-                <ChevronDown className={isOpen ? "rotate-0" : "-rotate-90"} />
+                <ChevronDown className={`transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`} />
             </Button>
             {!isEditing && <button
                 type="button"

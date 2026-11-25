@@ -78,7 +78,7 @@ export const DialogImportNames = ({ proposed, onSubmit, onCancel }: DialogImport
                         <DialogFooterActions>
                             <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>{t("common.cancel")}</Button>
                             <Button type="submit" disabled={saving || blank} aria-busy={saving || undefined}>
-                                {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : <Download />}
+                                {saving ? <Loader2 className="animate-spin" /> : <Download />}
                                 {t("transfer.importAction")}
                             </Button>
                         </DialogFooterActions>

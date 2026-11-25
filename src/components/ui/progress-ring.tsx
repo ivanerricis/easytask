@@ -14,7 +14,7 @@ type ProgressRingProps = {
 
 /**
  * The completion of a group or a section as a ring: the arc grows with the percentage, at 100% the ring fills and shows a check.
- * A progressbar for the screen readers, like the bar it replaces. The arc grows with a short transition, none with reduced motion.
+ * A progressbar for the screen readers, like the bar it replaces. The arc grows with the default transition, which follows the animation speed.
  * @category UI
  */
 export function ProgressRing({ value, size = 18, color, className, "aria-label": label }: ProgressRingProps) {
@@ -49,7 +49,7 @@ export function ProgressRing({ value, size = 18, color, className, "aria-label":
                     strokeLinecap={percent > 0 && !full ? "round" : "butt"}
                     strokeDasharray={`${(circumference * percent) / 100} ${circumference}`}
                     transform={`rotate(-90 ${center} ${center})`}
-                    className="transition-[stroke-dasharray] duration-200 motion-reduce:transition-none"
+                    className="transition-[stroke-dasharray]"
                 />
                 {full && <path
                     d={`M${size * 0.3} ${size * 0.52} l${size * 0.14} ${size * 0.14} l${size * 0.26} ${-size * 0.3}`}

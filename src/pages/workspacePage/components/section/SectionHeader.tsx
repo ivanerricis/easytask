@@ -78,7 +78,7 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                             aria-label={isOpen ? t("sections.collapse") : t("sections.expand")}
                             aria-expanded={isOpen}
                             className="size-6 shrink-0">
-                            <ChevronDown className={isOpen ? "rotate-0" : "-rotate-90"} />
+                            <ChevronDown className={`transition-transform ${isOpen ? "rotate-0" : "-rotate-90"}`} />
                         </Button>}
                     <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         {/* The title shrinks and truncates, the tags sit right after it and the free space is after them (like the group header) */}

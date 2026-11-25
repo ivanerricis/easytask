@@ -28,7 +28,7 @@ export const StepIndicator = ({ step, draft, onSelect }: { step: Step, draft: Au
                                     "flex size-5 items-center justify-center rounded-full border text-xs",
                                     current && "border-primary bg-primary text-primary-foreground",
                                     done && "border-primary text-primary-text",
-                                )}>{done ? <Check className="size-3" /> : index + 1}</span>
+                                )}>{done ? <Check className="size-3 animate-in zoom-in-50 fade-in-0" /> : index + 1}</span>
                                 <span className={cn(!current && "text-muted-foreground")}>{t(`automations.steps.${name}`)}</span>
                             </Button>
                             {index < LAST_STEP && <span aria-hidden className="h-px min-w-2 flex-1 bg-border" />}
