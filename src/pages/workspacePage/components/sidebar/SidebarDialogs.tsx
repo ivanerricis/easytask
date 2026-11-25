@@ -2,7 +2,9 @@ import { useState } from "react"
 import { lazyNamed, preloadWhenIdle } from "@/lib/lazy-preload"
 import { LazyMount } from "@/components/lazy-mount"
 import { useAppCommand } from "@/lib/app-commands"
+import { useShortcut } from "@/hooks/use-shortcut"
 import type { NoteTemplate } from "@/types/template"
+import { AddNoteDialog } from "../AddNoteDialog"
 
 const DialogTrash = lazyNamed(() => import("@/components/dialogs/dialog-trash"), "DialogTrash")
 const DialogArchive = lazyNamed(() => import("@/components/dialogs/dialog-archive"), "DialogArchive")
@@ -13,7 +15,7 @@ const DialogNoteFromTemplate = lazyNamed(() => import("@/components/dialogs/dial
 preloadWhenIdle(DialogTrash, DialogArchive, DialogDue, DialogTemplates, DialogPickTemplate, DialogNoteFromTemplate)
 
 /**
- * Trash, archive, templates and note-from-template dialogs of the workspace. They are opened with the app commands (from the
+ * Trash, archive, templates, note-from-template and new-page dialogs of the workspace. They are opened with the app commands (from the
  * sidebar buttons or the app menu) and live outside the sidebar panel, so they work while the sidebar is closed.
  * @category Sidebar
  */
@@ -23,12 +25,14 @@ export const SidebarDialogs = () => {
     const [dueOpen, setDueOpen] = useState(false)
     const [templatesOpen, setTemplatesOpen] = useState(false)
     const [picking, setPicking] = useState(false)
+    const [pageOpen, setPageOpen] = useState(false)
     const [template, setTemplate] = useState<NoteTemplate | null>(null)
     useAppCommand("open-trash", () => setTrashOpen(true))
     useAppCommand("open-archive", () => setArchiveOpen(true))
     useAppCommand("open-due", () => setDueOpen(true))
     useAppCommand("open-templates", () => setTemplatesOpen(true))
     useAppCommand("note-from-template", () => setPicking(true))
+    useShortcut("new-page", () => setPageOpen(true))
 
     return (
         <>
@@ -47,6 +51,7 @@ export const SidebarDialogs = () => {
             <LazyMount active={picking}>
                 <DialogPickTemplate isOpen={picking} onOpenChange={setPicking} onPick={setTemplate} />
             </LazyMount>
+            {pageOpen && <AddNoteDialog kind="page" open={pageOpen} onOpenChange={setPageOpen} parentId={null} withColor />}
             <LazyMount active={template !== null}>
                 {template && (
                     <DialogNoteFromTemplate

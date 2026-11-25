@@ -34,6 +34,7 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
     const { t } = useTranslation()
     const [isAddSubFolderOpen, setAddSubFolderOpen] = useState(false);
     const [isAddNoteOpen, setAddNoteOpen] = useState(false);
+    const [isAddPageOpen, setAddPageOpen] = useState(false);
     const [isDeleteFolderOpen, setDeleteFolderOpen] = useState(false);
     const menu = useItemMenuState()
     const { requestRename, onCloseAutoFocus } = useRenameAfterClose(onRename)
@@ -77,6 +78,11 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
                 text={t("menu.newNote")}
                 type="addNote"
                 onClick={() => { setAddNoteOpen(true); menu.close() }}
+            />
+            <ButtonInPopover
+                text={t("menu.newPage")}
+                type="addPage"
+                onClick={() => { setAddPageOpen(true); menu.close() }}
             />
             <ButtonInPopover
                 text={t("menu.newFolder")}
@@ -139,6 +145,12 @@ export const ButtonMenuFolder = ({ folder, onRename, children }: ButtonMenuFolde
                 parentId={folder.id}
                 open={isAddNoteOpen}
                 onOpenChange={setAddNoteOpen}
+            />}
+            {isAddPageOpen && <AddNoteDialog
+                kind="page"
+                parentId={folder.id}
+                open={isAddPageOpen}
+                onOpenChange={setAddPageOpen}
             />}
             {isAddSubFolderOpen && <AddFolderDialog
                 parentId={folder.id}

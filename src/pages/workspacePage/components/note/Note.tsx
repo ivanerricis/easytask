@@ -2,6 +2,7 @@ import type { Note } from "@/types/types"
 import { useActiveNoteSelector, useTabsActions } from "@/contexts/use-tabs"
 import { ButtonMenuNote } from "./ButtonMenuNote"
 import React, { useState } from "react"
+import { FileText } from "lucide-react"
 import { useColorAlpha } from "@/contexts/use-color-alpha"
 import { hexToRgba } from "@/lib/utils"
 import { useItemSize } from "../sidebar/item-size"
@@ -97,6 +98,7 @@ const NoteRow = React.memo(({ note, dropZone, level = 1, dndRef, attributes, lis
                         <DropLine zone={dropZone} />
                         <SelectionMark selected={selected} />
                         <div className="flex min-w-0 items-center gap-1 px-1 overflow-hidden w-full">
+                            {note.kind === "page" && <FileText aria-label={t("notes.page.icon")} className="size-3.5 shrink-0 text-muted-foreground" />}
                             {editing
                                 ? <InlineNameInput {...inputProps} error={error} aria-label={t("common.name")} className={size.text} />
                                 : <span className={`${size.text} ${isActive ? "font-semibold" : ""} text-foreground min-w-0 truncate whitespace-nowrap overflow-hidden max-w-[calc(100%-1rem)]`}>

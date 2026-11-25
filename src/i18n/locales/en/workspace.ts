@@ -69,6 +69,7 @@ export const notes: Translation["notes"] = {
         placeholder: "Search a note…",
         empty: "No results.",
         suggestions: "Suggestions",
+        inText: "In the text of pages",
         short: "Search…",
     },
     noteSearch: {
@@ -89,6 +90,15 @@ export const notes: Translation["notes"] = {
     },
     hideCompleted: "Hide completed tasks",
     showCompleted: "Show completed tasks",
+    page: {
+        showText: "Show the Markdown text",
+        showPreview: "Show the formatted preview",
+        text: "Page text",
+        placeholder: "Write in Markdown…",
+        emptyPreview: "This page is empty. Show the text to write something.",
+        previewLabel: "Formatted page",
+        icon: "Page",
+    },
     path: {
         label: "Note path",
         reveal: "Show {{name}} in the sidebar",
@@ -141,6 +151,7 @@ export const groups: Translation["groups"] = {
 export const sidebar: Translation["sidebar"] = {
     addFolder: "New folder",
     addNote: "New note",
+    addPage: "New page",
     addNoteFromTemplate: "New note from template",
     importItems: "Import a note or folder",
     trashBadge_one: "{{count}} item in the trash",

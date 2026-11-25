@@ -87,3 +87,64 @@ describe("toggleChecklistItem", () => {
         expect(toggleChecklistItem("- [ ] a", 3)).toBeNull()
     })
 })
+
+describe("rich mode (the text of a page)", () => {
+    const rich = { rich: true } as const
+    const types = (text: string) => parseMarkdown(text, rich).map(block => block.type)
+
+    it("is off by default: a description keeps its '#', quotes and fences as text", () => {
+        expect(parseMarkdown("# Title\n> quote\n---\n```\ncode\n```").map(block => block.type)).toEqual(["text"])
+        expect(parseInline("a `b`")).toEqual([{ type: "text", text: "a `b`" }])
+    })
+
+    it("reads headings with their level and drops the closing hashes", () => {
+        const [h1, h3] = parseMarkdown("# One\n\n### Three ###", rich)
+        expect(h1).toEqual({ type: "heading", level: 1, inline: [{ type: "text", text: "One" }] })
+        expect(h3).toEqual({ type: "heading", level: 3, inline: [{ type: "text", text: "Three" }] })
+        expect(types("#nospace\n####### seven")).toEqual(["text"])
+    })
+
+    it("reads a fenced block as code, with its lines untouched, also when it is not closed", () => {
+        const blocks = parseMarkdown("before\n```ts\n# not a heading\n- [ ] not a task\n```\nafter", rich)
+        expect(blocks.map(block => block.type)).toEqual(["text", "code", "text"])
+        expect(blocks[1]).toEqual({ type: "code", text: "# not a heading\n- [ ] not a task" })
+        expect(parseMarkdown("~~~\nopen", rich)).toEqual([{ type: "code", text: "open" }])
+    })
+
+    it("reads quotes (one block for consecutive lines), rules and lists around them", () => {
+        expect(types("> a\n> b\n\n---\n* * *\n- x\n1. y")).toEqual(["quote", "rule", "rule", "bullets", "numbers"])
+        const [quote] = parseMarkdown("> a\n> b", rich)
+        expect(quote).toEqual({ type: "quote", inline: [{ type: "text", text: "a" }, { type: "text", text: "\n" }, { type: "text", text: "b" }] })
+    })
+
+    it("keeps the line numbers of the checklist items, whatever comes before", () => {
+        const blocks = parseMarkdown("# T\n\n```\nx\n```\n- [ ] a\n- [x] b", rich)
+        const list = blocks.find(block => block.type === "checklist")
+        expect(list && list.type === "checklist" && list.items.map(item => item.line)).toEqual([5, 6])
+    })
+
+    it("keeps the blank line between two paragraphs but not the ones around other blocks", () => {
+        const blocks = parseMarkdown("one\n\ntwo\n\n# H\n\nthree\n\n", rich)
+        expect(blocks.map(block => block.type)).toEqual(["text", "heading", "text"])
+        const joined = (index: number) => { const block = blocks[index]; return block.type === "text" ? block.inline.map(node => node.type === "text" ? node.text : "").join("") : "" }
+        expect(joined(0)).toBe("one\n\ntwo")
+        expect(joined(2)).toBe("three")
+    })
+
+    it("reads inline code (its stars stay text) and [text](address) links, and refuses an unsafe address", () => {
+        expect(parseInline("a `*b*` c", rich)).toEqual([{ type: "text", text: "a " }, { type: "code", text: "*b*" }, { type: "text", text: " c" }])
+        expect(parseInline("see [docs](https://example.com/a_b) now", rich)).toEqual([
+            { type: "text", text: "see " },
+            { type: "link", url: "https://example.com/a_b", text: "docs" },
+            { type: "text", text: " now" },
+        ])
+        expect(parseInline("[x](javascript:alert(1))", rich).some(node => node.type === "link")).toBe(false)
+        expect(parseInline("[x](file:///etc/passwd)", rich).some(node => node.type === "link")).toBe(false)
+    })
+
+    it("never turns html into anything but text", () => {
+        expect(parseMarkdown("<script>alert(1)</script>\n<img src=x onerror=y>", rich)).toEqual([
+            { type: "text", inline: [{ type: "text", text: "<script>alert(1)</script>" }, { type: "text", text: "\n" }, { type: "text", text: "<img src=x onerror=y>" }] },
+        ])
+    })
+})

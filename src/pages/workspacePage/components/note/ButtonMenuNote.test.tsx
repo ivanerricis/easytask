@@ -41,7 +41,14 @@ let hideCompleted = false
 vi.mock("@/contexts/use-preference", () => ({ usePreference: (select: (p: { hideCompletedTasks: boolean }) => unknown) => select({ hideCompletedTasks: hideCompleted }) }))
 const copyNoteAsMarkdown = vi.fn()
 const printNoteAsPdf = vi.fn()
-vi.mock("@/lib/note-export", () => ({ copyNoteAsMarkdown: (...args: unknown[]) => copyNoteAsMarkdown(...args), printNoteAsPdf: (...args: unknown[]) => printNoteAsPdf(...args) }))
+const copyPageAsMarkdown = vi.fn()
+const printPageAsPdf = vi.fn()
+vi.mock("@/lib/note-export", () => ({
+    copyNoteAsMarkdown: (...args: unknown[]) => copyNoteAsMarkdown(...args),
+    printNoteAsPdf: (...args: unknown[]) => printNoteAsPdf(...args),
+    copyPageAsMarkdown: (...args: unknown[]) => copyPageAsMarkdown(...args),
+    printPageAsPdf: (...args: unknown[]) => printPageAsPdf(...args),
+}))
 
 const ENTRIES = ["Apri", "Rinomina", "Duplica", "Cambia colore", "Crea template", "Esporta", "Copia come Markdown", "Esporta PDF", "Archivia", "Elimina"]
 
@@ -51,6 +58,8 @@ beforeEach(() => {
     hideCompleted = false
     copyNoteAsMarkdown.mockResolvedValue(undefined)
     printNoteAsPdf.mockResolvedValue(undefined)
+    copyPageAsMarkdown.mockResolvedValue(undefined)
+    printPageAsPdf.mockResolvedValue(undefined)
     duplicateNote.mockResolvedValue(9)
     archiveItem.mockResolvedValue(undefined)
 })
@@ -66,6 +75,34 @@ const setup = () => {
     )
     return screen.getByTestId("row")
 }
+
+describe("ButtonMenuNote of a page", () => {
+    const setupPage = () => {
+        render(
+            <ButtonMenuNote note={makeNote({ id: 8, name: "Una pagina", kind: "page" })} onRename={onRename}>
+                <div data-testid="row">Pagina<ItemMenuButton /></div>
+            </ButtonMenuNote>,
+        )
+        return screen.getByTestId("row")
+    }
+
+    it("has no template or automations, copies the text and prints the page", async () => {
+        const user = userEvent.setup()
+        const row = setupPage()
+        fireEvent.contextMenu(row)
+        await screen.findByText("Apri")
+        expect(screen.queryByText("Crea template")).not.toBeInTheDocument()
+        expect(screen.queryByText("Automazioni")).not.toBeInTheDocument()
+        await user.click(screen.getByText("Copia come Markdown"))
+        await waitFor(() => expect(copyPageAsMarkdown).toHaveBeenCalledWith(8))
+        expect(copyNoteAsMarkdown).not.toHaveBeenCalled()
+
+        fireEvent.contextMenu(row)
+        await user.click(await screen.findByText("Esporta PDF"))
+        await waitFor(() => expect(printPageAsPdf).toHaveBeenCalledWith(8, "Una pagina"))
+        expect(printNoteAsPdf).not.toHaveBeenCalled()
+    })
+})
 
 describe("ButtonMenuNote", () => {
     it("copies the note as Markdown (following hide completed) and confirms", async () => {

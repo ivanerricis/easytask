@@ -85,6 +85,9 @@ export const dialogs = {
         noTemplate: "Nessun template",
         submit: "Crea",
     },
+    addPage: {
+        title: "Nuova pagina",
+    },
     addFolder: {
         title: "Nuova cartella",
         submit: "Crea",

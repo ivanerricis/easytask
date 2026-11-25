@@ -1,4 +1,4 @@
-import type { ScrollPosition, SelectedItem, TabUiStore } from "./tabs-context-object"
+import type { PageMode, ScrollPosition, SelectedItem, TabUiStore } from "./tabs-context-object"
 
 const NO_TAGS: readonly number[] = []
 
@@ -12,6 +12,7 @@ export function createTabUiStore(): TabUiStore {
     const scroll = new Map<number, ScrollPosition>()
     const selected = new Map<number, SelectedItem>()
     const tagFilters = new Map<number, readonly number[]>()
+    const pageModes = new Map<number, PageMode>()
     const listeners = new Set<() => void>()
     const emit = () => listeners.forEach(listener => listener())
 
@@ -51,6 +52,13 @@ export function createTabUiStore(): TabUiStore {
             else tagFilters.set(noteId, [...tagIds])
             emit()
         },
+        getPageMode: noteId => pageModes.get(noteId) ?? "edit",
+        setPageMode: (noteId, mode) => {
+            if ((pageModes.get(noteId) ?? "edit") === mode) return
+            if (mode === "edit") pageModes.delete(noteId)
+            else pageModes.set(noteId, mode)
+            emit()
+        },
         getScroll: noteId => scroll.get(noteId),
         setScroll: (noteId, position) => { scroll.set(noteId, position) },
         retain: keep => {
@@ -58,6 +66,7 @@ export function createTabUiStore(): TabUiStore {
             for (const id of [...revealed.keys()]) if (!keepSet.has(id)) revealed.delete(id)
             for (const id of [...selected.keys()]) if (!keepSet.has(id)) selected.delete(id)
             for (const id of [...tagFilters.keys()]) if (!keepSet.has(id)) tagFilters.delete(id)
+            for (const id of [...pageModes.keys()]) if (!keepSet.has(id)) pageModes.delete(id)
             for (const id of [...scroll.keys()]) if (!keepSet.has(id)) scroll.delete(id)
         },
         subscribe: listener => {

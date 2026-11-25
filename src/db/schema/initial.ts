@@ -1,7 +1,7 @@
 import { createAudioFileIndexes, createTableAudioFile } from "./audio_file";
 import { automationSchema } from "./automation";
 import { addFolderArchivedAt, createFolderIndexes, createFolderTable, createFolderTrigger } from "./folder";
-import { addNoteArchivedAt, addNoteBackground, addNoteBackgroundImage, addNoteTemplateDraft, createNoteIndexes, createNoteTable, createNoteTrigger } from "./note";
+import { addNoteArchivedAt, addNoteBackground, addNoteBackgroundImage, addNotePage, addNoteTemplateDraft, createNoteIndexes, createNoteTable, createNoteTrigger } from "./note";
 import { createNoteTemplateIndexes, createNoteTemplateTable, createNoteTemplateTrigger } from "./note_template";
 import { addSectionArchivedAt, addSectionDefaultFlag, addSectionSharedOrder, addSectionTaskOrder, makeSectionTitleOptional, createSectionIndexes, createSectionTable, createSectionTrigger } from "./section";
 import { addCollapsedColumns, TASK_EDIT_COLUMNS } from "./collapsed";
@@ -142,10 +142,16 @@ export const noteBackgroundImageSchema: string[] = [...addNoteBackgroundImage]
 export const taskDueSchema: string[] = addTaskDue(updateTriggerOf("task", TASK_EDIT_COLUMNS))
 
 /**
+ * Migration v22: the pages, notes whose content is a Markdown text (`note.kind`, `note.body`).
+ * @category Database Schema
+ */
+export const notePageSchema: string[] = [...addNotePage]
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema, ...notePageSchema,
 ]

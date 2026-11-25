@@ -21,6 +21,7 @@ export const shortcuts = {
         "search-notes": "Cerca una nota",
         "search-in-note": "Cerca nella nota",
         "new-note": "Nuova nota",
+        "new-page": "Nuova pagina",
         "new-folder": "Nuova cartella",
         "close-note": "Chiudi la nota attiva",
         "close-all-notes": "Chiudi tutte le note",

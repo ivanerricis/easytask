@@ -63,6 +63,7 @@ async function buildNotesExport(db: Database, entries: ExportEntry[]): Promise<E
             ...(note.bg_color ? { bg_color: note.bg_color } : {}),
             ...(note.bg_image ? { bg_image: note.bg_image } : {}),
             ...(note.archived_at ? { archived_at: note.archived_at } : {}),
+            ...(note.kind === "page" ? { kind: "page" as const, body: note.body ?? "" } : {}),
             position: note.position,
             content,
             ...(automations.length > 0 ? { automations } : {}),

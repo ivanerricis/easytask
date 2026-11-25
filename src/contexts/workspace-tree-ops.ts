@@ -1,4 +1,4 @@
-import type { Folder, Note, WorkspaceDataTree } from "@/types/types"
+import type { Folder, Note, NoteKind, WorkspaceDataTree } from "@/types/types"
 import { insertAt, localTimestamp, nextPosition } from "./note-tree-ops"
 
 /**
@@ -44,12 +44,12 @@ export function buildFolder(id: number, workspaceId: number, parentId: number | 
 }
 
 /** A new empty note appended after `siblings`. */
-export function buildNote(id: number, workspaceId: number, parentId: number | null, name: string, color: string | undefined, siblings: readonly Note[]): Note {
+export function buildNote(id: number, workspaceId: number, parentId: number | null, name: string, color: string | undefined, siblings: readonly Note[], kind: NoteKind = "note"): Note {
     const { date, time } = localTimestamp()
     return {
         id, workspaceID: workspaceId, folderID: parentId, name, position: nextPosition(siblings),
         creation_date: date, creation_time: time, edit_date: date, edit_time: time,
-        deleted_at: null, color, groups: [],
+        deleted_at: null, color, ...(kind === "page" ? { kind } : {}), groups: [],
     }
 }
 

@@ -9,6 +9,9 @@ vi.mock("@/components/dialogs/dialog-templates", () => ({ DialogTemplates: ({ is
 vi.mock("@/components/dialogs/dialog-pick-template", () => ({ DialogPickTemplate: ({ isOpen }: { isOpen: boolean }) => isOpen ? <div>Scegli template</div> : null }))
 vi.mock("@/components/dialogs/dialog-note-from-template", () => ({ DialogNoteFromTemplate: () => null }))
 
+// SidebarDialogs also listens to the "new page" shortcut: these tests have no ShortcutsProvider
+vi.mock("@/hooks/use-shortcut", () => ({ useShortcut: () => {} }))
+
 describe("SidebarDialogs", () => {
     it.each([
         ["open-trash", "Dialogo cestino"],

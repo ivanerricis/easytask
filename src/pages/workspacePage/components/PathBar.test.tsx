@@ -15,6 +15,7 @@ import type { DraftSaveStatus } from "@/lib/template-draft"
 import type { TreeData } from "./sidebar/tree-dnd"
 import { LayoutActionsContext, LayoutContext } from "@/contexts/layout-context-object"
 import { PathBar } from "./PathBar"
+import { WorkspaceStateContext } from "@/contexts/workspace-data/context"
 import { NoteSearchContext } from "./note-search-context"
 import { createNoteSearchStore } from "./note-search-store"
 import type { SearchMatch } from "./note-search"
@@ -324,5 +325,33 @@ describe("PathBar split button", () => {
         expect(screen.queryByRole("button", { name: "Dividi in due aree" })).not.toBeInTheDocument()
         await userEvent.click(screen.getByRole("button", { name: "Chiudi la divisione" }))
         expect(toggleSplit).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("PathBar with a page open", () => {
+    const page = makeNote({ id: 7, name: "Una pagina", folderID: null, kind: "page" })
+    const withPage = async () => {
+        render(
+            <WorkspaceStateContext.Provider value={{ workspaceDataTree: { rootFolders: [], rootNotes: [page] } } as never}>
+                <ShortcutsProvider>
+                    <TabsProvider notes={[page]} workspaceId={null}>
+                        <Opener ids={[7]} />
+                        <PathBar />
+                    </TabsProvider>
+                </ShortcutsProvider>
+            </WorkspaceStateContext.Provider>,
+        )
+        await act(async () => { })
+    }
+
+    it("swaps the note-only buttons for the text/preview toggle, which flips the mode of the page", async () => {
+        const user = userEvent.setup()
+        await withPage()
+        expect(screen.queryByRole("button", { name: "Nuovo gruppo" })).toBeNull()
+        expect(screen.queryByRole("button", { name: "Nascondi attività completate" })).toBeNull()
+        await user.click(screen.getByRole("button", { name: "Mostra l'anteprima formattata" }))
+        expect(screen.getByRole("button", { name: "Mostra il testo Markdown" })).toBeInTheDocument()
+        await user.click(screen.getByRole("button", { name: "Mostra il testo Markdown" }))
+        expect(screen.getByRole("button", { name: "Mostra l'anteprima formattata" })).toBeInTheDocument()
     })
 })

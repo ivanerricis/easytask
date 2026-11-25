@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { memo, useCallback, useState } from "react"
 import { useDroppable } from "@dnd-kit/core"
-import { FilePlus, Folder as FolderIcon, FolderPlus } from "lucide-react"
+import { FilePlus, FileText, Folder as FolderIcon, FolderPlus } from "lucide-react"
 import type { Folder, Note } from "@/types/types"
 import { hexToRgba } from "@/lib/utils"
 import { useStoreSelector } from "@/lib/external-store"
@@ -88,6 +88,7 @@ export const DragPreview = ({ item, count }: { item: Folder | Note, count: numbe
 export const EmptyTree = () => {
     const { t } = useTranslation()
     const [noteOpen, setNoteOpen] = useState(false)
+    const [pageOpen, setPageOpen] = useState(false)
     const [folderOpen, setFolderOpen] = useState(false)
     return (
         <Empty className="p-4 md:p-4 gap-4">
@@ -101,12 +102,17 @@ export const EmptyTree = () => {
                     <FilePlus />
                     {t("sidebar.addNote")}
                 </Button>
+                <Button size="sm" onClick={() => setPageOpen(true)}>
+                    <FileText />
+                    {t("sidebar.addPage")}
+                </Button>
                 <Button size="sm" onClick={() => setFolderOpen(true)}>
                     <FolderPlus />
                     {t("sidebar.addFolder")}
                 </Button>
             </EmptyContent>
             <AddNoteDialog open={noteOpen} onOpenChange={setNoteOpen} parentId={null} withColor />
+            <AddNoteDialog kind="page" open={pageOpen} onOpenChange={setPageOpen} parentId={null} withColor />
             <AddFolderDialog open={folderOpen} onOpenChange={setFolderOpen} parentId={null} withColor />
         </Empty>
     )

@@ -33,6 +33,10 @@ export const errors: Translation["errors"] = {
         check: "The note name cannot be empty.",
         load: "Failed to load note data: {{message}}",
     },
+    page: {
+        load: "Failed to load the page: {{message}}",
+        save: "Failed to save the page: {{message}}",
+    },
     section: {
         unique: "A section with this name already exists.",
         check: "The section name cannot be empty.",

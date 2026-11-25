@@ -35,7 +35,7 @@ beforeEach(() => {
     archiveItem.mockResolvedValue(undefined)
     updateFolderColorContent.mockResolvedValue([{ itemType: "note", id: 9, before: "#111111" }])
 })
-const ENTRIES = ["Nuova nota", "Nuova cartella", "Rinomina", "Colora contenuto", "Cambia colore", "Importa qui", "Esporta", "Archivia", "Elimina"]
+const ENTRIES = ["Nuova nota", "Nuova pagina", "Nuova cartella", "Rinomina", "Colora contenuto", "Cambia colore", "Importa qui", "Esporta", "Archivia", "Elimina"]
 
 const setup = () => {
     const onRowClick = vi.fn()

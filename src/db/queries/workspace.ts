@@ -5,6 +5,9 @@ import { createError } from "@/types/error";
 import { withDBErrors, WORKSPACE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 
+/** The columns of a note the sidebar tree needs: everything but the text of a page, which is read when the page is opened. */
+const NOTE_TREE_COLUMNS = "id, workspaceID, folderID, name, color, creation_date, creation_time, edit_date, edit_time, position, deleted_at, archived_at, templateID, bg_color, bg_image, kind"
+
 /**
  * Retrieves the workspace data for a given workspace ID.
  * @param workspaceID The ID of the workspace to retrieve data for.
@@ -23,7 +26,7 @@ export async function getDBWorkspaceData(workspaceID: number) {
                 'SELECT * FROM folder WHERE workspaceID=? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, name COLLATE NOCASE ASC',
                 [workspaceID]),
             db.select<Note[]>(
-                'SELECT * FROM note WHERE workspaceID=? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, name COLLATE NOCASE ASC',
+                `SELECT ${NOTE_TREE_COLUMNS} FROM note WHERE workspaceID=? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, name COLLATE NOCASE ASC`,
                 [workspaceID]),
         ])
 

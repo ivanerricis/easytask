@@ -27,6 +27,9 @@ const Harness = () => {
     )
 }
 
+// SidebarDialogs also listens to the "new page" shortcut: these tests have no ShortcutsProvider
+vi.mock("@/hooks/use-shortcut", () => ({ useShortcut: () => {} }))
+
 describe("ButtonTemplates", () => {
     beforeEach(() => {
         vi.resetAllMocks()

@@ -57,12 +57,12 @@ export const shorten = (name: string | null | undefined) => {
     return value.length > NAME_MAX ? `${value.slice(0, NAME_MAX - 1)}…` : value
 }
 
-const typeName = (itemType: DBItemType) => i18n.t(`undo.itemTypes.${itemType}`)
+const typeName = (itemType: DBItemType | "page") => i18n.t(`undo.itemTypes.${itemType}`)
 
-type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "setDue" | "removeDue" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "background" | "archive" | "unarchive" | "copy"
+type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "setDue" | "removeDue" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "background" | "archive" | "unarchive" | "copy" | "pageText"
 
 /** The translated description of an action on an item, with the (shortened) name of the item when it has one. */
-export function makeLabel(key: LabelKey, itemType: DBItemType, name: string | null | undefined): string {
+export function makeLabel(key: LabelKey, itemType: DBItemType | "page", name: string | null | undefined): string {
     const label = i18n.t(`undo.labels.${key}`, { type: typeName(itemType) })
     const short = shorten(name)
     return short ? i18n.t("undo.named", { label, name: short }) : label

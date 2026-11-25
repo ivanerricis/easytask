@@ -158,7 +158,7 @@ export async function copyDBSectionToNote(sectionId: number, target: CopySection
             return { sectionId: results[ref.$ref].lastInsertId - ref.offset }
         }
 
-        const notes = await db.select<{ id: number }[]>('SELECT id FROM note WHERE id = ? AND deleted_at IS NULL', [target.noteId])
+        const notes = await db.select<{ id: number }[]>("SELECT id FROM note WHERE id = ? AND deleted_at IS NULL AND kind = 'note'", [target.noteId])
         if (!notes[0]) throw createError("SECTION_MOVE_INVALID", i18n.t("errors.move.noteInvalid"))
         const groups = await db.select<{ id: number }[]>(
             'SELECT id FROM section_group WHERE noteID = ? AND deleted_at IS NULL ORDER BY position, id', [target.noteId])

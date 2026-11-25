@@ -21,11 +21,12 @@ export type AcrossNotes = { acrossNotes?: boolean }
  */
 export async function assertSameWorkspace(db: Database, noteA: number, noteB: number, code: string): Promise<void> {
     if (noteA === noteB) return
-    const rows = await db.select<{ id: number, workspaceID: number | null }[]>(
-        `SELECT n.id, COALESCE(n.workspaceID, (SELECT t.workspaceID FROM note_template t WHERE t.id = n.templateID)) AS workspaceID
+    const rows = await db.select<{ id: number, workspaceID: number | null, kind: string }[]>(
+        `SELECT n.id, n.kind, COALESCE(n.workspaceID, (SELECT t.workspaceID FROM note_template t WHERE t.id = n.templateID)) AS workspaceID
          FROM note n WHERE n.id IN (?, ?) AND n.deleted_at IS NULL`, [noteA, noteB])
     const workspaces = new Set(rows.map(row => row.workspaceID))
-    if (rows.length !== 2 || workspaces.size !== 1 || workspaces.has(null))
+    // A page has no groups, sections or tasks to receive or give
+    if (rows.length !== 2 || workspaces.size !== 1 || workspaces.has(null) || rows.some(row => row.kind === "page"))
         throw createError(code, i18n.t("errors.move.noteInvalid"))
 }
 

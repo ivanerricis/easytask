@@ -31,6 +31,10 @@ export const errors = {
         check: "Il nome della nota non può essere vuoto.",
         load: "Impossibile caricare i dati della nota: {{message}}",
     },
+    page: {
+        load: "Impossibile caricare la pagina: {{message}}",
+        save: "Impossibile salvare la pagina: {{message}}",
+    },
     section: {
         unique: "Esiste già una sezione con questo nome.",
         check: "Il nome della sezione non può essere vuoto.",

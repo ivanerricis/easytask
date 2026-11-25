@@ -29,12 +29,14 @@ export const TreeBackgroundMenu = ({ allCollapsed, onToggleAll, hasFolders, chil
     const { t } = useTranslation()
     const menu = useItemMenuState()
     const [noteOpen, setNoteOpen] = useState(false)
+    const [pageOpen, setPageOpen] = useState(false)
     const [folderOpen, setFolderOpen] = useState(false)
     const { importItems, isBusy } = useItemTransfer()
 
     const items = (
         <MenuGroup className="flex flex-col gap-1 p-1">
             <ButtonInPopover text={t("menu.newNote")} type="addNote" onClick={() => { setNoteOpen(true); menu.close() }} />
+            <ButtonInPopover text={t("menu.newPage")} type="addPage" onClick={() => { setPageOpen(true); menu.close() }} />
             <ButtonInPopover text={t("menu.newFolder")} type="addFolder" onClick={() => { setFolderOpen(true); menu.close() }} />
             <ButtonInPopover text={t("sidebar.addNoteFromTemplate")} type="createTemplate" onClick={() => { menu.close(); requestAppCommand("note-from-template") }} />
             <MenuSeparator />
@@ -53,6 +55,7 @@ export const TreeBackgroundMenu = ({ allCollapsed, onToggleAll, hasFolders, chil
     const dialogs = (
         <>
             <AddNoteDialog open={noteOpen} onOpenChange={setNoteOpen} parentId={null} withColor />
+            <AddNoteDialog kind="page" open={pageOpen} onOpenChange={setPageOpen} parentId={null} withColor />
             <AddFolderDialog open={folderOpen} onOpenChange={setFolderOpen} parentId={null} withColor />
         </>
     )

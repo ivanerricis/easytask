@@ -92,3 +92,25 @@ export const addNoteBackgroundImage: string[] = [
     `ALTER TABLE note ADD COLUMN bg_image TEXT CHECK (LENGTH(bg_image) > 0) DEFAULT NULL;`,
     `ALTER TABLE note_template ADD COLUMN bg_image TEXT CHECK (LENGTH(bg_image) > 0) DEFAULT NULL;`,
 ]
+
+/**
+ * Migration v22 (v21 until `feat/due-dates` is merged): the Pages. A page is a note row with `kind = 'page'` whose Markdown text
+ * is saved as typed in `body` (a plain note keeps `kind = 'note'` and no body). Trash, archive, folders, position and names
+ * work on it like on any note. The edit trigger of the note also fires when the body changes, so a saved page refreshes its edit date.
+ * @category Database Schema
+ */
+export const addNotePage: string[] = [
+    `ALTER TABLE note ADD COLUMN kind TEXT NOT NULL DEFAULT 'note' CHECK (kind IN ('note', 'page'));`,
+    `ALTER TABLE note ADD COLUMN body TEXT DEFAULT NULL;`,
+    `DROP TRIGGER IF EXISTS update_note_edit_timestamp;`,
+    `CREATE TRIGGER update_note_edit_timestamp
+    AFTER UPDATE OF workspaceID, folderID, name, color, body ON note
+    FOR EACH ROW
+    BEGIN
+        UPDATE note
+        SET
+            edit_date = DATE('now', 'localtime'),
+            edit_time = strftime('%H:%M', 'now', 'localtime')
+        WHERE id = OLD.id;
+    END;`,
+]

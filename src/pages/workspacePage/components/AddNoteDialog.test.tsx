@@ -41,7 +41,7 @@ describe("AddNoteDialog", () => {
         await user.click(screen.getByRole("button", { name: "Aggiungi colore" }))
         await user.click(screen.getByRole("radio", { name: "Colore Blu" }))
         await user.click(screen.getByRole("button", { name: /Crea/ }))
-        await waitFor(() => expect(createWorkspaceNote).toHaveBeenCalledWith(1, "Nota", "#4363d8"))
+        await waitFor(() => expect(createWorkspaceNote).toHaveBeenCalledWith(1, "Nota", "#4363d8", "note"))
         expect(create).toHaveBeenCalledWith("note", 10, "Nota")
         expect(onOpenChange).toHaveBeenCalledWith(false)
     })
@@ -52,7 +52,7 @@ describe("AddNoteDialog", () => {
         expect(screen.queryByRole("button", { name: "Aggiungi colore" })).not.toBeInTheDocument()
         await user.type(screen.getByRole("textbox"), "Nota")
         await user.click(screen.getByRole("button", { name: /Crea/ }))
-        await waitFor(() => expect(createNoteInFolder).toHaveBeenCalledWith(1, 5, "Nota"))
+        await waitFor(() => expect(createNoteInFolder).toHaveBeenCalledWith(1, 5, "Nota", "note"))
     })
 })
 

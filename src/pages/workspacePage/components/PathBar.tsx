@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useRef, useSyncExternalStore } from "react"
 import { useTranslation } from "react-i18next"
-import { CirclePlus, Columns2, Eye, EyeOff, Search } from "lucide-react"
+import { CirclePlus, Columns2, Eye, EyeOff, FileText, Pencil, Search } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { Button } from "@/components/ui/button"
 import { Toggle } from "@/components/ui/toggle"
@@ -8,6 +8,7 @@ import {
     Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { useActiveNoteId } from "@/contexts/use-tabs"
+import { useIsActivePage, usePageMode } from "@/contexts/use-page"
 import { useIsSplit, useLayoutActions } from "@/contexts/use-layout"
 import { usePreferences } from "@/contexts/use-preferences"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
@@ -51,6 +52,9 @@ export const PathBar = () => {
     const draft = useDraftOfNote(activeId)
     const draftStatus = useDraftSaveStatus(activeId)
     const { retrySave } = useTemplateDraftActions()
+    const isPage = useIsActivePage()
+    const [pageMode, setPageMode] = usePageMode()
+    const pageToggleText = pageMode === "edit" ? t("notes.page.showPreview") : t("notes.page.showText")
     const search = useNoteSearchStore()
     const searchOpen = useSyncExternalStore(search?.subscribe ?? NEVER, () => search?.getState().open ?? false)
     const searchInputRef = useRef<HTMLInputElement>(null)
@@ -114,12 +118,23 @@ export const PathBar = () => {
             {/* More buttons can be added here */}
             <div className="ml-auto flex shrink-0 items-center gap-1">
                 {draft && activeId !== null && <DraftSaveStatus status={draftStatus} onRetry={() => { void retrySave(activeId) }} />}
+                {isPage && (
+                    <TooltipCustom text={pageToggleText}>
+                        <Button type="button" variant="ghost" size="icon" className={cn(ghostIconButtonClass, "[&_svg]:!size-4")}
+                            data-testid="page-mode-toggle" aria-label={pageToggleText}
+                            onClick={() => setPageMode(pageMode === "edit" ? "preview" : "edit")}>
+                            {pageMode === "edit" ? <FileText /> : <Pencil />}
+                        </Button>
+                    </TooltipCustom>
+                )}
+                {!isPage && (
                 <TooltipCustom text={t("menu.newGroup")} shortcut={newGroupLabel}>
                     <Button type="button" variant="ghost" size="icon" className={cn(ghostIconButtonClass, "[&_svg]:!size-4")}
                         aria-label={t("menu.newGroup")} onClick={() => requestAppCommand("new-group")}>
                         <CirclePlus />
                     </Button>
                 </TooltipCustom>
+                )}
                 {search && (searchOpen
                     ? <NoteSearchField store={search} inputRef={searchInputRef} />
                     : <TooltipCustom text={t("notes.noteSearch.inNote")} shortcut={searchLabel}>
@@ -128,14 +143,14 @@ export const PathBar = () => {
                             <Search />
                         </Button>
                     </TooltipCustom>)}
-                {!draft && <TagFilterButton />}
+                {!draft && !isPage && <TagFilterButton />}
                 <TooltipCustom text={splitText} shortcut={splitLabel}>
                     <Button type="button" variant="ghost" size="icon" className={cn(ghostIconButtonClass, "[&_svg]:!size-4")}
                         aria-label={splitText} onClick={toggleSplit}>
                         <Columns2 />
                     </Button>
                 </TooltipCustom>
-                <TooltipCustom text={t("notes.hideCompleted")} shortcut={hideLabel}>
+                {!isPage && <TooltipCustom text={t("notes.hideCompleted")} shortcut={hideLabel}>
                     <Toggle
                         aria-label={t("notes.hideCompleted")}
                         pressed={hideCompletedTasks}
@@ -144,7 +159,7 @@ export const PathBar = () => {
                     >
                         {hideCompletedTasks ? <EyeOff /> : <Eye />}
                     </Toggle>
-                </TooltipCustom>
+                </TooltipCustom>}
             </div>
         </div>
     )

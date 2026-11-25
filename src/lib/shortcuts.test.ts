@@ -45,7 +45,7 @@ describe("bindingEquals and conflicts", () => {
 
     it("default bindings have no conflicts although Ctrl+N is used in two scopes", () => {
         expect(findConflicts(getDefaultBindings())).toEqual([])
-        expect(SHORTCUTS.filter(s => s.defaultBinding?.key === "n" && s.defaultBinding.ctrl)).toHaveLength(2)
+        expect(SHORTCUTS.filter(s => s.defaultBinding?.key === "n" && s.defaultBinding.ctrl && !s.defaultBinding.shift)).toHaveLength(2)
     })
 
     it("detects a clash inside a scope and with global shortcuts", () => {

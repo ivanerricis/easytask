@@ -45,3 +45,50 @@ describe("MarkdownText", () => {
         expect(openUrl).toHaveBeenCalledWith("https://example.com")
     })
 })
+
+describe("MarkdownText rich (a page)", () => {
+    beforeEach(() => { openUrl.mockReset(); openUrl.mockResolvedValue(undefined) })
+
+    it("draws headings, code, quotes, rules and inline code", () => {
+        const { container } = render(<MarkdownText rich text={"# One\n## Two\n> quoted\n---\n```\nlet a = 1\n```\nuse `code`"} />)
+        expect(container.querySelector("h1")).toHaveTextContent("One")
+        expect(container.querySelector("h2")).toHaveTextContent("Two")
+        expect(container.querySelector("blockquote")).toHaveTextContent("quoted")
+        expect(container.querySelector("hr")).not.toBeNull()
+        expect(container.querySelector("pre code")).toHaveTextContent("let a = 1")
+        expect(container.querySelector("p code")).toHaveTextContent("code")
+    })
+
+    it("keeps a description plain: no headings without the rich mode", () => {
+        const { container } = render(<MarkdownText text={"# One"} />)
+        expect(container.querySelector("h1")).toBeNull()
+    })
+
+    it("opens a [text](address) link only with Ctrl+click, and never builds html", async () => {
+        const user = userEvent.setup()
+        const { container } = render(<MarkdownText rich text={'[docs](https://example.com) <iframe src="x"></iframe>'} />)
+        expect(container.querySelector("iframe, a")).toBeNull()
+        await user.click(screen.getByText("docs"))
+        expect(openUrl).not.toHaveBeenCalled()
+        await user.keyboard("{Control>}")
+        await user.click(screen.getByText("docs"))
+        await user.keyboard("{/Control}")
+        expect(openUrl).toHaveBeenCalledWith("https://example.com")
+    })
+})
+
+describe("MarkdownText search (a page)", () => {
+    it("marks every match in the drawing order and makes the active one stand out", () => {
+        const { container } = render(<MarkdownText rich search={{ query: "fox", active: 2 }} text={"# Fox\nthe **fox** and `fox`\n- a fox\n```\nfox\n```"} />)
+        const marks = [...container.querySelectorAll("mark")]
+        expect(marks.map(mark => mark.textContent)).toEqual(["Fox", "fox", "fox", "fox", "fox"])
+        expect(marks.map(mark => mark.hasAttribute("data-active"))).toEqual([false, false, true, false, false])
+        expect(container.querySelector("strong mark")).not.toBeNull()
+        expect(container.querySelector("code mark")).not.toBeNull()
+    })
+
+    it("draws nothing extra without a query", () => {
+        const { container } = render(<MarkdownText rich search={{ query: " ", active: 0 }} text="fox" />)
+        expect(container.querySelector("mark")).toBeNull()
+    })
+})

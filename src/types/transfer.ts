@@ -54,6 +54,10 @@ export type ExportNote = {
     /** Archive date; absent (or null) for a visible note and in files created before the archive existed. */
     archived_at?: string | null
     position: number
+    /** "page" for a Markdown page (with its `body`); absent for a note and in files created before the pages existed (an older app reads a page as an empty note). */
+    kind?: "page"
+    /** The Markdown text of a page, as it was typed. */
+    body?: string
     content: NoteTemplateContent
     /**
      * The automations of the note; their sections are positions in `content`. Absent in files created before the

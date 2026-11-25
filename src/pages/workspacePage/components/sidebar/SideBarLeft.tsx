@@ -15,7 +15,7 @@ import { ButtonArchive } from "./ButtonArchive"
 import { ButtonDue } from "./ButtonDue"
 import { ButtonTemplates } from "./ButtonTemplates"
 import { DialogAddFolder } from "./DialogAddFolder"
-import { DialogAddNote } from "./DialogAddNote"
+import { DialogAddNote, DialogAddPage } from "./DialogAddNote"
 import { ButtonNoteFromTemplate } from "./ButtonNoteFromTemplate"
 import { SidebarDialogs } from "./SidebarDialogs"
 import { ClosedSidebarShortcuts } from "./ClosedSidebarShortcuts"
@@ -113,6 +113,7 @@ export const SideBarLeft = () => {
                             <div className="flex items-center gap-0.5">
                                 <DialogAddFolder />
                                 <DialogAddNote />
+                                <DialogAddPage />
                                 <ButtonNoteFromTemplate />
                                 <ButtonImportItems />
                                 <ButtonCollapseItems allCollapsed={allCollapsed} onToggle={toggleAll} disabled={folders.length === 0} />

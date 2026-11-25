@@ -860,7 +860,7 @@ describe("WorkspaceDataContext", () => {
         it("forwards createNoteInFolder with the workspace id", async () => {
             const { result } = renderHook(() => useAll(), { wrapper })
             await act(() => result.current.createNoteInFolder(1, 2, "x"))
-            expect(createDBNoteInFolder).toHaveBeenCalledWith(1, 2, "x")
+            expect(createDBNoteInFolder).toHaveBeenCalledWith(1, 2, "x", undefined)
         })
     })
 

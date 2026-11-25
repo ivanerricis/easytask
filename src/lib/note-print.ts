@@ -17,6 +17,7 @@ function appendInline(doc: Document, parent: HTMLElement, nodes: readonly Inline
     for (const node of nodes) {
         if (node.type === "text") parent.append(doc.createTextNode(node.text))
         else if (node.type === "link") parent.append(el(doc, "span", node.text, "link"))
+        else if (node.type === "code") parent.append(el(doc, "code", node.text))
         else {
             const wrapper = el(doc, node.type === "bold" ? "strong" : "em")
             appendInline(doc, wrapper, node.children)
@@ -35,6 +36,8 @@ function descriptionDom(doc: Document, description: string): HTMLElement {
             root.append(paragraph)
             continue
         }
+        // Only the rich mode (a page) makes the other blocks; a description never has them
+        if (!("items" in block)) continue
         const list = el(doc, block.type === "numbers" ? "ol" : "ul", undefined, block.type === "checklist" ? "checklist" : undefined)
         for (const item of block.items) {
             const entry = el(doc, "li")
@@ -85,8 +88,51 @@ export function noteToPrintDom(doc: Document, tree: NoteTemplateContent, options
  * @throws When the webview has no print support.
  */
 export function printNote(tree: NoteTemplateContent, options: NoteExportOptions): void {
+    printRoot(noteToPrintDom(document, tree, options), options.title)
+}
+
+/** The printable page of a Page as DOM: its Markdown drawn as plain elements and text nodes (never HTML). */
+export function pageToPrintDom(doc: Document, body: string): HTMLElement {
+    const root = el(doc, "div")
+    root.id = PRINT_ROOT_ID
+    const page = el(doc, "div", undefined, "page-doc")
+    for (const block of parseMarkdown(body, { rich: true })) {
+        if (block.type === "text" || block.type === "quote") {
+            const paragraph = el(doc, block.type === "quote" ? "blockquote" : "p")
+            appendInline(doc, paragraph, block.inline)
+            page.append(paragraph)
+        } else if (block.type === "heading") {
+            const heading = el(doc, `h${block.level}` as "h1")
+            appendInline(doc, heading, block.inline)
+            page.append(heading)
+        } else if (block.type === "code") {
+            const pre = el(doc, "pre")
+            pre.append(el(doc, "code", block.text))
+            page.append(pre)
+        } else if (block.type === "rule") {
+            page.append(el(doc, "hr"))
+        } else {
+            const list = el(doc, block.type === "numbers" ? "ol" : "ul", undefined, block.type === "checklist" ? "checklist" : undefined)
+            for (const item of block.items) {
+                const entry = el(doc, "li")
+                if (block.type === "checklist") entry.append(el(doc, "span", item.checked ? "☑" : "☐", "box"))
+                appendInline(doc, entry, item.inline)
+                list.append(entry)
+            }
+            page.append(list)
+        }
+    }
+    root.append(page)
+    return root
+}
+
+/** Opens the print dialog with a Page ("Save as PDF" there); `title` is the suggested name of the file. */
+export function printPage(body: string, title: string): void {
+    printRoot(pageToPrintDom(document, body), title)
+}
+
+function printRoot(root: HTMLElement, title: string | undefined): void {
     document.getElementById(PRINT_ROOT_ID)?.remove()
-    const root = noteToPrintDom(document, tree, options)
     const previousTitle = document.title
     const cleanup = () => {
         window.removeEventListener("afterprint", cleanup)
@@ -97,7 +143,7 @@ export function printNote(tree: NoteTemplateContent, options: NoteExportOptions)
     document.body.append(root)
     document.body.classList.add(PRINTING_CLASS)
     // The title is the suggested name of the PDF file
-    if (options.title) document.title = options.title
+    if (title) document.title = title
     window.addEventListener("afterprint", cleanup)
     try {
         window.print()

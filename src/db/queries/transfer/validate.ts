@@ -171,7 +171,7 @@ export function validateWorkspaceExport(data: unknown): WorkspaceExport {
     const noteRefs = new Set<string>()
     for (const note of notes as unknown[]) {
         if (!isObject(note) || !isNonEmpty(note.ref) || !isNonEmpty(note.name) || !isNumber(note.position)
-            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.bg_image) || !isNullableString(note.bg_image_file) || !isNullableString(note.archived_at) || !Array.isArray(note.audio) || !Array.isArray(note.media)
+            || !isNullableString(note.color) || !isNullableString(note.bg_color) || !isNullableString(note.bg_image) || !isNullableString(note.bg_image_file) || !isNullableString(note.archived_at) || !(note.kind === undefined || note.kind === "page") || !(note.body === undefined || isString(note.body)) || !Array.isArray(note.audio) || !Array.isArray(note.media)
             || !(note.folderRef === null || (isString(note.folderRef) && folderRefs.has(note.folderRef)))) malformed()
         if (noteRefs.has(note.ref)) malformed()
         noteRefs.add(note.ref)
