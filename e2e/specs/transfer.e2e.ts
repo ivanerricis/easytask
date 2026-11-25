@@ -71,7 +71,8 @@ const insert = async (query: string, values: unknown[]): Promise<number> => {
 }
 
 /** Answers the two native pickers of the dialog plugin with the given paths; every other command is passed through. */
-const stubPickers = (savePath: string, openPath: string) => browser.execute((save: string, open: string) => {
+const stubPickers = async (savePath: string, openPath: string) => {
+    const result = await browser.execute((save: string, open: string) => {
     const internals = (window as unknown as {
         __TAURI_INTERNALS__: { invoke: (cmd: string, args?: unknown, options?: unknown) => Promise<unknown>, __e2eInvoke?: unknown }
         __e2ePickers?: { save: string, open: string }
@@ -79,15 +80,24 @@ const stubPickers = (savePath: string, openPath: string) => browser.execute((sav
     const w = window as unknown as { __e2ePickers?: { save: string, open: string }, __e2eCalls?: string[] }
     w.__e2ePickers = { save, open }
     w.__e2eCalls = []
-    if (internals.__e2eInvoke) return
+    if (internals.__e2eInvoke) return { replaced: true }
     const original = internals.invoke.bind(internals)
     internals.__e2eInvoke = original
-    internals.invoke = (cmd, args, options) => {
+    const wrapper = (cmd: string, args?: unknown, options?: unknown) => {
         if (cmd === "plugin:dialog|save") { w.__e2eCalls!.push(cmd); return Promise.resolve(w.__e2ePickers!.save) }
         if (cmd === "plugin:dialog|open") { w.__e2eCalls!.push(cmd); return Promise.resolve(w.__e2ePickers!.open) }
         return original(cmd, args, options)
     }
+    // defineProperty: a plain assignment is silently ignored when the property is read-only
+    try {
+        Object.defineProperty(internals, "invoke", { value: wrapper, writable: true, configurable: true, enumerable: true })
+    } catch {
+        // reported below
+    }
+    return { replaced: internals.invoke === wrapper, descriptor: JSON.stringify(Object.getOwnPropertyDescriptor(internals, "invoke") ?? null) }
 }, savePath, openPath)
+    if (!result.replaced) throw new Error(`the invoke of the page cannot be wrapped: ${JSON.stringify(result)}`)
+}
 
 /** What is on screen and in the stub when a step fails: toasts, dialogs, the picker calls and whether the file was written. */
 const diagnostics = async (zipPath: string) => JSON.stringify(await browser.execute((zip: string) => ({
