@@ -1,4 +1,5 @@
 import type { TaskMoveTarget } from "@/db/queries/move"
+import type { DueValue } from "@/lib/due-date"
 import { withRollback } from "../../with-rollback"
 import type { UndoCommand } from "../stack"
 import { makeLabel, manyCommand, type UndoHelpers } from "./helpers"
@@ -15,6 +16,11 @@ export function taskCommands(h: UndoHelpers) {
     const setTaskFlag = (key: "completed" | "priority", taskId: number) => async (value: boolean) => {
         await withRollback(note.patchTask(taskId, { [key]: value }), () =>
             key === "completed" ? workspace.updateTaskCompletion(taskId, value) : workspace.updateTaskPriority(taskId, value))
+    }
+
+    const setTaskDue = (taskId: number) => async (value: DueValue) => {
+        await withRollback(note.patchTask(taskId, { due_date: value.date, due_time: value.time }), () =>
+            workspace.updateTaskDue(taskId, value.date, value.time))
     }
 
     const setTaskDescription = (taskId: number) => async (description: string) => {
@@ -36,6 +42,15 @@ export function taskCommands(h: UndoHelpers) {
             const apply = setTaskFlag("priority", taskId)
             return {
                 label: makeLabel(after ? "addPriority" : "removePriority", "task", name),
+                undo: () => apply(before),
+                redo: () => apply(after),
+            }
+        },
+
+        taskDue: (taskId: number, name: string, before: DueValue, after: DueValue): UndoCommand => {
+            const apply = setTaskDue(taskId)
+            return {
+                label: makeLabel(after.date ? "setDue" : "removeDue", "task", name),
                 undo: () => apply(before),
                 redo: () => apply(after),
             }

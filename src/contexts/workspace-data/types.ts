@@ -61,6 +61,7 @@ export type WorkspaceActionsType = {
     insertTaskAfter: (parent: { sectionId: number } | { parentTaskId: number }, afterTaskId: number | null, text: string) => Promise<{ id: number, index: number }>
 
     updateTaskPriority: (taskID: number, priority: boolean) => Promise<void>
+    updateTaskDue: (taskID: number, date: string | null, time: string | null) => Promise<void>
     updateTaskCompletion: (taskID: number, isCompleted: boolean) => Promise<void>
     updateTaskDescription: (taskID: number, description?: string) => Promise<void>
     /**

@@ -7,6 +7,7 @@ import { DEFAULT_SECTION_SQL, newPositionSql } from "./sql"
 import type { NewTaskPosition } from "@/lib/store/preferences"
 import { Transaction, type TxRef } from "../transaction"
 import { addPositions, siblingIds } from "./ordering"
+import { normalizeDue } from "@/lib/due-date"
 
 /**
  * Creates a new top level task in a section, after its siblings or before them.
@@ -128,6 +129,21 @@ export async function updateDBTaskPriority(taskId: number, priority: boolean) {
     return withDBErrors("TASK", TASK_MESSAGES, async () => {
         const db = await getDB()
         await db.execute('UPDATE task SET priority=? WHERE id=?', [priority ? 1 : 0, taskId])
+    })
+}
+
+/**
+ * Sets or clears the due date of a task. A time needs a date: without a valid date both are cleared.
+ * @param taskId The ID of the task to edit.
+ * @param date The due date (YYYY-MM-DD), null to clear it.
+ * @param time The due time (HH:MM), null for the whole day.
+ * @category Database
+ */
+export async function updateDBTaskDue(taskId: number, date: string | null, time: string | null) {
+    const due = normalizeDue(date, time)
+    return withDBErrors("TASK", TASK_MESSAGES, async () => {
+        const db = await getDB()
+        await db.execute('UPDATE task SET due_date=?, due_time=? WHERE id=?', [due.date, due.time, taskId])
     })
 }
 

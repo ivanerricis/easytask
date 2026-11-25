@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from "react"
-import { createDBSubTask, createDBTask, insertDBTaskAfter, updateDBTaskCompletion, updateDBTaskDescription, updateDBTaskPriority } from "@/db/queries/task"
+import { createDBSubTask, createDBTask, insertDBTaskAfter, updateDBTaskCompletion, updateDBTaskDescription, updateDBTaskDue, updateDBTaskPriority } from "@/db/queries/task"
 import { moveDBTask, type TaskMoveTarget } from "@/db/queries/move"
 import type { NewTaskPosition } from "@/lib/store/preferences"
 import type { Runtime, WorkspaceActionsType } from "./types"
 
 type TaskActions = Pick<WorkspaceActionsType,
-    "createTask" | "createSubTask" | "insertTaskAfter" | "updateTaskPriority" | "updateTaskCompletion" | "updateTaskDescription" | "moveTask">
+    "createTask" | "createSubTask" | "insertTaskAfter" | "updateTaskPriority" | "updateTaskDue" | "updateTaskCompletion" | "updateTaskDescription" | "moveTask">
 
 /**
  * Tasks and subtasks of the open note.
@@ -32,6 +32,16 @@ export function useTaskActions({ withLoading }: Runtime): TaskActions {
         withLoading(() => updateDBTaskPriority(taskID, priority)), [withLoading])
 
     /**
+     * Set or clear the due date (and optional time) of a task.
+     * @param taskID - The ID of the task to edit.
+     * @param date - The due date (YYYY-MM-DD), null to clear it.
+     * @param time - The due time (HH:MM), null for the whole day.
+     * @category Workspace Data Context
+     */
+    const updateTaskDue = useCallback((taskID: number, date: string | null, time: string | null) =>
+        withLoading(() => updateDBTaskDue(taskID, date, time)), [withLoading])
+
+    /**
      * Update the completion status of a task.
      * @param taskID - The ID of the task to edit.
      * @param isCompleted - The new completion status of the task.
@@ -56,5 +66,5 @@ export function useTaskActions({ withLoading }: Runtime): TaskActions {
     const moveTask = useCallback((taskID: number, target: TaskMoveTarget, targetIndex: number) =>
         withLoading(() => moveDBTask(taskID, target, targetIndex)), [withLoading])
 
-    return useMemo(() => ({ createTask, createSubTask, insertTaskAfter, updateTaskPriority, updateTaskCompletion, updateTaskDescription, moveTask }), [ createTask, createSubTask, insertTaskAfter, updateTaskPriority, updateTaskCompletion, updateTaskDescription, moveTask ])
+    return useMemo(() => ({ createTask, createSubTask, insertTaskAfter, updateTaskPriority, updateTaskDue, updateTaskCompletion, updateTaskDescription, moveTask }), [ createTask, createSubTask, insertTaskAfter, updateTaskPriority, updateTaskDue, updateTaskCompletion, updateTaskDescription, moveTask ])
 }

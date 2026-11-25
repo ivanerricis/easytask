@@ -59,7 +59,7 @@ export const shorten = (name: string | null | undefined) => {
 
 const typeName = (itemType: DBItemType) => i18n.t(`undo.itemTypes.${itemType}`)
 
-type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "background" | "archive" | "unarchive" | "copy"
+type LabelKey = "rename" | "color" | "complete" | "reopen" | "addPriority" | "removePriority" | "setDue" | "removeDue" | "description" | "delete" | "create" | "move" | "moveDirect" | "colorContent" | "background" | "archive" | "unarchive" | "copy"
 
 /** The translated description of an action on an item, with the (shortened) name of the item when it has one. */
 export function makeLabel(key: LabelKey, itemType: DBItemType, name: string | null | undefined): string {

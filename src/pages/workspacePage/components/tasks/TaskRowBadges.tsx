@@ -2,6 +2,8 @@ import { useTranslation } from "react-i18next"
 import { AlignLeft, Flag, ListTree } from "lucide-react"
 import { TooltipCustom } from "@/components/tooltip-custom"
 import { cn } from "@/lib/utils"
+import { DueBadge } from "@/components/due/DueBadge"
+import type { Task } from "@/types/types"
 
 type TaskRowBadgesProps = {
     hasDescription: boolean
@@ -11,11 +13,13 @@ type TaskRowBadgesProps = {
     doneSubtasks: number
     totalSubtasks: number
     priority: boolean
+    /** The task: its due date and time give the due badge (and its completion keeps it from being overdue). */
+    due: Pick<Task, "due_date" | "due_time" | "completed">
     onOpenDescription: () => void
 }
 
 /** What the task has besides its text: a description (click to read it), its subtasks (done / total) and its priority flag (its tags are under the text, see TaskTagBadges). */
-export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden, doneSubtasks, totalSubtasks, priority, onOpenDescription }: TaskRowBadgesProps) {
+export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden, doneSubtasks, totalSubtasks, priority, due, onOpenDescription }: TaskRowBadgesProps) {
     const { t } = useTranslation()
     const hasSubtasks = totalSubtasks > 0
     return <>
@@ -48,6 +52,8 @@ export function TaskRowBadges({ hasDescription, showSubtaskCount, subtasksHidden
                         {doneSubtasks}/{totalSubtasks}
                     </span>}
             </div>}
+
+        {due.due_date && <DueBadge task={due} className="mx-1 mt-0.5" />}
 
         {/* Priority: a flag (not just a color) */}
         {priority &&

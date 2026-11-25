@@ -16,7 +16,7 @@ function makeDeps() {
         getWorkspaceId: vi.fn(() => 7 as number | null),
         workspace: {
             renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), updateNoteBackgroundImage: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
-            moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(),
+            moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(), updateTaskDue: fn(),
             updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
             renameTag: fn(), updateTagColor: fn(), updateTagShape: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(), setGroupTag: fn(), setSectionTag: fn(),
         },
@@ -202,6 +202,20 @@ describe("task flags", () => {
         expect(commands.taskPriority(9, "x", true, false).label).toBe("Rimuovi priorità da task \"x\"")
     })
 
+    it("due date goes back and forward", async () => {
+        const before = { date: null, time: null }
+        const after = { date: "2030-05-06", time: "09:30" }
+        const command = commands.taskDue(9, "Buy milk", before, after)
+        expect(command.label).toBe("Imposta scadenza di task \"Buy milk\"")
+        await command.undo()
+        expect(ctx.deps.note.patchTask).toHaveBeenLastCalledWith(9, { due_date: null, due_time: null })
+        expect(ctx.deps.workspace.updateTaskDue).toHaveBeenLastCalledWith(9, null, null)
+        await command.redo()
+        expect(ctx.deps.note.patchTask).toHaveBeenLastCalledWith(9, { due_date: "2030-05-06", due_time: "09:30" })
+        expect(ctx.deps.workspace.updateTaskDue).toHaveBeenLastCalledWith(9, "2030-05-06", "09:30")
+        expect(commands.taskDue(9, "x", after, before).label).toBe("Rimuovi scadenza da task \"x\"")
+    })
+
     it("description: an empty one is stored as undefined", async () => {
         const command = commands.taskDescription(9, "T", "old text", "")
         await command.redo()
@@ -214,6 +228,7 @@ describe("task flags", () => {
     it.each([
         ["taskCompletion", "updateTaskCompletion", [1, "T", false, true]],
         ["taskPriority", "updateTaskPriority", [1, "T", false, true]],
+        ["taskDue", "updateTaskDue", [1, "T", { date: null, time: null }, { date: "2030-05-06", time: null }]],
         ["taskDescription", "updateTaskDescription", [1, "T", "a", "b"]],
     ] as const)("%s rolls back and rejects when the write fails", async (builder, action, args) => {
         ctx.deps.workspace[action].mockRejectedValueOnce(new Error("fail"))

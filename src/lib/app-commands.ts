@@ -5,7 +5,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react"
 /** Window event the app menu fires for the actions that have no shortcut (the component that owns the action listens to it). */
 export const APP_COMMAND_EVENT = "easytask:app-command"
 
-export type AppCommand = "open-trash" | "open-archive" | "open-templates" | "note-from-template" | "export-workspace" | "open-workspace-trash" | "new-group"
+export type AppCommand = "open-trash" | "open-archive" | "open-due" | "open-templates" | "note-from-template" | "export-workspace" | "open-workspace-trash" | "new-group"
 
 const appCommandEvent = createWindowEvent<AppCommand>(APP_COMMAND_EVENT)
 

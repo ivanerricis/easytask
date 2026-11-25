@@ -19,6 +19,7 @@ import { isDefaultSection, taskSections } from "@/lib/group-sections"
 import { getSectionLabel } from "../../section/section-label"
 import { getGroupLabel } from "../../groups/group-label"
 import { countTasks } from "../../groups/group-progress"
+import { DueField } from "./DueField"
 import { ColorField, Dates, Field, ProgressBar, TagsField, sectionTitle } from "./fields"
 
 const containsTask = (tasks: Task[], taskId: number): boolean =>
@@ -117,6 +118,7 @@ export const TaskDetails = ({ task, tree, noteName }: { task: Task, tree: NoteDa
                 <Label htmlFor="details-priority" className={sectionTitle}>{t("details.priority")}</Label>
                 <Switch id="details-priority" checked={!!task.priority} onCheckedChange={() => { void togglePriority() }} />
             </div>
+            <DueField task={task} />
             <ColorField
                 item={task}
                 itemType="task"

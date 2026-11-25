@@ -117,6 +117,10 @@ export type Task = {
     /** Set while the task is archived (hidden from the note without being trashed, with its subtasks); null/undefined = visible. */
     archived_at?: string | null
     color?: string | null
+    /** Due date (YYYY-MM-DD), null/absent = none. */
+    due_date?: string | null
+    /** Due time (HH:MM), only together with a due date; null/absent = the whole day. */
+    due_time?: string | null
     text: string
     completed: boolean
     priority: boolean
