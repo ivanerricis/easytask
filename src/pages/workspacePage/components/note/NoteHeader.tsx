@@ -41,7 +41,8 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
     // `keep` is set while the name is provisional (a note just created): Escape cancels the creation, any other end keeps the note
     const { deleteItem, purgeItem } = useWorkspaceActions()
     const keep = useRef<(() => void) | null>(null)
-    const flushKeep = useCallback(() => {
+    const flushKeep = useCallback((why?: unknown) => {
+        ;(window as any).__dbg = [...((window as any).__dbg ?? []), `flush ${typeof why === "string" ? why : "cb"} had=${!!keep.current}`]
         const fn = keep.current
         keep.current = null
         fn?.()
@@ -71,15 +72,16 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
         if (!renameRequested) return
         const request = consumeTabRename(note.id, pane)
         if (!request) return
+        ;(window as any).__dbg = [...((window as any).__dbg ?? []), `consume onKeep=${!!request.onKeep} id=${note.id}`]
         keep.current = request.onKeep ?? null
         startRename()
     }, [renameRequested, note.id, pane, startRename])
     const wasEditing = useRef(false)
     useEffect(() => {
-        if (wasEditing.current && !editing) flushKeep()
+        if (wasEditing.current && !editing) flushKeep("editingEnded")
         wasEditing.current = editing
     }, [editing, flushKeep])
-    useEffect(() => flushKeep, [flushKeep])
+    useEffect(() => () => flushKeep("unmount"), [flushKeep])
     const nameInputProps = {
         ...inputProps,
         onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
