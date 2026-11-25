@@ -2,8 +2,7 @@ import { $, $$, browser, expect } from "@wdio/globals"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, openContextMenu, openSubmenu, openWorkspace, sectionCard, topDialog, tr, treeRow, typeInto,
     waitForApp, menuButton, menuButtonPredicate, openMenuWithButton,
-    groupCard, newSectionInGroup,
-} from "../helpers"
+    groupCard, newSectionInGroup, toolButton } from "../helpers"
 
 const WORKSPACE = "E2E Workspace"
 const FOLDER = "E2E Folder"
@@ -131,7 +130,7 @@ describe("Workspace, folders, notes, groups, sections and tasks", () => {
         await byText(confirmLabel, await topDialog()).click()
         await browser.waitUntil(async () => !(await taskValues(SECTION_B)).includes(TASK), { timeoutMsg: "task not deleted" })
 
-        await $(`//button[.//span[normalize-space()='${await tr("trash.title")}']]`).click()
+        await (await toolButton("trash.title")).click()
         const trash = $('[role="dialog"]')
         await trash.waitForDisplayed()
         await trash.$(`[aria-label=${JSON.stringify(await tr("trash.restoreAria", { name: TASK }))}]`).click()

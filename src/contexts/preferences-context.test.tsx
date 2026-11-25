@@ -51,6 +51,7 @@ describe("PreferencesContext", () => {
             liveDrag: false,
             undoLimit: 200,
             sidebarLeftOpen: false,
+            sidebarToolsOpen: false,
             sidebarRightOpen: true,
             workspaceView: "list",
             workspaceSort: { by: "name", dir: "asc" },
@@ -201,6 +202,7 @@ describe("PreferencesContext", () => {
         expect(result.current.liveDrag).toBe(false)
         expect(result.current.undoLimit).toBe(200)
         expect(result.current.sidebarLeftOpen).toBe(false)
+        expect(result.current.sidebarToolsOpen).toBe(false)
         expect(result.current.workspaceView).toBe("list")
         expect(result.current.workspaceSort).toEqual({ by: "name", dir: "asc" })
         expect(result.current.audioPlayerPosition).toEqual({ x: 5, y: 6, scaleX: 2, scaleY: 2 })

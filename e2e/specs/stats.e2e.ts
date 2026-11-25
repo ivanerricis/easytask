@@ -1,5 +1,5 @@
 import { $, $$, browser, expect } from "@wdio/globals"
-import { byText, createWorkspace, openWorkspace, sql, tr, waitForApp } from "../helpers"
+import { createWorkspace, openWorkspace, sql, tr, waitForApp, toolButton } from "../helpers"
 
 /**
  * Statistics tab: opened from the sidebar footer (once: a second click brings the same tab to the front), it shows its sections
@@ -35,7 +35,7 @@ describe("statistics tab", () => {
         await waitForApp()
         await openWorkspace(WORKSPACE)
 
-        const open = byText(await tr("tasks.stats.title"))
+        const open = await toolButton("tasks.stats.title")
         await open.click()
         const panel = await statsTab()
         await panel.waitForDisplayed({ timeoutMsg: "the statistics tab did not open" })

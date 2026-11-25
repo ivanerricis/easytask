@@ -3,8 +3,7 @@ import { closeDialog, goCategory, openSettings } from "../ui-tour/tour-kit"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, domClick, menuButton, openMenuWithButton, openWorkspace, sectionCard, sql, topDialog, tr, treeRow, typeInto,
     waitForApp,
-    groupCard, newSectionInGroup,
-} from "../helpers"
+    groupCard, newSectionInGroup, toolButton } from "../helpers"
 
 /**
  * Due date of a task: set from its menu (a date and an optional time), shown as a badge on the row, saved in the database,
@@ -107,7 +106,7 @@ describe("Due date of a task", () => {
 
     const OTHER = "Due Other Note"
     const openDueDialog = async () => {
-        await $(`(//button[.//span[normalize-space()=${xpathString(await tr("tasks.dueView.title"))}]])[last()]`).click()
+        await (await toolButton("tasks.dueView.title")).click()
         const dialog = await topDialog()
         await dialog.waitForDisplayed({ timeoutMsg: "the due dialog did not open" })
         return dialog

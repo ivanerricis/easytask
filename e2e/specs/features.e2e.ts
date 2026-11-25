@@ -2,8 +2,7 @@ import { $, $$, browser, expect } from "@wdio/globals"
 import {
     addTaskToSection, byLabel, byText, createFromSidebar, createWorkspace, cssColor, domClick, openWorkspace, sectionCard, sql, tr, treeRow, typeInto,
     waitForApp, type Rgba, menuButton, menuButtonPredicate, openMenuWithButton,
-    groupCard, newSectionInGroup,
-} from "../helpers"
+    groupCard, newSectionInGroup, toolButton } from "../helpers"
 
 const WORKSPACE = "Feat Workspace"
 const NOTE = "Feat Note"
@@ -139,7 +138,7 @@ const confirmAndClose = async (dialog: ChainableDialog, label: string) => {
 type ChainableDialog = ReturnType<typeof $>
 
 const openTrash = async () => {
-    await $(`//button[.//span[normalize-space()='${await tr("trash.title")}']]`).click()
+    await (await toolButton("trash.title")).click()
     const trash = $('[role="dialog"]')
     await trash.waitForDisplayed()
     return trash
@@ -345,7 +344,7 @@ describe("New features: reordering, undo, trash, templates and appearance", () =
     })
 
     it("creates a template from a note chosen in the search and a note from that template", async () => {
-        await $(`//button[.//span[normalize-space()='${await tr("dialogs.templates.title")}']]`).click()
+        await (await toolButton("dialogs.templates.title")).click()
         const templates = $('[role="dialog"]')
         await templates.waitForDisplayed()
         await openMenuWithButton(byText(await tr("dialogs.templates.new"), templates))

@@ -10,12 +10,8 @@ import { SideBarHeader } from "./SideBarHeader"
 import { FileTree } from "./FileTree"
 import { SelectionProvider } from "./selection-context"
 import { SelectionActionsProvider } from "./selection-actions"
-import { ButtonTrash } from "./ButtonTrash"
-import { ButtonArchive } from "./ButtonArchive"
-import { ButtonDue } from "./ButtonDue"
-import { ButtonStats } from "./ButtonStats"
+import { ToolsSection } from "./ToolsSection"
 import { StatsTabCommand } from "../stats/StatsTabCommand"
-import { ButtonTemplates } from "./ButtonTemplates"
 import { DialogAddFolder } from "./DialogAddFolder"
 import { DialogAddNote, DialogAddPage } from "./DialogAddNote"
 import { ButtonNoteFromTemplate } from "./ButtonNoteFromTemplate"
@@ -123,11 +119,7 @@ export const SideBarLeft = () => {
                             </div>
                         </SideBarHeader>}
                         footer={<div className="flex flex-col gap-1 border-t p-1 w-full">
-                            <ButtonDue />
-                            <ButtonStats />
-                            <ButtonTemplates />
-                            <ButtonArchive />
-                            <ButtonTrash />
+                            <ToolsSection />
                             <ComboboxWorkspace />
                         </div>}
                     >
