@@ -12,7 +12,7 @@ const openAppMenu = async (triggerText: string) => {
     const bar = byLabel(await tr("appMenu.label"))
     await bar.waitForDisplayed()
     await bar.$(`.//*[@role='menuitem'][normalize-space()=${xpathString(triggerText)}]`).click()
-    const menu = $('[role="menu"]')
+    const menu = $('[role="menu"][data-state="open"]')
     await menu.waitForDisplayed({ timeoutMsg: `the "${triggerText}" menu did not open` })
     return menu
 }
@@ -103,6 +103,8 @@ describe("App menu with the left sidebar closed", () => {
         expect(editItems).not.toContain(archive)
         // The entries with a shortcut show it after the label
         expect(editItems.some((text) => text.startsWith(undo))).toBe(true)
+        await browser.keys("Escape")
+        await edit.waitForExist({ reverse: true })
     })
 
     for (const [entry, title] of [
