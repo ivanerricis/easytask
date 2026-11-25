@@ -28,9 +28,10 @@ The shortcuts work when you are not typing, with a few exceptions: the shortcuts
 
 | Action | Shortcut | Can be changed |
 | --- | --- | --- |
-| Search a note | `Ctrl+K` | Yes |
-| Search in the note | `Ctrl+F` | Yes |
+| Search a note, or a word in the text of the pages | `Ctrl+K` | Yes |
+| Search in the note or in the page | `Ctrl+F` | Yes |
 | New note | `Ctrl+N` | Yes |
+| New page | `Ctrl+Shift+N` | Yes |
 | New folder | `Ctrl+M` | Yes |
 | Close the active note | `Ctrl+L` | Yes |
 | Close all notes | `Ctrl+T` | Yes |
@@ -76,6 +77,16 @@ These keys work when a task row has the focus (click a task or reach it with `Ta
 | Paste the copied tasks below the task | `Ctrl+V` (`Cmd+V` on macOS) |
 
 The arrows stay inside the list of the section (or of the tasks directly in a group): they do not jump to the next section. After `Alt+↑` or `Alt+↓` the focus stays on the task and a screen reader announces its new position ("Moved to position 2 of 5"). The selection keys do not change the task shown in the details panel. `Delete` moves the task to the trash at once, without asking, and shows a toast with **Undo** (`Ctrl+Z` also works). `Ctrl+C` and `Ctrl+V` copy and paste tasks inside EasyTask, see [Copy and paste tasks](./groups-sections-tasks#copy-and-paste-tasks). See [Use the keyboard](./groups-sections-tasks#use-the-keyboard).
+
+## Links and the agenda
+
+| Action | How |
+| --- | --- |
+| Open a link in a task or in a page | `Ctrl`+click on the link |
+| Change week in the [Due](./due-dates#the-due-agenda) agenda | `←` / `→` |
+| Back to the current week in the agenda | `Home` |
+| Cancel the creation of a new note | `Esc` while you type its name |
+| Cancel the drag of a tab to the split view | `Esc` |
 
 ## Home page
 

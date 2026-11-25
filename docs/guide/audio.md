@@ -34,6 +34,14 @@ When you play a file, a small player opens over the note. Drag its top bar to mo
 
 Click the file that is playing to pause it, and again to resume.
 
+### Loudness and waveform
+
+EasyTask measures the loudness of a file when you open its details (**Show details** in its menu): **Loudness (integrated LUFS)**, **True peak** (in dBTP) and **LRA** (the loudness range). Reading takes a moment, then the values are saved in the data folder and are not measured again unless the file changes.
+
+While a file plays, the player shows the short-term and momentary loudness and the true peak of the point you are listening to. You can hide this meter with **Settings > Audio > Loudness meter**. At the beginning of a file the meter reads lower than the real value, until it has enough sound to measure, like a real-time meter.
+
+Once measured, the seek bar becomes a waveform: click or drag to move, the played part is in the accent color, and the keyboard works as before. Until the measure is ready, and for files that cannot be measured, you see the normal bar. Opus files (`.opus`) cannot be measured.
+
 ### Keyboard and media keys
 
 - `Alt+P` plays or pauses the audio while the player is open. You can change it in **Settings > Shortcuts**.

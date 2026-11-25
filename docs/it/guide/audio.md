@@ -34,6 +34,14 @@ Quando riproduci un file, sopra la nota si apre un piccolo player. Trascina la b
 
 Clicca il file in riproduzione per metterlo in pausa, e di nuovo per riprendere.
 
+### Loudness e forma d'onda
+
+EasyTask misura la loudness di un file quando apri i suoi dettagli (**Mostra dettagli** nel suo menu): **Loudness (LUFS integrati)**, **Picco reale** (in dBTP) e **LRA** (l'intervallo di loudness). La lettura richiede un momento, poi i valori vengono salvati nella cartella dei dati e non si misurano di nuovo finché il file non cambia.
+
+Mentre un file è in riproduzione, il player mostra la loudness a breve termine e momentanea e il picco reale del punto che stai ascoltando. Puoi nascondere questo misuratore con **Impostazioni > Audio > Misuratore di loudness**. All'inizio di un file il misuratore legge meno del valore reale, finché non ha abbastanza suono da misurare, come un misuratore in tempo reale.
+
+Una volta misurata, la barra di posizione diventa una forma d'onda: clicca o trascina per spostarti, la parte già riprodotta è nel colore d'accento e la tastiera funziona come prima. Finché la misura non è pronta, e per i file che non si possono misurare, vedi la barra normale. I file Opus (`.opus`) non si possono misurare.
+
 ### Tastiera e tasti multimediali
 
 - `Alt+P` avvia o mette in pausa l'audio mentre il player è aperto. Puoi cambiarla in **Impostazioni > Scorciatoie**.

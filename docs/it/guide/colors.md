@@ -39,6 +39,8 @@ Il menu del colore di un gruppo (non quello degli altri elementi) comincia con *
 
 Task e sottotask contano come nell'anello d'avanzamento del gruppo. Finché è attivo, nessun campione della tavolozza è segnato; scegli un colore fisso o **Nessun colore** per spegnerlo. Il colore automatico viene mantenuto da duplicati, template, annulla e ripeti, ed esportazioni.
 
+Lo stesso menu ha **Scadenze**: il gruppo prende il colore della [scadenza](./due-dates) più vicina tra i suoi task e sottotask aperti: rosso quando uno è scaduto, giallo quando la più vicina è oggi o domani, verde quando è più avanti. Un gruppo senza scadenze non ha colore.
+
 ::: warning Versioni precedenti di EasyTask
 Le versioni precedenti alla 0.26.0 non conoscono il colore automatico. Se importi un workspace con un gruppo automatico in una di esse, il gruppo si vede senza quel colore. Scegli un colore fisso prima di esportare se ti serve il workspace in una versione precedente.
 :::

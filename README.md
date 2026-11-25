@@ -26,7 +26,14 @@ Everything is stored locally on your computer.
 - **Templates**: save a note as a template and create new notes from it; edit a template like a normal note, in its own tab
 - **Tasks with the keyboard**: move between tasks with the arrow keys, `Space` completes, `Enter` renames, `Alt+Up` / `Alt+Down` move, `Shift+Up` / `Shift+Down` select several; a thin "+" line between two tasks adds one in that place
 - **Duplicate** a note (with all its content, audio files excluded) or a section (with its tasks) from its menu; the copy is named "... (copy)" and undoable
-- **Audio**: attach audio files to a group and play them in the app; the player can be pinned, repeat a track, resume where you left off, and remembers the playback speed
+- **Audio**: attach audio files to a group and play them in the app; the player can be pinned, repeat a track, resume where you left off, and remembers the playback speed. It measures the loudness (integrated LUFS, true peak, LRA), shows a live meter and a waveform seek bar
+- **Due dates**: a date and an optional time on a task, with a badge, an agenda by day (week by week, with the overdue tasks on top) and notifications at the due time or in a morning summary; an automation trigger "a task becomes overdue" and an automatic group color by due date
+- **Pages**: Markdown documents in the sidebar, with autosave, a formatted preview, undo and redo, and search in their text
+- **Attached files** on tasks: any type of file, opened with the system app; a missing file can be relinked
+- **Statistics**: tasks completed per week, progress per note, stale notes, overdue and due this week
+- **Task descriptions in Markdown** (bold, italic, lists, clickable checklists, links); `Ctrl`+click opens the links in a task or in a page
+- **Copy a note as Markdown** or **Export it to PDF**; **filter the tasks of a note by tag**
+- **Tools** section in the sidebar: Due, Statistics, Templates, Archive and Trash, each with its count
 - **Undo / redo** with `Ctrl+Z` / `Ctrl+Y` (`Ctrl+Shift+Z` also redoes)
 - **Split workspace**: open two notes side by side, each area with its own tabs; drag a tab from one bar to the other, or use "Open on the right" / "Open on the left" in the note menu
 - **Search notes** with `Ctrl+K`, and **search inside the open note** with `Ctrl+F` (matches are highlighted and open the collapsed groups and sections that hold them)
@@ -41,7 +48,7 @@ Everything is stored locally on your computer.
 - **Start with Windows** and **close to the notification area** (Settings > System, both off by default)
 - **Trash auto-empty**: optionally delete for good the items trashed more than a chosen number of days ago
 - **Automatic backups** at startup with a chosen frequency and an optional folder of your choice (5 kept by default), manual backups and one-click restore; a separate copy is kept before every database update (the last 10)
-- **Export / import** a workspace as an `.easytask.json` file
+- **Export / import** a workspace as an `.easytask.json` file, or an `.easytask.zip` with the linked files
 - **Update check** at startup (can be turned off) and from Settings > About; after an update, the first start opens a **What's new** tab with the release notes, in the language of the app
 
 Default shortcuts (all but the fixed ones can be changed in Settings > Shortcuts):
@@ -49,10 +56,11 @@ Default shortcuts (all but the fixed ones can be changed in Settings > Shortcuts
 | Shortcut | Action |
 | --- | --- |
 | `Ctrl+N` | New note (new workspace on the home page) |
+| `Ctrl+Shift+N` | New page |
 | `Ctrl+M` | New folder |
 | `Alt+N` | New group |
 | `Ctrl+K` | Search notes |
-| `Ctrl+F` | Search inside the open note |
+| `Ctrl+F` | Search inside the open note or page |
 | `Ctrl+L` / `Ctrl+T` | Close the current note / close all notes |
 | `Ctrl+PageDown` / `Ctrl+PageUp` | Next / previous open note (also `Ctrl+Tab` / `Ctrl+Shift+Tab`) |
 | `Ctrl+\` | Split into two areas / close the split |

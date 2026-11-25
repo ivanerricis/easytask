@@ -34,6 +34,7 @@ If you leave the editor with unsaved changes, the app asks if you want to discar
 | a task is completed | you complete a task | the task |
 | a task is reopened | you reopen a completed task | the task |
 | a task is created | you add a task | the task |
+| a task becomes overdue | the task passes its [due date](./due-dates): once for each due date | the task |
 | a task arrives in the section | a task is moved into the section from another one | the task |
 | all the subtasks of a task are completed | the last open subtask of a task is completed | the task |
 | all the tasks of a group are completed | the last open task of a group is completed | the group |
@@ -46,7 +47,7 @@ The task triggers look at the top level tasks of a section, except for the subta
 
 ### Event triggers and state triggers
 
-The first six triggers are **events**: they run once, at the moment something happens.
+The first seven triggers are **events**: they run once, at the moment something happens.
 
 The last four are **states**: they hold for as long as the note is in that state. A section or a group with no tasks counts as having no tasks to complete, and a task counts as done when it is completed or when all its subtasks are done. Because a state lasts, these triggers only allow the **Color** action.
 

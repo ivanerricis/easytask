@@ -26,6 +26,10 @@ Cartelle e sottotask si annidano senza limiti. Gruppi e sezioni possono restare 
 
 - **Workspace** con cartelle e note proprie. Vedi [Workspace](./workspaces) e [Cartelle e note](./folders-and-notes).
 - **Gruppi, sezioni, task e sottotask**, con rinomina sul posto e drag and drop. Vedi [Gruppi, sezioni e task](./groups-sections-tasks).
+- **Scadenze** con un badge, un'agenda per giorno e notifiche. Vedi [Scadenze](./due-dates).
+- **Pagine**: documenti Markdown nella barra laterale, con anteprima formattata. Vedi [Pagine](./pages).
+- **File allegati** ai task. Vedi [File allegati](./attachments).
+- **Statistiche**: task completati per settimana, avanzamento delle note, note ferme da tempo. Vedi [Statistiche](./statistics).
 - **Colori** su qualsiasi elemento. Vedi [Colori](./colors).
 - **Automazioni**: regole per nota che agiscono su task e gruppi quando succede qualcosa. Vedi [Automazioni](./automations).
 - **Template**: salva una nota come template e crea nuove note a partire da essa. Vedi [Template](./templates).

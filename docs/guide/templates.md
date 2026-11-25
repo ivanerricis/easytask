@@ -29,6 +29,7 @@ The template is an independent snapshot of the note at that moment. Later change
 | Task descriptions, completed state and priority | Archived groups, sections and tasks |
 | The colors of the note, groups, sections and tasks | Items in the trash |
 | The [tags](./groups-sections-tasks#tags) of the tasks, by name and color: a note created from the template reuses the tag of the workspace with the same name, or creates it | |
+| The files attached to the tasks (their paths) | Due dates and completion dates of the tasks |
 | The [automations](./automations) of the note, pointing to the sections and groups of the new note (rules that refer to something not copied are left out). They never run inside the template editor | |
 
 ## Create a note from a template
@@ -43,7 +44,7 @@ The **New note from template** dialog asks for a **Name** and a **Destination**:
 
 ## The templates dialog
 
-Open it from the **Templates** button at the bottom of the sidebar (it shows how many templates you have), or from **File > Templates…**.
+Open it from **Templates** in the **Tools** section of the sidebar (it shows how many templates you have), or from **File > Templates…**.
 
 ![The Templates dialog with one template and its buttons to create a note, edit, more actions and delete, plus the New button](../screenshots/en/templates-light.png)
 

@@ -6,11 +6,34 @@ Versione italiana di [CHANGELOG.md](CHANGELOG.md): è il testo che l'app mostra 
 
 ### Aggiunto
 
+- **Scadenze**: un task può avere una data e un'ora facoltativa (**Imposta scadenza…** nel suo menu, o il pannello dei dettagli). Un badge sul task la mostra in grigio, giallo (oggi o domani) o rosso (scaduto), con un'icona e una parola, mai solo con il colore. I task completati non sono mai scaduti.
+- **Agenda delle scadenze**: i task del workspace per giorno, una settimana alla volta, con quelli scaduti in un blocco in cima; le frecce cambiano settimana, **Oggi** torna indietro e un clic apre la nota sul task.
+- **Notifiche delle scadenze**: un task con l'ora viene notificato a quell'ora, gli altri task scaduti e di oggi arrivano in un solo riepilogo all'avvio e ogni mattina, ogni scadenza una volta sola, anche mentre EasyTask è nell'area di notifica. **Impostazioni > Sistema > Notifiche delle scadenze** le disattiva.
+- Il trigger di automazione **un task scade** e il colore automatico **Scadenze** di un gruppo. I template non mantengono le scadenze.
+- **Pagine**: documenti Markdown nella barra laterale (**Nuova pagina**, `Ctrl+Maiusc+N`). Una pagina si scrive come testo semplice con salvataggio automatico, e un pulsante nella barra del percorso passa all'anteprima formattata. Ha annulla e ripeti (`Ctrl+Z`, `Ctrl+Y`), la ricerca nella pagina con `Ctrl+F`, e `Ctrl+K` trova le parole dentro il testo delle pagine.
+- **File allegati** ai task: **Allega file…** nel menu del task aggiunge file di qualsiasi tipo, una graffetta mostra quanti sono e un clic apre il file con l'app del sistema. Un file mancante si può ricollegare. Programmi e script si possono allegare ma EasyTask non li apre mai. I file seguono copie, template, cestino, annulla ed esportazione `.easytask.zip`. Il trascinamento dei file dal gestore file non è ancora supportato.
+- Scheda **Statistiche** (dalla barra laterale, dal menu **Visualizza** e da `Ctrl+K`): task completati per settimana, avanzamento per nota, note non modificate da 30 giorni, task scaduti e in scadenza questa settimana. EasyTask ora registra la data di completamento dei task; quelli completati prima usano la loro ultima modifica.
+- Sezione **Strumenti** nella barra laterale, sopra il selettore del workspace: **Scadenze**, **Statistiche**, **Template**, **Archivio** e **Cestino**, ognuna con il suo conteggio (quello delle scadenze in rosso). I conteggi restano visibili con la sezione compressa e il suo stato viene ricordato.
+- **Loudness** dei file audio: i dettagli mostrano la loudness integrata (LUFS), il picco reale e l'LRA; il player mostra un misuratore in tempo reale di breve termine, momentanea e picco reale (**Impostazioni > Audio > Misuratore di loudness** lo spegne) e la sua barra di posizione diventa una forma d'onda. I file Opus non si possono misurare.
+- **Markdown nelle descrizioni dei task**: grassetto, corsivo, elenchi puntati e numerati, liste di controllo con caselle su cui cliccare (un solo **Annulla** toglie una spunta) e link.
+- I link nei testi e nelle descrizioni dei task sono sottolineati e si aprono nel browser con `Ctrl`+clic.
+- **Copia come Markdown** ed **Esporta PDF** nel menu di una nota e di una pagina.
+- Nella vista divisa, un task, una sezione o un gruppo rilasciato con `Ctrl` su una nota vuota diventa il suo primo gruppo (o finisce in un nuovo gruppo), e trascinare un tab sulla metà destra della nota apre la divisione con quella nota.
+- Il database viene aggiornato alla versione 24 all'avvio dell'app (scadenze, pagine, file allegati, data di completamento) e una versione precedente dell'app non può aprire il database aggiornato.
 - **Filtro per tag** nella barra della nota: spunta uno o più tag per vedere solo i task che hanno uno qualsiasi di essi (un gruppo o una sezione con il tag mostra tutti i suoi task). Il pulsante indica quanti tag sono spuntati e un clic sulla **x** toglie il filtro. È solo una vista della nota, mantenuta finché la sua scheda è aperta.
 
 ### Modificato
 
+- Nella vista divisa il velo sulla nota senza il focus è più leggero (35%), e viene tolto dalla nota sotto il puntatore mentre trascini con `Ctrl`.
+- `Esc` nel campo del nome di una nota appena creata annulla la creazione: la nota non viene creata e non finisce nel cestino.
+- La voce selezionata degli elenchi di Impostazioni, Cestino e Archivio non ha più l'icona colorata.
+- Le animazioni seguono meglio **Animazioni** nelle impostazioni: chiusura di menu, finestre, anelli di avanzamento, frecce e caselle, e le piccole icone di copia, salvataggio e simili seguono la velocità scelta.
+- Un file esportato con questa versione si apre nelle versioni precedenti alla 0.29.0 senza scadenze, file allegati e date di completamento, e una pagina appare come nota vuota.
 - Correzioni di accessibilità (WCAG 2.2 AA): anello di focus più marcato su campi di testo, selezioni e barra di scorrimento dell'audio, e più chiaro sul tema scuro; il rosso degli errori è un po' più scuro sul tema chiaro; le barre laterali sono annunciate come navigazione e dettagli, il link **Vai alla nota** è il primo nell'ordine del Tab, i nomi di gruppi e sezioni sono titoli, le schede sono collegate al pannello della loro nota e il titolo della finestra segue la nota aperta. L'avviso del riavvio per l'accelerazione hardware resta più a lungo e il player audio fissato non ha più una sosta del Tab.
+
+### Corretto
+
+- Le linee guida verticali dell'albero della barra laterale sono continue, a riposo e durante il trascinamento, anche quando una cartella è aperta dentro un'altra o l'elemento viene portato fuori dalla sua cartella.
 
 ## [0.28.0] - 2026-11-20
 

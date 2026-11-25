@@ -8,11 +8,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Due dates**: a task can have a date and an optional time (**Set due date…** in its menu, or the details panel). A badge on the task shows it in grey, yellow (today or tomorrow) or red (overdue), with an icon and a word, never the color alone. Completed tasks are never overdue.
+- **Due agenda**: the tasks of the workspace by day, one week at a time, with the overdue ones in a block on top; the arrows change week, **Today** comes back, and a click opens the note on the task.
+- **Due date notifications**: a task with a time is notified at that time, the other overdue and today tasks come in one summary at startup and every morning, each due date once, also while EasyTask is in the notification area. **Settings > System > Due date notifications** turns them off.
+- The automation trigger **a task becomes overdue** and the **Due dates** automatic color of a group. Templates do not keep due dates.
+- **Pages**: Markdown documents in the sidebar (**New page**, `Ctrl+Shift+N`). A page is written as plain text with autosave, and a button in the path bar switches to the formatted preview. It has undo and redo (`Ctrl+Z`, `Ctrl+Y`), search in the page with `Ctrl+F`, and `Ctrl+K` finds words inside the text of the pages.
+- **Attached files** on tasks: **Attach files…** in the task menu adds files of any type, a paperclip shows how many, and a click opens a file with the system app. A missing file can be relinked. Programs and scripts can be attached but are never opened from EasyTask. The files follow copies, templates, the trash, undo and the `.easytask.zip` export. Dropping files from the file manager is not supported yet.
+- **Statistics** tab (from the sidebar, the **View** menu and `Ctrl+K`): tasks completed per week, progress per note, notes not edited for 30 days, overdue tasks and tasks due this week. EasyTask now records the completion date of tasks; tasks completed before use their last edit.
+- **Tools** section in the sidebar, above the workspace selector: **Due**, **Statistics**, **Templates**, **Archive** and **Trash**, each with its count (the overdue ones in red). The counts stay visible when the section is collapsed, and its state is remembered.
+- **Loudness** of audio files: the details show the integrated loudness (LUFS), the true peak and the LRA; the player shows a live short-term, momentary and true peak meter (**Settings > Audio > Loudness meter** turns it off) and its seek bar becomes a waveform. Opus files cannot be measured.
+- **Markdown in task descriptions**: bold, italic, bullet and numbered lists, checklists with boxes you can click (one **Undo** takes a tick back) and links.
+- Links in task texts and descriptions are underlined and open in the browser with `Ctrl`+click.
+- **Copy as Markdown** and **Export PDF** in the menu of a note and of a page.
+- In the split view, a task, section or group dropped with `Ctrl` on an empty note becomes its first group (or lands in a new group), and dragging a tab onto the right half of the note opens the split with that note.
+- The database is upgraded to version 24 when the app starts (due dates, pages, attached files, completion date), and an older version of the app cannot open the upgraded database.
 - **Filter by tag** in the note bar: check one or more tags to see only the tasks that have any of them (a group or section with the tag shows all its tasks). The button shows how many tags are checked and one click on the **x** removes the filter. It is only a view of the note, kept while its tab is open.
 
 ### Changed
 
+- In split view the veil over the note without the focus is lighter (35%), and it is lifted from the note under the pointer while you drag with `Ctrl`.
+- `Esc` in the name field of a just created note cancels the creation: the note is not created and does not go to the trash.
+- The selected item of the Settings, Trash and Archive lists no longer has a colored icon.
+- Animations are more consistent with **Animations** in the settings: closing menus, dialogs, progress rings, the chevrons and checkboxes, and the small icons of copy, save and similar actions follow the chosen speed.
+- A file exported by this version opens in versions before 0.29.0 without due dates, attached files and completion dates, and a page appears as an empty note.
 - Accessibility fixes (WCAG 2.2 AA): a stronger focus ring on text fields, selects and the audio seek bar, and a lighter one on the dark theme; the red of errors is a little darker on the light theme; the sidebars are announced as navigation and details, a **Skip to the note** link comes first in the Tab order, group and section names are headings, tabs are linked to their note panel, and the window title follows the open note. The toast of the hardware acceleration restart stays longer, and a pinned audio player no longer takes a Tab stop.
+
+### Fixed
+
+- The vertical guide lines of the sidebar tree are continuous, at rest and while dragging, also when a folder is open inside another one or the item is moved out of its folder.
 
 ## [0.28.0] - 2026-11-20
 

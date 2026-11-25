@@ -273,6 +273,59 @@ const tourFor = async (nextLang: Lang) => {
         await waitDialogGone()
     })
     await recover()
+
+    // Due dates: the picker, the badges on the tasks, the agenda and the statistics tab
+    const setDue = async (text: string, shortcutKey: string, capture?: string) => {
+        const menu = await openTaskMenu(text)
+        await byText(await tr("tasks.menu.setDue"), menu).click()
+        const dialog = $('[role="dialog"]')
+        await dialog.waitForDisplayed()
+        await byText(await tr(shortcutKey), dialog).click()
+        if (capture) await shot(capture)
+        await byText(await tr("tasks.due.save"), dialog).click()
+        await waitDialogGone()
+    }
+    await attempt("task-due", async () => {
+        await setDue(n.tMockups, "tasks.due.today", "due-picker")
+        await setDue(n.tOauth, "tasks.due.tomorrow")
+        await setDue(n.tCi, "tasks.due.nextWeek")
+        await settle(400)
+        await shot("due-badges")
+    })
+    await recover()
+    await attempt("due-agenda", async () => {
+        await (await footerButton("tasks.dueView.title")).click()
+        await dialogEl().waitForDisplayed()
+        await shot("due-agenda")
+        await closeDialog()
+    })
+    await recover()
+    await attempt("statistics", async () => {
+        await (await footerButton("tasks.stats.title")).click()
+        await settle(800)
+        await shot("statistics")
+        await browser.keys(["Control", "l"])
+    })
+    await recover()
+    await attempt("page", async () => {
+        await browser.keys(["Control", "Shift", "n"])
+        await dialogEl().waitForDisplayed()
+        const pageName = lang === "it" ? "Appunti" : "Notes"
+        await fillDialogName(pageName)
+        await submitDialog()
+        await openNote(pageName)
+        const text = lang === "it"
+            ? "# Appunti\n\n- [x] Scrivere la bozza\n- [ ] Rivedere il **testo**\n\nVedi https://example.com"
+            : "# Notes\n\n- [x] Write the draft\n- [ ] Review the **text**\n\nSee https://example.com"
+        await typeInto($(`[aria-label="${await tr("notes.page.text")}"]`), text)
+        await settle(900)
+        await shot("page-text")
+        await byLabel(await tr("notes.page.showPreview")).click()
+        await settle(600)
+        await shot("page-preview")
+        await browser.keys(["Control", "l"])
+    })
+    await recover()
     await attempt("group-menu", async () => {
         const menu = await openContextMenu(byText(n.groupLaunch))
         await shot("group-menu")

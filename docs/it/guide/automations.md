@@ -34,6 +34,7 @@ Se esci dall'editor con modifiche non salvate, l'app chiede se vuoi scartarle.
 | un task viene completato | completi un task | il task |
 | un task viene riaperto | riapri un task completato | il task |
 | un task viene creato | aggiungi un task | il task |
+| un task scade | il task supera la sua [scadenza](./due-dates): una volta per ogni scadenza | il task |
 | un task arriva nella sezione | un task viene spostato nella sezione da un'altra | il task |
 | tutti i sottotask di un task sono completati | viene completato l'ultimo sottotask aperto di un task | il task |
 | tutti i task di un gruppo sono completati | viene completato l'ultimo task aperto di un gruppo | il gruppo |
@@ -46,7 +47,7 @@ I trigger sui task guardano i task di primo livello di una sezione, tranne quell
 
 ### Trigger a evento e trigger di stato
 
-I primi sei trigger sono **eventi**: la regola parte una volta, nel momento in cui succede qualcosa.
+I primi sette trigger sono **eventi**: la regola parte una volta, nel momento in cui succede qualcosa.
 
 Gli ultimi quattro sono **stati**: valgono finché la nota si trova in quello stato. Una sezione o un gruppo senza task conta come senza task da completare, e un task conta come finito quando è completato o quando tutti i suoi sottotask sono finiti. Poiché uno stato dura nel tempo, questi trigger permettono solo l'azione **Colore**.
 

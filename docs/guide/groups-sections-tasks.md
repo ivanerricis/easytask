@@ -99,6 +99,8 @@ Open the menu of the task (menu button or right-click):
 | **Add subtask**                            | Adds a subtask.                                                       |
 | **Add description** / **Remove description** | Opens a window where you write the **Description**. `Shift+Enter` adds a new line, `Ctrl+Enter` saves. |
 | **Add priority** / **Remove priority**     | Marks the task as high priority. A flag appears on the task.          |
+| **Set due date…** / **Change due date…** / **Remove due date** | Gives the task a date and an optional time. See [Due dates](./due-dates). |
+| **Attach files…**                          | Attaches files of any type to the task. See [Attached files](./attachments). |
 | **Tags…**                                  | Opens the list of the tags of the workspace to give them to the task (see [Tags](#tags)). |
 | **Rename**                                 | Edits the text.                                                       |
 | **Change color**                           | Colors the task with a side bar (and a light background, if you want it). |
@@ -109,7 +111,26 @@ Open the menu of the task (menu button or right-click):
 
 ![A task with a description, shown in the details panel on the right](../screenshots/en/task-description-light.png)
 
-A task with a description shows a small icon: click it to read the description. The look of the tasks is set by **Task density** (**Compact**, **Normal**, **Roomy**) and **Colored task background**.
+A task with a description shows a small icon: click it to read the description.
+
+### Markdown in the description
+
+The description understands a light Markdown:
+
+| You type | You get |
+| --- | --- |
+| `**text**` | **bold** |
+| `*text*` | *italic* |
+| `- item` or `* item` | bullet list |
+| `1. item` | numbered list |
+| `- [ ] item` and `- [x] item` | checklist, with boxes you can click |
+| `https://example.com` | a link |
+
+When you are not editing, the description is shown formatted: click it (or press `Enter`) to edit the text. In the description window, a description that already exists opens formatted. Click a box of a checklist to tick it: only that line changes, it is saved at once and `Ctrl+Z` takes it back. Raw HTML is shown as text, and nested lists, headings, code and `[text](address)` links are not supported in task descriptions (they are in [pages](./pages)). The Markdown is kept as text in the exports and in **Copy as Markdown**.
+
+### Links in tasks
+
+Web addresses (`http`, `https`) and e-mail addresses (`mailto`) in the text and in the description of a task are underlined. `Ctrl`+click opens them in the browser (in a description, the link under the cursor). A simple click still starts the rename. Links to files and scripts are never opened. The look of the tasks is set by **Task density** (**Compact**, **Normal**, **Roomy**) and **Colored task background**.
 
 ### Tags
 
@@ -137,6 +158,8 @@ Drag a task by its row. While you drag, the other tasks step aside to open the r
 - in the empty space of a group's column, below its card, to make it the last task put directly in that group.
 
 With **Tasks, sections, groups, notes, folders and tabs move aside while dragging** off in **Settings > Notes and sections**, the tasks stay still and only the drop indicator is shown. How fast the rows step aside follows **Animations** in **Settings > Appearance**: slower with **Slow**, no movement with **Off**. **Move up**, **Move down** and **Move to…** in the menu do the same without dragging. With [Completed tasks at the bottom](#completed-tasks-at-the-bottom) on, a dropped task is placed where you drop it and the list is then shown with the completed tasks last. The tasks of a section set to **Open tasks first** or **Completed tasks first** (see [task order](#task-order-of-a-section)) cannot be dragged: use **Move to…**.
+
+In the [split view](./folders-and-notes#split-into-two-areas) you can also drag tasks, sections and groups to the other note: hold `Ctrl` for the whole drag to move them, and hold `Alt` too when you drop to copy them. One **Undo** takes it back.
 
 ### Use the keyboard
 
@@ -171,7 +194,7 @@ Focus a task, or select several, and press `Ctrl+C` (`Cmd+C` on macOS) to copy t
 
 ## Search in a note
 
-Press `Ctrl+F` or click the magnifier in the path bar above the groups to open the search field. As you type, the matches are highlighted in the text of tasks and subtasks and in the names of sections and groups (not in task descriptions), ignoring case and accents, and the counter, inside the field, shows which one you are on, like "3 of 12", or "No results". **Enter** goes to the next match and **Shift+Enter** to the previous one; the current match is orange with a ring, scrolls into view and opens the collapsed group or section that contains it. Besides **Enter** and **Shift+Enter** you can use the **Next result** and **Previous result** buttons. Completed tasks that are hidden are not searched. **Esc** (or the close button) closes the field and clears the highlights.
+Press `Ctrl+F` or click the magnifier in the path bar above the groups to open the search field (it works in a [page](./pages) too). As you type, the matches are highlighted in the text of tasks and subtasks and in the names of sections and groups (not in task descriptions), ignoring case and accents, and the counter, inside the field, shows which one you are on, like "3 of 12", or "No results". **Enter** goes to the next match and **Shift+Enter** to the previous one; the current match is orange with a ring, scrolls into view and opens the collapsed group or section that contains it. Besides **Enter** and **Shift+Enter** you can use the **Next result** and **Previous result** buttons. Completed tasks that are hidden are not searched. **Esc** (or the close button) closes the field and clears the highlights.
 
 ## Hide completed tasks
 
@@ -208,7 +231,7 @@ The panel on the right has two tabs. Open or close it with `Ctrl+Shift+B` or **V
 
 **Details** shows:
 
-- for a selected task (click it): its path, status, a switch for **High priority**, the **Color**, the **Tags** (with a button to change them), the **Description** (editable, with **Save** and **Cancel**), the progress of its subtasks and its dates;
+- for a selected task (click it): its path, status, a switch for **High priority**, the **Color**, the **Tags** (with a button to change them), the **Description** (editable, with **Save** and **Cancel**), the **Due date**, the attached files, the progress of its subtasks and its dates;
 - for the note, when no task is selected: the number of groups, sections and tasks, the overall progress, the color and the dates.
 
 **History** lists the actions you can undo and redo. See [Undo and history](./undo-and-history).

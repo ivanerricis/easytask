@@ -74,9 +74,10 @@ La galleria dei temi mostra un'anteprima di ciascuno; spostati tra i temi con i 
 | Trasparenza del player | Cursore da 40% a 100% di opacità | 100% |
 | Ripeti il brano (quando finisce riparte da capo) | Sì / No | No |
 | Riprendi da dove eri (ogni brano riparte dal punto in cui lo avevi lasciato) | Sì / No | No |
+| Misuratore di loudness (breve termine, momentanea e picco reale nel player) | Sì / No | Sì |
 | Reimposta la posizione del player audio | Pulsante | |
 
-Quando **Mostra il player flottante** è disattivato, i file audio non vengono riprodotti. Anche la velocità scelta nel player viene ricordata e non ha una riga qui. **Reimposta tutto** riporta volume, visibilità, fissaggio, dimensione, trasparenza, velocità, ripetizione e ripresa ai valori predefiniti. Vedi [File audio](./audio).
+Quando **Mostra il player flottante** è disattivato, i file audio non vengono riprodotti. Anche la velocità scelta nel player viene ricordata e non ha una riga qui. **Reimposta tutto** riporta volume, visibilità, fissaggio, dimensione, trasparenza, velocità, ripetizione, ripresa e misuratore di loudness ai valori predefiniti. Vedi [File audio](./audio).
 
 ## Scorciatoie
 
@@ -114,6 +115,7 @@ Con **Disattivato**, **Frequenza del backup automatico** e **Backup da conservar
 | Riduci nell'area di notifica | Chiudendo la finestra EasyTask resta attivo nell'area di notifica. Per uscire usa **Esci** dal menu della sua icona. Il menu dell'icona ha anche **Apri EasyTask** | No |
 | Ricorda posizione e dimensione della finestra | Al prossimo avvio la finestra torna dove l'hai lasciata. Non disponibile nella versione portatile | Sì |
 | Tieni la finestra in primo piano | EasyTask resta sopra le altre finestre; si applica subito e viene ricordato all'avvio | No |
+| Notifiche delle scadenze | Notifica un task all'ora di scadenza, e manda un riepilogo dei task scaduti e di oggi all'avvio e ogni mattina. Vedi [Scadenze](./due-dates#notifiche) | Sì |
 | Accelerazione hardware | Usa la scheda grafica per disegnare l'app. Spegnila solo se vedi problemi grafici (schermo nero, sfarfallii). Si applica al prossimo avvio: un messaggio offre **Riavvia ora**. Se è spenta, EasyTask parte con `--disable-gpu` | Sì |
 
 ## Informazioni

@@ -28,9 +28,10 @@ Le scorciatoie funzionano quando non stai scrivendo, con alcune eccezioni: quell
 
 | Azione | Scorciatoia | Modificabile |
 | --- | --- | --- |
-| Cerca una nota | `Ctrl+K` | Sì |
-| Cerca nella nota | `Ctrl+F` | Sì |
+| Cerca una nota, o una parola nel testo delle pagine | `Ctrl+K` | Sì |
+| Cerca nella nota o nella pagina | `Ctrl+F` | Sì |
 | Nuova nota | `Ctrl+N` | Sì |
+| Nuova pagina | `Ctrl+Maiusc+N` | Sì |
 | Nuova cartella | `Ctrl+M` | Sì |
 | Chiudi la nota attiva | `Ctrl+L` | Sì |
 | Chiudi tutte le note | `Ctrl+T` | Sì |
@@ -76,6 +77,16 @@ Questi tasti funzionano quando una riga di task ha il focus (clicca un task o ra
 | Incollare i task copiati sotto il task | `Ctrl+V` (`Cmd+V` su macOS) |
 
 Le frecce restano dentro la lista della sezione (o dei task diretti di un gruppo): non saltano alla sezione successiva. Dopo `Alt+↑` o `Alt+↓` il focus resta sul task e uno screen reader annuncia la nuova posizione ("Spostato in posizione 2 di 5"). I tasti di selezione non cambiano il task mostrato nel pannello dei dettagli. `Canc` sposta subito il task nel cestino, senza chiedere, e mostra un messaggio con **Annulla** (funziona anche `Ctrl+Z`). `Ctrl+C` e `Ctrl+V` copiano e incollano i task dentro EasyTask, vedi [Copiare e incollare i task](./groups-sections-tasks#copiare-e-incollare-i-task). Vedi [Usare la tastiera](./groups-sections-tasks#usare-la-tastiera).
+
+## Link e agenda
+
+| Azione | Come |
+| --- | --- |
+| Aprire un link in un task o in una pagina | `Ctrl`+clic sul link |
+| Cambiare settimana nell'agenda delle [Scadenze](./due-dates#l-agenda-delle-scadenze) | `←` / `→` |
+| Tornare alla settimana corrente nell'agenda | `Home` |
+| Annullare la creazione di una nuova nota | `Esc` mentre scrivi il nome |
+| Annullare il trascinamento di un tab verso la vista divisa | `Esc` |
 
 ## Pagina iniziale
 
