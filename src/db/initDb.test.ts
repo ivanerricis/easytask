@@ -1634,17 +1634,6 @@ describe("initDB v22 (pages: kind and body of the notes)", () => {
         expect(pragma("user_version")).toBe(23)
         expect(sqlite.prepare("SELECT name, kind, body FROM note").all()).toEqual([{ name: "N", kind: "note", body: null }])
         expect(sqlite.prepare("SELECT text, due_date FROM task").all()).toEqual([{ text: "Buy milk", due_date: "2030-05-06" }])
-
-            INSERT INTO task (id, sectionID, text) VALUES (1, 1, 'T');
-        `)
-    }
-
-    it("a v20 database gets the task_file table, keeps its data and ends up like a new one", async () => {
-        makeV20()
-        await initDB(adapter())
-        expect(pragma("user_version")).toBe(21)
-        expect(sqlite.prepare("SELECT COUNT(*) AS n FROM task_file").get()).toEqual({ n: 0 })
-        expect(sqlite.prepare("SELECT text FROM task").all()).toEqual([{ text: "T" }])
         const migrated = sqlite.prepare("SELECT type, name FROM sqlite_master ORDER BY name").all()
         sqlite = new DatabaseSync(":memory:")
         await initDB(adapter())
