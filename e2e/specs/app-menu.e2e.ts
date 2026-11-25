@@ -81,9 +81,6 @@ describe("App menu with the left sidebar closed", () => {
         // Escape cancels the creation: the field and the tab are gone (the note is deleted for good, not trashed)
         await browser.keys("Escape")
         await field.waitForExist({ reverse: true, timeoutMsg: "the name field did not close after Escape" })
-        await browser.pause(2000)
-        const dump = await browser.execute(() => JSON.stringify({ dbg: (window as any).__dbg, tabs: [...document.querySelectorAll("[role=tab]")].map(t => t.getAttribute("title") + ":" + t.getAttribute("data-note-id")), active: document.activeElement?.tagName, toasts: [...document.querySelectorAll("[data-sonner-toast]")].map(t => t.textContent) }))
-        throw new Error("DIAG " + dump)
         await $(`[role="tab"][title=${JSON.stringify(name)}]`).waitForExist({ reverse: true, timeoutMsg: "the tab of the cancelled note is still there after Escape" })
     })
 

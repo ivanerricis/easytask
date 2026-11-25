@@ -49,15 +49,10 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
     const discardCreation = useCallback(async () => {
         // The tab is closed here too: with the sidebar closed the tree may not hold the note, so the delete alone would not close it
         closeNote(note.id)
-        const dbg = (m: string) => { (window as any).__dbg = [...((window as any).__dbg ?? []), m] }
-        dbg("discard start")
         try {
             await deleteItem("note", note.id)
-            dbg("deleted")
             await purgeItem("note", note.id)
-            dbg("purged")
         } catch (err) {
-            dbg("err " + String(err))
             reportError(err, getErrorMessage(err))
         }
     }, [closeNote, deleteItem, purgeItem, note.id])
@@ -83,7 +78,6 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
     const nameInputProps = {
         ...inputProps,
         onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
-            ;(window as any).__dbg = [...((window as any).__dbg ?? []), `key ${e.key} keep=${!!keep.current} id=${note.id}`]
             if (e.key === "Escape" && keep.current) {
                 keep.current = null
                 void discardCreation()
