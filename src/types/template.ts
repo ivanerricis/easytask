@@ -34,6 +34,8 @@ export type TemplateTask = {
     text: string
     description: string | null
     completed: boolean
+    /** Completion moment (`YYYY-MM-DD HH:MM`) of a completed task; absent when unknown (old snapshots, templates: a copy gets the moment of the copy). */
+    completed_at?: string | null
     priority: boolean
     color: string | null
     /** Due date (YYYY-MM-DD) and time (HH:MM); absent when the task has none (and in snapshots created before the due dates existed). Templates do not keep them. */

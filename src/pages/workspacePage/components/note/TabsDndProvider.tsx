@@ -13,7 +13,7 @@ import { usePreference } from "@/contexts/use-preference"
 import { buildDndAccessibility } from "@/lib/dnd-accessibility"
 import { setGrabCursorNotAllowed, useGrabbingCursor } from "@/hooks/use-grabbing-cursor"
 import { DragEndGuard } from "@/components/dnd-end-guard"
-import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
+import { isStatsTab, isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { announce } from "../tasks/note-announcer-store"
 import {
     barDndId, computeTabZone, isInArea, parseBarDndId, parseTabDndId, pickBarByPoint, pickTabByX, resolveTabDrop, splitDropArea, tabLivePending,
@@ -180,7 +180,7 @@ export function TabsDndProvider({ children, split = true }: { children: ReactNod
         shownRef.current = ""
         splitDropRef.current = false
         // With one open tab the split would leave the left pane empty, which the layout closes at once: no area (the drop only reorders). The news tab is not a note
-        splitAreaRef.current = split || ownTabs.length < 2 || (tab !== null && isWhatsNewTab(tab.noteId)) ? null : measureSplitArea()
+        splitAreaRef.current = split || ownTabs.length < 2 || (tab !== null && (isWhatsNewTab(tab.noteId) || isStatsTab(tab.noteId))) ? null : measureSplitArea()
         if (!split) {
             const origin = event.activatorEvent as { clientX?: number, clientY?: number } | null
             pointerRef.current = typeof origin?.clientX === "number" && typeof origin.clientY === "number" ? { x: origin.clientX, y: origin.clientY } : null

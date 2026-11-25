@@ -11,7 +11,7 @@ import { addEnsureTag, WORKSPACE_OF_NOTE, WORKSPACE_OF_SECTION, type UsedTag } f
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
 import { isTaskOrder } from "@/lib/task-order"
-import { normalizeDue } from "@/lib/due-date"
+import { normalizeDue, toDueDate, toDueTime } from "@/lib/due-date"
 import { isPortableAutomation, type PortableAutomation } from "@/lib/automations/portable"
 import { addNoteAutomations, getDBPortableAutomations } from "./automation";
 
@@ -75,6 +75,7 @@ export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[]
         text: task.text,
         description: task.description ?? null,
         completed: !!task.completed,
+        ...(task.completed && task.completed_at ? { completed_at: task.completed_at } : {}),
         priority: !!task.priority,
         color: task.color ?? null,
         ...(task.due_date ? { due_date: task.due_date, ...(task.due_time ? { due_time: task.due_time } : {}) } : {}),
@@ -171,6 +172,7 @@ function withoutDueDates(content: NoteTemplateContent): NoteTemplateContent {
         const rest: TemplateTask = { ...task, subtasks: task.subtasks.map(clean) }
         delete rest.due_date
         delete rest.due_time
+        delete rest.completed_at
         return rest
     }
     return {
@@ -392,6 +394,16 @@ export function addNoteContent(tx: Transaction, noteRef: number | TxRef, content
     return { groups: groupRefs, sections: refs.slice(groups.length), defaultSections: refs.slice(0, groups.length) }
 }
 
+/** The completion moment an inserted task gets: the one it carries (when valid), else now if it is completed; open tasks have none. */
+function completedMoment(task: Pick<TemplateTask, "completed" | "completed_at">): string | null {
+    if (!task.completed) return null
+    if (task.completed_at && COMPLETED_AT.test(task.completed_at)) return task.completed_at
+    const now = new Date()
+    return `${toDueDate(now)} ${toDueTime(now)}`
+}
+
+const COMPLETED_AT = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
+
 /**
  * Adds to a transaction the statements that insert tasks with their subtasks (and their tags) level by level, one multi-row
  * INSERT per level: the subtasks of a level reference the ids of their parents.
@@ -407,11 +419,11 @@ export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, leve
     let firstLevel: TxRef[] | null = null
     while (level.length > 0) {
         const refs = tx.insertRows("task",
-            ["sectionID", "taskID", "text", "description", "completed", "priority", "color", "due_date", "due_time", "archived_at", "position"],
+            ["sectionID", "taskID", "text", "description", "completed", "completed_at", "priority", "color", "due_date", "due_time", "archived_at", "position"],
             level.map(({ sectionRef, parentRef, task }) => {
                 const due = normalizeDue(task.due_date, task.due_time)
                 return [
-                    sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0,
+                    sectionRef, parentRef, task.text, task.description ?? null, task.completed ? 1 : 0, completedMoment(task),
                     task.priority ? 1 : 0, task.color ?? null, due.date, due.time, task.archived_at || null, task.position,
                 ]
             }))

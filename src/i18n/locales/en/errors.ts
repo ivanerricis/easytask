@@ -102,6 +102,9 @@ export const errors: Translation["errors"] = {
     due: {
         load: "Failed to load the due tasks: {{message}}",
     },
+    stats: {
+        load: "Failed to load the statistics: {{message}}",
+    },
     archive: {
         archive: "Failed to archive the item: {{message}}",
         load: "Failed to load the archive: {{message}}",

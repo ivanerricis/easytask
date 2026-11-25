@@ -1,6 +1,6 @@
 import type Database from "@tauri-apps/plugin-sql";
 import i18n from "@/i18n";
-import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, noteBackgroundImageSchema, noteBackgroundSchema, notePageSchema, sectionOrderSchema, sectionTaskOrderSchema, sectionTitleSchema, taskArchiveSchema, taskDueSchema, taskFileSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
+import { APPLICATION_ID, archiveSchema, collapsedSchema, customThemeSchema, groupStructureSchema, initialSchema, taskCompletedAtSchema, noteBackgroundImageSchema, noteBackgroundSchema, notePageSchema, sectionOrderSchema, sectionTaskOrderSchema, sectionTitleSchema, taskArchiveSchema, taskDueSchema, taskFileSchema, templateDraftSchema, trashIndexesSchema } from "./schema/initial";
 import { addGroupColorColumn } from "./schema/section_group";
 import { createWorkspaceEditTriggers } from "./schema/workspace_edit";
 import { mediaFileSchema } from "./schema/media_file";
@@ -61,6 +61,8 @@ const migrations: string[][] = [
     notePageSchema,
     // v23: files attached to the tasks
     taskFileSchema,
+    // v24: completion moment of the tasks (statistics)
+    taskCompletedAtSchema,
 ];
 
 /**

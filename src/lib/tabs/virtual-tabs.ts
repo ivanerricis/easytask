@@ -28,3 +28,18 @@ export const whatsNewTabNote = (name: string): Note => ({
     edit_time: "",
     groups: [],
 })
+
+/** Id of the "Statistics" tab (a second tab that is not a note, like the "What's new" one). */
+export const STATS_TAB_ID = -2
+
+/** Whether the tab is the "Statistics" one. */
+export const isStatsTab = (id: number | null): boolean => id === STATS_TAB_ID
+
+/** Whether the tab is not a note (a negative id): there is no note data to load for it. */
+export const isVirtualTab = (id: number | null): boolean => id !== null && id < 0
+
+/**
+ * The stand-in for the "Statistics" tab in the list of the open tabs: only the id and the name are meaningful.
+ * @param name The title of the tab.
+ */
+export const statsTabNote = (name: string): Note => ({ ...whatsNewTabNote(name), id: STATS_TAB_ID })

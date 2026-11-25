@@ -117,3 +117,29 @@ export function addTaskDue(workspaceUpdateTrigger: string): string[] {
 `,
     ]
 }
+
+/**
+ * Migration v22 (v24 once rebased after the pages and the attachments): completion moment of the tasks (`completed_at`, local
+ * `YYYY-MM-DD HH:MM`, NULL while the task is open), for the statistics of the workspace.
+ * It is kept by a trigger on `completed`, so every writer (the checkbox, undo, the automations) is covered, and the edit-date
+ * triggers do not list the new column: stamping it never refreshes the edit date. A task that was already completed gets its
+ * last edit moment (the best guess there is), so the history of the statistics is not empty.
+ * The ALTER TABLE step is retried safely by initDb; the backfill only touches rows without a moment.
+ * @category Database Schema
+ */
+export const addTaskCompletedAt: string[] = [
+    `ALTER TABLE task ADD COLUMN completed_at TEXT DEFAULT NULL;`,
+    `UPDATE task SET completed_at = edit_date || ' ' || edit_time WHERE completed = 1 AND completed_at IS NULL;`,
+    `DROP TRIGGER IF EXISTS task_completed_at;`,
+    `
+    CREATE TRIGGER task_completed_at
+    AFTER UPDATE OF completed ON task
+    FOR EACH ROW
+    WHEN OLD.completed IS NOT NEW.completed
+    BEGIN
+        UPDATE task
+        SET completed_at = CASE WHEN NEW.completed THEN strftime('%Y-%m-%d %H:%M', 'now', 'localtime') ELSE NULL END
+        WHERE id = NEW.id;
+    END;
+`,
+]

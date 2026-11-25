@@ -7,7 +7,8 @@ import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { NoteHeader } from "./NoteHeader"
 import { WhatsNewHeader } from "../whats-new/WhatsNewHeader"
-import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
+import { StatsHeader } from "../stats/StatsHeader"
+import { isStatsTab, isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { DropLine } from "../sidebar/DropLine"
 import { registerShiftNode, SHIFT_ATTR, tabNodeKey } from "../note-dnd-shift"
 import { barDndId, keepInBar, tabDndId, type TabHover, type TabZone } from "./tab-reorder"
@@ -48,7 +49,7 @@ const Tab = ({ note, pane, indicator, dndId = note.id, overlay = false, live = f
             className={cn("relative min-w-28 shrink-0 last:border-r", isDragging && (overlay ? "opacity-40" : "z-10 opacity-70"))}
         >
             {!isDragging && !live && <DropLine zone={indicator} vertical className="z-20" />}
-            {isWhatsNewTab(note.id) ? <WhatsNewHeader /> : <NoteHeader note={note} />}
+            {isWhatsNewTab(note.id) ? <WhatsNewHeader /> : isStatsTab(note.id) ? <StatsHeader /> : <NoteHeader note={note} />}
         </div>
     )
 }
