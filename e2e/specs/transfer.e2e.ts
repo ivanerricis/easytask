@@ -70,38 +70,37 @@ const insert = async (query: string, values: unknown[]): Promise<number> => {
     return id
 }
 
-/** Answers the two native pickers of the dialog plugin with the given paths; every other command is passed through. */
+/**
+ * Answers the two native pickers of the dialog plugin with the given paths; every other command goes to the real backend.
+ * `window.__TAURI_INTERNALS__.invoke` is a read-only property, so the commands are caught one step below it: Tauri sends them with
+ * a fetch to `ipc://localhost/<command>` (`http://ipc.localhost/...` on Windows) and reads the answer from the response, which the
+ * wrapper of `window.fetch` builds itself for the two picker commands.
+ */
 const stubPickers = async (savePath: string, openPath: string) => {
-    const result = await browser.execute((save: string, open: string) => {
-    const internals = (window as unknown as {
-        __TAURI_INTERNALS__: { invoke: (cmd: string, args?: unknown, options?: unknown) => Promise<unknown>, __e2eInvoke?: unknown }
-        __e2ePickers?: { save: string, open: string }
-    }).__TAURI_INTERNALS__
-    const w = window as unknown as { __e2ePickers?: { save: string, open: string }, __e2eCalls?: string[] }
-    w.__e2ePickers = { save, open }
-    w.__e2eCalls = []
-    if (internals.__e2eInvoke) return { replaced: true }
-    const original = internals.invoke.bind(internals)
-    internals.__e2eInvoke = original
-    const wrapper = (cmd: string, args?: unknown, options?: unknown) => {
-        if (cmd === "plugin:dialog|save") { w.__e2eCalls!.push(cmd); return Promise.resolve(w.__e2ePickers!.save) }
-        if (cmd === "plugin:dialog|open") { w.__e2eCalls!.push(cmd); return Promise.resolve(w.__e2ePickers!.open) }
-        return original(cmd, args, options)
-    }
-    // defineProperty: a plain assignment is silently ignored when the property is read-only
-    try {
-        Object.defineProperty(internals, "invoke", { value: wrapper, writable: true, configurable: true, enumerable: true })
-    } catch {
-        // reported below
-    }
-    return { replaced: internals.invoke === wrapper, descriptor: JSON.stringify(Object.getOwnPropertyDescriptor(internals, "invoke") ?? null) }
-}, savePath, openPath)
-    if (!result.replaced) throw new Error(`the invoke of the page cannot be wrapped: ${JSON.stringify(result)}`)
+    await browser.execute((save: string, open: string) => {
+        const w = window as unknown as { __e2ePickers?: { save: string, open: string }, __e2eCalls?: string[], __e2eFetch?: typeof fetch }
+        w.__e2ePickers = { save, open }
+        w.__e2eCalls = []
+        if (w.__e2eFetch) return
+        const original = window.fetch.bind(window)
+        w.__e2eFetch = original
+        window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+            const url = decodeURIComponent(typeof input === "string" ? input : input instanceof URL ? input.href : input.url)
+            for (const [command, key] of [["plugin:dialog|save", "save"], ["plugin:dialog|open", "open"]] as const) {
+                if (!url.includes(`/${command}`)) continue
+                w.__e2eCalls!.push(command)
+                return Promise.resolve(new Response(JSON.stringify(w.__e2ePickers![key]), {
+                    headers: { "Tauri-Response": "ok", "Content-Type": "application/json" },
+                }))
+            }
+            return original(input, init)
+        }
+    }, savePath, openPath)
 }
 
 /** What is on screen and in the stub when a step fails: toasts, dialogs, the picker calls and whether the file was written. */
 const diagnostics = async (zipPath: string) => JSON.stringify(await browser.execute((zip: string) => ({
-    wrapped: !!(window as unknown as { __TAURI_INTERNALS__: { __e2eInvoke?: unknown } }).__TAURI_INTERNALS__.__e2eInvoke,
+    wrapped: !!(window as unknown as { __e2eFetch?: unknown }).__e2eFetch,
     calls: (window as unknown as { __e2eCalls?: string[] }).__e2eCalls,
     toasts: [...document.querySelectorAll("[data-sonner-toast]")].map(el => el.textContent),
     dialogs: [...document.querySelectorAll('[role="dialog"], [role="alertdialog"]')].map(el => (el.textContent ?? "").slice(0, 200)),
@@ -351,7 +350,7 @@ describe("Export and import of a whole workspace", () => {
 
         // The exact "imported" message (no "n files skipped"): every linked file was found and kept
         await toastWith(await tr("transfer.imported")).waitForDisplayed({ timeoutMsg: "the import did not finish (or skipped files)" })
-        expect(await pickerCalls()).toEqual(["plugin:dialog|open"])
+        expect(await pickerCalls()).toEqual(["plugin:dialog|save", "plugin:dialog|open"])
         const rows = await select<{ id: number }>("SELECT id FROM workspace WHERE name = ?", [importedName])
         expect(rows.length).toBe(1)
         importedId = rows[0].id
