@@ -13,10 +13,12 @@ type InlineRenameOptions = {
     optimistic?: (name: string) => () => void
     /** Reloads the data after the rename (when the change is not applied optimistically). */
     reload?: () => Promise<void>
+    /** Called after the write and just before its undo step is recorded. */
+    beforeRecord?: () => void
 }
 
 /** Inline rename of a folder, note or workspace: the same write and undo entry the rename dialog used to make. */
-export function useInlineRename({ itemType, id, name, optimistic, reload }: InlineRenameOptions) {
+export function useInlineRename({ itemType, id, name, optimistic, reload, beforeRecord }: InlineRenameOptions) {
     const { renameItem } = useWorkspaceActions()
     const recorder = useUndoRecorder()
 
@@ -27,6 +29,7 @@ export function useInlineRename({ itemType, id, name, optimistic, reload }: Inli
             const rollback = optimistic?.(next)
             try {
                 await renameItem(itemType, id, next)
+                beforeRecord?.()
                 if (isUndoableType(itemType)) recorder.rename(itemType, id, name, next)
                 await reload?.()
             } catch (err) {

@@ -11,6 +11,7 @@ import { NoteHeader } from "./note/NoteHeader"
 import { ButtonCloseNotes } from "./ButtonCloseNotes"
 
 // The rename field needs the workspace data; the rows are tested without it
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ deleteItem: vi.fn(), purgeItem: vi.fn() }) }))
 vi.mock("@/hooks/use-inline-rename", () => ({
     useInlineRename: () => ({ editing: false, error: null, start: () => {}, inputProps: {} }),
 }))

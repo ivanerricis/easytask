@@ -14,8 +14,8 @@ import { requestTabRename } from "@/lib/pending-rename"
 const MAX_ATTEMPTS = 20
 
 /**
- * Creates a note in the root of the tree with a provisional name, records it for the undo, opens it and puts its tab straight
- * into inline rename (Enter confirms, Escape keeps the provisional name). Inside a pane the note opens there; elsewhere (the
+ * Creates a note in the root of the tree with a provisional name, opens it and puts its tab straight into inline rename
+ * (Enter or blur keeps the note and records its creation for the undo; Escape cancels the creation: the note is deleted for good, with no undo step). Inside a pane the note opens there; elsewhere (the
  * shortcut with the sidebar closed) in the pane that has the focus. `busy` is true while one is being created.
  */
 export function useCreateRootNote() {
@@ -41,9 +41,9 @@ export function useCreateRootNote() {
                 try {
                     const id = await createWorkspaceNote(workspaceId, name)
                     if (typeof id !== "number") return
-                    recorder.create("note", id, name)
                     openNote(id)
-                    requestTabRename(id, pane)
+                    // The creation is recorded for the undo only when the note is kept: Escape in the name field deletes it
+                    requestTabRename(id, pane, () => recorder.create("note", id, name))
                     return
                 } catch (err) {
                     if ((err as { code?: string } | null)?.code !== "NOTE_EXISTS") throw err

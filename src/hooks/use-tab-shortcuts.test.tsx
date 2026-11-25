@@ -12,6 +12,7 @@ import { LayoutActionsContext, LayoutContext, type LayoutActionsType, type Layou
 vi.mock("@/lib/store/preferences", () => ({ getReopenNotes: vi.fn().mockResolvedValue(false) }))
 vi.mock("@/pages/workspacePage/components/note/ButtonMenuNote", () => ({ ButtonMenuNote: ({ children }: { children: React.ReactNode }) => <>{children}</> }))
 vi.mock("@/hooks/use-inline-rename", () => ({ useInlineRename: () => ({ editing: false, error: null, start: () => {}, inputProps: {} }) }))
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ deleteItem: vi.fn(), purgeItem: vi.fn() }) }))
 vi.mock("@/lib/store/tabs", () => ({ getWorkspaceTabs: vi.fn(), saveWorkspaceTabs: vi.fn() }))
 
 const notes = [1, 2, 3].map(id => makeNote({ id, name: `Nota ${id}` }))

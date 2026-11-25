@@ -32,14 +32,17 @@ beforeEach(() => {
 })
 
 describe("NewNoteTabButton", () => {
-    it("creates a note in the root with a free name, records it for the undo, opens it in its pane and asks to rename it", async () => {
+    it("creates a note in the root with a free name, opens it in its pane and asks to rename it", async () => {
         render(<NewNoteTabButton />)
         await userEvent.click(screen.getByRole("button", { name: "Nuova nota nella radice" }))
         await waitFor(() => expect(openNote).toHaveBeenCalledWith(9))
         // "Nuova nota" is taken among the root notes
         expect(createWorkspaceNote).toHaveBeenCalledWith(4, "Nuova nota (2)")
+        expect(pendingRename.getState()).toEqual({ noteId: 9, pane: 1, onKeep: expect.any(Function) })
+        // The undo step exists only once the note is kept (Escape in the name field deletes it instead)
+        expect(create).not.toHaveBeenCalled()
+        pendingRename.getState()?.onKeep?.()
         expect(create).toHaveBeenCalledWith("note", 9, "Nuova nota (2)")
-        expect(pendingRename.getState()).toEqual({ noteId: 9, pane: 1 })
     })
 
     it("tries the next name when the database says it exists (e.g. a trashed note)", async () => {

@@ -1,5 +1,5 @@
-import { useEffect } from "react"
-import { act, render, screen } from "@testing-library/react"
+import { useEffect, useState } from "react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { ShortcutsProvider } from "@/contexts/shortcuts-context"
@@ -13,8 +13,21 @@ vi.mock("../template-draft/DraftTabMenu", () => ({ DraftTabMenu: ({ children }: 
 
 // The rename field needs the workspace data; the rows are tested without it
 const startRename = vi.hoisted(() => vi.fn())
+const deleteItem = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+const purgeItem = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+vi.mock("@/contexts/workspace-data", () => ({ useWorkspaceActions: () => ({ deleteItem, purgeItem }) }))
+const cancelEdit = vi.hoisted(() => vi.fn())
+const editingNow = vi.hoisted(() => ({ value: false }))
 vi.mock("@/hooks/use-inline-rename", () => ({
-    useInlineRename: () => ({ editing: false, error: null, start: startRename, inputProps: {} }),
+    useInlineRename: () => {
+        const [editing, setEditing] = useState(editingNow.value)
+        return {
+            editing,
+            error: null,
+            start: () => { startRename(); setEditing(true) },
+            inputProps: { onKeyDown: (e: { key: string }) => { if (e.key === "Escape" || e.key === "Enter") { cancelEdit(); setEditing(false) } } },
+        }
+    },
 }))
 
 vi.mock("@/lib/store/preferences", () => ({ getReopenNotes: vi.fn().mockResolvedValue(false) }))
@@ -171,6 +184,35 @@ describe("NoteHeader rename request", () => {
         act(() => requestTabRename(1, 0))
         expect(startRename).toHaveBeenCalledTimes(1)
         expect(pendingRename.getState()).toBeNull()
+    })
+
+    it("Escape in the name field of a just created note deletes it for good and never records the creation", async () => {
+        deleteItem.mockClear()
+        purgeItem.mockClear()
+        const onKeep = vi.fn()
+        setup()
+        await act(async () => { })
+        act(() => requestTabRename(2, 0, onKeep))
+        const field = document.querySelector("input")!
+        field.focus()
+        await userEvent.keyboard("{Escape}")
+        expect(deleteItem).toHaveBeenCalledWith("note", 2)
+        // its tab (the active one) is closed even when the delete does not touch the tree (sidebar closed): the neighbour becomes active
+        expect(screen.getByRole("tab", { name: "Uno" })).toHaveAttribute("aria-selected", "true")
+        await waitFor(() => expect(purgeItem).toHaveBeenCalledWith("note", 2))
+        expect(onKeep).not.toHaveBeenCalled()
+    })
+
+    it("records the creation when the name field ends any other way (Enter, blur)", async () => {
+        deleteItem.mockClear()
+        const onKeep = vi.fn()
+        setup()
+        await act(async () => { })
+        act(() => requestTabRename(1, 0, onKeep))
+        document.querySelector("input")!.focus()
+        await userEvent.keyboard("{Enter}")
+        expect(onKeep).toHaveBeenCalledTimes(1)
+        expect(deleteItem).not.toHaveBeenCalled()
     })
 
     it("asks when the tab shows up after the request", async () => {

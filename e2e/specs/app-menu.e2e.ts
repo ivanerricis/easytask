@@ -78,9 +78,10 @@ describe("App menu with the left sidebar closed", () => {
         const field = $(`input[aria-label=${JSON.stringify(await tr("common.name"))}]`)
         await field.waitForDisplayed({ timeoutMsg: "Ctrl+N did not create a note with the sidebar closed" })
         await expect(field).toHaveValue(name)
-        // Escape keeps the provisional name: the tab button comes back with it
+        // Escape cancels the creation: the field and the tab are gone (the note is deleted for good, not trashed)
         await browser.keys("Escape")
-        await $(`[role="tab"][title=${JSON.stringify(name)}]`).waitForDisplayed({ timeoutMsg: "the tab of the new note did not come back after Escape" })
+        await field.waitForExist({ reverse: true, timeoutMsg: "the name field did not close after Escape" })
+        await $(`[role="tab"][title=${JSON.stringify(name)}]`).waitForExist({ reverse: true, timeoutMsg: "the tab of the cancelled note is still there after Escape" })
     })
 
     it("keeps Trash, Archive, Templates and Note from template in File (not in Edit)", async () => {
