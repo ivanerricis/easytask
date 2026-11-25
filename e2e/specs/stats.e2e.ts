@@ -52,7 +52,10 @@ describe("statistics tab", () => {
     it("opens the note of an overdue task on the task", async () => {
         const task = (await statsTab()).$('[data-testid="stats-task"]')
         await task.waitForDisplayed()
-        await expect(task).toHaveText(expect.stringContaining(OVERDUE))
+        await browser.waitUntil(
+            async () => browser.execute(label => (document.querySelector('[data-testid="stats-task"]')?.textContent ?? "").includes(label), OVERDUE),
+            { timeoutMsg: "the overdue task is not in the list" },
+        )
         await task.click()
         const edit = await tr("tasks.editText")
         await browser.waitUntil(
