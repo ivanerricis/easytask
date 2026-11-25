@@ -1,5 +1,6 @@
 import type { NoteTemplateContent, TemplateTask } from "@/types/template"
 import { exportableTasks, groupBlocks, type NoteExportOptions } from "./note-markdown"
+import { parseMarkdown, type InlineNode } from "./markdown-lite"
 
 export const PRINT_ROOT_ID = "note-print"
 /** Set on the body while the note is printed: the stylesheet (index.css) hides the app and shows only the printable note. */
@@ -12,6 +13,40 @@ function el<K extends keyof HTMLElementTagNameMap>(doc: Document, tag: K, text?:
     return node
 }
 
+function appendInline(doc: Document, parent: HTMLElement, nodes: readonly InlineNode[]): void {
+    for (const node of nodes) {
+        if (node.type === "text") parent.append(doc.createTextNode(node.text))
+        else if (node.type === "link") parent.append(el(doc, "span", node.text, "link"))
+        else {
+            const wrapper = el(doc, node.type === "bold" ? "strong" : "em")
+            appendInline(doc, wrapper, node.children)
+            parent.append(wrapper)
+        }
+    }
+}
+
+/** A description drawn from its Markdown as DOM: text nodes and plain elements only (a link prints as its address, as text). */
+function descriptionDom(doc: Document, description: string): HTMLElement {
+    const root = el(doc, "div", undefined, "description")
+    for (const block of parseMarkdown(description)) {
+        if (block.type === "text") {
+            const paragraph = el(doc, "p")
+            appendInline(doc, paragraph, block.inline)
+            root.append(paragraph)
+            continue
+        }
+        const list = el(doc, block.type === "numbers" ? "ol" : "ul", undefined, block.type === "checklist" ? "checklist" : undefined)
+        for (const item of block.items) {
+            const entry = el(doc, "li")
+            if (block.type === "checklist") entry.append(el(doc, "span", item.checked ? "☑" : "☐", "box"))
+            appendInline(doc, entry, item.inline)
+            list.append(entry)
+        }
+        root.append(list)
+    }
+    return root
+}
+
 function taskList(doc: Document, tasks: readonly TemplateTask[], hideCompleted: boolean): HTMLUListElement | null {
     const visible = exportableTasks(tasks, hideCompleted)
     if (visible.length === 0) return null
@@ -20,7 +55,7 @@ function taskList(doc: Document, tasks: readonly TemplateTask[], hideCompleted: 
         const item = el(doc, "li", undefined, task.completed ? "done" : "open")
         item.append(el(doc, "span", task.completed ? "☑" : "☐", "box"), el(doc, "span", task.text, "text"))
         for (const tag of task.tags ?? []) item.append(el(doc, "span", tag.name, "tag"))
-        if (task.description?.trim()) item.append(el(doc, "p", task.description.trim(), "description"))
+        if (task.description?.trim()) item.append(descriptionDom(doc, task.description.trim()))
         const subtasks = taskList(doc, task.subtasks, hideCompleted)
         if (subtasks) item.append(subtasks)
         list.append(item)

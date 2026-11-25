@@ -56,6 +56,10 @@ export const tasks: Translation["tasks"] = {
     },
     editText: "Edit the task text",
     openLink: "Ctrl+click to open",
+    markdown: {
+        toggleItem: "Tick or untick the item",
+        clickToEdit: "Click to edit",
+    },
     list: "Tasks",
     listOf: "Tasks of {{name}}",
     keyboard: {

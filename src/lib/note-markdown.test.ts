@@ -28,6 +28,11 @@ describe("noteToMarkdown", () => {
         expect(noteToMarkdown(tree, options)).toBe("## G\n\n### S\n\n- [ ] a `home` `to do`\n  line one\n\n  line two\n  - [ ] b\n    sub note\n")
     })
 
+    it("writes the Markdown of a description as it is, under the task", () => {
+        const tree = note(group("G", [section("S", [task("a", { description: "**plan**\n- [ ] one\n- [x] two" })])]))
+        expect(noteToMarkdown(tree, options)).toBe("## G\n\n### S\n\n- [ ] a\n  **plan**\n  - [ ] one\n  - [x] two\n")
+    })
+
     it("keeps the lines of a multi-line task text under the item", () => {
         const md = noteToMarkdown(note(group("G", [section("S", [task("first\nsecond")])])), options)
         expect(md).toContain("- [ ] first\n  second\n")
