@@ -48,6 +48,8 @@ export type RevealKind = "group" | "section" | "task"
  * The saved open/closed state of groups, sections and tasks is NOT here: it is the `collapsed` column of the note data.
  * @category Tabs
  */
+export type PageMode = "edit" | "preview"
+
 export type TabUiStore = {
     /** Whether the search has opened a closed element just to show a match (temporary: nothing is saved). */
     isRevealed: (noteId: number, kind: RevealKind, id: number) => boolean
@@ -59,6 +61,9 @@ export type TabUiStore = {
     /** The tags the note is filtered by (a view of the note, kept while its tab is open; not saved). Empty: no filter. A stable array until it changes. */
     getTagFilter: (noteId: number) => readonly number[]
     setTagFilter: (noteId: number, tagIds: readonly number[]) => void
+    /** How a page is shown in this pane: its text ("edit", the default) or its formatted preview. Kept while the tab is open; not saved. */
+    getPageMode: (noteId: number) => PageMode
+    setPageMode: (noteId: number, mode: PageMode) => void
     getScroll: (noteId: number) => ScrollPosition | undefined
     setScroll: (noteId: number, position: ScrollPosition) => void
     /** Drops the UI state of the notes that are not in `keep` (closed tabs). */

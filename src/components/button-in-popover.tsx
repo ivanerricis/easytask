@@ -26,6 +26,7 @@ const iconMap = {
     details: Info,
     addFolder: FolderPlus,
     addNote: FilePlus,
+    addPage: FileText,
     rename: Pen,
     color: Palette,
     move: FolderInput,

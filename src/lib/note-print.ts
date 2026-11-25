@@ -17,6 +17,7 @@ function appendInline(doc: Document, parent: HTMLElement, nodes: readonly Inline
     for (const node of nodes) {
         if (node.type === "text") parent.append(doc.createTextNode(node.text))
         else if (node.type === "link") parent.append(el(doc, "span", node.text, "link"))
+        else if (node.type === "code") parent.append(el(doc, "code", node.text))
         else {
             const wrapper = el(doc, node.type === "bold" ? "strong" : "em")
             appendInline(doc, wrapper, node.children)
@@ -35,6 +36,8 @@ function descriptionDom(doc: Document, description: string): HTMLElement {
             root.append(paragraph)
             continue
         }
+        // Only the rich mode (a page) makes the other blocks; a description never has them
+        if (!("items" in block)) continue
         const list = el(doc, block.type === "numbers" ? "ol" : "ul", undefined, block.type === "checklist" ? "checklist" : undefined)
         for (const item of block.items) {
             const entry = el(doc, "li")

@@ -142,6 +142,7 @@ export const AppMenu = ({ page }: AppMenuProps) => {
                     {page === "workspace" ? (
                         <>
                             <ShortcutItem id="new-note" icon={FilePlus} label={t("appMenu.newNote")} />
+                            <CommandItem command="new-page" icon={FileText} label={t("appMenu.newPage")} />
                             <ShortcutItem id="new-folder" icon={FolderPlus} label={t("appMenu.newFolder")} />
                             <ShortcutItem id="new-group" icon={Rows3} label={t("appMenu.newGroup")} />
                             <CommandItem command="note-from-template" icon={FileText} label={t("appMenu.noteFromTemplate")} />

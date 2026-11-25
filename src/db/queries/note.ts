@@ -214,7 +214,8 @@ export async function noteHasContent(noteId: number): Promise<boolean> {
     try {
         const db = await getDB()
         const rows = await db.select<{ found: number }[]>(
-            `SELECT EXISTS(SELECT 1 FROM section_group WHERE noteID = ? AND deleted_at IS NULL) AS found`, [noteId])
+            `SELECT (EXISTS(SELECT 1 FROM section_group WHERE noteID = ? AND deleted_at IS NULL)
+                 OR EXISTS(SELECT 1 FROM note WHERE id = ? AND kind = 'page' AND TRIM(IFNULL(body, '')) <> '')) AS found`, [noteId, noteId])
         return rows[0]?.found === 1
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))

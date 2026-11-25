@@ -43,7 +43,7 @@ export const DialogTemplates = ({ isOpen, onOpenChange }: DialogTemplatesProps) 
     const drafts = useTemplateDrafts()
     const { openTemplateEditor, flushTemplate, refreshDrafts } = useTemplateDraftActions()
     const workspaceID = currentWorkspace?.id
-    const allNotes = useAllNotes()
+    const allNotes = useAllNotes().filter(({ note }) => note.kind !== "page")
 
     const { items: templates, isLoading, loadError, reload, run, busy, error, setError } = useOpenList<NoteTemplate>({
         isOpen,

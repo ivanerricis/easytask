@@ -4,6 +4,8 @@ import { useActiveNoteId } from "@/contexts/use-tabs"
 import { GroupContainer } from "./groups/GroupContainer"
 import { NoteList } from "./note/NoteList"
 import { PathBar } from "./PathBar"
+import { PageView } from "./page/PageView"
+import { useIsActivePage } from "@/contexts/use-page"
 import { WhatsNewPage } from "./whats-new/WhatsNewPage"
 import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { OpenTaskEffect } from "./OpenTaskEffect"
@@ -25,6 +27,7 @@ type PaneBodyProps = {
  */
 export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = false }: PaneBodyProps) {
     const activeId = useActiveNoteId()
+    const isPage = useIsActivePage()
     // A cross-note drag over this pane lifts its veil (see note-dnd-veil)
     const lifted = useVeilLifted()
     const veiled = dimmed && !lifted
@@ -38,7 +41,7 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
                     ? <NoteSearchProvider>
                         <div className="relative flex min-h-0 flex-1 flex-col">
                             <PathBar />
-                            <GroupContainer />
+                            {isPage ? <PageView /> : <GroupContainer />}
                             {/* Token-based veil, so it follows light, dark and custom themes. It lets the pointer through: pressing the pane still gives it the focus. */}
                             <div
                                 aria-hidden

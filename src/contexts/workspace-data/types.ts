@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react"
-import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, Tag, TrashItem, WorkspaceDataTree } from "@/types/types"
+import type { ArchiveItem, ArchiveItemType, Folder, Group, Note, NoteKind, Tag, TrashItem, WorkspaceDataTree } from "@/types/types"
 import type { TaskOrder } from "@/lib/task-order"
 import type { CollapsibleKind } from "@/db/queries/collapsed"
 import type { DBItemType } from "@/db/queries/shared_queries"
@@ -48,10 +48,10 @@ export type WorkspaceActionsType = {
 
     /** The creations of folders and notes resolve with the id of the new row (null when the database did not return it). */
     createWorkspaceFolder: (workspaceID: number, name: string, color?: string) => Promise<number | null>
-    createWorkspaceNote: (workspaceID: number, name: string, color?: string) => Promise<number | null>
+    createWorkspaceNote: (workspaceID: number, name: string, color?: string, kind?: NoteKind) => Promise<number | null>
 
     createSubFolder: (workspaceID: number, folderID: number, name: string) => Promise<number | null>
-    createNoteInFolder: (workspaceID: number, folderID: number, name: string) => Promise<number | null>
+    createNoteInFolder: (workspaceID: number, folderID: number, name: string, kind?: NoteKind) => Promise<number | null>
     /** The creations of the open note resolve with the ids of the new rows, so the caller can update the UI without reloading. */
     createGroup: (noteID: number, name: string) => Promise<{ groupId: number, defaultSectionId: number }>
     createSection: (noteID: number, title: string, position: number) => Promise<{ groupId: number, defaultSectionId: number, sectionId: number }>

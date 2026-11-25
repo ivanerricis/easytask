@@ -45,3 +45,34 @@ describe("MarkdownText", () => {
         expect(openUrl).toHaveBeenCalledWith("https://example.com")
     })
 })
+
+describe("MarkdownText rich (a page)", () => {
+    beforeEach(() => { openUrl.mockReset(); openUrl.mockResolvedValue(undefined) })
+
+    it("draws headings, code, quotes, rules and inline code", () => {
+        const { container } = render(<MarkdownText rich text={"# One\n## Two\n> quoted\n---\n```\nlet a = 1\n```\nuse `code`"} />)
+        expect(container.querySelector("h1")).toHaveTextContent("One")
+        expect(container.querySelector("h2")).toHaveTextContent("Two")
+        expect(container.querySelector("blockquote")).toHaveTextContent("quoted")
+        expect(container.querySelector("hr")).not.toBeNull()
+        expect(container.querySelector("pre code")).toHaveTextContent("let a = 1")
+        expect(container.querySelector("p code")).toHaveTextContent("code")
+    })
+
+    it("keeps a description plain: no headings without the rich mode", () => {
+        const { container } = render(<MarkdownText text={"# One"} />)
+        expect(container.querySelector("h1")).toBeNull()
+    })
+
+    it("opens a [text](address) link only with Ctrl+click, and never builds html", async () => {
+        const user = userEvent.setup()
+        const { container } = render(<MarkdownText rich text={'[docs](https://example.com) <iframe src="x"></iframe>'} />)
+        expect(container.querySelector("iframe, a")).toBeNull()
+        await user.click(screen.getByText("docs"))
+        expect(openUrl).not.toHaveBeenCalled()
+        await user.keyboard("{Control>}")
+        await user.click(screen.getByText("docs"))
+        await user.keyboard("{/Control}")
+        expect(openUrl).toHaveBeenCalledWith("https://example.com")
+    })
+})

@@ -20,7 +20,7 @@ type DialogPickNoteProps = {
  */
 export const DialogPickNote = ({ isOpen, onOpenChange, onPick, title, description, placeholder }: DialogPickNoteProps) => {
     const { t } = useTranslation()
-    const allNotes = useAllNotes()
+    const allNotes = useAllNotes().filter(({ note }) => note.kind !== "page")
 
     return (
         <CommandDialog open={isOpen} onOpenChange={onOpenChange} title={title} description={description} className="rounded-xs">

@@ -9,7 +9,7 @@ import {
     buildFolder, buildNote, colorFolderContent, findTreeItem, getFolderNotes, getSubfolders,
     insertTreeItem, patchTreeItem, removeTreeItem,
 } from "../workspace-tree-ops"
-import type { Folder, Note } from "@/types/types"
+import type { Folder, Note, NoteKind } from "@/types/types"
 import type { PreviousColor, Runtime, WorkspaceActionsType } from "./types"
 
 type TreeActions = Pick<WorkspaceActionsType,
@@ -34,13 +34,13 @@ export function useTreeActions(rt: Runtime): TreeActions {
      * Adds the created item to the sidebar tree. Without the new id, or when the parent is not in the tree,
      * the tree is reloaded in background instead.
      */
-    const addToTree = useCallback((type: "folder" | "note", workspaceID: number, parentId: number | null, id: unknown, name: string, color?: string): number | null => {
+    const addToTree = useCallback((type: "folder" | "note", workspaceID: number, parentId: number | null, id: unknown, name: string, color?: string, kind?: NoteKind): number | null => {
         const applied = typeof id === "number" && applyTree(
             tree => insertTreeItem(
                 tree, type,
                 type === "folder"
                     ? buildFolder(id, workspaceID, parentId, name, color, getSubfolders(tree, parentId))
-                    : buildNote(id, workspaceID, parentId, name, color, getFolderNotes(tree, parentId)),
+                    : buildNote(id, workspaceID, parentId, name, color, getFolderNotes(tree, parentId), kind),
                 parentId),
             tree => removeTreeItem(tree, type, id))
         if (!applied) reloadTreeInBackground(workspaceID)
@@ -52,9 +52,9 @@ export function useTreeActions(rt: Runtime): TreeActions {
             return addToTree("folder", workspaceID, null, await createDBWorkspaceFolder(workspaceID, name, color), name, color)
         }), [withLoading, addToTree])
 
-    const createWorkspaceNote = useCallback((workspaceID: number, name: string, color?: string) =>
+    const createWorkspaceNote = useCallback((workspaceID: number, name: string, color?: string, kind?: NoteKind) =>
         withLoading(async () => {
-            return addToTree("note", workspaceID, null, await createDBWorkspaceNote(workspaceID, name, color), name, color)
+            return addToTree("note", workspaceID, null, await createDBWorkspaceNote(workspaceID, name, color, kind), name, color, kind)
         }), [withLoading, addToTree])
 
     const createSubFolder = useCallback((workspaceID: number, folderID: number, name: string) =>
@@ -62,9 +62,9 @@ export function useTreeActions(rt: Runtime): TreeActions {
             return addToTree("folder", workspaceID, folderID, await createDBSubFolder(workspaceID, folderID, name), name)
         }), [withLoading, addToTree])
 
-    const createNoteInFolder = useCallback((workspaceID: number, folderID: number, name: string) =>
+    const createNoteInFolder = useCallback((workspaceID: number, folderID: number, name: string, kind?: NoteKind) =>
         withLoading(async () => {
-            return addToTree("note", workspaceID, folderID, await createDBNoteInFolder(workspaceID, folderID, name), name)
+            return addToTree("note", workspaceID, folderID, await createDBNoteInFolder(workspaceID, folderID, name, kind), name, undefined, kind)
         }), [withLoading, addToTree])
 
     /**

@@ -4,6 +4,8 @@ import { getGroupLabel } from "@/pages/workspacePage/components/groups/group-lab
 import { getSectionLabel } from "@/pages/workspacePage/components/section/section-label"
 import { noteToMarkdown, type NoteExportOptions } from "./note-markdown"
 import { printNote } from "./note-print"
+import { getDBPageBody } from "@/db/queries/note"
+import { flushPage } from "./page-text"
 
 const exportOptions = (title: string, hideCompleted: boolean): NoteExportOptions => ({
     hideCompleted,
@@ -16,6 +18,12 @@ const exportOptions = (title: string, hideCompleted: boolean): NoteExportOptions
 export async function copyNoteAsMarkdown(noteId: number, noteName: string, hideCompleted: boolean): Promise<void> {
     const { content } = await buildContentWithSectionIds(noteId)
     await writeText(noteToMarkdown(content, exportOptions(noteName, hideCompleted)))
+}
+
+/** Copies the text of a page to the clipboard exactly as it was written (what is typed but not saved yet is written first). */
+export async function copyPageAsMarkdown(noteId: number): Promise<void> {
+    await flushPage(noteId)
+    await writeText(await getDBPageBody(noteId))
 }
 
 /** Opens the print dialog with a printable page of the note (choose "Save as PDF" there). */

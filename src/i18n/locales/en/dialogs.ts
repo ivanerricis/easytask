@@ -87,6 +87,9 @@ export const dialogs: Translation["dialogs"] = {
         noTemplate: "No template",
         submit: "Create",
     },
+    addPage: {
+        title: "New page",
+    },
     addFolder: {
         title: "New folder",
         submit: "Create",

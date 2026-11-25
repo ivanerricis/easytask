@@ -87,6 +87,15 @@ export const notes = {
     },
     hideCompleted: "Nascondi task completati",
     showCompleted: "Mostra task completati",
+    page: {
+        showText: "Mostra il testo Markdown",
+        showPreview: "Mostra l'anteprima formattata",
+        text: "Testo della pagina",
+        placeholder: "Scrivi in Markdown…",
+        emptyPreview: "La pagina è vuota. Mostra il testo per scrivere qualcosa.",
+        previewLabel: "Pagina formattata",
+        icon: "Pagina",
+    },
     path: {
         label: "Percorso della nota",
         reveal: "Mostra {{name}} nella barra laterale",
@@ -139,6 +148,7 @@ export const groups = {
 export const sidebar = {
     addFolder: "Nuova cartella",
     addNote: "Nuova nota",
+    addPage: "Nuova pagina",
     addNoteFromTemplate: "Nuova nota da template",
     importItems: "Importa una nota o una cartella",
     trashBadge_one: "{{count}} elemento nel cestino",

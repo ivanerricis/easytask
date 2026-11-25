@@ -123,7 +123,7 @@ describe("a page lives in the tree like a note", () => {
         const id = await createDBWorkspaceNote(1, "P", null, "page")
         await updateDBPageBody(id, BODY)
         const copy = await duplicateDBNote(id)
-        expect(rows(`SELECT kind, name FROM note WHERE id = ${copy}`)).toEqual([{ kind: "page", name: expect.stringMatching(/^P (/) }])
+        expect(rows(`SELECT kind, name FROM note WHERE id = ${copy}`)).toEqual([{ kind: "page", name: expect.stringMatching(/^P \(/) }])
         expect(await getDBPageBody(copy)).toBe(BODY)
     })
 })

@@ -27,7 +27,7 @@ import { reportError } from "@/lib/report-error"
 import { toast } from "sonner"
 import { useItemTransfer } from "@/hooks/use-workspace-transfer"
 import { usePreference } from "@/contexts/use-preference"
-import { copyNoteAsMarkdown, printNoteAsPdf } from "@/lib/note-export"
+import { copyNoteAsMarkdown, copyPageAsMarkdown, printNoteAsPdf } from "@/lib/note-export"
 
 const DialogAutomations = lazyNamed(() => import("@/components/dialogs/dialog-automations"), "DialogAutomations")
 const DialogCreateTemplate = lazyNamed(() => import("@/components/dialogs/dialog-create-template"), "DialogCreateTemplate")
@@ -118,7 +118,13 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
         recorder.archive("note", note.id, note.name)
     })
 
+    const isPage = note.kind === "page"
     const handleCopyMarkdown = () => runAction(async () => {
+        if (isPage) {
+            await copyPageAsMarkdown(note.id)
+            toast.success(t("transfer.markdownCopied"))
+            return
+        }
         await copyNoteAsMarkdown(note.id, note.name, hideCompletedTasks)
         toast.success(t("transfer.markdownCopied"))
     })
@@ -165,16 +171,16 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
             />
             <TabMoveItems noteId={note.id} onDone={menu.close} />
             <Separator />
-            <ButtonInPopover
+            {!isPage && <ButtonInPopover
                 text={t("menu.createTemplate")}
                 type="createTemplate"
                 onClick={() => { setTemplateOpen(true); menu.close() }}
-            />
-            <ButtonInPopover
+            />}
+            {!isPage && <ButtonInPopover
                 text={t("automations.menu")}
                 type="automations"
                 onClick={() => { setAutomationsOpen(true); menu.close() }}
-            />
+            />}
             <ButtonInPopover
                 text={t("menu.export")}
                 type="export"
@@ -185,11 +191,11 @@ export const ButtonMenuNote = ({ note, onRename, children }: ButtonMenuNoteProps
                 type="copyMarkdown"
                 onClick={handleCopyMarkdown}
             />
-            <ButtonInPopover
+            {!isPage && <ButtonInPopover
                 text={t("menu.exportPdf")}
                 type="exportPdf"
                 onClick={handlePrint}
-            />
+            />}
             <ButtonInPopover
                 text={t("menu.archive")}
                 type="archive"

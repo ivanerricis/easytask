@@ -1,4 +1,4 @@
-import { FilePlus } from "lucide-react"
+import { FilePlus, FileText } from "lucide-react"
 import { useId, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -18,6 +18,7 @@ import { useTemplates } from "@/hooks/use-templates"
 import { useWorkspace } from "@/contexts/use-workspace"
 import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { useUndoRecorder } from "@/contexts/undo/use-undo"
+import type { NoteKind } from "@/types/types"
 
 const NO_TEMPLATE = "none"
 
@@ -28,10 +29,12 @@ type AddNoteDialogProps = {
     parentId: number | null
     /** Offers the optional color (root notes only: notes in folders take no color on creation). */
     withColor?: boolean
+    /** "page" creates a Markdown page (always blank: no template); the default is a note. */
+    kind?: NoteKind
 }
 
-/** Creates a note (blank or from a template) in the workspace root or in a folder. */
-export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false }: AddNoteDialogProps) {
+/** Creates a note (blank or from a template) or a page in the workspace root or in a folder. */
+export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false, kind = "note" }: AddNoteDialogProps) {
     const { t } = useTranslation()
     const [name, setName] = useState("")
     const [color, setColor] = useState<string | undefined>(undefined)
@@ -42,7 +45,8 @@ export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false 
     const nameId = useId()
     const errorId = useId()
     const templateFieldId = useId()
-    const templates = useTemplates(open)
+    const isPage = kind === "page"
+    const templates = useTemplates(open && !isPage)
     // A stale selection (template deleted meanwhile) behaves as "no template"
     const template = templates.find(tpl => String(tpl.id) === templateId)
 
@@ -60,8 +64,8 @@ export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false 
         const id = template
             ? await createNoteFromTemplate(template.id, currentWorkspace.id, parentId, trimmed, template.color)
             : parentId === null
-                ? await createWorkspaceNote(currentWorkspace.id, trimmed, withColor ? color : undefined)
-                : await createNoteInFolder(currentWorkspace.id, parentId, trimmed)
+                ? await createWorkspaceNote(currentWorkspace.id, trimmed, withColor ? color : undefined, kind)
+                : await createNoteInFolder(currentWorkspace.id, parentId, trimmed, kind)
         if (typeof id === "number") recorder.create("note", id, trimmed)
         reset()
         onOpenChange(false)
@@ -79,7 +83,7 @@ export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false 
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
                 <DialogHeader>
-                    <DialogTitle>{t("dialogs.addNote.title")}</DialogTitle>
+                    <DialogTitle>{isPage ? t("dialogs.addPage.title") : t("dialogs.addNote.title")}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={submit}>
                     <div className="grid gap-4">
@@ -99,7 +103,7 @@ export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false 
                                 {withColor && !template && <OptionalColorField value={color} onChange={setColor} />}
                             </NameField>
                         </div>
-                        {templates.length > 0 && (
+                        {!isPage && templates.length > 0 && (
                             <div className="grid gap-3">
                                 <Label htmlFor={templateFieldId}>{t("dialogs.addNote.fromTemplate")}</Label>
                                 {/* Radix Select items cannot have an empty value: NO_TEMPLATE stands for "no template" */}
@@ -117,7 +121,7 @@ export function AddNoteDialog({ open, onOpenChange, parentId, withColor = false 
                         <FormError id={errorId}>{error}</FormError>
                     </div>
                     <FormFooter onCancel={() => handleOpenChange(false)} disabled={!name.trim() || saving}>
-                        <FilePlus />
+                        {isPage ? <FileText /> : <FilePlus />}
                         {t("dialogs.addNote.submit")}
                     </FormFooter>
                 </form>
