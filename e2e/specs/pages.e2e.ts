@@ -1,7 +1,6 @@
 import { $, $$, browser, expect } from "@wdio/globals"
 import {
-    byLabel, byText, createFromSidebar, createWorkspace, openContextMenu, openWorkspace, sql, topDialog, tr, treeRow, typeInto, waitForApp,
-} from "../helpers"
+    byLabel, byText, createFromSidebar, createWorkspace, openContextMenu, openWorkspace, sql, topDialog, tr, treeRow, typeInto, waitForApp, toolButton } from "../helpers"
 
 /**
  * Pages: a Markdown text in the sidebar tree. Created from the sidebar, typed as plain text, shown formatted with the button of
@@ -117,7 +116,7 @@ describe("Pages", () => {
         await byText(confirmLabel, await topDialog()).click()
         await treeRow(PAGE).waitForExist({ reverse: true })
 
-        await $(`//button[.//span[normalize-space()='${await tr("trash.title")}']]`).click()
+        await (await toolButton("trash.title")).click()
         const trash = $('[role="dialog"]')
         await trash.waitForDisplayed()
         await trash.$(`[aria-label=${JSON.stringify(await tr("trash.restoreAria", { name: PAGE }))}]`).click()

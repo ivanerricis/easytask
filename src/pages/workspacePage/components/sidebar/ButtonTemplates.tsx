@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next"
-import { useWorkspaceActions } from "@/contexts/workspace-data"
 import { requestAppCommand } from "@/lib/app-commands"
 import { ItemFooter } from "../items/ItemFooter"
-import { useVersionedCount } from "./use-versioned-count"
+import { useTemplateCount } from "./use-tool-counts"
 
 /**
  * Footer entry that opens the templates of the current workspace, with the number of templates as a badge.
@@ -10,8 +9,7 @@ import { useVersionedCount } from "./use-versioned-count"
  */
 export const ButtonTemplates = () => {
     const { t } = useTranslation()
-    const { countTemplates } = useWorkspaceActions()
-    const count = useVersionedCount("templates", countTemplates)
+    const count = useTemplateCount()
 
     return (
         <ItemFooter type="template" text={t("dialogs.templates.title")} badge={count} badgeVariant="outline" badgeLabel={t("templates.badge", { count })} onClick={() => requestAppCommand("open-templates")} />

@@ -169,6 +169,7 @@ export const sidebar: Translation["sidebar"] = {
     emptyTreeHint: "Create a note or a folder to get started.",
     treeLabel: "Folders and notes",
     holdsOpenNote: "Contains the open note",
+    tools: "Tools",
 }
 
 export const templates: Translation["templates"] = {

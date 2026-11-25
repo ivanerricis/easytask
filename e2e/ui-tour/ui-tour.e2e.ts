@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { $, browser } from "@wdio/globals"
-import { byLabel, byText, openContextMenu, sectionCard, topDialog, tr, treeRow, typeInto, waitForApp } from "../helpers"
+import { byLabel, byText, openContextMenu, sectionCard, topDialog, tr, treeRow, typeInto, waitForApp, toolButton } from "../helpers"
 import {
     addGroup, addSection, addSubtask, addTask, applyAppearance, closeDialog, dialogEl, fillDialogName, goCategory, goHome,
     openNote, openSettings, openTaskMenu, openWs, pad, pickColor, recover, setPanel, setSidebar, setTab, settle, submitDialog,
@@ -468,7 +468,7 @@ describe("UI tour", () => {
     })
 
     it("workspace dialogs: trash, templates, shortcuts, note from template", async () => {
-        const footerButton = async (key: string) => $(`//button[.//span[normalize-space()='${await tr(key)}']]`)
+        const footerButton = (key: string) => toolButton(key)
         await attempt("workspace-trash", async () => {
             await (await footerButton("trash.title")).click()
             await dialogEl().waitForDisplayed()

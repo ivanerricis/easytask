@@ -4,8 +4,7 @@ import { fileURLToPath } from "node:url"
 import { $, $$, browser } from "@wdio/globals"
 import {
     byLabel, byText, domClick, hoverInsertZone, insertFields, insertZoneAbove, openContextMenu, openSubmenu, sectionCard, setLastSeenVersion, templateEditorTab, topDialog, tr,
-    treeRow, typeInto, waitForApp,
-} from "../helpers"
+    treeRow, typeInto, waitForApp, toolButton } from "../helpers"
 import {
     addGroup, addSection, addSubtask, addTask, applyAppearance, closeDialog, dialogEl, fillDialogName, goCategory, goHome,
     openNote, openSettings, openTaskMenu, openWs, pickColor, recover, setPanel, setSidebar, setTab, settle, submitDialog,
@@ -99,7 +98,7 @@ const taskArea = async (text: string) => {
     for (const candidate of await $$(`[aria-label="${label}"]`)) if ((await candidate.getValue()) === text) return candidate.getElement()
     throw new Error(`task "${text}" not found`)
 }
-const footerButton = async (key: string) => $(`//button[.//span[normalize-space()='${await tr(key)}']]`)
+const footerButton = (key: string) => toolButton(key)
 /** Parks the pointer on an empty part of the window, so that no hover state or tooltip is captured. */
 const parkMouse = () => browser.action("pointer").move({ x: 900, y: 820, origin: "viewport" }).perform()
 const blur = () => browser.execute(() => (document.activeElement as HTMLElement | null)?.blur())

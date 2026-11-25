@@ -594,7 +594,7 @@ describe("preference table", () => {
             "backupFrequency", "backupKeep", "checkUpdatesOnStartup", "closeToTray", "collapsedGroupLayout", "colorIntensity", "completedTasksLast", "confirmDeleteWithContent", "dueNotifications", "dueNotified", "dueOverdueFired", "fontFamily", "hardwareAcceleration", "hideCompletedTasks", "keepAddingTasks", "language",
             "lastSeenVersion", "lastWorkspaceId", "liveDrag", "newTaskPosition", "primaryColor", "rememberWindowState", "renameOnClick", "reopenLastWorkspace", "reopenNotes", "rightPanelTab", "showAudioFileCount", "showCollapsedOpenCount",
             "showGroupProgressBar", "showGroupSeparators", "showMediaWhenCollapsed", "showProgressBar", "showSectionCount", "showSubtaskCount", "showTaskCount",
-            "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth",
+            "showTaskInsertLine", "showUnnamedLabels", "sidebarItemSize", "sidebarLeftOpen", "sidebarLeftWidth", "sidebarRightOpen", "sidebarRightWidth", "sidebarToolsOpen",
             "skippedConfirms", "skippedUpdateVersion", "spellcheck", "splitRatio", "startupWorkspaceId", "taskBackground", "taskDensity", "textZoom", "themeBackground", "themeId", "trashAutoEmptyDays", "undoLimit", "workspaceSort", "workspaceView",
         ])
     })
@@ -819,5 +819,19 @@ describe("automatic backup mode preference", () => {
         await vi.advanceTimersByTimeAsync(500)
         await saving
         expect(store.set).toHaveBeenCalledWith("autoBackupMode", "both")
+    })
+})
+
+describe("sidebarToolsOpen preference", () => {
+    beforeEach(() => { vi.resetAllMocks() })
+
+    it("is open when nothing is stored or the value is invalid, closed only when saved as false", async () => {
+        vi.mocked(store.get).mockResolvedValue(undefined)
+        expect(await getPref("sidebarToolsOpen")).toBe(true)
+        vi.mocked(store.get).mockResolvedValue("no")
+        expect(await getPref("sidebarToolsOpen")).toBe(true)
+        vi.mocked(store.get).mockResolvedValue(false)
+        expect(await getPref("sidebarToolsOpen")).toBe(false)
+        expect(store.get).toHaveBeenCalledWith("sidebarToolsOpen")
     })
 })

@@ -167,6 +167,7 @@ export const sidebar = {
     emptyTreeHint: "Crea una nota o una cartella per iniziare.",
     treeLabel: "Cartelle e note",
     holdsOpenNote: "Contiene la nota aperta",
+    tools: "Strumenti",
 }
 
 export const templates = {

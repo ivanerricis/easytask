@@ -195,6 +195,8 @@ export const UI_PREFS = {
     liveDrag: def({ key: "liveDrag", default: true, normalize: value => value !== false }),
     undoLimit: def<number>({ key: "undoLimit", default: UNDO_LIMIT, normalize: value => isValidUndoLimit(value) ? value : UNDO_LIMIT }),
     sidebarLeftOpen: def({ key: "sidebarLeftOpen", default: true }),
+    /** Open: the "Tools" section of the sidebar footer (due, statistics, templates, archive, trash) shows its entries. */
+    sidebarToolsOpen: def({ key: "sidebarToolsOpen", default: true, normalize: value => value !== false }),
     sidebarRightOpen: def({ key: "sidebarRightOpen", default: true }),
     sidebarLeftWidth: def<number>({ key: "sidebarLeftWidth", default: SIDEBAR_DEFAULT_WIDTH, normalize: normalizeSidebarWidth }),
     sidebarRightWidth: def<number>({ key: "sidebarRightWidth", default: SIDEBAR_DEFAULT_WIDTH, normalize: normalizeSidebarWidth }),

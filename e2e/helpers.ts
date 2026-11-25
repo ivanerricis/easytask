@@ -532,7 +532,7 @@ export const closeAllDialogs = async () => {
 
 /** Opens the dialog of the templates (button at the bottom of the left sidebar) and returns it. */
 export const openTemplatesDialog = async () => {
-    await $(`//button[.//span[normalize-space()=${JSON.stringify(await tr("dialogs.templates.title"))}]]`).click()
+    await (await toolButton("dialogs.templates.title")).click()
     const dialog = $('[role="dialog"]')
     await dialog.waitForDisplayed({ timeoutMsg: "the templates dialog did not open" })
     return dialog
@@ -561,4 +561,15 @@ export const setLastSeenVersion = async (version: string) => {
         () => { try { return fs.readFileSync(file, "utf8").includes(`"lastSeenVersion": "${version}"`) } catch { return false } },
         { timeout: 15_000, timeoutMsg: "settings.dat does not contain the new lastSeenVersion" },
     )
+}
+
+/** The entry of the "Tools" section of the left sidebar (due, statistics, templates, archive, trash) with this translation key: opens the section first when it is closed (its state is a saved preference). */
+export const toolButton = async (key: string) => {
+    const toggle = $("[data-tools-toggle]")
+    await toggle.waitForDisplayed({ timeoutMsg: "the Tools section of the sidebar was not found" })
+    if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+        await toggle.click()
+        await browser.waitUntil(async () => (await toggle.getAttribute("aria-expanded")) === "true", { timeoutMsg: "the Tools section did not open" })
+    }
+    return $(`(//button[.//span[normalize-space()=${JSON.stringify(await tr(key))}]])[last()]`)
 }
