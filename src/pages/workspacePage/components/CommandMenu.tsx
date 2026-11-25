@@ -15,7 +15,8 @@ import { useShortcutKeys, useShortcutLabel } from "@/contexts/use-shortcuts"
 import { Button } from "@/components/ui/button"
 import { KbdKeys } from "@/components/kbd"
 import { useOptionalUndo } from "@/contexts/undo/use-undo"
-import { Redo2, Undo2 } from "lucide-react"
+import { ChartColumn, Redo2, Undo2 } from "lucide-react"
+import { STATS_TAB_ID } from "@/lib/tabs/virtual-tabs"
 
 export function CommandMenu() {
     const { t } = useTranslation()
@@ -93,24 +94,26 @@ export function CommandMenu() {
                             })}
                         </CommandGroup>
                     )}
-                    {undo && (undo.canUndo || undo.canRedo) && (
-                        <CommandGroup heading={t("undo.actions")}>
-                            {undo.canUndo && (
+                    <CommandGroup heading={t("undo.actions")}>
+                        <CommandItem className="!p-2" onSelect={() => { setOpen(false); openNote(STATS_TAB_ID) }}>
+                            <ChartColumn className="size-4" />
+                            {t("tasks.stats.title")}
+                        </CommandItem>
+                        {undo?.canUndo && (
                                 <CommandItem className="!p-2" onSelect={() => { setOpen(false); void undo.undo() }}>
                                     <Undo2 className="size-4" />
                                     {t("undo.undoWithLabel", { label: undo.undoLabel })}
                                     {undoShortcut && <span className="ml-auto text-xs text-muted-foreground">{undoShortcut}</span>}
                                 </CommandItem>
                             )}
-                            {undo.canRedo && (
+                        {undo?.canRedo && (
                                 <CommandItem className="!p-2" onSelect={() => { setOpen(false); void undo.redo() }}>
                                     <Redo2 className="size-4" />
                                     {t("undo.redoWithLabel", { label: undo.redoLabel })}
                                     {redoShortcut && <span className="ml-auto text-xs text-muted-foreground">{redoShortcut}</span>}
                                 </CommandItem>
-                            )}
-                        </CommandGroup>
-                    )}
+                        )}
+                    </CommandGroup>
                 </CommandList>
             </CommandDialog>
 

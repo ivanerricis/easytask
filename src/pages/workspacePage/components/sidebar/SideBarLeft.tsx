@@ -13,6 +13,8 @@ import { SelectionActionsProvider } from "./selection-actions"
 import { ButtonTrash } from "./ButtonTrash"
 import { ButtonArchive } from "./ButtonArchive"
 import { ButtonDue } from "./ButtonDue"
+import { ButtonStats } from "./ButtonStats"
+import { StatsTabCommand } from "../stats/StatsTabCommand"
 import { ButtonTemplates } from "./ButtonTemplates"
 import { DialogAddFolder } from "./DialogAddFolder"
 import { DialogAddNote, DialogAddPage } from "./DialogAddNote"
@@ -122,6 +124,7 @@ export const SideBarLeft = () => {
                         </SideBarHeader>}
                         footer={<div className="flex flex-col gap-1 border-t p-1 w-full">
                             <ButtonDue />
+                            <ButtonStats />
                             <ButtonTemplates />
                             <ButtonArchive />
                             <ButtonTrash />
@@ -132,6 +135,7 @@ export const SideBarLeft = () => {
                     </SideBarContainer>
                 </SideBar>
                 <SidebarDialogs />
+                <StatsTabCommand />
                 <ClosedSidebarShortcuts sidebarOpen={open} />
             </SelectionActionsProvider>
         </SelectionProvider>

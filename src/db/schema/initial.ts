@@ -6,7 +6,7 @@ import { createNoteTemplateIndexes, createNoteTemplateTable, createNoteTemplateT
 import { addSectionArchivedAt, addSectionDefaultFlag, addSectionSharedOrder, addSectionTaskOrder, makeSectionTitleOptional, createSectionIndexes, createSectionTable, createSectionTrigger } from "./section";
 import { addCollapsedColumns, TASK_EDIT_COLUMNS } from "./collapsed";
 import { addGroupArchivedAt, addGroupColorColumn, addGroupWidthColumn, createSectionGroupIndexes, createSectionGroupTable } from "./section_group";
-import { addTaskDue, createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
+import { addTaskCompletedAt, addTaskDue, createTaskIndexes, createTaskTable, addTaskArchivedAt, createTaskTrigger, dropTaskArchivedColumn } from "./task";
 import { createWorkspaceEditTriggers, updateTriggerOf } from "./workspace_edit";
 import { createCustomThemeTable } from "./custom_theme";
 import { mediaFileSchema } from "./media_file";
@@ -149,10 +149,16 @@ export const taskDueSchema: string[] = addTaskDue(updateTriggerOf("task", TASK_E
 export const notePageSchema: string[] = [...addNotePage]
 
 /**
+ * Migration v24: completion moment of the tasks (`task.completed_at`), kept by a trigger.
+ * @category Database Schema
+ */
+export const taskCompletedAtSchema: string[] = [...addTaskCompletedAt]
+
+/**
  * The whole schema at the latest version (initial schema plus every additive migration), as statements.
  * Used by the tests to build a database in one go: the app itself goes through the migrations in initDb.
  * @category Database Schema
  */
 export const latestSchema: string[] = [
-    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema, ...notePageSchema, ...taskFileSchema,
+    ...initialSchema, addGroupColorColumn, ...createWorkspaceEditTriggers, ...archiveSchema, ...automationSchema, ...taskArchiveSchema, ...sectionTitleSchema, ...groupStructureSchema, ...sectionOrderSchema, ...collapsedSchema, ...templateDraftSchema, ...trashIndexesSchema, ...noteBackgroundSchema, ...customThemeSchema, ...mediaFileSchema, ...tagSchema, ...sectionTaskOrderSchema, ...groupTagSchema, ...noteBackgroundImageSchema, ...sectionTagSchema, ...taskDueSchema, ...notePageSchema, ...taskFileSchema, ...taskCompletedAtSchema,
 ]

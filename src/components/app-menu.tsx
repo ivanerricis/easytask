@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import {
-    Archive, ArrowLeft, ArrowRight, ArrowRightLeft, BookOpen, CircleX, Columns2, EyeOff, FileDown, FilePlus, FileText, FolderPlus, House, Info, Keyboard, LayoutTemplate,
+    Archive, ArrowLeft, ArrowRight, ArrowRightLeft, BookOpen, ChartColumn, CircleX, Columns2, EyeOff, FileDown, FilePlus, FileText, FolderPlus, House, Info, Keyboard, LayoutTemplate,
     LogOut, PanelLeft, PanelRight, Palette, Plus, Redo2, Rows3, ScrollText, Search, Settings, SunMoon, Trash2, Undo2, X, type LucideIcon,
 } from "lucide-react"
 import { getCurrentWindow } from "@tauri-apps/api/window"
@@ -196,6 +196,7 @@ export const AppMenu = ({ page }: AppMenuProps) => {
                             <MenubarSeparator />
                             <ShortcutItem id="next-note" icon={ArrowRight} label={t("appMenu.nextNote")} />
                             <ShortcutItem id="previous-note" icon={ArrowLeft} label={t("appMenu.previousNote")} />
+                            <CommandItem command="open-stats" icon={ChartColumn} label={t("tasks.stats.title")} />
                             <MenubarSeparator />
                         </>
                     )}

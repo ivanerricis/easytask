@@ -7,7 +7,8 @@ import { PathBar } from "./PathBar"
 import { PageView } from "./page/PageView"
 import { useIsActivePage } from "@/contexts/use-page"
 import { WhatsNewPage } from "./whats-new/WhatsNewPage"
-import { isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
+import { StatsPage } from "./stats/StatsPage"
+import { isStatsTab, isWhatsNewTab } from "@/lib/tabs/virtual-tabs"
 import { OpenTaskEffect } from "./OpenTaskEffect"
 import { NoteSearchProvider } from "./note-search-context"
 import { useVeilLifted } from "./note-dnd-veil"
@@ -37,7 +38,9 @@ export const PaneBody = memo(function PaneBody({ empty, alwaysTabs, dimmed = fal
             {(alwaysTabs || activeId !== null) && <NoteList />}
             {isWhatsNewTab(activeId)
                 ? <WhatsNewPage />
-                : activeId !== null
+                : isStatsTab(activeId)
+                    ? <StatsPage />
+                    : activeId !== null
                     ? <NoteSearchProvider>
                         <div className="relative flex min-h-0 flex-1 flex-col">
                             <PathBar />

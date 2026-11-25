@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import i18n from "@/i18n"
-import { WHATS_NEW_TAB_ID, isWhatsNewTab, whatsNewTabNote } from "@/lib/tabs/virtual-tabs"
+import { STATS_TAB_ID, WHATS_NEW_TAB_ID, isVirtualTab, statsTabNote, whatsNewTabNote } from "@/lib/tabs/virtual-tabs"
 import type { Dispatch, MutableRefObject } from "react"
 import type { Note } from "@/types/types"
 import type { LayoutActionsType, LayoutContextType, PaneTabsValue } from "./layout-context-object"
@@ -17,7 +17,7 @@ function paneTabsValue(tabs: TabsState | null, byId: ReadonlyMap<number, Note>, 
         activeId: state.activeId,
         tabs: state.openIds.flatMap(id => byId.get(id) ?? []),
         // The "What's new" tab is not a note: there is no current note while it is the active one
-        currentNote: state.activeId !== null && !isWhatsNewTab(state.activeId) ? byId.get(state.activeId) ?? null : null,
+        currentNote: state.activeId !== null && !isVirtualTab(state.activeId) ? byId.get(state.activeId) ?? null : null,
         restored,
     }
 }
@@ -115,6 +115,7 @@ export function useTabsValues(
     const byId = useMemo(() => {
         const map = new Map(notes.map(note => [note.id, note]))
         map.set(WHATS_NEW_TAB_ID, whatsNewTabNote(i18n.t("settings.about.update.notes")))
+        map.set(STATS_TAB_ID, statsTabNote(i18n.t("tasks.stats.title")))
         return map
     }, [notes])
 

@@ -1,12 +1,12 @@
 import type { ComponentProps } from "react"
 import { useTranslation } from "react-i18next"
-import { Archive, CalendarClock, LayoutTemplate, Trash2 } from "lucide-react"
+import { Archive, CalendarClock, ChartColumn, LayoutTemplate, Trash2 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type IconType = 'trash' | 'archive' | 'template' | 'due'
+type IconType = "trash" | "archive" | "template" | "due" | "stats"
 
 type ItemFooterProps = {
     text: string
@@ -26,6 +26,7 @@ const iconMap: Record<IconType, LucideIcon> = {
     archive: Archive,
     template: LayoutTemplate,
     due: CalendarClock,
+    stats: ChartColumn,
 }
 
 export const ItemFooter = ({ text, type, className, onClick, disabled, badge, badgeLabel, badgeVariant }: ItemFooterProps) => {

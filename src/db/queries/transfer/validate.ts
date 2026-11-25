@@ -55,6 +55,8 @@ function checkTask(task: unknown, counter: Counter, depth = 0) {
     if (!isNullableString(task.description) || !isNullableString(task.color) || !isNullableString(task.archived_at)) malformed()
     // The due date and time are optional (older files have none); a value that is not a date or a time is dropped when normalized
     if (!isNullableString(task.due_date) || !isNullableString(task.due_time)) malformed()
+    // Optional too (files from before the statistics have none): a value that is not a moment is replaced by the moment of the import
+    if (!isNullableString(task.completed_at)) malformed()
     if (task.tags !== undefined) checkTags(task.tags, counter)
     if (task.files !== undefined) checkTaskFiles(task.files, counter)
     for (const subtask of task.subtasks as unknown[]) checkTask(subtask, counter, depth + 1)

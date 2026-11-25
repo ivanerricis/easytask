@@ -100,6 +100,9 @@ export const errors = {
     due: {
         load: "Impossibile caricare i task in scadenza: {{message}}",
     },
+    stats: {
+        load: "Impossibile caricare le statistiche: {{message}}",
+    },
     archive: {
         archive: "Impossibile archiviare l'elemento: {{message}}",
         load: "Impossibile caricare l'archivio: {{message}}",

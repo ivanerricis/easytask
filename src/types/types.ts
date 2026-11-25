@@ -130,6 +130,8 @@ export type Task = {
     due_time?: string | null
     text: string
     completed: boolean
+    /** When the task was completed (local `YYYY-MM-DD HH:MM`), kept by the database; null/absent while it is open. */
+    completed_at?: string | null
     priority: boolean
     description: string
     /** The tags of the task (ids of the tags of its workspace, in the order of the tag list); absent when it has none. */

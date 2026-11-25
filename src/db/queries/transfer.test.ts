@@ -84,6 +84,7 @@ beforeEach(() => {
             (11, 5, NULL, 'Nella sezione eliminata', NULL, 0, 0, NULL, 0),
             (12, 20, NULL, 'Diretto', NULL, 0, 1, NULL, 0),
             (13, 20, 12, 'Figlio diretto', NULL, 0, 0, NULL, 0);
+        UPDATE task SET completed_at = '2026-05-06 07:08' WHERE completed = 1;
         UPDATE task SET deleted_at = datetime('now') WHERE id IN (6, 8);
         UPDATE section SET deleted_at = datetime('now') WHERE id = 5;
         UPDATE section_group SET deleted_at = datetime('now') WHERE id = 3;
