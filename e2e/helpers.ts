@@ -202,6 +202,8 @@ export const openContextMenu = async (target: ChainablePromiseElement) => {
  * opened with the keyboard instead, which works on every backend.
  */
 export const openMenuWithButton = async (button: ChainablePromiseElement) => {
+    // A menu closed just before still animates out: wait until it is gone, or it is taken for the new one
+    await $('[role="menu"]').waitForExist({ reverse: true, timeout: 3_000 }).catch(() => undefined)
     await button.click()
     const expanded = await browser
         .waitUntil(async () => (await button.getAttribute("aria-expanded")) === "true", { timeout: 2_000 })
@@ -210,7 +212,7 @@ export const openMenuWithButton = async (button: ChainablePromiseElement) => {
         await browser.execute((el: HTMLElement) => el.focus(), (await button.getElement()) as unknown as HTMLElement)
         await browser.keys("Enter")
     }
-    const menu = $('[role="menu"]')
+    const menu = $('[role="menu"][data-state="open"]')
     await menu.waitForDisplayed({ timeoutMsg: "the item menu did not open" })
     return menu
 }
