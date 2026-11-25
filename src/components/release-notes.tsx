@@ -22,7 +22,7 @@ const inline = (text: string, onLink: (url: string) => void): ReactNode[] =>
                 <a
                     key={i}
                     href={link[2]}
-                    className="text-primary underline underline-offset-2 rounded-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    className="text-primary underline underline-offset-2 rounded-xs focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
                     onClick={e => { e.preventDefault(); onLink(link[2]) }}
                 >
                     {link[1]}

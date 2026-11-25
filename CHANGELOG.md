@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Filter by tag** in the note bar: check one or more tags to see only the tasks that have any of them (a group or section with the tag shows all its tasks). The button shows how many tags are checked and one click on the **x** removes the filter. It is only a view of the note, kept while its tab is open.
 
+### Changed
+
+- Accessibility fixes (WCAG 2.2 AA): a stronger focus ring on text fields, selects and the audio seek bar, and a lighter one on the dark theme; the red of errors is a little darker on the light theme; the sidebars are announced as navigation and details, a **Skip to the note** link comes first in the Tab order, group and section names are headings, tabs are linked to their note panel, and the window title follows the open note. The toast of the hardware acceleration restart stays longer, and a pinned audio player no longer takes a Tab stop.
+
 ## [0.28.0] - 2026-11-20
 
 ### Added

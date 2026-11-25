@@ -11,7 +11,7 @@ import { reportError } from "@/lib/report-error"
  * language of the app. Nothing is read from or written to the database.
  * @category Updater
  */
-export const WhatsNewPage = () => {
+export const WhatsNewPage = ({ panelId, tabId }: { panelId?: string, tabId?: string }) => {
     const { t, i18n } = useTranslation()
     const language = i18n.language === "it" ? "it" : "en"
     const [content, setContent] = useState<{ version: string, notes: string } | null>(null)
@@ -27,7 +27,7 @@ export const WhatsNewPage = () => {
     }, [language])
 
     return (
-        <div role="tabpanel" aria-label={t("settings.about.update.notes")} className="flex min-h-0 flex-1 justify-center overflow-y-auto bg-background px-6 py-10">
+        <div role="tabpanel" id={panelId} aria-labelledby={tabId} aria-label={t("settings.about.update.notes")} className="flex min-h-0 flex-1 justify-center overflow-y-auto bg-background px-6 py-10">
             <div className="flex h-fit w-full max-w-2xl flex-col gap-6">
                 <header className="flex items-center gap-4">
                     <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-xs bg-primary/15 text-primary">

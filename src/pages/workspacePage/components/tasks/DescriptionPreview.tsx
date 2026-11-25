@@ -27,7 +27,7 @@ export function DescriptionPreview({ text, placeholder, label, onEdit, onToggle,
             data-testid="description-preview"
             onClick={event => { if (!(event.ctrlKey || event.metaKey)) onEdit() }}
             onKeyDown={event => { if (event.key === "Enter" && event.target === event.currentTarget) { event.preventDefault(); onEdit() } }}
-            className={cn("cursor-text rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 outline-none", className)}
+            className={cn("cursor-text rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring outline-none", className)}
         >
             {text.trim() === ""
                 ? <p className="text-muted-foreground">{placeholder}</p>

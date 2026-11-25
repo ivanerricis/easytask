@@ -105,6 +105,15 @@ describe("NoteHeader tab semantics", () => {
         expect(screen.getByRole("tab", { name: "Uno" })).toHaveAttribute("tabindex", "-1")
     })
 
+    it("links the active tab to the panel of its pane and gives every tab an id", async () => {
+        setup()
+        await act(async () => { })
+        const active = screen.getByRole("tab", { name: "Due" })
+        expect(active).toHaveAttribute("id", "tab-0-2")
+        expect(active).toHaveAttribute("aria-controls", "tabpanel-0")
+        expect(screen.getByRole("tab", { name: "Uno" })).not.toHaveAttribute("aria-controls")
+    })
+
     it("truncates a long name and shows it whole as a title", async () => {
         const long = "Un nome di nota molto molto lungo che non deve allargare la barra delle schede all'infinito"
         render(

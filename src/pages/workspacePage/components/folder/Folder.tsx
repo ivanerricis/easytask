@@ -87,6 +87,8 @@ const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, le
                             {...attributes}
                             {...listeners}
                             ref={dndRef}
+                            // dnd-kit sets "draggable", which would hide the treeitem role from the screen readers
+                            aria-roledescription={undefined}
                             role="treeitem"
                             aria-label={folder.name}
                             data-row-key={treeRowKey("folder", folder.id)}

@@ -5,7 +5,8 @@ import { TooltipCustom } from "@/components/tooltip-custom"
 import { Button } from "@/components/ui/button"
 import { useActiveNoteSelector, useTabsActions } from "@/contexts/use-tabs"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
-import { focusRing, ghostIconButtonClass } from "@/lib/a11y"
+import { focusRing, ghostIconButtonClass, tabElementId, tabPanelId } from "@/lib/a11y"
+import { usePane } from "@/contexts/use-layout"
 import { WHATS_NEW_TAB_ID } from "@/lib/tabs/virtual-tabs"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +19,7 @@ export const WhatsNewHeader = memo(function WhatsNewHeader() {
     const { closeNote, activateNote } = useTabsActions()
     const isActive = useActiveNoteSelector(activeId => activeId === WHATS_NEW_TAB_ID)
     const closeLabel = useShortcutLabel("close-note")
+    const pane = usePane()?.pane ?? 0
     const title = t("settings.about.update.notes")
 
     return (
@@ -31,6 +33,8 @@ export const WhatsNewHeader = memo(function WhatsNewHeader() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
+                id={tabElementId(pane, WHATS_NEW_TAB_ID)}
+                aria-controls={isActive ? tabPanelId(pane) : undefined}
                 tabIndex={isActive ? 0 : -1}
                 data-note-id={WHATS_NEW_TAB_ID}
                 title={title}

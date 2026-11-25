@@ -73,7 +73,7 @@ export function DueAgenda({ workspaceId, onOpenTask, className }: DueAgendaProps
             type="button"
             data-testid="due-item"
             onClick={() => onOpenTask(task)}
-            className="flex w-full items-stretch gap-2 rounded-xs px-1 py-1 text-left outline-hidden hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            className="flex w-full items-stretch gap-2 rounded-xs px-1 py-1 text-left outline-hidden hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring">
             <span aria-hidden className={cn("w-1 shrink-0 rounded-full", BAR[status])} />
             <span className="w-12 shrink-0 pt-0.5 text-xs tabular-nums text-muted-foreground">{task.due_time ? formatDueTime(task.due_time, language) : ""}</span>
             <span className="flex min-w-0 flex-1 flex-col">

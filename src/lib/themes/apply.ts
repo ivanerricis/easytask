@@ -10,7 +10,7 @@ const isPlain = (def: ThemeDefinition) => def.builtin && (def.id === "light" || 
 /**
  * Applies a theme to the page: the `light`/`dark` class of the root and, for the themes other than the plain light and dark
  * (which live in index.css), `data-theme` plus a single `<style id="easytask-theme">`. For light and dark the attribute and
- * the style are removed; an accent override is then set inline on the root (`--ring` follows `--primary` in index.css).
+ * the style are removed; an accent override is then set inline on the root (`--ring` is the accent too: in index.css the dark theme uses the lighter `--primary-text` for it).
  * @param accentOverride The accent chosen apart from the theme (null: the one of the theme).
  */
 export function applyTheme(def: ThemeDefinition, root: HTMLElement = document.documentElement, accentOverride: string | null = null): void {
@@ -20,6 +20,7 @@ export function applyTheme(def: ThemeDefinition, root: HTMLElement = document.do
     const existing = doc.getElementById("easytask-theme")
     root.style.removeProperty("--primary")
     root.style.removeProperty("--primary-foreground")
+    root.style.removeProperty("--ring")
     if (isPlain(def)) {
         root.removeAttribute("data-theme")
         existing?.remove()
@@ -27,6 +28,7 @@ export function applyTheme(def: ThemeDefinition, root: HTMLElement = document.do
             const accent = effectiveAccent(def, accentOverride)
             root.style.setProperty("--primary", accent)
             root.style.setProperty("--primary-foreground", textColorOn(accent))
+            root.style.setProperty("--ring", accent)
         }
         return
     }

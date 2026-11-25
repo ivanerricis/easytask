@@ -49,7 +49,7 @@ export const ItemFooter = ({ text, type, className, onClick, disabled, badge, ba
             </span>
             {badge !== undefined && badge > 0 && (
                 <>
-                    <Badge variant={badgeVariant} aria-hidden="true" className="h-5 min-w-5 px-1 py-0 text-[11px] leading-none tabular-nums">{badge > 99 ? "99+" : badge}</Badge>
+                    <Badge variant={badgeVariant} aria-hidden="true" className="h-5 min-w-5 px-1 py-0 text-xs leading-none tabular-nums">{badge > 99 ? "99+" : badge}</Badge>
                     <span className="sr-only">{badgeLabel ?? t("sidebar.trashBadge", { count: badge })}</span>
                 </>
             )}

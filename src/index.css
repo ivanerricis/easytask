@@ -121,7 +121,8 @@ body,
   --tooltip: var(--foreground);
   --tooltip-foreground: var(--background);
   --tooltip-border: var(--foreground);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* a little darker than the shadcn default (0.577) so red text reaches 4.5:1 on the grey panels and on the hover fill (WCAG 1.4.3) */
+  --destructive: oklch(0.53 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --warning: oklch(0.55 0.14 70);
   --warning-foreground: oklch(0.985 0 0);
@@ -191,7 +192,7 @@ body,
   --thumb: #ffffff;
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 42%);
-  --ring: var(--primary);
+  --ring: var(--primary-text);
 }
 
 @layer utilities {

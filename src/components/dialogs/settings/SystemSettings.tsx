@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart"
 import { toast } from "sonner"
+import { ACTION_TOAST_DURATION } from "@/lib/toast-trashed"
 import { reportError } from "@/lib/report-error"
 import { isPortable } from "@/db/appPaths"
 import { getCurrentWindow } from "@tauri-apps/api/window"
@@ -142,6 +143,7 @@ const HardwareAccelerationSetting = () => {
     const { checked, change } = useStoredSwitch(getHardwareAcceleration, async (value: boolean) => {
         await saveHardwareAcceleration(value)
         toast(t("settings.system.hardwareAcceleration.restartToast"), {
+            duration: ACTION_TOAST_DURATION,
             action: { label: t("settings.system.hardwareAcceleration.restartNow"), onClick: () => void restart() },
         })
     }, { initial: true, revertOnError: true })

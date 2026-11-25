@@ -83,7 +83,7 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                     <div className="flex items-center justify-between gap-2 w-full min-w-0">
                         {/* The title shrinks and truncates, the tags sit right after it and the free space is after them (like the group header) */}
                         <div className="flex min-w-0 flex-1 items-center">
-                        {!isTextAreaOpen && <button
+                        {!isTextAreaOpen && <div role="heading" aria-level={3} className="contents"><button
                             type="button"
                             onClick={renameOnClick ? startEdit : undefined}
                             // Enter renames even when the click does not
@@ -94,7 +94,7 @@ export const SectionHeader = memo(({ isOpen, onOpenChange, section, dragProps }:
                             aria-label={t("sections.renameAria", { name: getSectionLabel(section) })}
                             className={`text-sm ml-1 min-w-0 shrink h-6 truncate text-left rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${renameOnClick ? "cursor-text" : ""} ${!section.title ? "text-muted-foreground" : ""}`}>
                             {search.query ? <Highlight text={section.title} query={search.query} active={search.active} /> : section.title || (showUnnamedLabels ? getSectionLabel(section) : "")}
-                        </button>}
+                        </button></div>}
                         {isTextAreaOpen && <InlineErrorTooltip message={error}>
                             <Input
                                 {...inputProps}

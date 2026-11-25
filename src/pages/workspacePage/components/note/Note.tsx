@@ -80,6 +80,8 @@ const NoteRow = React.memo(({ note, dropZone, level = 1, dndRef, attributes, lis
                         {...attributes}
                         {...listeners}
                         ref={dndRef}
+                        // dnd-kit sets "draggable", which would hide the treeitem role from the screen readers
+                        aria-roledescription={undefined}
                         role="treeitem"
                         aria-label={note.name}
                         data-row-key={treeRowKey("note", note.id)}

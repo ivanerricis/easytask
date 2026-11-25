@@ -99,6 +99,9 @@ export const SideBar = ({
         if (railRef.current) setRailWidth(railRef.current.offsetWidth)
     }, [overlay])
 
+    // The left bar is the navigation of the notes (the tree), the right one the complementary details of the open note
+    const landmarkRole = position === "left" ? "navigation" : "complementary"
+    const landmarkLabel = position === "left" ? t("layout.leftLandmark") : t("layout.rightLandmark")
     const flexDirection = position === "left" ? "flex-row-reverse" : "flex-row"
     const borderClass = position === "left" ? "border-r" : "border-l"
     const resizerPosition = position === "left" ? "right-0" : "left-0"
@@ -128,7 +131,7 @@ export const SideBar = ({
                         <SheetHeader className="sr-only">
                             <SheetTitle>{toggleLabels?.toggle ?? t("sidebar.toggle")}</SheetTitle>
                         </SheetHeader>
-                        <div className="flex h-full min-h-0 flex-col">{children}</div>
+                        <div role={landmarkRole} aria-label={landmarkLabel} className="flex h-full min-h-0 flex-col">{children}</div>
                     </SheetContent>
                 </Sheet>
             )}
@@ -147,6 +150,8 @@ export const SideBar = ({
                 {/* Laid out at its final width from the first frame: while the panel opens (or closes) it is only revealed, so the text does not reflow */}
                 {open && (
                     <div
+                        role={landmarkRole}
+                        aria-label={landmarkLabel}
                         className={`flex h-full min-h-0 shrink-0 flex-col ${position === "left" ? "self-start" : "self-end"}`}
                         style={{ width: currentWidth }}
                     >

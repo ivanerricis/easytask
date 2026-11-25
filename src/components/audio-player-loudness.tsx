@@ -81,7 +81,7 @@ export const Waveform = ({ peaks, currentTime, duration, onSeek, onKeyDown, aria
                 event.currentTarget.releasePointerCapture?.(event.pointerId)
             }}
             onPointerCancel={() => { dragging.current = false }}
-            className="relative h-8 min-w-0 flex-1 cursor-pointer touch-none rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="relative h-8 min-w-0 flex-1 cursor-pointer touch-none rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
         >
             <svg
                 aria-hidden
@@ -143,7 +143,7 @@ const useLoudnessReading = (audioRef: React.RefObject<HTMLAudioElement | null>, 
 
 const Reading = ({ label, value, unit }: { label: string, value: number | undefined, unit: string }) => (
     <div className="flex min-w-0 flex-col items-start leading-tight">
-        <span className="text-[11px] text-muted-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
         <span className="text-xs tabular-nums text-foreground">{value === undefined ? "–" : `${formatLevel(value)} ${unit}`}</span>
     </div>
 )

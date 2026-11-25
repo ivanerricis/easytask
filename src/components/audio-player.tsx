@@ -404,8 +404,9 @@ export const AudioPlayer = ({
             {/* The header is the drag handle (unless pinned) and holds the pin toggle and the close button */}
             <div
                 className={cn("-mx-2 -mt-2 -mb-2 p-0.5 flex items-center justify-between touch-none", pinned ? "cursor-default" : "cursor-grab active:cursor-grabbing")}
-                {...(pinned ? undefined : listenersHandle)} {...attributesHandle}
-                aria-label={t("audio.player.move")}
+                // Pinned: not draggable, so no button role and no tab stop either
+                {...(pinned ? undefined : listenersHandle)} {...(pinned ? undefined : attributesHandle)}
+                aria-label={pinned ? undefined : t("audio.player.move")}
             >
                 <TooltipCustom text={pinned ? t("audio.player.unpin") : t("audio.player.pin")}>
                     <Toggle
