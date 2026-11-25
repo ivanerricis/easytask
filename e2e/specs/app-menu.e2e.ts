@@ -11,9 +11,16 @@ const xpathString = (value: string) =>
 const openAppMenu = async (triggerText: string) => {
     const bar = byLabel(await tr("appMenu.label"))
     await bar.waitForDisplayed()
-    await bar.$(`.//*[@role='menuitem'][normalize-space()=${xpathString(triggerText)}]`).click()
+    // The previous menu animates out: wait until it is gone, or the click can land while it still holds the bar
+    await $('[role="menu"]').waitForExist({ reverse: true, timeout: 3_000 }).catch(() => undefined)
+    const trigger = bar.$(`.//*[@role='menuitem'][normalize-space()=${xpathString(triggerText)}]`)
     const menu = $('[role="menu"][data-state="open"]')
-    await menu.waitForDisplayed({ timeoutMsg: `the "${triggerText}" menu did not open` })
+    // On WebKitGTK the first click after Escape is sometimes lost: click again only while the menu is still closed
+    await browser.waitUntil(async () => {
+        if (await menu.isDisplayed()) return true
+        await trigger.click()
+        return menu.waitForDisplayed({ timeout: 1_500 }).then(() => true, () => false)
+    }, { timeout: 10_000, timeoutMsg: `the "${triggerText}" menu did not open` })
     return menu
 }
 
