@@ -100,7 +100,17 @@ jobs:
               NOTE_ARGS=(--generate-notes)
             fi
             gh release create "$TAG" --draft --verify-tag --title "EasyTask $TAG" "${NOTE_ARGS[@]}"
-            ID=$(find_release | jq -r '.[0].id')
+            # The list of releases can miss a just created draft for a few seconds (0.29.0 got "null" here and the
+            # builds uploaded nothing): look again until it shows up.
+            for _ in $(seq 1 20); do
+              ID=$(find_release | jq -r '.[0].id // empty')
+              [ -n "$ID" ] && break
+              sleep 3
+            done
+          fi
+          if [ -z "$ID" ]; then
+            echo "::error::The draft release of $TAG was created but its id could not be read: run the workflow again"
+            exit 1
           fi
           echo "Draft release id: $ID"
           echo "id=$ID" >> "$GITHUB_OUTPUT"
