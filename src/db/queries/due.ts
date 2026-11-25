@@ -11,6 +11,9 @@ export type DueTask = {
     due_time: string | null
     noteID: number
     noteName: string
+    /** The title of the section; null for a task directly in a group (then `groupName` may name it). */
+    sectionTitle: string | null
+    groupName: string | null
     workspaceID: number
     workspaceName: string
 }
@@ -35,7 +38,7 @@ export async function getDBDueTasks(untilDate: string, workspaceId?: number): Pr
                 UNION
                 SELECT f.id FROM folder f INNER JOIN hidden_folder h ON f.folderID = h.id
             )
-            SELECT t.id, t.text, t.due_date, t.due_time, n.id AS noteID, n.name AS noteName, w.id AS workspaceID, w.name AS workspaceName
+            SELECT t.id, t.text, t.due_date, t.due_time, n.id AS noteID, n.name AS noteName, s.title AS sectionTitle, g.name AS groupName, w.id AS workspaceID, w.name AS workspaceName
             FROM task t
             INNER JOIN section s ON s.id = t.sectionID AND s.deleted_at IS NULL AND s.archived_at IS NULL
             INNER JOIN section_group g ON g.id = s.groupID AND g.deleted_at IS NULL AND g.archived_at IS NULL

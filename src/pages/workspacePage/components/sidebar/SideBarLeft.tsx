@@ -13,7 +13,6 @@ import { SelectionActionsProvider } from "./selection-actions"
 import { ButtonTrash } from "./ButtonTrash"
 import { ButtonArchive } from "./ButtonArchive"
 import { ButtonDue } from "./ButtonDue"
-import { SidebarDueEntry, SidebarDueView } from "./SidebarDueEntry"
 import { ButtonTemplates } from "./ButtonTemplates"
 import { DialogAddFolder } from "./DialogAddFolder"
 import { DialogAddNote } from "./DialogAddNote"
@@ -35,7 +34,6 @@ import { getAncestorFolderIds } from "./note-path"
 import { useTreeData } from "./use-tree-data"
 
 export const SideBarLeft = () => {
-    const [dueOpen, setDueOpen] = useState(false)
     const { currentWorkspace } = useWorkspace()
     const { folders, getWorkspaceData } = useWorkspaceData()
     const tree = useTreeData()
@@ -129,8 +127,7 @@ export const SideBarLeft = () => {
                             <ComboboxWorkspace />
                         </div>}
                     >
-                        <SidebarDueEntry active={dueOpen} onToggle={() => setDueOpen(open => !open)} />
-                        {dueOpen ? <SidebarDueView /> : <FileTree collapsedIds={collapsedIds} onToggleFolder={toggleFolder} onExpandFolder={expandFolder} onToggleAll={toggleAll} allCollapsed={allCollapsed} reveal={reveal} onRevealed={handleRevealed} />}
+                        <FileTree collapsedIds={collapsedIds} onToggleFolder={toggleFolder} onExpandFolder={expandFolder} onToggleAll={toggleAll} allCollapsed={allCollapsed} reveal={reveal} onRevealed={handleRevealed} />
                     </SideBarContainer>
                 </SideBar>
                 <SidebarDialogs />

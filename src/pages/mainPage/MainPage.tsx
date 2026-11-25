@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next"
 import { useEffect, useState } from "react"
-import { HomeDue } from "./components/HomeDue"
 import { DialogCreateWorkspace } from "./components/DialogCreateWorkspace"
 import { Loader2, LayoutGrid, LayoutList, Download, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -109,7 +108,6 @@ const MainPage = () => {
                         {t("home.import")}
                     </Button>
                 </div>
-                <HomeDue />
                 <div className="flex flex-col items-center justify-center w-full p-2 gap-2 border rounded-xs">
                     <div className="flex items-center justify-between w-full">
                         <h2 className="text-lg w-full ml-2">
