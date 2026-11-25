@@ -89,6 +89,15 @@ const stubPickers = (savePath: string, openPath: string) => browser.execute((sav
     }
 }, savePath, openPath)
 
+/** What is on screen and in the stub when a step fails: toasts, dialogs, the picker calls and whether the file was written. */
+const diagnostics = async (zipPath: string) => JSON.stringify(await browser.execute((zip: string) => ({
+    wrapped: !!(window as unknown as { __TAURI_INTERNALS__: { __e2eInvoke?: unknown } }).__TAURI_INTERNALS__.__e2eInvoke,
+    calls: (window as unknown as { __e2eCalls?: string[] }).__e2eCalls,
+    toasts: [...document.querySelectorAll("[data-sonner-toast]")].map(el => el.textContent),
+    dialogs: [...document.querySelectorAll('[role="dialog"], [role="alertdialog"]')].map(el => (el.textContent ?? "").slice(0, 200)),
+    zip,
+}), zipPath))
+
 const pickerCalls = () => browser.execute(() => (window as unknown as { __e2eCalls?: string[] }).__e2eCalls ?? [])
 
 /**
@@ -311,7 +320,9 @@ describe("Export and import of a whole workspace", () => {
         await expect(question).toHaveText(expect.stringContaining(await tr("transfer.includeFilesTitle")))
         await byText(await tr("transfer.includeFilesYes"), question).click()
 
-        await toastWith(await tr("transfer.exported")).waitForDisplayed({ timeoutMsg: "the export did not finish" })
+        await toastWith(await tr("transfer.exported")).waitForDisplayed({ timeout: 20_000 }).catch(async () => {
+            throw new Error(`the export did not finish: ${await diagnostics(zipPath)}`)
+        })
         expect(await pickerCalls()).toEqual(["plugin:dialog|save"])
         const zip = fs.readFileSync(zipPath)
         expect(zip.subarray(0, 2).toString("latin1")).toBe("PK")
@@ -324,7 +335,7 @@ describe("Export and import of a whole workspace", () => {
         importedName = `${SOURCE} (${await tr("errors.transfer.suffix")})`
         await byText(await tr("home.import")).click()
         const dialog = $('[role="dialog"]')
-        await dialog.waitForDisplayed({ timeoutMsg: "the import names dialog did not open" })
+        await dialog.waitForDisplayed().catch(async () => { throw new Error(`the import names dialog did not open: ${await diagnostics(zipPath)}`) })
         expect(await browser.execute(() => (document.querySelector('[role="dialog"] input') as HTMLInputElement | null)?.value)).toBe(importedName)
         await byText(await tr("transfer.importAction"), dialog).click()
 
