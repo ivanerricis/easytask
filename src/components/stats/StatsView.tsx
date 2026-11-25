@@ -61,7 +61,7 @@ function WeeklyChart({ stats }: { stats: WorkspaceStats }) {
                     const label = `${t("tasks.stats.weekOf", { date: shortDate(week.start) })}: ${t("tasks.stats.completedCount", { count: week.count })}`
                     return (
                         <div key={week.start} role="listitem" aria-label={label} title={label} className="flex h-full min-w-0 flex-1 flex-col justify-end">
-                            <span aria-hidden className="mb-0.5 text-center text-[11px] leading-none tabular-nums text-muted-foreground">{week.count > 0 ? week.count : ""}</span>
+                            <span aria-hidden className="mb-0.5 text-center text-xs leading-none tabular-nums text-muted-foreground">{week.count > 0 ? week.count : ""}</span>
                             <div
                                 aria-hidden
                                 className={cn("w-full rounded-t-xs", current ? "bg-primary" : "bg-primary/55", week.count === 0 && "min-h-px bg-muted-foreground/40")}
@@ -75,7 +75,7 @@ function WeeklyChart({ stats }: { stats: WorkspaceStats }) {
                 {stats.weeks.map((week, index) => (
                     <span key={week.start} className="relative h-4 min-w-0 flex-1">
                         {(index % 3 === 0 || index === stats.weeks.length - 1) && (
-                            <span className={cn("absolute top-0 whitespace-nowrap text-[11px] leading-4 text-muted-foreground", index === stats.weeks.length - 1 ? "right-0" : "left-0")}>{shortDate(week.start)}</span>
+                            <span className={cn("absolute top-0 whitespace-nowrap text-xs leading-4 text-muted-foreground", index === stats.weeks.length - 1 ? "right-0" : "left-0")}>{shortDate(week.start)}</span>
                         )}
                     </span>
                 ))}

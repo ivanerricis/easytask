@@ -5,7 +5,8 @@ import { TooltipCustom } from "@/components/tooltip-custom"
 import { Button } from "@/components/ui/button"
 import { useActiveNoteSelector, useTabsActions } from "@/contexts/use-tabs"
 import { useShortcutLabel } from "@/contexts/use-shortcuts"
-import { focusRing, ghostIconButtonClass } from "@/lib/a11y"
+import { focusRing, ghostIconButtonClass, tabElementId, tabPanelId } from "@/lib/a11y"
+import { usePane } from "@/contexts/use-layout"
 import { STATS_TAB_ID } from "@/lib/tabs/virtual-tabs"
 import { cn } from "@/lib/utils"
 
@@ -15,6 +16,7 @@ export const StatsHeader = memo(function StatsHeader() {
     const { closeNote, activateNote } = useTabsActions()
     const isActive = useActiveNoteSelector(activeId => activeId === STATS_TAB_ID)
     const closeLabel = useShortcutLabel("close-note")
+    const pane = usePane()?.pane ?? 0
     const title = t("tasks.stats.title")
 
     return (
@@ -28,6 +30,8 @@ export const StatsHeader = memo(function StatsHeader() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
+                id={tabElementId(pane, STATS_TAB_ID)}
+                aria-controls={isActive ? tabPanelId(pane) : undefined}
                 tabIndex={isActive ? 0 : -1}
                 data-note-id={STATS_TAB_ID}
                 title={title}
