@@ -51,10 +51,13 @@ export const useTreeLive = (rows: FlatRow[], tree: object) => {
         if (!live) return false
         const range = target ? sourceRange(live.rows, live.sourceKey) : null
         const at = target && range ? insertionIndex(rowsWithoutSource(live.rows, range), live.source.type, target) : null
-        const shifts = at === null ? null : computeTreeShifts(live.rows, live.index, live.sourceKey, at, rowSize)
         // The skeleton fills the room: as many rows as the dragged subtree, indented like a child of the folder it goes to
         const parent = target?.folderId == null ? undefined : live.rows.find(row => row.kind === "folder" && row.id === target.folderId)
-        const slot = shifts && range && at !== null ? { index: at, count: range.end - range.start + 1, depth: parent ? parent.depth + 1 : 0 } : null
+        const depth = parent ? parent.depth + 1 : 0
+        // In its own place at another depth the room still opens: the old row is hidden, the skeleton has the guides of the new depth
+        const sourceDepth = range ? live.rows[range.start].depth : depth
+        const shifts = at === null ? null : computeTreeShifts(live.rows, live.index, live.sourceKey, at, rowSize, depth !== sourceDepth)
+        const slot = shifts && range && at !== null ? { index: at, count: range.end - range.start + 1, depth } : null
         applyTreeShifts(shifts, slot)
         // Shifted only if there are rows to move: with none the line of the drop is the only indicator
         return shifts !== null && hasTreeRows()

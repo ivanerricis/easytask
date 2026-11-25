@@ -77,6 +77,7 @@ export type TreeShifts = {
  * The rows after the dragged subtree close the room it leaves (up), the rows from the place on open the room it takes (down); the
  * rows in between cancel out when the item goes down, and add up when it goes up.
  * @param rowSize Distance between two rows (their height plus the gap).
+ * @param force Show the room even where the item already is (a place at another depth).
  * @returns Null when there is nothing to show (no such row, or the place is where the item already is).
  */
 export function computeTreeShifts(
@@ -85,14 +86,16 @@ export function computeTreeShifts(
     sourceKey: string,
     place: number,
     rowSize: number,
+    force = false,
 ): TreeShifts | null {
     const range = sourceRange(rows, sourceKey)
     if (!range || !(rowSize > 0)) return null
     const { start, end } = range
     const count = end - start + 1
     const room = count * rowSize
-    // `place` counts the rows that stay: the place of the source itself is `start`
-    if (place === start) return null
+    // `place` counts the rows that stay: the place of the source itself is `start`. Nothing moves there, unless `force`: the item
+    // goes to another depth in the same spot, so its old row (with the old guides) must give way to the room of the new one
+    if (place === start && !force) return null
     return {
         dyOf: (key) => {
             const i = index.get(key)

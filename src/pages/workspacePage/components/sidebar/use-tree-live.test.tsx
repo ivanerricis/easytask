@@ -38,3 +38,24 @@ describe("useTreeLive.show", () => {
         expect(result.current.show(target, "after", true)).toBe(true)
     })
 })
+
+describe("useTreeLive.show in the place of the dragged row but at another depth", () => {
+    const nested = flattenTree({
+        rootFolders: [{ id: 1, name: "F", folderID: null, subfolders: [], notes: [{ id: 10, name: "N10", folderID: 1 } as unknown as Note] } as never],
+        rootNotes: [{ id: 100, name: "N100", folderID: null } as unknown as Note],
+    }, new Set())
+
+    it("opens the room at the new depth (the row leaves its old place, with its old guides) instead of showing nothing", () => {
+        let frame: FrameRequestCallback | null = null
+        vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { frame = callback; return 1 })
+        const dragged = document.createElement("div")
+        registerTreeRow("note-10", dragged)
+        const { result } = renderHook(() => useTreeLive(nested, {}))
+        act(() => { result.current.start({ type: "note", id: 10 }, { keyboard: false, selection: false }) })
+        // From the last place of the folder to the first of the root notes: the same index in the flat list, one level less
+        expect(result.current.show({ folderId: null, index: 0 }, "after", true)).toBe(true)
+        ;(frame as FrameRequestCallback | null)?.(0)
+        expect(dragged.style.opacity).toBe("0")
+        registerTreeRow("note-10", null)
+    })
+})

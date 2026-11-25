@@ -129,7 +129,11 @@ const FolderRow = React.memo(({ folder, children, isOpen, onToggle, dropZone, le
 
             {/* The children slide open and closed (the speed follows the animation setting); once closed they are unmounted */}
             {/* pr-1 and pb-0.5 (with the negative margins): room for the 2px focus ring of the rows, which the clipping of the animation would cut */}
-            <CollapsibleContent className="relative -mr-1 pr-1 -mb-0.5 pb-0.5 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+            {/* With the layers the box reaches the left edge of the tree (negative margin, same padding): it clips, and the guides of the levels above are drawn left of the indent of this folder */}
+            <CollapsibleContent
+                className="relative -mr-1 pr-1 -mb-0.5 pb-0.5 overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
+                style={layer && level > 1 ? { marginLeft: -(level - 1) * size.indentPx, paddingLeft: (level - 1) * size.indentPx } : undefined}
+            >
                 {/* With the layers the guides are the ones of the rows (they move with them in the live drag) */}
                 {!layer && <div className={`absolute ${size.guide} h-full w-[1px] bg-foreground/25`} />}
                 {/* pt-1: the gap between the folder row and its children is inside the animated part, so it does not jump when the animation ends */}
