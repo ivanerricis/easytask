@@ -74,7 +74,7 @@ export const NoteHeader = React.memo(({ note }: NoteHeaderProps) => {
         if (wasEditing.current && !editing) flushKeep()
         wasEditing.current = editing
     }, [editing, flushKeep])
-    useEffect(() => flushKeep, [flushKeep])
+    // No flush on unmount: effects are cleaned up and re-run while the state is kept (hidden/re-shown trees), which would drop `keep` while the field is still open
     const nameInputProps = {
         ...inputProps,
         onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
