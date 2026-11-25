@@ -346,3 +346,23 @@ describe("importing a zip", () => {
         expect(importDBWorkspace).not.toHaveBeenCalled()
     })
 })
+
+describe("files attached to tasks in a zip export", () => {
+    it("puts them in the list and in the archive (notes and templates), naming the entry of every file in the content", async () => {
+        const task = (path: string) => ({ text: "t", subtasks: [], files: [{ name: "doc", path }] })
+        const content = (tasks: unknown[]) => ({ version: 1, groups: [{ position: 0, tasks, sections: [{ title: "S", position: 0, tasks: [task("/d/plan.pdf")] }] }] })
+        const data = {
+            format: "easytask-workspace", scope: "workspace",
+            notes: [{ audio: [], media: [], content: content([task("/d/plan.pdf"), task("/d/other.txt")]) }],
+            templates: [{ name: "T", content: content([task("/d/other.txt")]) }],
+        }
+        buildDBWorkspaceExport.mockResolvedValue(data)
+        invoke.mockImplementation(async (command: string) => command === "linked_files_size" ? { bytes: 10, count: 2, missing: 0 } : { added: 2, missing: 0 })
+        await exportWorkspaceToFile({ id: 3, name: "Casa" }, { askIncludeFiles: async () => true })
+        expect(invoke).toHaveBeenCalledWith("linked_files_size", { paths: ["/d/plan.pdf", "/d/other.txt"] })
+        const call = invoke.mock.calls.find(([command]) => command === "export_zip")![1] as { files: { path: string, entry: string }[], json: string }
+        expect(call.files).toEqual([{ path: "/d/plan.pdf", entry: "files/0_plan.pdf" }, { path: "/d/other.txt", entry: "files/1_other.txt" }])
+        expect(JSON.parse(call.json).notes[0].content.groups[0].tasks[1].files[0].file).toBe("files/1_other.txt")
+        expect(JSON.parse(call.json).templates[0].content.groups[0].tasks[0].files[0].file).toBe("files/1_other.txt")
+    })
+})

@@ -13,7 +13,7 @@ use tauri::ipc::Channel;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
 
-use crate::files::{has_extension, is_linked_file, AUDIO_EXTENSIONS, MEDIA_EXTENSIONS};
+use crate::files::{has_extension, is_attachment_file, is_linked_file, BLOCKED_EXTENSIONS};
 use crate::paths::DataDirInfo;
 
 /// Name of the JSON entry at the root of the archive.
@@ -137,7 +137,7 @@ pub fn linked_files_info(paths: &[String]) -> LinkedFilesInfo {
         if !seen.insert(path.as_str()) {
             continue;
         }
-        match is_linked_file(path)
+        match (is_linked_file(path) || is_attachment_file(path))
             .then(|| std::fs::metadata(path).ok())
             .flatten()
         {
@@ -195,7 +195,7 @@ pub fn write_zip(
     // Only the files that exist are written; the total comes from the same list
     let present: Vec<(&ZipSource, u64)> = files
         .iter()
-        .filter(|file| is_linked_file(&file.path))
+        .filter(|file| is_linked_file(&file.path) || is_attachment_file(&file.path))
         .filter_map(|file| {
             std::fs::metadata(&file.path)
                 .ok()
@@ -326,12 +326,12 @@ fn create_unique(dir: &Path, name: &str) -> Result<(File, PathBuf), String> {
     Err("no free file name".to_string())
 }
 
-/// True for an entry whose file is extracted: under `files/`, with an audio, image or video extension.
+/// True for an entry whose file is extracted: under `files/`, with any extension but a program or a script (audio, images and
+/// videos, and the files attached to the tasks).
 fn is_extractable(name: &str) -> bool {
     name.starts_with(FILES_PREFIX)
         && !name.ends_with('/')
-        && (has_extension(Path::new(name), &AUDIO_EXTENSIONS)
-            || has_extension(Path::new(name), &MEDIA_EXTENSIONS))
+        && !has_extension(Path::new(name), &BLOCKED_EXTENSIONS)
 }
 
 /// Reads an archive: validates EVERY entry first (an absolute path, a `..`, a drive prefix, a backslash or a symbolic link
@@ -589,8 +589,8 @@ mod tests {
                 path: dir.join("gone.png").to_string_lossy().into_owned(),
                 entry: "files/1_gone.png".to_string(),
             },
-            // Not a linked file type: never put in an archive
-            source(&dir, "secret.txt", b"x", "files/2_secret.txt"),
+            // A program: never put in an archive
+            source(&dir, "secret.exe", b"x", "files/2_secret.exe"),
         ];
         let zip_path = dir.join("m.zip");
         let summary = write_zip(&zip_path, "{}", &files, &mut no_progress()).unwrap();
@@ -812,16 +812,48 @@ mod tests {
         let dir = temp_dir("size");
         let a = source(&dir, "a.mp3", &[0u8; 1000], "x");
         let b = source(&dir, "b.png", &[0u8; 2500], "x");
-        let text = source(&dir, "c.txt", &[0u8; 9], "x");
+        let program = source(&dir, "c.exe", &[0u8; 9], "x");
+        let document = source(&dir, "d.pdf", &[0u8; 100], "x");
         let gone = dir.join("gone.mp4").to_string_lossy().into_owned();
-        let info = linked_files_info(&[a.path.clone(), a.path, b.path, text.path, gone]);
+        let info = linked_files_info(&[
+            a.path.clone(),
+            a.path,
+            b.path,
+            program.path,
+            document.path,
+            gone,
+        ]);
         assert_eq!(
             info,
             LinkedFilesInfo {
-                bytes: 3500,
-                count: 2,
+                bytes: 3600,
+                count: 3,
                 missing: 2
             }
         );
+    }
+
+    #[test]
+    fn files_attached_to_tasks_travel_in_the_archive_but_programs_do_not() {
+        let dir = temp_dir("attached");
+        let files = [
+            source(&dir, "plan.pdf", b"pdf-bytes", "files/0_plan.pdf"),
+            source(&dir, "notes.txt", b"text", "files/1_notes.txt"),
+        ];
+        let zip_path = dir.join("a.zip");
+        let summary = write_zip(&zip_path, "{}", &files, &mut no_progress()).unwrap();
+        assert_eq!(
+            summary,
+            ExportSummary {
+                added: 2,
+                missing: 0
+            }
+        );
+        let imported = read_zip(&zip_path, &dir.join("media"), &mut no_progress()).unwrap();
+        assert_eq!(
+            std::fs::read(&imported.files["files/0_plan.pdf"]).unwrap(),
+            b"pdf-bytes"
+        );
+        assert!(imported.files.contains_key("files/1_notes.txt"));
     }
 }

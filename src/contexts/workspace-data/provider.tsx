@@ -18,6 +18,7 @@ import { bumpVersions, createVersionsStore, WorkspaceVersionsContext } from "./v
 import { useTreeActions } from "./tree"
 import { useNoteContentActions } from "./note-content"
 import { useTaskActions } from "./tasks"
+import { useTaskFileActions } from "./task-files"
 import { useTrashActions } from "./trash"
 import { useArchiveActions } from "./archive"
 import { useTemplateActions } from "./templates"
@@ -198,6 +199,7 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
     const treeActions = useTreeActions(runtime)
     const noteContentActions = useNoteContentActions(runtime)
     const taskActions = useTaskActions(runtime)
+    const taskFileActions = useTaskFileActions(runtime)
     const trashActions = useTrashActions(runtime)
     const archiveActions = useArchiveActions(runtime)
     const templateActions = useTemplateActions(runtime)
@@ -219,12 +221,13 @@ export function WorkspaceDataProvider({ children }: { children: React.ReactNode 
         ...treeActions,
         ...noteContentActions,
         ...taskActions,
+        ...taskFileActions,
         ...trashActions,
         ...archiveActions,
         ...templateActions,
         ...tagActions,
         resetData,
-    }), [getWorkspaceData, setWorkspaceDataTree, notifyArchiveChanged, resetData, treeActions, noteContentActions, taskActions, trashActions, archiveActions, templateActions, tagActions])
+    }), [getWorkspaceData, setWorkspaceDataTree, notifyArchiveChanged, resetData, treeActions, noteContentActions, taskActions, taskFileActions, trashActions, archiveActions, templateActions, tagActions])
 
     return (
         <WorkspaceLoadingContext.Provider value={isLoading}>

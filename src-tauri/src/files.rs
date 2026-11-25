@@ -15,6 +15,14 @@ pub(crate) const MEDIA_EXTENSIONS: [&str; 11] = [
     "jpg", "jpeg", "png", "gif", "webp", "avif", "bmp", "mp4", "webm", "mov", "m4v",
 ];
 
+/// Extensions (lowercase) of programs and scripts: a file attached to a task with one of them is kept, but never opened from
+/// the app and never extracted from an archive.
+pub(crate) const BLOCKED_EXTENSIONS: [&str; 33] = [
+    "exe", "com", "bat", "cmd", "msi", "msp", "scr", "pif", "lnk", "url", "ps1", "psm1", "vbs",
+    "vbe", "js", "jse", "wsf", "wsh", "hta", "jar", "reg", "dll", "cpl", "inf", "sh", "command",
+    "app", "appimage", "desktop", "bash", "run", "apk", "gadget",
+];
+
 /// True when the path has one of the given extensions (case insensitive).
 pub(crate) fn has_extension(path: &Path, allowed: &[&str]) -> bool {
     path.extension()
@@ -40,6 +48,12 @@ pub(crate) fn is_linked_file(path: &str) -> bool {
     let path = Path::new(path);
     (has_extension(path, &AUDIO_EXTENSIONS) || has_extension(path, &MEDIA_EXTENSIONS))
         && path.is_file()
+}
+
+/// True when the path is an existing regular file that can be attached to a task: any type but a program or a script.
+pub(crate) fn is_attachment_file(path: &str) -> bool {
+    let path = Path::new(path);
+    !has_extension(path, &BLOCKED_EXTENSIONS) && path.is_file()
 }
 
 /// Tells whether an audio file is still where the database says it is.
@@ -114,6 +128,39 @@ pub(crate) async fn files_exist(paths: Vec<String>) -> Vec<bool> {
     .unwrap_or_else(|_| vec![true; count])
 }
 
+/// Tells, for each path and in the same order, whether the file attached to a task still exists (any type but a program or a
+/// script, so the command cannot be used to probe whether those exist).
+#[tauri::command]
+pub(crate) async fn task_files_exist(paths: Vec<String>) -> Vec<bool> {
+    let count = paths.len();
+    tauri::async_runtime::spawn_blocking(move || {
+        paths.iter().map(|path| is_attachment_file(path)).collect()
+    })
+    .await
+    .unwrap_or_else(|_| vec![true; count])
+}
+
+/// Opens a file attached to a task with the default app of the system. Only existing regular files are opened, and never a
+/// program or a script (the error is `blocked`).
+#[tauri::command]
+pub(crate) async fn open_task_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        use tauri_plugin_opener::OpenerExt;
+
+        if has_extension(Path::new(&path), &BLOCKED_EXTENSIONS) {
+            return Err("blocked".to_string());
+        }
+        if !Path::new(&path).is_file() {
+            return Err("file not found".to_string());
+        }
+        app.opener()
+            .open_path(path, None::<&str>)
+            .map_err(|error| error.to_string())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,6 +205,36 @@ mod tests {
         let folder = dir.join("folder.png");
         std::fs::create_dir_all(&folder).unwrap();
         assert!(!is_media_file(folder.to_str().unwrap()));
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn is_attachment_file_accepts_any_type_but_programs_and_scripts() {
+        let dir = temp_dir("attachment");
+        for name in ["a.pdf", "b.DOCX", "c.txt", "noext", "d.zip"] {
+            let file = dir.join(name);
+            std::fs::write(&file, b"x").unwrap();
+            assert!(is_attachment_file(file.to_str().unwrap()), "{name}");
+        }
+        for name in ["run.exe", "x.BAT", "y.ps1", "z.sh", "w.js"] {
+            let file = dir.join(name);
+            std::fs::write(&file, b"x").unwrap();
+            assert!(!is_attachment_file(file.to_str().unwrap()), "{name}");
+        }
+        assert!(!is_attachment_file(
+            dir.join("missing.pdf").to_str().unwrap()
+        ));
+        let folder = dir.join("folder.pdf");
+        std::fs::create_dir_all(&folder).unwrap();
+        assert!(!is_attachment_file(folder.to_str().unwrap()));
+        let paths = vec![
+            dir.join("a.pdf").to_str().unwrap().to_string(),
+            dir.join("gone.pdf").to_str().unwrap().to_string(),
+        ];
+        assert_eq!(
+            tauri::async_runtime::block_on(task_files_exist(paths)),
+            vec![true, false]
+        );
         std::fs::remove_dir_all(&dir).unwrap();
     }
 

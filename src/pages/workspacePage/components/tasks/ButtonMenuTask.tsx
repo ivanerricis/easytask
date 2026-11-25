@@ -28,6 +28,7 @@ import { TaskSelectionMenuItems } from "./TaskSelectionMenu"
 import { DialogTaskTags } from "@/components/tags/DialogTaskTags"
 import { DialogTaskDue } from "@/components/due/DialogTaskDue"
 import { useSetTaskDue } from "@/components/due/use-set-task-due"
+import { useTaskFileMutations } from "@/hooks/use-task-file-mutations"
 
 type ButtonMenuTaskProps = {
     task: Task
@@ -62,6 +63,7 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
     const selectTask = useSelectTask()
     const showTaskDetails = useShowTaskDetails()
     const multi = useIsInTaskMultiSelection(task.id)
+    const { attach: attachFiles } = useTaskFileMutations(task)
     // Without the question once the user chose "Non chiedermelo più" (the toast and Ctrl+Z bring the task back)
     const { request: requestDelete } = useSkippableDelete({
         item: task,
@@ -153,6 +155,11 @@ export const ButtonMenuTask = ({ task, onAddSubtask, onRename, onEditDescription
                 text={t("tags.menu")}
                 type="tags"
                 onClick={() => { setTagsOpen(true); menu.close() }}
+            />
+            <ButtonInPopover
+                text={t("taskFiles.attach")}
+                type="attachFiles"
+                onClick={() => { menu.close(); void attachFiles() }}
             />
             <Separator />
             <ButtonInPopover

@@ -13,7 +13,7 @@ export type UndoDeps = {
     getWorkspaceId: () => number | null
     workspace: Pick<WorkspaceActionsType,
         "renameItem" | "updateItemColor" | "updateNoteBackground" | "updateNoteBackgroundImage" | "deleteItem" | "restoreItem" | "archiveItem" | "unarchiveItem" | "moveTreeItem" | "moveSection" | "moveDirectSection" | "moveTask" |
-        "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDue" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData" |
+        "updateTaskCompletion" | "updateTaskPriority" | "updateTaskDue" | "setTaskFiles" | "updateTaskDescription" | "updateFolderColorContent" | "getWorkspaceData" |
         "renameTag" | "updateTagColor" | "updateTagShape" | "deleteTag" | "restoreTag" | "setTaskTag" | "setGroupTag" | "setSectionTag">
     note: Pick<ActiveNoteActionsType,
         "patchTask" | "patchSection" | "patchGroup" | "removeGroup" | "removeSection" | "removeTask" |

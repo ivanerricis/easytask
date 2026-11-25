@@ -187,6 +187,8 @@ pub fn run() {
             files::allow_media_file,
             files::open_media_file,
             files::files_exist,
+            files::task_files_exist,
+            files::open_task_file,
             transfer_zip::linked_files_size,
             transfer_zip::export_zip,
             transfer_zip::import_zip,

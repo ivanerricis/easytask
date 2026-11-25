@@ -5,6 +5,7 @@ import { createError, handleDBError } from "@/types/error";
 import { withDBErrors, NOTE_MESSAGES } from "./errors";
 import { getErrorMessage } from "@/lib/utils";
 import { chunked, nextPositionSql, placeholders } from "./sql";
+import { attachTaskFilesOfNotes } from "./task-file";
 import { attachTags, type GroupTagLinkRow, type SectionTagLinkRow, type TagLinkRow, type UsedTag } from "./tag";
 
 /** SQL filter that hides the archived rows (nothing when they are kept); `alias` is the table alias of the column. */
@@ -66,6 +67,7 @@ export async function getDBNoteData(noteId: number, includeArchived = false) {
         ])
         const sections = sectionRows.map(withTitle)
         const tags = attachTags(tasks, links, groups, groupLinks, sections, sectionLinks)
+        await attachTaskFilesOfNotes(db, [noteId], tasks)
         return { groups, sections, tasks, tags }
     } catch (error: unknown) {
         throw createError('NOTE_DATA_LOAD_FAILED', i18n.t("errors.note.load", { message: getErrorMessage(error) }))
@@ -152,6 +154,7 @@ export async function getDBNotesData(noteIds: readonly number[], includeArchived
                 if (list) list.push(link)
                 else sectionLinksByNote.set(_noteID, [link])
             }
+            await attachTaskFilesOfNotes(db, ids, ids.flatMap(id => dataOf(id).tasks))
             for (const noteID of new Set([...linksByNote.keys(), ...groupLinksByNote.keys(), ...sectionLinksByNote.keys()])) {
                 const data = dataOf(noteID)
                 data.tags = attachTags(data.tasks, linksByNote.get(noteID) ?? [], data.groups, groupLinksByNote.get(noteID) ?? [], data.sections, sectionLinksByNote.get(noteID) ?? [])

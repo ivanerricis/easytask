@@ -101,7 +101,7 @@ const NONE = new Set<string>()
  * @param files The files shown (only their path is read).
  * @category Audio Context
  */
-export function useMissingPaths(files: readonly { path: string }[]): ReadonlySet<string> {
+export function useMissingPaths(files: readonly { path: string }[], command: "files_exist" | "task_files_exist" = "files_exist"): ReadonlySet<string> {
     const [missing, setMissing] = useState<ReadonlySet<string>>(NONE)
     // The list is rebuilt on every reload: compare its content, so an equal list does not ask again
     const key = JSON.stringify(files.map(file => file.path))
@@ -110,7 +110,7 @@ export function useMissingPaths(files: readonly { path: string }[]): ReadonlySet
         const paths = JSON.parse(key) as string[]
         if (paths.length === 0) return
         let stale = false
-        invoke<boolean[]>("files_exist", { paths })
+        invoke<boolean[]>(command, { paths })
             .then(results => {
                 if (stale) return
                 const gone = paths.filter((_, index) => results[index] === false)
@@ -118,7 +118,7 @@ export function useMissingPaths(files: readonly { path: string }[]): ReadonlySet
             })
             .catch(() => undefined)
         return () => { stale = true }
-    }, [key])
+    }, [key, command])
 
     return files.length === 0 ? NONE : missing
 }

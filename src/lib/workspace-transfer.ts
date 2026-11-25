@@ -8,6 +8,7 @@ import {
 } from "@/db/queries/transfer"
 import { createError } from "@/types/error"
 import { MAX_IMPORT_FILE_BYTES, type WorkspaceExport } from "@/types/transfer"
+import { forEachTemplateTask, type TemplateFile } from "@/types/template"
 
 const FILTERS = [{ name: "EasyTask", extensions: ["json"] }]
 const ZIP_FILTERS = [{ name: "EasyTask", extensions: ["zip"] }]
@@ -82,11 +83,20 @@ const entryBaseName = (path: string) => {
 /** The background images (of the notes and of the templates) of an export. */
 const backgroundImages = (data: WorkspaceExport) => [...data.notes, ...(data.templates as typeof data.templates | undefined ?? [])].filter(item => item.bg_image)
 
-/** Every linked file (audio, image, video, background image) the export refers to, by path, in file order. */
+/** The files attached to the tasks of the notes and of the templates of an export. */
+function attachedFiles(data: WorkspaceExport): TemplateFile[] {
+    const files: TemplateFile[] = []
+    for (const { content } of [...data.notes, ...(data.templates as typeof data.templates | undefined ?? [])])
+        if (content) forEachTemplateTask(content, task => { files.push(...task.files ?? []) })
+    return files
+}
+
+/** Every linked file (audio, image, video, background image, file attached to a task) the export refers to, by path, in file order. */
 function linkedPaths(data: WorkspaceExport): string[] {
     return [...new Set([
         ...data.notes.flatMap(note => [...note.audio, ...note.media].map(file => file.path)),
         ...backgroundImages(data).map(item => item.bg_image!),
+        ...attachedFiles(data).map(file => file.path),
     ])]
 }
 
@@ -108,6 +118,7 @@ function nameZipEntries(data: WorkspaceExport): ZipSource[] {
     for (const note of data.notes)
         for (const file of [...note.audio, ...note.media]) file.file = entryFor(file.path)
     for (const item of backgroundImages(data)) item.bg_image_file = entryFor(item.bg_image!)
+    for (const file of attachedFiles(data)) file.file = entryFor(file.path)
     return [...entryOf].map(([path, entry]) => ({ path, entry }))
 }
 

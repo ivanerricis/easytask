@@ -17,7 +17,7 @@ function makeDeps() {
         workspace: {
             renameItem: fn(), updateItemColor: fn(), updateNoteBackground: fn(), updateNoteBackgroundImage: fn(), deleteItem: fn(), restoreItem: fn(), archiveItem: fn(), unarchiveItem: fn(), moveTreeItem: fn(),
             moveSection: fn(), moveDirectSection: fn(), moveTask: fn(), updateTaskCompletion: fn(), updateTaskPriority: fn(), updateTaskDue: fn(),
-            updateTaskDescription: fn(), updateFolderColorContent: fn(), getWorkspaceData: fn(),
+            updateTaskDescription: fn(), setTaskFiles: vi.fn(async (_id: number, files: unknown[]) => files.map((file, index) => ({ ...(file as object), id: 100 + index }))), updateFolderColorContent: fn(), getWorkspaceData: fn(),
             renameTag: fn(), updateTagColor: fn(), updateTagShape: fn(), deleteTag: fn(), restoreTag: fn(), setTaskTag: fn(), setGroupTag: fn(), setSectionTag: fn(),
         },
         note: {
@@ -931,6 +931,30 @@ describe("tags", () => {
         ctx.deps.note.getNoteTree.mockReturnValue(treeOf({ id: 11 }))
         ctx.deps.workspace.setTaskTag.mockRejectedValueOnce(new Error("fail"))
         await expect(commands.tagAssign(tag, [11], true).redo()).rejects.toThrow("fail")
+        expect(ctx.rollbacks.patch).toHaveBeenCalledTimes(1)
+    })
+})
+
+describe("task files", () => {
+    const file = (id: number, name: string) => ({ id, taskID: 5, name, path: `/x/${name}`, position: id })
+    const before = [file(1, "a.pdf")]
+    const after = [file(1, "a.pdf"), file(2, "b.docx")]
+
+    it("undo writes the list before, redo the list after, and the note shows the stored rows", async () => {
+        const command = commands.taskFiles(5, "Task", "attach", before, after)
+        expect(command.label).toBe("Allega file al task \"Task\"")
+        await command.undo()
+        expect(ctx.deps.workspace.setTaskFiles).toHaveBeenLastCalledWith(5, before)
+        expect(ctx.deps.note.patchTask).toHaveBeenLastCalledWith(5, { files: [{ ...before[0], id: 100 }] })
+        await command.redo()
+        expect(ctx.deps.workspace.setTaskFiles).toHaveBeenLastCalledWith(5, after)
+        expect(commands.taskFiles(5, "Task", "remove", after, before).label).toBe("Rimuovi file dal task \"Task\"")
+        expect(commands.taskFiles(5, "Task", "relink", before, after).label).toBe("Aggiorna il percorso del file \"Task\"")
+    })
+
+    it("the note is put back when the write fails", async () => {
+        ctx.deps.workspace.setTaskFiles.mockRejectedValueOnce(new Error("fail"))
+        await expect(commands.taskFiles(5, "Task", "remove", after, before).redo()).rejects.toThrow("fail")
         expect(ctx.rollbacks.patch).toHaveBeenCalledTimes(1)
     })
 })

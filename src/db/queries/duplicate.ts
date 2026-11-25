@@ -8,6 +8,7 @@ import { getDB } from "../dbManager"
 import { rethrowTxError, Transaction } from "../transaction"
 import type { PortableAutomation } from "@/lib/automations/portable"
 import { loadSectionTags } from "./tag"
+import { loadTaskFiles } from "./task-file"
 import { addNoteContent, addSections, buildContentWithSectionIds, createSectionSnapshotter, getDBTemplate } from "./template"
 import { uniqueName } from "./names"
 import { addNoteAutomations, getDBPortableAutomations } from "./automation"
@@ -144,6 +145,7 @@ export async function duplicateDBSection(sectionId: number): Promise<number> {
             'SELECT * FROM task WHERE sectionID = ? AND deleted_at IS NULL AND archived_at IS NULL ORDER BY position, id', [sectionId])
         const section = { ...source, title: source.title ?? "" } as Omit<SectionRow, "title"> & { title: string, tagIDs?: number[] }
         const tags = await loadSectionTags(sectionId, tasks, section)
+        await loadTaskFiles(tasks)
         snapshot = createSectionSnapshotter(tasks, tags)(section)
     } catch (error: unknown) {
         throw toAppError(error, e => createError("DUPLICATE_FAILED", i18n.t("errors.duplicate.load", { message: getErrorMessage(e) })))

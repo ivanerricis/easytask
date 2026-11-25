@@ -1,11 +1,12 @@
 import i18n from "@/i18n"
-import type { NoteTemplate, NoteTemplateContent, TemplateGroup, TemplateSection, TemplateTag, TemplateTask } from "@/types/template";
+import type { NoteTemplate, NoteTemplateContent, TemplateGroup, TemplateFile, TemplateSection, TemplateTag, TemplateTask } from "@/types/template";
 import type { Group, Section, Task } from "@/types/types";
 import { createError, handleDBError, toAppError } from "@/types/error";
 import { getErrorMessage } from "@/lib/utils";
 import { getDB } from "../dbManager";
 import { rethrowTxError, Transaction, type TxRef } from "../transaction";
 import { getDBNoteData, getDBNotesData, type NoteData } from "./note";
+import { addTaskFiles } from "./task-file";
 import { addEnsureTag, WORKSPACE_OF_NOTE, WORKSPACE_OF_SECTION, type UsedTag } from "./tag";
 import { isDefaultSection } from "@/lib/group-sections";
 import { nextPositionSql } from "./sql";
@@ -78,6 +79,7 @@ export function createSectionSnapshotter(tasks: Task[], tags: readonly UsedTag[]
         color: task.color ?? null,
         ...(task.due_date ? { due_date: task.due_date, ...(task.due_time ? { due_time: task.due_time } : {}) } : {}),
         ...(tagsOf(task).length > 0 ? { tags: tagsOf(task) } : {}),
+        ...(task.files?.length ? { files: task.files.map(({ name, path }) => ({ name, path })) } : {}),
         position: task.position,
         subtasks: (childrenOf.get(task.id) ?? []).map(snapshotTask),
     })
@@ -401,6 +403,7 @@ export function addNoteContent(tx: Transaction, noteRef: number | TxRef, content
  */
 export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, level: PendingTask[]): TxRef[] {
     const tagged: { taskRef: TxRef, tags: TemplateTag[] }[] = []
+    const attached: { taskRef: TxRef, files: TemplateFile[] }[] = []
     let firstLevel: TxRef[] | null = null
     while (level.length > 0) {
         const refs = tx.insertRows("task",
@@ -414,10 +417,12 @@ export function addTaskTree(tx: Transaction, tagSectionRef: number | TxRef, leve
             }))
         firstLevel ??= refs
         level.forEach(({ task }, i) => { if (task.tags?.length) tagged.push({ taskRef: refs[i], tags: task.tags }) })
+        level.forEach(({ task }, i) => { if (task.files?.length) attached.push({ taskRef: refs[i], files: task.files }) })
         level = level.flatMap(({ sectionRef, task }, i) =>
             task.subtasks.map(subtask => ({ sectionRef, parentRef: refs[i], task: subtask })))
     }
     if (tagged.length > 0) addTaskTags(tx, tagSectionRef, tagged)
+    addTaskFiles(tx, attached)
     return firstLevel ?? []
 }
 

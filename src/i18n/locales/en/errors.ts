@@ -23,6 +23,10 @@ export const errors: Translation["errors"] = {
         loadFiles: "Failed to load the images and videos: {{message}}",
         loadFile: "Failed to load the image or video: {{message}}",
     },
+    taskFile: {
+        load: "Failed to load the attached files: {{message}}",
+        checkCreate: "The file name and path cannot be empty.",
+    },
     nameEmpty: "The name cannot be empty.",
     folder: {
         unique: "A folder with this name already exists.",

@@ -21,6 +21,10 @@ export const errors = {
         loadFiles: "Impossibile caricare le immagini e i video: {{message}}",
         loadFile: "Impossibile caricare l'immagine o il video: {{message}}",
     },
+    taskFile: {
+        load: "Impossibile caricare i file allegati: {{message}}",
+        checkCreate: "Il nome e il percorso del file non possono essere vuoti.",
+    },
     nameEmpty: "Il nome non può essere vuoto.",
     folder: {
         unique: "Esiste già una cartella con questo nome.",

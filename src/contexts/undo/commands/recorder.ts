@@ -33,5 +33,5 @@ export function createUndoRecorder(commands: UndoCommands, record: (command: Und
 const noop = () => {}
 export const NOOP_RECORDER: UndoRecorder = {
     rename: noop, color: noop, background: noop, backgroundImage: noop, taskCompletion: noop, taskPriority: noop, taskDue: noop, taskDescription: noop, pageText: noop, remove: noop, create: noop,
-    archive: noop, createMany: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagShape: noop, tagAssign: noop, tagAssignGroups: noop, tagAssignSections: noop, record: noop, track: write => write,
+    archive: noop, createMany: noop, unarchive: noop, archiveMany: noop, treeMove: noop, removeMany: noop, colorMany: noop, colorContent: noop, treeMoveMany: noop, sectionMove: noop, directMove: noop, sectionMoveToNewGroup: noop, taskMove: noop, taskMoveMany: noop, taskFiles: noop, tagCreate: noop, tagDelete: noop, tagRename: noop, tagColor: noop, tagShape: noop, tagAssign: noop, tagAssignGroups: noop, tagAssignSections: noop, record: noop, track: write => write,
 }

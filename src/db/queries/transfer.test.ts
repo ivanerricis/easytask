@@ -1061,3 +1061,68 @@ describe("background image of the notes in export/import", () => {
         expect(() => validateWorkspaceExport(data)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
     })
 })
+
+describe("files attached to tasks in the export file", () => {
+    const attach = (taskId: number, ...paths: string[]) => {
+        paths.forEach((path, position) => sqlite.exec(`INSERT INTO task_file (taskID, name, path, position) VALUES (${taskId}, '${path.split("/").pop()}', '${path}', ${position})`))
+    }
+    const importedFiles = (workspaceId: number) => rows(
+        `SELECT t.text, f.name, f.path FROM task_file f JOIN task t ON t.id = f.taskID JOIN section s ON s.id = t.sectionID JOIN section_group g ON g.id = s.groupID JOIN note n ON n.id = g.noteID WHERE n.workspaceID = ${workspaceId} ORDER BY t.text, f.position`)
+
+    it("exports the files in the content of the tasks and imports them back, trashed tasks left out", async () => {
+        attach(1, "/docs/a.pdf", "/docs/b.docx")
+        attach(7, "/docs/hidden.pdf")
+        const data = await buildDBWorkspaceExport(1)
+        const json = JSON.stringify(data)
+        expect(json).toContain("a.pdf")
+        expect(json).not.toContain("hidden.pdf")
+        const { workspaceId, skippedFiles } = await importDBWorkspace(validateWorkspaceExport(JSON.parse(json)))
+        expect(skippedFiles).toBe(0)
+        expect(importedFiles(workspaceId)).toEqual([
+            { text: "Radice B", name: "a.pdf", path: "/docs/a.pdf" },
+            { text: "Radice B", name: "b.docx", path: "/docs/b.docx" },
+        ])
+    })
+
+    it("an old file without files still imports, and a malformed list is refused", async () => {
+        attach(1, "/docs/a.pdf")
+        const data = JSON.parse(JSON.stringify(await buildDBWorkspaceExport(1)))
+        expect(() => validateWorkspaceExport(data)).not.toThrow()
+        const task = data.notes.find((n: { name: string }) => n.name === "Sorgente").content.groups[0].sections[0].tasks.find((t: { text: string }) => t.text === "Radice B")
+        expect(task.files).toHaveLength(1)
+        task.files = "x"
+        expect(() => validateWorkspaceExport(data)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+        task.files = [{ name: "a", path: "" }]
+        expect(() => validateWorkspaceExport(data)).toThrow(expect.objectContaining({ code: "TRANSFER_INVALID_FILE" }))
+    })
+
+    it("a nameless file takes the file name of its path", async () => {
+        attach(1, "/docs/a.pdf")
+        const data = JSON.parse(JSON.stringify(await buildDBWorkspaceExport(1)))
+        const note = data.notes.find((n: { name: string }) => n.name === "Sorgente")
+        delete note.content.groups[0].sections[0].tasks.find((t: { text: string }) => t.text === "Radice B").files[0].name
+        const { workspaceId } = await importDBWorkspace(validateWorkspaceExport(data))
+        expect(importedFiles(workspaceId)).toEqual([{ text: "Radice B", name: "a.pdf", path: "/docs/a.pdf" }])
+    })
+
+    it("a zip import points the files to the extracted copies and drops the ones the archive lacks", async () => {
+        attach(1, "/docs/a.pdf", "/docs/b.docx")
+        const data = JSON.parse(JSON.stringify(await buildDBWorkspaceExport(1)))
+        const note = data.notes.find((n: { name: string }) => n.name === "Sorgente")
+        const files = note.content.groups[0].sections[0].tasks.find((t: { text: string }) => t.text === "Radice B").files
+        files[0].file = "files/0_a.pdf"
+        files[1].file = "files/1_b.docx"
+        const { workspaceId, skippedFiles } = await importDBWorkspace(validateWorkspaceExport(data), { extractedFiles: { "files/0_a.pdf": "C:\\data\\media\\a.pdf" } })
+        expect(skippedFiles).toBe(1)
+        expect(importedFiles(workspaceId)).toEqual([{ text: "Radice B", name: "a.pdf", path: "C:\\data\\media\\a.pdf" }])
+    })
+
+    it("the files of the tasks of a template are resolved too", async () => {
+        const data = JSON.parse(JSON.stringify(await buildDBWorkspaceExport(1)))
+        data.templates = [{ name: "T", color: null, content: { version: 1, groups: [{ name: null, position: 0, sections: [{ title: "S", position: 0, tasks: [{ text: "x", description: null, completed: false, priority: false, color: null, position: 0, subtasks: [], files: [{ name: "p.pdf", path: "/old/p.pdf", file: "files/0_p.pdf" }] }] }] }] } }]
+        await importDBWorkspace(validateWorkspaceExport(data), { extractedFiles: { "files/0_p.pdf": "C:\\data\\media\\p.pdf" } })
+        const stored = rows("SELECT content FROM note_template WHERE name = 'T' ORDER BY id DESC")[0].content as string
+        expect(stored).toContain("C:\\\\data\\\\media\\\\p.pdf")
+        expect(stored).not.toContain("files/0_p.pdf")
+    })
+})
